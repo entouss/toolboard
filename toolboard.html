@@ -4,8 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toolboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%20%20%3Crect%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22%23444%22%20rx%3D%2210%22%20ry%3D%2210%22%20%2F%3E%20%20%3Cdefs%3E%20%20%20%20%3Cpattern%20id%3D%22peg-grid%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%20%20%20%20%20%20%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%2210.5%22%20fill%3D%22%23000%22%20%2F%3E%20%20%20%20%3C%2Fpattern%3E%20%20%3C%2Fdefs%3E%20%20%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22275%22%20height%3D%22275%22%20fill%3D%22url(%23peg-grid)%22%20%2F%3E%20%20%3Cg%20fill%3D%22%23ff8%22%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E">
     <style>
+:root {
+    --bg-primary: #f5f5f5;
+    --bg-secondary: white;
+    --bg-tertiary: #f8f9fa;
+    --bg-header: #2c3e50;
+    --bg-note-header: #34495e;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-muted: #7f8c8d;
+    --text-heading: #2c3e50;
+    --border-color: #ddd;
+    --border-light: #eee;
+    --shadow-light: rgba(0,0,0,0.1);
+    --shadow-medium: rgba(0,0,0,0.15);
+    --shadow-heavy: rgba(0,0,0,0.25);
+    --overlay-bg: rgba(0,0,0,0.5);
+    --code-bg: #f4f4f4;
+    --table-stripe: #f8f9fa;
+    --table-hover: #e8f4fd;
+    --input-bg: white;
+    --success-bg: #d4edda;
+    --success-text: #155724;
+    --error-bg: #f8d7da;
+    --error-text: #721c24;
+}
+
+body.dark-mode {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #1f2940;
+    --bg-header: #0f0f23;
+    --bg-note-header: #1f2940;
+    --text-primary: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --text-heading: #e4e4e7;
+    --border-color: #3f3f46;
+    --border-light: #27272a;
+    --shadow-light: rgba(0,0,0,0.3);
+    --shadow-medium: rgba(0,0,0,0.4);
+    --shadow-heavy: rgba(0,0,0,0.5);
+    --overlay-bg: rgba(0,0,0,0.7);
+    --code-bg: #27272a;
+    --table-stripe: #1f2940;
+    --table-hover: #2d3a52;
+    --input-bg: #1f2940;
+    --success-bg: #064e3b;
+    --success-text: #6ee7b7;
+    --error-bg: #7f1d1d;
+    --error-text: #fca5a5;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -14,13 +67,15 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #f5f5f5;
+    background: var(--bg-primary);
     min-height: 100vh;
     font-size: 12px;
+    color: var(--text-primary);
+    transition: background 0.3s, color 0.3s;
 }
 
 header {
-    background: #2c3e50;
+    background: var(--bg-header);
     color: white;
     padding: 15px 20px;
     display: flex;
@@ -29,6 +84,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 10002;
+    transition: background 0.3s;
 }
 
 header h1 {
@@ -74,14 +130,14 @@ header h1 {
     position: absolute;
     top: 100%;
     left: 20px;
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 6px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 20px var(--shadow-heavy);
     padding: 12px;
     z-index: 10001;
     min-width: 250px;
     display: none;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .noteboard-settings.open {
@@ -91,7 +147,7 @@ header h1 {
 .noteboard-settings label {
     display: block;
     font-size: 11px;
-    color: #666;
+    color: var(--text-secondary);
     margin-bottom: 4px;
     font-weight: 500;
 }
@@ -99,10 +155,12 @@ header h1 {
 .noteboard-settings input[type="text"] {
     width: 100%;
     padding: 6px 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 12px;
     margin-bottom: 10px;
+    background: var(--input-bg);
+    color: var(--text-primary);
 }
 
 .noteboard-settings input[type="text"]:focus {
@@ -207,7 +265,7 @@ header h1 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: var(--overlay-bg);
     z-index: 10010;
     justify-content: center;
     align-items: center;
@@ -218,7 +276,7 @@ header h1 {
 }
 
 .import-export-content {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 8px;
     padding: 20px;
     width: 90%;
@@ -229,24 +287,25 @@ header h1 {
 
 .import-export-content h2 {
     margin-bottom: 15px;
-    color: #2c3e50;
+    color: var(--text-heading);
 }
 
 .import-export-tabs {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
-    border-bottom: 2px solid #ecf0f1;
+    border-bottom: 2px solid var(--border-color);
     padding-bottom: 10px;
 }
 
 .import-export-tab {
     padding: 8px 16px;
     border: none;
-    background: #ecf0f1;
+    background: var(--bg-tertiary);
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
+    color: var(--text-primary);
 }
 
 .import-export-tab.active {
@@ -265,7 +324,7 @@ header h1 {
 
 .import-export-note h3 {
     margin-bottom: 10px;
-    color: #34495e;
+    color: var(--text-heading);
     font-size: 14px;
 }
 
@@ -314,10 +373,11 @@ header h1 {
 .checkbox-list {
     max-height: 200px;
     overflow-y: auto;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 10px;
     margin-bottom: 10px;
+    background: var(--bg-tertiary);
 }
 
 .checkbox-list label {
@@ -326,10 +386,11 @@ header h1 {
     gap: 8px;
     padding: 5px 0;
     cursor: pointer;
+    color: var(--text-primary);
 }
 
 .checkbox-list label:hover {
-    background: #f8f9fa;
+    background: var(--table-hover);
 }
 
 .import-textarea {
@@ -338,10 +399,12 @@ header h1 {
     font-family: monospace;
     font-size: 12px;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     resize: vertical;
     margin-bottom: 10px;
+    background: var(--input-bg);
+    color: var(--text-primary);
 }
 
 .import-file-input {
@@ -352,16 +415,16 @@ header h1 {
     float: right;
     font-size: 24px;
     cursor: pointer;
-    color: #7f8c8d;
+    color: var(--text-muted);
     line-height: 1;
 }
 
 .import-export-close:hover {
-    color: #2c3e50;
+    color: var(--text-heading);
 }
 
 .select-all-row {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 8px;
     margin-bottom: 8px;
 }
@@ -374,13 +437,13 @@ header h1 {
 }
 
 .import-result.success {
-    background: #d4edda;
-    color: #155724;
+    background: var(--success-bg);
+    color: var(--success-text);
 }
 
 .import-result.error {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--error-bg);
+    color: var(--error-text);
 }
 
 main#noteboard {
@@ -391,11 +454,11 @@ main#noteboard {
 
 .note {
     position: absolute;
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px var(--shadow-light);
     overflow: visible;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, background 0.3s;
     min-width: 150px;
     min-height: 100px;
     display: flex;
@@ -495,17 +558,17 @@ main#noteboard {
 }
 
 .note:hover {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 20px var(--shadow-medium);
 }
 
 .note.dragging {
     opacity: 0.9;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 30px var(--shadow-heavy);
     z-index: 1000 !important;
 }
 
 .note-header {
-    background: #34495e;
+    background: var(--bg-note-header);
     color: white;
     padding: 10px 15px;
     font-weight: bold;
@@ -517,6 +580,7 @@ main#noteboard {
     user-select: none;
     flex-shrink: 0;
     border-radius: 8px 8px 0 0;
+    transition: background 0.3s;
 }
 
 .note-header:active {
@@ -579,30 +643,68 @@ main#noteboard {
     transform: rotate(180deg);
 }
 
-/* Note settings popup */
-.note-settings {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    padding: 12px;
-    z-index: 10000;
-    min-width: 220px;
+/* Note settings popup - modal style */
+.note-settings-overlay {
     display: none;
-    color: #333;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-bg);
+    z-index: 10010;
+    justify-content: center;
+    align-items: center;
+}
+
+.note-settings-overlay.open {
+    display: flex;
+}
+
+.note-settings {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px var(--shadow-heavy);
+    padding: 20px;
+    min-width: 280px;
+    max-width: 90%;
+    color: var(--text-primary);
     font-weight: normal;
 }
 
-.note-settings.open {
-    display: block;
+.note-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.note-settings-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-heading);
+}
+
+.note-settings-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    line-height: 1;
+}
+
+.note-settings-close:hover {
+    color: var(--text-primary);
 }
 
 .note-settings label {
     display: block;
     font-size: 11px;
-    color: #666;
+    color: var(--text-secondary);
     margin-bottom: 4px;
     font-weight: 500;
 }
@@ -610,7 +712,9 @@ main#noteboard {
 .note-settings input[type="text"] {
     width: 100%;
     padding: 6px 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-primary);
     border-radius: 4px;
     font-size: 12px;
     margin-bottom: 10px;
@@ -662,6 +766,54 @@ main#noteboard {
     background: #2980b9;
 }
 
+.duplicate-note-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #9b59b6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.duplicate-note-btn:hover {
+    background: #8e44ad;
+}
+
+.export-note-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #1abc9c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.export-note-btn:hover {
+    background: #16a085;
+}
+
+.export-png-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #e67e22;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.export-png-btn:hover {
+    background: #d35400;
+}
+
 .delete-note-btn {
     width: 100%;
     padding: 6px 12px;
@@ -685,7 +837,7 @@ main#noteboard {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: var(--overlay-bg);
     z-index: 20000;
     align-items: center;
     justify-content: center;
@@ -696,7 +848,7 @@ main#noteboard {
 }
 
 .content-editor {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 8px;
     width: 95%;
     max-width: 1400px;
@@ -707,7 +859,7 @@ main#noteboard {
     flex-direction: column;
     overflow: hidden;
     position: absolute;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 50px var(--shadow-heavy);
 }
 
 .content-editor-resize {
@@ -742,7 +894,7 @@ main#noteboard {
 
 .content-editor-header {
     padding: 15px 20px;
-    background: #34495e;
+    background: var(--bg-note-header);
     color: white;
     display: flex;
     justify-content: space-between;
@@ -785,7 +937,7 @@ main#noteboard {
 
 .content-editor-resizer {
     width: 6px;
-    background: #e0e0e0;
+    background: var(--border-color);
     cursor: col-resize;
     flex-shrink: 0;
     transition: background 0.15s;
@@ -805,11 +957,11 @@ main#noteboard {
 
 .content-editor-label {
     padding: 8px 12px;
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
     font-size: 11px;
-    color: #666;
+    color: var(--text-secondary);
     font-weight: 500;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .content-editor-textarea {
@@ -820,6 +972,8 @@ main#noteboard {
     font-size: 12px;
     resize: none;
     outline: none;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .content-editor-preview-area {
@@ -827,12 +981,14 @@ main#noteboard {
     padding: 12px;
     overflow: auto;
     font-size: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .content-editor-footer {
     padding: 12px 20px;
-    background: #f8f9fa;
-    border-top: 1px solid #ddd;
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -878,7 +1034,7 @@ main#noteboard {
 .markdown-content h4, .markdown-content h5, .markdown-content h6 {
     margin-top: 0.5em;
     margin-bottom: 0.3em;
-    color: #2c3e50;
+    color: var(--text-heading);
 }
 
 .markdown-content h1 { font-size: 1.4em; }
@@ -895,7 +1051,7 @@ main#noteboard {
 }
 
 .markdown-content code {
-    background: #f4f4f4;
+    background: var(--code-bg);
     padding: 2px 5px;
     border-radius: 3px;
     font-family: monospace;
@@ -903,7 +1059,7 @@ main#noteboard {
 }
 
 .markdown-content pre {
-    background: #f4f4f4;
+    background: var(--code-bg);
     padding: 10px;
     border-radius: 4px;
     overflow-x: auto;
@@ -918,12 +1074,12 @@ main#noteboard {
     border-left: 3px solid #3498db;
     margin: 0.5em 0;
     padding-left: 1em;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .markdown-content hr {
     border: none;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-color);
     margin: 1em 0;
 }
 
@@ -973,22 +1129,216 @@ table {
 }
 
 th, td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     padding: 6px 8px;
     text-align: left;
 }
 
 th {
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
     font-weight: 600;
 }
 
 tr:nth-child(even) {
-    background: #f8f9fa;
+    background: var(--table-stripe);
 }
 
 tr:hover {
-    background: #e8f4fd;
+    background: var(--table-hover);
+}
+
+/* Checklist Widget */
+.checklist-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    transition: background 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+
+.checklist-item:hover {
+    background: var(--table-hover);
+}
+
+.checklist-item.dragging {
+    opacity: 0.5;
+    box-shadow: 0 2px 8px var(--shadow-medium);
+}
+
+.checklist-item.drag-over {
+    border-top: 2px solid #3498db;
+    margin-top: -2px;
+}
+
+.checklist-item.completed {
+    opacity: 0.6;
+}
+
+.checklist-item.completed .checklist-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.checklist-item.in_progress .checklist-status {
+    background: #f39c12;
+    border-color: #f39c12;
+}
+
+.checklist-item.in_progress .checklist-status::after {
+    content: '▶';
+    color: white;
+    font-size: 9px;
+    margin-left: 1px;
+}
+
+.checklist-drag {
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 2px;
+    opacity: 0.4;
+    transition: opacity 0.15s;
+}
+
+.checklist-item:hover .checklist-drag {
+    opacity: 1;
+}
+
+.checklist-drag:active {
+    cursor: grabbing;
+}
+
+.checklist-status {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    background: transparent;
+}
+
+.checklist-status:hover {
+    border-color: #3498db;
+}
+
+.checklist-item.completed .checklist-status {
+    background: #27ae60;
+    border-color: #27ae60;
+}
+
+.checklist-item.completed .checklist-status::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.checklist-text {
+    flex: 1;
+    font-size: 13px;
+    word-break: break-word;
+    cursor: text;
+    padding: 2px 4px;
+    border-radius: 3px;
+    min-height: 1.4em;
+}
+
+.checklist-text:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.checklist-text:focus {
+    outline: none;
+    background: var(--input-bg);
+    box-shadow: 0 0 0 2px #3498db;
+}
+
+.checklist-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.checklist-item:hover .checklist-actions {
+    opacity: 1;
+}
+
+.checklist-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.checklist-btn:hover {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-primary);
+}
+
+.checklist-btn.delete:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* Sub-items */
+.checklist-subitems {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0 24px;
+    border-left: 2px solid var(--border-light);
+    padding-left: 8px;
+}
+
+.checklist-subitems .checklist-item {
+    background: transparent;
+    padding: 4px 6px;
+    margin-bottom: 2px;
+}
+
+.checklist-subitems .checklist-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.checklist-add-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-left: 24px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.checklist-item-wrapper:hover .checklist-add-sub {
+    opacity: 1;
+}
+
+.checklist-add-sub:hover {
+    color: #3498db;
+}
+
+.checklist-input:focus {
+    outline: none;
+    border-color: #3498db;
 }
 
 /* Modal */
@@ -1000,12 +1350,12 @@ tr:hover {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: var(--overlay-bg);
     overflow: auto;
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg-secondary);
     margin: 50px auto;
     padding: 20px;
     width: 90%;
@@ -1024,6 +1374,7 @@ tr:hover {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    color: var(--text-secondary);
 }
 
 .close:hover {
@@ -1038,7 +1389,7 @@ tr:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: var(--overlay-bg);
     z-index: 10010;
     justify-content: center;
     align-items: center;
@@ -1049,7 +1400,7 @@ tr:hover {
 }
 
 .feature-select-content {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 8px;
     padding: 20px;
     width: 90%;
@@ -1060,19 +1411,19 @@ tr:hover {
 
 .feature-select-content h2 {
     margin-bottom: 15px;
-    color: #2c3e50;
+    color: var(--text-heading);
 }
 
 .feature-select-close {
     float: right;
     font-size: 24px;
     cursor: pointer;
-    color: #7f8c8d;
+    color: var(--text-muted);
     line-height: 1;
 }
 
 .feature-select-close:hover {
-    color: #2c3e50;
+    color: var(--text-heading);
 }
 
 .feature-select-list {
@@ -1086,19 +1437,19 @@ tr:hover {
     align-items: center;
     gap: 12px;
     padding: 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
 }
 
 .feature-select-item:hover {
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
     border-color: #3498db;
 }
 
 .feature-select-item:active {
-    background: #e8f4fd;
+    background: var(--table-hover);
 }
 
 .feature-select-icon {
@@ -1114,13 +1465,13 @@ tr:hover {
 
 .feature-select-name {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text-heading);
     margin-bottom: 2px;
 }
 
 .feature-select-description {
     font-size: 11px;
-    color: #7f8c8d;
+    color: var(--text-muted);
 }
 
 /* Number formatting */
@@ -1165,6 +1516,7 @@ tr:hover {
             <span id="toolboardVersion" class="toolboard-version"></span>
         </div>
         <div class="header-controls">
+            <button id="darkModeToggle" class="header-settings-btn" title="Toggle Dark Mode">&#9790;</button>
             <div class="board-selector-wrapper">
                 <select id="boardSelector"></select>
             </div>
@@ -1265,6 +1617,25 @@ tr:hover {
             <span class="feature-select-close">&times;</span>
             <h2>Choose Note Type</h2>
             <div id="featureSelectList" class="feature-select-list"></div>
+        </div>
+    </div>
+
+    <!-- Note Settings Modal -->
+    <div id="noteSettingsOverlay" class="note-settings-overlay">
+        <div class="note-settings">
+            <div class="note-settings-header">
+                <h3>Note Settings</h3>
+                <button class="note-settings-close">&times;</button>
+            </div>
+            <label>Title</label>
+            <input type="text" id="noteSettingsTitleInput" class="title-input" placeholder="Note title">
+            <label>Color</label>
+            <div class="color-picker-row" id="noteSettingsColorPicker"></div>
+            <button class="edit-content-btn" id="noteSettingsEditBtn">Edit Content</button>
+            <button class="duplicate-note-btn" id="noteSettingsDuplicateBtn">Duplicate Note</button>
+            <button class="export-note-btn" id="noteSettingsExportBtn">Export as HTML</button>
+            <button class="export-png-btn" id="noteSettingsExportPngBtn">Export as PNG</button>
+            <button class="delete-note-btn" id="noteSettingsDeleteBtn">Hide Note</button>
         </div>
     </div>
 
@@ -1382,6 +1753,22 @@ const NOTE_TEMPLATES = {
 <div id="taxResults"></div>
 </div>`,
         onInit: 'calculateTax'
+    },
+    'checklist': {
+        id: 'checklist',
+        name: 'Checklist',
+        description: 'Interactive checklist with add, check, and delete functionality',
+        icon: '✅',
+        title: 'Checklist',
+        content: `<div class="checklist-widget" style="padding:10px;">
+<div style="display:flex;gap:8px;margin-bottom:12px;">
+<input type="text" class="checklist-input" placeholder="Add new item..." style="flex:1;padding:8px 10px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">
+<button onclick="checklistAddItem(this)" style="padding:8px 14px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Add</button>
+</div>
+<ul class="checklist-items" style="list-style:none;padding:0;margin:0;"></ul>
+<div class="checklist-summary" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);"></div>
+</div>`,
+        onInit: 'checklistInit'
     }
 };
 
@@ -1547,8 +1934,30 @@ let resizeState = {
     startTop: 0
 };
 
+// Dark mode setup
+function setupDarkMode() {
+    const toggle = document.getElementById('darkModeToggle');
+    const stored = localStorage.getItem('toolboard_darkMode');
+
+    // Apply stored preference or check system preference
+    if (stored === 'true' || (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-mode');
+        toggle.innerHTML = '&#9788;'; // Sun icon for light mode
+        toggle.title = 'Switch to Light Mode';
+    }
+
+    toggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('toolboard_darkMode', isDark);
+        toggle.innerHTML = isDark ? '&#9788;' : '&#9790;'; // Sun or Moon
+        toggle.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    });
+}
+
 // Initialize the noteboard
 function init() {
+    setupDarkMode();
     populateBoardSelector();
     applyNoteboardSettings();
     setupNoteboardSettings();
@@ -1575,8 +1984,24 @@ function displayVersion() {
 }
 
 // Setup note minimize and settings controls
+let currentSettingsNoteId = null;
+
 function setupNoteControls() {
     const noteboard = document.getElementById('noteboard');
+    const settingsOverlay = document.getElementById('noteSettingsOverlay');
+    const settingsTitleInput = document.getElementById('noteSettingsTitleInput');
+    const settingsColorPicker = document.getElementById('noteSettingsColorPicker');
+    const settingsEditBtn = document.getElementById('noteSettingsEditBtn');
+    const settingsDuplicateBtn = document.getElementById('noteSettingsDuplicateBtn');
+    const settingsExportBtn = document.getElementById('noteSettingsExportBtn');
+    const settingsExportPngBtn = document.getElementById('noteSettingsExportPngBtn');
+    const settingsDeleteBtn = document.getElementById('noteSettingsDeleteBtn');
+    const settingsCloseBtn = settingsOverlay.querySelector('.note-settings-close');
+
+    // Populate color picker
+    settingsColorPicker.innerHTML = HEADER_COLORS.map(c =>
+        `<div class="color-swatch" style="background: ${c}" data-color="${c}"></div>`
+    ).join('');
 
     // Minimize button
     noteboard.addEventListener('click', (e) => {
@@ -1596,49 +2021,72 @@ function setupNoteControls() {
         }
     });
 
-    // Settings button
+    // Settings button - open modal
     noteboard.addEventListener('click', (e) => {
         if (e.target.closest('.settings-btn')) {
             e.stopPropagation();
             const note = e.target.closest('.note');
             const noteId = note.getAttribute('data-note');
-            const settingsPanel = note.querySelector('.note-settings');
+            currentSettingsNoteId = noteId;
 
-            // Close other open settings panels
-            document.querySelectorAll('.note-settings.open').forEach(panel => {
-                if (panel !== settingsPanel) panel.classList.remove('open');
+            // Bring note to front
+            let highestZ = 0;
+            document.querySelectorAll('.note').forEach(s => {
+                const z = parseInt(s.style.zIndex) || 0;
+                if (z > highestZ) highestZ = z;
+            });
+            maxZ = highestZ + 1;
+            note.style.zIndex = maxZ;
+            positions[noteId] = positions[noteId] || {};
+            positions[noteId].z = maxZ;
+
+            // Populate modal with current note settings
+            const custom = noteCustomizations[noteId] || {};
+            const content = getNoteContent(noteId);
+            const displayTitle = custom.title || content.title;
+            const headerColor = custom.color || null;
+            const isCustomNote = customNotes.includes(noteId);
+
+            settingsTitleInput.value = displayTitle;
+            settingsDeleteBtn.textContent = isCustomNote ? 'Delete Note' : 'Hide Note';
+
+            // Update color picker selection
+            settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => {
+                s.classList.toggle('selected', s.getAttribute('data-color') === headerColor);
             });
 
-            // Bring note to front when opening settings
-            if (!settingsPanel.classList.contains('open')) {
-                // Find the highest z-index among all notes and go above it
-                let highestZ = 0;
-                document.querySelectorAll('.note').forEach(s => {
-                    const z = parseInt(s.style.zIndex) || 0;
-                    if (z > highestZ) highestZ = z;
-                });
-                maxZ = highestZ + 1;
-                note.style.zIndex = maxZ;
-                positions[noteId] = positions[noteId] || {};
-                positions[noteId].z = maxZ;
-            }
-
-            settingsPanel.classList.toggle('open');
+            // Open modal
+            settingsOverlay.classList.add('open');
         }
     });
 
-    // Color swatch click
-    noteboard.addEventListener('click', (e) => {
-        if (e.target.classList.contains('color-swatch')) {
+    // Close modal
+    function closeSettingsModal() {
+        settingsOverlay.classList.remove('open');
+        currentSettingsNoteId = null;
+    }
+
+    settingsCloseBtn.addEventListener('click', closeSettingsModal);
+
+    // Close on overlay background click
+    settingsOverlay.addEventListener('click', (e) => {
+        if (e.target === settingsOverlay) {
+            closeSettingsModal();
+        }
+    });
+
+    // Color swatch click in modal
+    settingsColorPicker.addEventListener('click', (e) => {
+        if (e.target.classList.contains('color-swatch') && currentSettingsNoteId) {
             e.stopPropagation();
-            const note = e.target.closest('.note');
-            const noteId = note.getAttribute('data-note');
+            const noteId = currentSettingsNoteId;
+            const note = document.querySelector(`.note[data-note="${noteId}"]`);
             const color = e.target.getAttribute('data-color');
             const header = note.querySelector('.note-header');
 
             // Update UI
             header.style.background = color;
-            note.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+            settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
             e.target.classList.add('selected');
 
             // Save
@@ -1648,11 +2096,11 @@ function setupNoteControls() {
         }
     });
 
-    // Title input change
-    noteboard.addEventListener('input', (e) => {
-        if (e.target.classList.contains('title-input')) {
-            const note = e.target.closest('.note');
-            const noteId = note.getAttribute('data-note');
+    // Title input change in modal
+    settingsTitleInput.addEventListener('input', (e) => {
+        if (currentSettingsNoteId) {
+            const noteId = currentSettingsNoteId;
+            const note = document.querySelector(`.note[data-note="${noteId}"]`);
             const titleSpan = note.querySelector('.note-title');
             const newTitle = e.target.value;
 
@@ -1666,42 +2114,59 @@ function setupNoteControls() {
         }
     });
 
-    // Close settings when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.note-settings') && !e.target.closest('.settings-btn')) {
-            document.querySelectorAll('.note-settings.open').forEach(panel => {
-                panel.classList.remove('open');
-            });
-        }
-    });
-
-    // Edit content button
-    noteboard.addEventListener('click', (e) => {
-        if (e.target.classList.contains('edit-content-btn')) {
-            e.stopPropagation();
-            const note = e.target.closest('.note');
-            const noteId = note.getAttribute('data-note');
-            // Close settings panel
-            note.querySelector('.note-settings').classList.remove('open');
+    // Edit content button in modal
+    settingsEditBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsNoteId) {
+            const noteId = currentSettingsNoteId;
+            closeSettingsModal();
             openContentEditor(noteId);
         }
     });
 
-    // Delete note button
-    noteboard.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-note-btn')) {
-            e.stopPropagation();
-            const note = e.target.closest('.note');
-            const noteId = note.getAttribute('data-note');
-            // Close settings panel
-            note.querySelector('.note-settings').classList.remove('open');
+    // Duplicate note button in modal
+    settingsDuplicateBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsNoteId) {
+            const noteId = currentSettingsNoteId;
+            closeSettingsModal();
+            duplicateNote(noteId);
+        }
+    });
+
+    // Export note button in modal
+    settingsExportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsNoteId) {
+            const noteId = currentSettingsNoteId;
+            closeSettingsModal();
+            exportNoteAsHtml(noteId);
+        }
+    });
+
+    // Export note as PNG button in modal
+    settingsExportPngBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsNoteId) {
+            const noteId = currentSettingsNoteId;
+            closeSettingsModal();
+            exportNoteAsPng(noteId);
+        }
+    });
+
+    // Delete note button in modal
+    settingsDeleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsNoteId) {
+            const noteId = currentSettingsNoteId;
+            closeSettingsModal();
             deleteNote(noteId);
         }
     });
 
-    // Prevent dragging when interacting with settings
+    // Prevent dragging when interacting with header buttons
     noteboard.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.note-settings') || e.target.closest('.header-btn')) {
+        if (e.target.closest('.header-btn')) {
             e.stopPropagation();
         }
     });
@@ -1738,6 +2203,7 @@ function initializeCalculators() {
     setTimeout(() => {
         if (document.getElementById('taxIncome')) calculateTax();
         if (document.getElementById('growthInitial')) calculateGrowth();
+        if (document.querySelector('.checklist-widget')) checklistInit();
     }, 50);
 }
 
@@ -1819,6 +2285,314 @@ function calculateTax() {
         </div>
     `;
 }
+
+// Checklist Widget Functions
+let checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+
+function checklistGetNoteId(element) {
+    const note = element.closest('.note');
+    return note ? note.getAttribute('data-note') : null;
+}
+
+function checklistGetData(noteId) {
+    const custom = noteCustomizations[noteId] || {};
+    // Migrate old format: convert completed boolean to status
+    let items = custom.checklistItems || [];
+    items = items.map(item => {
+        if (typeof item.completed === 'boolean' && !item.status) {
+            return { ...item, status: item.completed ? 'completed' : 'pending', children: item.children || [] };
+        }
+        return { ...item, children: item.children || [] };
+    });
+    return items;
+}
+
+function checklistSaveData(noteId, items) {
+    noteCustomizations[noteId] = noteCustomizations[noteId] || {};
+    noteCustomizations[noteId].checklistItems = items;
+    saveNoteCustomizations(noteCustomizations);
+}
+
+function checklistInit() {
+    document.querySelectorAll('.checklist-widget').forEach(widget => {
+        const noteId = checklistGetNoteId(widget);
+        if (noteId) {
+            checklistRender(widget, noteId);
+        }
+    });
+}
+
+function checklistRenderItem(item, idx, parentIdx = null) {
+    const statusClass = item.status || 'pending';
+    const path = parentIdx !== null ? `${parentIdx}.${idx}` : `${idx}`;
+    const isSubitem = parentIdx !== null;
+
+    let childrenHtml = '';
+    if (!isSubitem && item.children && item.children.length > 0) {
+        childrenHtml = `<ul class="checklist-subitems">${item.children.map((child, cIdx) =>
+            checklistRenderItem(child, cIdx, idx)
+        ).join('')}</ul>`;
+    }
+
+    const addSubBtn = !isSubitem ? `<span class="checklist-add-sub" onclick="checklistAddSub(this, ${idx})">+ Add sub-item</span>` : '';
+
+    return `
+        <div class="checklist-item-wrapper" data-path="${path}">
+            <li class="checklist-item ${statusClass}" data-path="${path}" draggable="true"
+                ondragstart="checklistDragStart(event, '${path}')"
+                ondragover="checklistDragOver(event)"
+                ondragleave="checklistDragLeave(event)"
+                ondrop="checklistDrop(event, '${path}')">
+                <span class="checklist-drag">⋮⋮</span>
+                <span class="checklist-status" onclick="checklistCycleStatus(this, '${path}')" title="Click to change status"></span>
+                <span class="checklist-text" contenteditable="true"
+                    onblur="checklistUpdateText(this, '${path}')"
+                    onkeydown="checklistTextKeydown(event, this)">${escapeHtml(item.text)}</span>
+                <span class="checklist-actions">
+                    ${!isSubitem ? `<button class="checklist-btn" onclick="checklistAddSub(this, ${idx})" title="Add sub-item">+</button>` : ''}
+                    <button class="checklist-btn delete" onclick="checklistDelete(this, '${path}')" title="Delete">×</button>
+                </span>
+            </li>
+            ${childrenHtml}
+            ${addSubBtn}
+        </div>
+    `;
+}
+
+function checklistRender(widget, noteId) {
+    const items = checklistGetData(noteId);
+    const listEl = widget.querySelector('.checklist-items');
+    const summaryEl = widget.querySelector('.checklist-summary');
+
+    if (!listEl) return;
+
+    listEl.innerHTML = items.map((item, idx) => checklistRenderItem(item, idx)).join('');
+
+    // Update summary with all items including children
+    let total = 0, completed = 0, inProgress = 0;
+    const countItems = (arr) => {
+        arr.forEach(item => {
+            total++;
+            if (item.status === 'completed') completed++;
+            else if (item.status === 'in_progress') inProgress++;
+            if (item.children) countItems(item.children);
+        });
+    };
+    countItems(items);
+
+    if (total > 0) {
+        let summary = `${completed}/${total} done`;
+        if (inProgress > 0) summary += ` · ${inProgress} in progress`;
+        summaryEl.textContent = summary;
+    } else {
+        summaryEl.textContent = 'No items yet';
+    }
+}
+
+function checklistGetItemByPath(items, path) {
+    const parts = path.split('.').map(Number);
+    let item = items[parts[0]];
+    if (parts.length > 1 && item && item.children) {
+        item = item.children[parts[1]];
+    }
+    return item;
+}
+
+function checklistSetItemByPath(items, path, value) {
+    const parts = path.split('.').map(Number);
+    if (parts.length === 1) {
+        if (value === null) {
+            items.splice(parts[0], 1);
+        } else {
+            items[parts[0]] = value;
+        }
+    } else if (items[parts[0]] && items[parts[0]].children) {
+        if (value === null) {
+            items[parts[0]].children.splice(parts[1], 1);
+        } else {
+            items[parts[0]].children[parts[1]] = value;
+        }
+    }
+}
+
+function checklistAddItem(btn) {
+    const widget = btn.closest('.checklist-widget');
+    const input = widget.querySelector('.checklist-input');
+    const noteId = checklistGetNoteId(widget);
+
+    if (!noteId || !input.value.trim()) return;
+
+    const items = checklistGetData(noteId);
+    items.push({ text: input.value.trim(), status: 'pending', children: [] });
+    checklistSaveData(noteId, items);
+
+    input.value = '';
+    checklistRender(widget, noteId);
+}
+
+function checklistAddSub(el, parentIdx) {
+    const widget = el.closest('.checklist-widget');
+    const noteId = checklistGetNoteId(widget);
+    if (!noteId) return;
+
+    const items = checklistGetData(noteId);
+    if (!items[parentIdx].children) items[parentIdx].children = [];
+    items[parentIdx].children.push({ text: 'New sub-item', status: 'pending' });
+    checklistSaveData(noteId, items);
+    checklistRender(widget, noteId);
+
+    // Focus the new item for editing
+    setTimeout(() => {
+        const newItem = widget.querySelector(`[data-path="${parentIdx}.${items[parentIdx].children.length - 1}"] .checklist-text`);
+        if (newItem) {
+            newItem.focus();
+            document.execCommand('selectAll', false, null);
+        }
+    }, 10);
+}
+
+function checklistCycleStatus(el, path) {
+    const widget = el.closest('.checklist-widget');
+    const noteId = checklistGetNoteId(widget);
+    if (!noteId) return;
+
+    const items = checklistGetData(noteId);
+    const item = checklistGetItemByPath(items, path);
+    if (!item) return;
+
+    // Cycle: pending -> in_progress -> completed -> pending
+    const cycle = { 'pending': 'in_progress', 'in_progress': 'completed', 'completed': 'pending' };
+    item.status = cycle[item.status] || 'pending';
+
+    checklistSaveData(noteId, items);
+    checklistRender(widget, noteId);
+}
+
+function checklistUpdateText(el, path) {
+    const widget = el.closest('.checklist-widget');
+    const noteId = checklistGetNoteId(widget);
+    if (!noteId) return;
+
+    const items = checklistGetData(noteId);
+    const item = checklistGetItemByPath(items, path);
+    if (!item) return;
+
+    const newText = el.textContent.trim();
+    if (newText && newText !== item.text) {
+        item.text = newText;
+        checklistSaveData(noteId, items);
+    } else if (!newText) {
+        el.textContent = item.text; // Restore if empty
+    }
+}
+
+function checklistTextKeydown(e, el) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+    } else if (e.key === 'Escape') {
+        const widget = el.closest('.checklist-widget');
+        const noteId = checklistGetNoteId(widget);
+        const path = el.closest('.checklist-item').dataset.path;
+        const items = checklistGetData(noteId);
+        const item = checklistGetItemByPath(items, path);
+        if (item) el.textContent = item.text;
+        el.blur();
+    }
+}
+
+function checklistDelete(btn, path) {
+    const widget = btn.closest('.checklist-widget');
+    const noteId = checklistGetNoteId(widget);
+    if (!noteId) return;
+
+    const items = checklistGetData(noteId);
+    checklistSetItemByPath(items, path, null);
+    checklistSaveData(noteId, items);
+    checklistRender(widget, noteId);
+}
+
+// Drag and drop for reordering
+function checklistDragStart(e, path) {
+    const widget = e.target.closest('.checklist-widget');
+    checklistDragState.dragging = path;
+    checklistDragState.noteId = checklistGetNoteId(widget);
+    checklistDragState.parentIdx = path.includes('.') ? parseInt(path.split('.')[0]) : null;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function checklistDragOver(e) {
+    e.preventDefault();
+    const item = e.target.closest('.checklist-item');
+    if (item && !item.classList.contains('dragging')) {
+        item.classList.add('drag-over');
+    }
+}
+
+function checklistDragLeave(e) {
+    const item = e.target.closest('.checklist-item');
+    if (item) item.classList.remove('drag-over');
+}
+
+function checklistDrop(e, targetPath) {
+    e.preventDefault();
+    const targetItem = e.target.closest('.checklist-item');
+    if (targetItem) targetItem.classList.remove('drag-over');
+
+    const sourcePath = checklistDragState.dragging;
+    const noteId = checklistDragState.noteId;
+
+    if (!sourcePath || !noteId || sourcePath === targetPath) {
+        checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+        return;
+    }
+
+    // Only allow reordering within same level (both top-level or both same parent)
+    const sourceParent = sourcePath.includes('.') ? sourcePath.split('.')[0] : null;
+    const targetParent = targetPath.includes('.') ? targetPath.split('.')[0] : null;
+
+    if (sourceParent !== targetParent) {
+        checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+        return;
+    }
+
+    const items = checklistGetData(noteId);
+    const sourceIdx = parseInt(sourcePath.split('.').pop());
+    const targetIdx = parseInt(targetPath.split('.').pop());
+
+    let arr = items;
+    if (sourceParent !== null) {
+        arr = items[parseInt(sourceParent)].children;
+    }
+
+    // Move item
+    const [moved] = arr.splice(sourceIdx, 1);
+    arr.splice(targetIdx > sourceIdx ? targetIdx : targetIdx, 0, moved);
+
+    checklistSaveData(noteId, items);
+
+    const widget = document.querySelector(`.note[data-note="${noteId}"] .checklist-widget`);
+    if (widget) checklistRender(widget, noteId);
+
+    checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+}
+
+document.addEventListener('dragend', (e) => {
+    document.querySelectorAll('.checklist-item.dragging').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.checklist-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+});
+
+// Add enter key support for checklist input
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.classList.contains('checklist-input')) {
+        e.preventDefault();
+        const widget = e.target.closest('.checklist-widget');
+        const addBtn = widget.querySelector('button[onclick*="checklistAddItem"]');
+        if (addBtn) checklistAddItem(addBtn);
+    }
+});
 
 // Simple Calculator State
 let calcState = { current: '0', previous: '', operator: '', newNumber: true };
@@ -2338,6 +3112,25 @@ function setupContentEditor() {
         editorResize.isResizing = false;
         editorResize.handle = null;
     });
+
+    // Double-click on note content to edit
+    const noteboard = document.getElementById('noteboard');
+    noteboard.addEventListener('dblclick', (e) => {
+        // Don't trigger on interactive elements
+        if (e.target.closest('input, button, select, textarea, a, .checklist-widget')) return;
+
+        const noteContent = e.target.closest('.note-content');
+        if (!noteContent) return;
+
+        const note = noteContent.closest('.note');
+        if (!note) return;
+
+        const noteId = note.getAttribute('data-note');
+        if (noteId) {
+            e.preventDefault();
+            openContentEditor(noteId);
+        }
+    });
 }
 
 function openContentEditor(noteId) {
@@ -2444,8 +3237,8 @@ function setupNoteboardSettings() {
     // Toggle settings panel
     settingsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Close note settings panels
-        document.querySelectorAll('.note-settings.open').forEach(p => p.classList.remove('open'));
+        // Close note settings modal
+        document.getElementById('noteSettingsOverlay').classList.remove('open');
         settingsPanel.classList.toggle('open');
     });
 
@@ -2564,16 +3357,6 @@ function createNote(noteId) {
                 <button class="header-btn minimize-btn${isMinimized ? ' minimized' : ''}" title="Minimize">&#9650;</button>
                 <button class="header-btn settings-btn" title="Settings">&#9881;</button>
             </div>
-            <div class="note-settings">
-                <label>Title</label>
-                <input type="text" class="title-input" value="${displayTitle}" placeholder="Note title">
-                <label>Color</label>
-                <div class="color-picker-row">
-                    ${HEADER_COLORS.map(c => `<div class="color-swatch${headerColor === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`).join('')}
-                </div>
-                <button class="edit-content-btn">Edit Content</button>
-                <button class="delete-note-btn">${isCustomNote ? 'Delete Note' : 'Hide Note'}</button>
-            </div>
         </div>
         <div class="note-content">
             ${custom.customContent ? `<div class="markdown-content">${parseMarkdown(custom.customContent)}</div>` : content.html}
@@ -2645,8 +3428,8 @@ function setupDragging() {
         const header = e.target.closest('.note-header');
         if (!header) return;
 
-        // Don't drag if clicking buttons or settings
-        if (e.target.closest('.header-btn') || e.target.closest('.note-settings')) return;
+        // Don't drag if clicking buttons
+        if (e.target.closest('.header-btn')) return;
 
         const note = header.closest('.note');
         if (!note) return;
@@ -3675,6 +4458,219 @@ function deleteNote(noteId) {
         if (note) {
             note.remove();
         }
+    }
+}
+
+// Duplicate a note
+function duplicateNote(noteId) {
+    const sourceCustom = noteCustomizations[noteId] || {};
+    const sourcePos = positions[noteId] || { x: 50, y: 50 };
+
+    // Generate new note ID
+    const newNoteId = 'note_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // Add to custom notes
+    customNotes.push(newNoteId);
+    saveCustomNotes(customNotes);
+
+    // Copy customizations (deep clone)
+    noteCustomizations[newNoteId] = JSON.parse(JSON.stringify(sourceCustom));
+    noteCustomizations[newNoteId].title = (sourceCustom.title || 'Note') + ' (Copy)';
+    saveNoteCustomizations(noteCustomizations);
+
+    // Set position offset from original
+    positions[newNoteId] = {
+        x: sourcePos.x + 30,
+        y: sourcePos.y + 30,
+        z: ++maxZ,
+        width: sourcePos.width,
+        height: sourcePos.height
+    };
+    savePositions(positions);
+
+    // Create and add the note to DOM
+    const note = createNote(newNoteId);
+    if (note) {
+        document.getElementById('noteboard').appendChild(note);
+        // Initialize if it's a checklist or calculator
+        initializeCalculators();
+    }
+}
+
+// Export a note as HTML file
+function exportNoteAsHtml(noteId) {
+    const custom = noteCustomizations[noteId] || {};
+    const content = getNoteContent(noteId);
+    const title = custom.title || content.title || 'Note';
+    const headerColor = custom.color || '#34495e';
+
+    // Get the rendered content from the DOM
+    const noteEl = document.querySelector(`[data-note="${noteId}"]`);
+    let bodyContent = '';
+
+    if (noteEl) {
+        const contentEl = noteEl.querySelector('.note-content');
+        if (contentEl) {
+            bodyContent = contentEl.innerHTML;
+        }
+    }
+
+    // If it's a checklist, render it nicely for export
+    if (custom.checklistItems && custom.checklistItems.length > 0) {
+        bodyContent = renderChecklistForExport(custom.checklistItems);
+    }
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(title)}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .note {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        .note-header {
+            background: ${headerColor};
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .note-content {
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 { margin: 1em 0 0.5em; color: #2c3e50; }
+        p { margin: 0.5em 0; }
+        ul, ol { margin: 0.5em 0; padding-left: 1.5em; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #f4f4f4; padding: 12px; border-radius: 4px; overflow-x: auto; }
+        pre code { background: none; padding: 0; }
+        table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; }
+        blockquote { border-left: 3px solid #3498db; margin: 1em 0; padding-left: 1em; color: #666; }
+        a { color: #3498db; }
+        img { max-width: 100%; height: auto; }
+        .checklist { list-style: none; padding: 0; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .checklist-item:last-child { border-bottom: none; }
+        .status { width: 20px; height: 20px; border: 2px solid #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .status.completed { background: #27ae60; border-color: #27ae60; color: white; }
+        .status.in_progress { background: #f39c12; border-color: #f39c12; color: white; font-size: 10px; }
+        .item-text { flex: 1; }
+        .item-text.completed { text-decoration: line-through; color: #999; }
+        .subitems { margin-left: 30px; padding-left: 10px; border-left: 2px solid #eee; }
+        .exported-date { text-align: center; color: #999; font-size: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="note">
+        <div class="note-header">${escapeHtml(title)}</div>
+        <div class="note-content">
+            ${bodyContent}
+            <div class="exported-date">Exported from Toolboard on ${new Date().toLocaleDateString()}</div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    // Download the file
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Render checklist items for HTML export
+function renderChecklistForExport(items, isSublist = false) {
+    const listClass = isSublist ? 'subitems' : 'checklist';
+    let html = `<ul class="${listClass}">`;
+
+    items.forEach(item => {
+        const status = item.status || 'pending';
+        const statusIcon = status === 'completed' ? '✓' : (status === 'in_progress' ? '▶' : '');
+        const textClass = status === 'completed' ? 'completed' : '';
+
+        html += `<li class="checklist-item">
+            <span class="status ${status}">${statusIcon}</span>
+            <span class="item-text ${textClass}">${escapeHtml(item.text)}</span>
+        </li>`;
+
+        if (item.children && item.children.length > 0) {
+            html += renderChecklistForExport(item.children, true);
+        }
+    });
+
+    html += '</ul>';
+    return html;
+}
+
+// Export a note as PNG image
+async function exportNoteAsPng(noteId) {
+    const noteEl = document.querySelector(`[data-note="${noteId}"]`);
+    if (!noteEl) return;
+
+    const custom = noteCustomizations[noteId] || {};
+    const content = getNoteContent(noteId);
+    const title = custom.title || content.title || 'Note';
+
+    // Store original styles
+    const originalPosition = noteEl.style.position;
+    const originalTransform = noteEl.style.transform;
+    const originalBoxShadow = noteEl.style.boxShadow;
+
+    try {
+        // Temporarily adjust note for better capture
+        noteEl.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+
+        // Use html2canvas to capture the note
+        const canvas = await html2canvas(noteEl, {
+            backgroundColor: null,
+            scale: 2, // Higher resolution
+            logging: false,
+            useCORS: true,
+            allowTaint: true
+        });
+
+        // Restore original styles
+        noteEl.style.position = originalPosition;
+        noteEl.style.transform = originalTransform;
+        noteEl.style.boxShadow = originalBoxShadow;
+
+        // Convert to PNG and download
+        const link = document.createElement('a');
+        link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+    } catch (error) {
+        // Restore original styles on error
+        noteEl.style.position = originalPosition;
+        noteEl.style.transform = originalTransform;
+        noteEl.style.boxShadow = originalBoxShadow;
+
+        console.error('Error exporting note as PNG:', error);
+        alert('Failed to export note as PNG. Please try again.');
     }
 }
 
