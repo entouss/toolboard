@@ -706,13 +706,13 @@ main#noteboard {
 /* Fullscreen mode */
 .note.fullscreen {
     position: fixed !important;
-    top: 0 !important;
+    top: 56px !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
     width: 100vw !important;
-    height: 100vh !important;
-    z-index: 10005 !important;
+    height: calc(100vh - 56px) !important;
+    z-index: 10001 !important;
     border-radius: 0 !important;
     margin: 0 !important;
 }
@@ -722,7 +722,7 @@ main#noteboard {
 }
 
 .note.fullscreen .note-content {
-    max-height: calc(100vh - 36px);
+    max-height: calc(100vh - 56px - 36px);
     overflow: auto;
 }
 
@@ -738,12 +738,12 @@ main#noteboard {
 .fullscreen-backdrop {
     display: none;
     position: fixed;
-    top: 0;
+    top: 56px;
     left: 0;
     right: 0;
     bottom: 0;
     background: var(--overlay-bg);
-    z-index: 10004;
+    z-index: 10000;
 }
 
 .fullscreen-backdrop.active {
@@ -1890,6 +1890,26 @@ tr:hover {
     padding: 3px 0;
 }
 
+.calendar-day-tooltip-text {
+    flex: 1;
+}
+
+.calendar-event-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    line-height: 1;
+    opacity: 0.5;
+}
+
+.calendar-event-delete:hover {
+    color: #e74c3c;
+    opacity: 1;
+}
+
 .calendar-day-tooltip-dot {
     width: 6px;
     height: 6px;
@@ -2239,6 +2259,357 @@ body.dark-mode .diff-line.deletion {
 
 body.dark-mode .diff-line.deletion .diff-gutter {
     background: rgba(231, 76, 60, 0.35);
+}
+
+/* Sequence Diagram Widget Styles */
+.note-content:has(.seq-widget) {
+    display: flex;
+    flex-direction: column;
+}
+
+.seq-widget {
+    padding: 10px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 0;
+}
+
+.seq-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.seq-mode-toggle {
+    display: flex;
+    gap: 4px;
+}
+
+.seq-mode-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.seq-mode-btn:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.seq-mode-btn:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.seq-mode-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.seq-help-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 10px;
+    border-radius: 3px;
+}
+
+.seq-help-btn:hover {
+    background: var(--table-hover);
+}
+
+.seq-split-container {
+    flex: 1;
+    display: none;
+    gap: 10px;
+    min-height: 0;
+}
+
+.seq-split-container.active {
+    display: flex;
+}
+
+.seq-split-container .seq-edit-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.seq-split-container .seq-edit-pane textarea {
+    flex: 1;
+    resize: none;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.seq-split-container .seq-edit-pane textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.seq-split-container .seq-view-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    overflow: auto;
+}
+
+.seq-split-resizer {
+    width: 6px;
+    background: var(--border-color);
+    cursor: col-resize;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.seq-split-resizer:hover {
+    background: #3498db;
+}
+
+.seq-edit-container {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.seq-edit-container.active {
+    display: flex;
+}
+
+.seq-edit-container textarea {
+    flex: 1;
+    resize: none;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.seq-edit-container textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.seq-edit-container textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.seq-view-container {
+    flex: 1;
+    min-height: 0;
+    display: none;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.seq-view-container.active {
+    display: flex;
+}
+
+.seq-diagram {
+    flex: 1;
+    min-height: 200px;
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+
+.seq-diagram svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.seq-participant-box {
+    fill: var(--bg-tertiary);
+    stroke: var(--border-color);
+    stroke-width: 2;
+}
+
+.seq-participant-text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--text-primary);
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.seq-lifeline {
+    stroke: var(--border-color);
+    stroke-width: 1;
+    stroke-dasharray: 5, 5;
+}
+
+.seq-arrow {
+    stroke: var(--text-primary);
+    stroke-width: 1.5;
+    fill: none;
+}
+
+.seq-arrow-head {
+    fill: var(--text-primary);
+    stroke: none;
+}
+
+.seq-arrow.dashed {
+    stroke-dasharray: 5, 3;
+}
+
+.seq-arrow-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11px;
+    fill: var(--text-primary);
+    dominant-baseline: middle;
+}
+
+.seq-arrow-number {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    fill: white;
+}
+
+.seq-arrow-number-bg {
+    fill: #3498db;
+}
+
+.seq-arrow.dashed + .seq-arrow-number-bg,
+.seq-dashed-number-bg {
+    fill: #9b59b6;
+}
+
+.seq-self-arrow {
+    stroke: var(--text-primary);
+    stroke-width: 1.5;
+    fill: none;
+}
+
+.seq-error-message {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.seq-help-text {
+    font-size: 10px;
+    color: var(--text-muted);
+    padding: 8px 0;
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.seq-help-text code {
+    background: var(--code-bg);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+/* Sequence Diagram Help Modal */
+.seq-help-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-bg);
+    z-index: 10015;
+    justify-content: center;
+    align-items: center;
+}
+
+.seq-help-modal.open {
+    display: flex;
+}
+
+.seq-help-content {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.seq-help-content h3 {
+    margin-bottom: 12px;
+    color: var(--text-heading);
+}
+
+.seq-help-content pre {
+    background: var(--code-bg);
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.seq-help-content p {
+    margin: 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.seq-help-close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.seq-help-close:hover {
+    color: var(--text-heading);
+}
+
+/* Dark mode adjustments for sequence diagram */
+body.dark-mode .seq-participant-box {
+    fill: var(--bg-tertiary);
+    stroke: var(--border-color);
+}
+
+body.dark-mode .seq-arrow-number-bg {
+    fill: #2980b9;
+}
+
+body.dark-mode .seq-dashed-number-bg {
+    fill: #8e44ad;
 }
 
 /* Feature Selection Modal */
@@ -2867,6 +3238,48 @@ Hide Whitespace
 <div class="diff-stats"></div>
 </div>`,
         onInit: 'diffInit'
+    },
+    'sequence-diagram': {
+        id: 'sequence-diagram',
+        name: 'Sequence Diagram',
+        description: 'Create sequence diagrams from simple text notation',
+        icon: '📊',
+        title: 'Sequence Diagram',
+        content: `<div class="seq-widget">
+<div class="seq-toolbar">
+<div class="seq-mode-toggle">
+<button class="seq-mode-btn" onclick="seqSetMode(this, 'edit')">Edit</button>
+<button class="seq-mode-btn active" onclick="seqSetMode(this, 'split')">Split</button>
+<button class="seq-mode-btn" onclick="seqSetMode(this, 'view')">View</button>
+</div>
+<button class="seq-help-btn" onclick="seqShowHelp(this)">? Syntax Help</button>
+</div>
+<div class="seq-edit-container">
+<textarea placeholder="Enter sequence diagram notation..." oninput="seqOnInput(this)"></textarea>
+</div>
+<div class="seq-split-container active">
+<div class="seq-edit-pane">
+<textarea placeholder="Enter sequence diagram notation...
+
+Example:
+Alice -> Bob: Hello
+Bob --> Alice: Hi there!
+Bob -> Charlie: Forward
+Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
+</div>
+<div class="seq-split-resizer"></div>
+<div class="seq-view-pane">
+<div class="seq-diagram"></div>
+</div>
+</div>
+<div class="seq-view-container">
+<div class="seq-diagram"></div>
+</div>
+<div class="seq-help-text">
+Syntax: <code>Actor -> Actor: Message</code> (solid) or <code>Actor --> Actor: Message</code> (dashed)
+</div>
+</div>`,
+        onInit: 'seqInit'
     }
 };
 
@@ -3368,6 +3781,7 @@ function initializeCalculators() {
         if (document.querySelector('.checklist-widget')) checklistInit();
         if (document.querySelector('.calendar-widget')) calendarInit();
         if (document.querySelector('.diff-widget')) diffInit();
+        if (document.querySelector('.seq-widget')) seqInit();
     }, 50);
 }
 
@@ -4161,7 +4575,8 @@ function calendarShowDayEvents(dayEl, dateStr) {
         const color = cal ? cal.color : '#999';
         html += `<div class="calendar-day-tooltip-event">
             <span class="calendar-day-tooltip-dot" style="background:${color}"></span>
-            <span>${event.summary}</span>
+            <span class="calendar-day-tooltip-text">${event.summary}</span>
+            <button class="calendar-event-delete" onclick="calendarDeleteEvent('${event.uid}')" title="Delete event">&times;</button>
         </div>`;
     });
 
@@ -4480,6 +4895,28 @@ function calendarAddEventFromDay(btn) {
     }
 }
 
+function calendarDeleteEvent(eventUid) {
+    const tooltip = document.querySelector('.calendar-day-tooltip');
+    if (!tooltip) return;
+
+    const noteId = tooltip.dataset.noteId;
+    const dateStr = tooltip.dataset.date;
+    const data = calendarGetData(noteId);
+
+    data.events = data.events.filter(e => e.uid !== eventUid);
+    calendarSaveData(noteId, data);
+
+    // Close tooltip
+    tooltip.remove();
+
+    // Re-render calendar
+    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    if (widget) {
+        const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
+        calendarRender(widget, noteId, year);
+    }
+}
+
 function calendarRemoveCalendar(calId) {
     const modal = document.getElementById('calendarManageModal');
     const noteId = modal.dataset.noteId;
@@ -4664,7 +5101,20 @@ function parseICSContent(text, calendarId) {
                     currentEvent.startDate = parseICSDate(value);
                     break;
                 case 'DTEND':
-                    currentEvent.endDate = parseICSDate(value);
+                    // ICS end dates are exclusive for all-day events
+                    // If date-only (length 8), subtract one day
+                    const cleanedEnd = value.replace('Z', '');
+                    if (cleanedEnd.length === 8) {
+                        const d = new Date(
+                            parseInt(cleanedEnd.substring(0, 4)),
+                            parseInt(cleanedEnd.substring(4, 6)) - 1,
+                            parseInt(cleanedEnd.substring(6, 8))
+                        );
+                        d.setDate(d.getDate() - 1);
+                        currentEvent.endDate = d.toISOString().split('T')[0];
+                    } else {
+                        currentEvent.endDate = parseICSDate(value);
+                    }
                     break;
                 case 'RRULE':
                     // Basic recurring event support - expand first year of occurrences
@@ -5108,6 +5558,306 @@ function diffUpdateStats(widget, noteId) {
     `;
 }
 
+// ==================== Sequence Diagram Functions ====================
+
+function seqGetNoteId(element) {
+    const note = element.closest('.note');
+    return note ? note.dataset.note : null;
+}
+
+function seqGetData(noteId) {
+    const customizations = loadNoteCustomizations();
+    const custom = customizations[noteId] || {};
+    return custom.seqData || {
+        text: '',
+        mode: 'split'
+    };
+}
+
+function seqSaveData(noteId, data) {
+    const customizations = loadNoteCustomizations();
+    if (!customizations[noteId]) customizations[noteId] = {};
+    customizations[noteId].seqData = data;
+    saveNoteCustomizations(customizations);
+}
+
+function seqInit() {
+    document.querySelectorAll('.seq-widget').forEach(widget => {
+        const noteId = seqGetNoteId(widget);
+        if (!noteId) return;
+
+        const data = seqGetData(noteId);
+
+        // Populate all textareas
+        widget.querySelectorAll('textarea').forEach(ta => {
+            ta.value = data.text;
+        });
+
+        // Set mode buttons
+        const modeButtons = widget.querySelectorAll('.seq-mode-btn');
+        modeButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode);
+        });
+
+        // Show correct container
+        seqUpdateContainers(widget, data.mode, noteId);
+    });
+}
+
+function seqUpdateContainers(widget, mode, noteId) {
+    const editContainer = widget.querySelector('.seq-edit-container');
+    const splitContainer = widget.querySelector('.seq-split-container');
+    const viewContainer = widget.querySelector('.seq-view-container');
+
+    // Hide all first
+    editContainer.classList.remove('active');
+    splitContainer.classList.remove('active');
+    viewContainer.classList.remove('active');
+
+    if (mode === 'edit') {
+        editContainer.classList.add('active');
+    } else if (mode === 'split') {
+        splitContainer.classList.add('active');
+        seqRenderDiagram(widget, noteId, '.seq-split-container .seq-diagram');
+    } else if (mode === 'view') {
+        viewContainer.classList.add('active');
+        seqRenderDiagram(widget, noteId, '.seq-view-container .seq-diagram');
+    }
+}
+
+function seqOnInput(textarea) {
+    const widget = textarea.closest('.seq-widget');
+    const noteId = seqGetNoteId(textarea);
+    if (!noteId) return;
+
+    const data = seqGetData(noteId);
+    data.text = textarea.value;
+    seqSaveData(noteId, data);
+
+    // Sync all textareas in the widget
+    widget.querySelectorAll('textarea').forEach(ta => {
+        if (ta !== textarea) ta.value = textarea.value;
+    });
+
+    // Live render if in split mode
+    if (data.mode === 'split') {
+        seqRenderDiagram(widget, noteId, '.seq-split-container .seq-diagram');
+    }
+}
+
+function seqSetMode(btn, mode) {
+    const widget = btn.closest('.seq-widget');
+    const noteId = seqGetNoteId(widget);
+    if (!noteId) return;
+
+    const data = seqGetData(noteId);
+    data.mode = mode;
+    seqSaveData(noteId, data);
+
+    // Update button states
+    widget.querySelectorAll('.seq-mode-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase() === mode);
+    });
+
+    // Sync textarea content before switching
+    const currentText = data.text;
+    widget.querySelectorAll('textarea').forEach(ta => {
+        ta.value = currentText;
+    });
+
+    // Update containers
+    seqUpdateContainers(widget, mode, noteId);
+}
+
+function seqShowHelp(btn) {
+    // Create modal if it doesn't exist
+    let modal = document.querySelector('.seq-help-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.className = 'seq-help-modal';
+        modal.innerHTML = `
+            <div class="seq-help-content">
+                <span class="seq-help-close" onclick="this.closest('.seq-help-modal').classList.remove('open')">&times;</span>
+                <h3>Sequence Diagram Syntax</h3>
+                <p>Each line defines a message between participants:</p>
+                <pre>Participant1 -> Participant2: Message text</pre>
+                <p><strong>Arrow types:</strong></p>
+                <p><code>-></code> Solid arrow (request/call)</p>
+                <p><code>--></code> Dashed arrow (response/return)</p>
+                <p><strong>Self-messages:</strong></p>
+                <pre>Alice -> Alice: Think about it</pre>
+                <p><strong>Example:</strong></p>
+                <pre>Client -> Server: HTTP Request
+Server -> Database: Query
+Database --> Server: Results
+Server --> Client: HTTP Response</pre>
+                <p>Participants are automatically detected. Each arrow is numbered sequentially.</p>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('open');
+        });
+    }
+    modal.classList.add('open');
+}
+
+function seqParseText(text) {
+    const lines = text.split('\n').filter(line => line.trim());
+    const participants = [];
+    const messages = [];
+    const participantSet = new Set();
+
+    lines.forEach((line, index) => {
+        // Match: Participant1 -> Participant2: Message
+        // or: Participant1 --> Participant2: Message
+        const match = line.match(/^\s*([^-]+?)\s*(-->|->)\s*([^:]+?)\s*:\s*(.*)$/);
+        if (match) {
+            const from = match[1].trim();
+            const arrowType = match[2];
+            const to = match[3].trim();
+            const message = match[4].trim();
+
+            // Add participants in order of appearance
+            if (!participantSet.has(from)) {
+                participantSet.add(from);
+                participants.push(from);
+            }
+            if (!participantSet.has(to)) {
+                participantSet.add(to);
+                participants.push(to);
+            }
+
+            messages.push({
+                from,
+                to,
+                message,
+                dashed: arrowType === '-->',
+                number: messages.length + 1
+            });
+        }
+    });
+
+    return { participants, messages };
+}
+
+function seqRenderDiagram(widget, noteId, containerSelector) {
+    const data = seqGetData(noteId);
+    const container = widget.querySelector(containerSelector || '.seq-diagram');
+
+    if (!container) return;
+
+    if (!data.text.trim()) {
+        container.innerHTML = '<div class="seq-error-message">Enter sequence diagram notation to see the diagram</div>';
+        return;
+    }
+
+    const { participants, messages } = seqParseText(data.text);
+
+    if (participants.length === 0) {
+        container.innerHTML = '<div class="seq-error-message">No valid messages found. Use syntax: Actor -> Actor: Message</div>';
+        return;
+    }
+
+    // Calculate dimensions
+    const boxWidth = 100;
+    const boxHeight = 36;
+    const boxPadding = 40;
+    const messageSpacing = 50;
+    const topMargin = 20;
+    const bottomMargin = 50;
+    const numberRadius = 10;
+
+    const totalWidth = participants.length * (boxWidth + boxPadding) - boxPadding + 40;
+    const totalHeight = topMargin + boxHeight + (messages.length * messageSpacing) + boxHeight + bottomMargin;
+
+    // Build SVG
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}">`;
+
+    // Calculate participant positions
+    const participantX = {};
+    participants.forEach((p, i) => {
+        participantX[p] = 20 + i * (boxWidth + boxPadding) + boxWidth / 2;
+    });
+
+    // Draw lifelines (behind everything)
+    participants.forEach(p => {
+        const x = participantX[p];
+        const y1 = topMargin + boxHeight;
+        const y2 = totalHeight - bottomMargin - boxHeight;
+        svg += `<line class="seq-lifeline" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" />`;
+    });
+
+    // Draw top participant boxes
+    participants.forEach(p => {
+        const x = participantX[p] - boxWidth / 2;
+        const y = topMargin;
+        svg += `<rect class="seq-participant-box" x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" />`;
+        svg += `<text class="seq-participant-text" x="${participantX[p]}" y="${y + boxHeight / 2}">${escapeHtml(p)}</text>`;
+    });
+
+    // Draw bottom participant boxes
+    participants.forEach(p => {
+        const x = participantX[p] - boxWidth / 2;
+        const y = totalHeight - bottomMargin - boxHeight;
+        svg += `<rect class="seq-participant-box" x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" />`;
+        svg += `<text class="seq-participant-text" x="${participantX[p]}" y="${y + boxHeight / 2}">${escapeHtml(p)}</text>`;
+    });
+
+    // Draw messages
+    messages.forEach((msg, i) => {
+        const y = topMargin + boxHeight + (i + 1) * messageSpacing - messageSpacing / 2;
+        const fromX = participantX[msg.from];
+        const toX = participantX[msg.to];
+        const dashedClass = msg.dashed ? ' dashed' : '';
+
+        if (msg.from === msg.to) {
+            // Self-message: loop to the right
+            const loopWidth = 30;
+            const loopHeight = 20;
+            svg += `<path class="seq-self-arrow${dashedClass}" d="M ${fromX} ${y}
+                    L ${fromX + loopWidth} ${y}
+                    L ${fromX + loopWidth} ${y + loopHeight}
+                    L ${fromX + 8} ${y + loopHeight}" />`;
+            // Arrow head
+            svg += `<polygon class="seq-arrow-head" points="${fromX + 8},${y + loopHeight - 4} ${fromX + 8},${y + loopHeight + 4} ${fromX},${y + loopHeight}" />`;
+            // Label
+            svg += `<text class="seq-arrow-label" x="${fromX + loopWidth + 5}" y="${y + loopHeight / 2}">${escapeHtml(msg.message)}</text>`;
+            // Number
+            const numBgClass = msg.dashed ? 'seq-dashed-number-bg' : 'seq-arrow-number-bg';
+            svg += `<circle class="${numBgClass}" cx="${fromX + loopWidth}" cy="${y}" r="${numberRadius}" />`;
+            svg += `<text class="seq-arrow-number" x="${fromX + loopWidth}" y="${y}" text-anchor="middle" dominant-baseline="middle">${msg.number}</text>`;
+        } else {
+            // Regular message
+            const direction = toX > fromX ? 1 : -1;
+            const arrowLength = 8;
+
+            // Arrow line
+            svg += `<line class="seq-arrow${dashedClass}" x1="${fromX}" y1="${y}" x2="${toX - direction * arrowLength}" y2="${y}" />`;
+
+            // Arrow head
+            const headX = toX;
+            const headY = y;
+            svg += `<polygon class="seq-arrow-head" points="${headX},${headY} ${headX - direction * arrowLength},${headY - 4} ${headX - direction * arrowLength},${headY + 4}" />`;
+
+            // Label (centered above arrow)
+            const labelX = (fromX + toX) / 2;
+            svg += `<text class="seq-arrow-label" x="${labelX}" y="${y - 8}" text-anchor="middle">${escapeHtml(msg.message)}</text>`;
+
+            // Number badge (at the start of arrow)
+            const numX = fromX + direction * 15;
+            const numBgClass = msg.dashed ? 'seq-dashed-number-bg' : 'seq-arrow-number-bg';
+            svg += `<circle class="${numBgClass}" cx="${numX}" cy="${y}" r="${numberRadius}" />`;
+            svg += `<text class="seq-arrow-number" x="${numX}" y="${y}" text-anchor="middle" dominant-baseline="middle">${msg.number}</text>`;
+        }
+    });
+
+    svg += '</svg>';
+    container.innerHTML = svg;
+}
+
 // Simple Markdown Parser
 function parseMarkdown(text) {
     if (!text) return '';
@@ -5514,7 +6264,7 @@ function setupContentEditor() {
     const noteboard = document.getElementById('noteboard');
     noteboard.addEventListener('dblclick', (e) => {
         // Don't trigger on interactive elements
-        if (e.target.closest('input, button, select, textarea, a, .checklist-widget, .calendar-widget, .diff-widget')) return;
+        if (e.target.closest('input, button, select, textarea, a, .checklist-widget, .calendar-widget, .diff-widget, .seq-widget')) return;
 
         const noteContent = e.target.closest('.note-content');
         if (!noteContent) return;
@@ -7080,7 +7830,7 @@ function exportNoteAsHtml(noteId) {
         <div class="note-header">${escapeHtml(title)}</div>
         <div class="note-content">
             ${bodyContent}
-            <div class="exported-date">Exported from Toolboard on ${new Date().toLocaleDateString()}</div>
+            <div class="exported-date">Exported from Toolboard.me on ${new Date().toLocaleDateString()}</div>
         </div>
     </div>
 </body>
