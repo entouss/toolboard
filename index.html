@@ -59,6 +59,29 @@ body.dark-mode {
     --error-text: #fca5a5;
 }
 
+/* Dark mode scrollbar */
+body.dark-mode ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: #4a4a5a;
+    border-radius: 5px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #5a5a6a;
+}
+
+body.dark-mode {
+    scrollbar-color: #4a4a5a var(--bg-secondary);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -678,6 +701,53 @@ main#noteboard {
 
 .minimize-btn.minimized {
     transform: rotate(180deg);
+}
+
+/* Fullscreen mode */
+.note.fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 10005 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+.note.fullscreen .note-header {
+    border-radius: 0;
+}
+
+.note.fullscreen .note-content {
+    max-height: calc(100vh - 36px);
+    overflow: auto;
+}
+
+.note.fullscreen .resize-handle {
+    display: none;
+}
+
+.fullscreen-btn.active {
+    background: rgba(255,255,255,0.4);
+}
+
+/* Fullscreen overlay backdrop */
+.fullscreen-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-bg);
+    z-index: 10004;
+}
+
+.fullscreen-backdrop.active {
+    display: block;
 }
 
 /* Note settings popup - modal style */
@@ -1871,6 +1941,306 @@ tr:hover {
     background: #229954;
 }
 
+/* Diff Viewer Widget Styles */
+.note-content:has(.diff-widget) {
+    display: flex;
+    flex-direction: column;
+}
+
+.diff-widget {
+    padding: 10px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 0;
+}
+
+.diff-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.diff-mode-toggle {
+    display: flex;
+    gap: 4px;
+}
+
+.diff-mode-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.diff-mode-btn:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.diff-mode-btn:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.diff-mode-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.diff-view-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.diff-view-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 10px;
+    border-radius: 3px;
+}
+
+.diff-view-btn.active {
+    background: #27ae60;
+    color: white;
+    border-color: #27ae60;
+}
+
+.diff-whitespace-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.diff-whitespace-toggle input {
+    margin: 0;
+}
+
+.diff-edit-container {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+.diff-edit-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.diff-edit-pane label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: var(--text-heading);
+}
+
+.diff-edit-pane textarea {
+    flex: 1;
+    resize: none;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    min-height: 100px;
+}
+
+.diff-edit-pane textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.diff-edit-resizer {
+    width: 6px;
+    background: var(--border-color);
+    cursor: col-resize;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.diff-edit-resizer:hover {
+    background: #3498db;
+}
+
+.diff-view-container {
+    flex: 1;
+    min-height: 0;
+    display: none;
+    flex-direction: column;
+}
+
+.diff-view-container.active {
+    display: flex;
+}
+
+.diff-edit-container.hidden {
+    display: none;
+}
+
+.diff-output {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.diff-split-view {
+    display: flex;
+    min-height: 100%;
+}
+
+.diff-split-pane {
+    flex: 1;
+    min-width: 0;
+}
+
+.diff-split-pane:first-child {
+    border-right: 1px solid var(--border-color);
+}
+
+.diff-split-header {
+    padding: 6px 10px;
+    background: var(--bg-note-header);
+    color: white;
+    font-weight: 600;
+    font-size: 11px;
+    position: sticky;
+    top: 0;
+}
+
+.diff-unified-view {
+    min-height: 100%;
+}
+
+.diff-line {
+    display: flex;
+    line-height: 1.5;
+    min-height: 20px;
+}
+
+.diff-gutter {
+    width: 40px;
+    padding: 0 6px;
+    text-align: right;
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    border-right: 1px solid var(--border-light);
+    flex-shrink: 0;
+    font-size: 10px;
+    user-select: none;
+}
+
+.diff-content {
+    flex: 1;
+    padding: 0 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-width: 0;
+}
+
+.diff-line.addition {
+    background: rgba(39, 174, 96, 0.15);
+}
+
+.diff-line.addition .diff-gutter {
+    background: rgba(39, 174, 96, 0.3);
+    color: #27ae60;
+}
+
+.diff-line.deletion {
+    background: rgba(231, 76, 60, 0.15);
+}
+
+.diff-line.deletion .diff-gutter {
+    background: rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+}
+
+.diff-line.unchanged {
+    background: transparent;
+}
+
+.diff-prefix {
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    font-weight: bold;
+}
+
+.diff-line.addition .diff-prefix {
+    color: #27ae60;
+}
+
+.diff-line.deletion .diff-prefix {
+    color: #e74c3c;
+}
+
+.diff-stats {
+    display: flex;
+    gap: 16px;
+    padding: 8px 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.diff-stats-additions {
+    color: #27ae60;
+}
+
+.diff-stats-deletions {
+    color: #e74c3c;
+}
+
+.diff-empty-message {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Dark mode adjustments for diff */
+body.dark-mode .diff-line.addition {
+    background: rgba(39, 174, 96, 0.2);
+}
+
+body.dark-mode .diff-line.addition .diff-gutter {
+    background: rgba(39, 174, 96, 0.35);
+}
+
+body.dark-mode .diff-line.deletion {
+    background: rgba(231, 76, 60, 0.2);
+}
+
+body.dark-mode .diff-line.deletion .diff-gutter {
+    background: rgba(231, 76, 60, 0.35);
+}
+
 /* Feature Selection Modal */
 .feature-select-modal {
     display: none;
@@ -2138,7 +2508,7 @@ tr:hover {
     }
 
     /* Better tap feedback */
-    .header-btn {
+    .note-header .header-btn {
         opacity: 1;
         width: 28px;
         height: 28px;
@@ -2167,7 +2537,7 @@ tr:hover {
         background: rgba(52, 152, 219, 0.4);
     }
 
-    .header-btn {
+    .note-header .header-btn {
         opacity: 1;
     }
 }
@@ -2243,6 +2613,9 @@ tr:hover {
             </div>
         </div>
     </div>
+
+    <!-- Fullscreen backdrop -->
+    <div id="fullscreenBackdrop" class="fullscreen-backdrop"></div>
 
     <main id="noteboard">
         <!-- Notes will be dynamically generated -->
@@ -2455,6 +2828,45 @@ const NOTE_TEMPLATES = {
 <div class="calendar-legend"></div>
 </div>`,
         onInit: 'calendarInit'
+    },
+    'diff-viewer': {
+        id: 'diff-viewer',
+        name: 'Diff Viewer',
+        description: 'Compare two texts with visual diff highlighting',
+        icon: '🔀',
+        title: 'Text Diff',
+        content: `<div class="diff-widget">
+<div class="diff-toolbar">
+<div class="diff-mode-toggle">
+<button class="diff-mode-btn active" onclick="diffSetMode(this, 'edit')">Edit</button>
+<button class="diff-mode-btn" onclick="diffSetMode(this, 'view')">View</button>
+</div>
+<div class="diff-view-options">
+<button class="diff-view-btn active" onclick="diffSetView(this, 'split')">Split</button>
+<button class="diff-view-btn" onclick="diffSetView(this, 'unified')">Unified</button>
+<label class="diff-whitespace-toggle">
+<input type="checkbox" onchange="diffToggleWhitespace(this)">
+Hide Whitespace
+</label>
+</div>
+</div>
+<div class="diff-edit-container">
+<div class="diff-edit-pane">
+<label>Original</label>
+<textarea placeholder="Enter original text..." oninput="diffOnInput(this, 'original')" onscroll="diffSyncScroll(this, 'original')"></textarea>
+</div>
+<div class="diff-edit-resizer"></div>
+<div class="diff-edit-pane">
+<label>Modified</label>
+<textarea placeholder="Enter modified text..." oninput="diffOnInput(this, 'modified')" onscroll="diffSyncScroll(this, 'modified')"></textarea>
+</div>
+</div>
+<div class="diff-view-container">
+<div class="diff-output"></div>
+</div>
+<div class="diff-stats"></div>
+</div>`,
+        onInit: 'diffInit'
     }
 };
 
@@ -2707,6 +3119,49 @@ function setupNoteControls() {
         }
     });
 
+    // Fullscreen button
+    const fullscreenBackdrop = document.getElementById('fullscreenBackdrop');
+    let currentFullscreenNote = null;
+
+    function exitFullscreen() {
+        if (currentFullscreenNote) {
+            currentFullscreenNote.classList.remove('fullscreen');
+            const btn = currentFullscreenNote.querySelector('.fullscreen-btn');
+            if (btn) btn.classList.remove('active');
+            fullscreenBackdrop.classList.remove('active');
+            currentFullscreenNote = null;
+        }
+    }
+
+    noteboard.addEventListener('click', (e) => {
+        if (e.target.closest('.fullscreen-btn')) {
+            e.stopPropagation();
+            const note = e.target.closest('.note');
+            const btn = e.target.closest('.fullscreen-btn');
+
+            if (note.classList.contains('fullscreen')) {
+                exitFullscreen();
+            } else {
+                // Exit any existing fullscreen first
+                exitFullscreen();
+                note.classList.add('fullscreen');
+                btn.classList.add('active');
+                fullscreenBackdrop.classList.add('active');
+                currentFullscreenNote = note;
+            }
+        }
+    });
+
+    // Click backdrop to exit fullscreen
+    fullscreenBackdrop.addEventListener('click', exitFullscreen);
+
+    // ESC key to exit fullscreen
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && currentFullscreenNote) {
+            exitFullscreen();
+        }
+    });
+
     // Settings button - open modal
     noteboard.addEventListener('click', (e) => {
         if (e.target.closest('.settings-btn')) {
@@ -2912,6 +3367,7 @@ function initializeCalculators() {
         if (document.getElementById('growthInitial')) calculateGrowth();
         if (document.querySelector('.checklist-widget')) checklistInit();
         if (document.querySelector('.calendar-widget')) calendarInit();
+        if (document.querySelector('.diff-widget')) diffInit();
     }, 50);
 }
 
@@ -4312,6 +4768,346 @@ function expandRRULE(event) {
     return events;
 }
 
+// ==================== Diff Viewer Functions ====================
+
+function diffGetNoteId(element) {
+    const note = element.closest('.note');
+    return note ? note.dataset.note : null;
+}
+
+function diffGetData(noteId) {
+    const customizations = loadNoteCustomizations();
+    const custom = customizations[noteId] || {};
+    return custom.diffData || {
+        original: '',
+        modified: '',
+        mode: 'edit',
+        viewType: 'split',
+        hideWhitespace: false
+    };
+}
+
+function diffSaveData(noteId, data) {
+    const customizations = loadNoteCustomizations();
+    if (!customizations[noteId]) customizations[noteId] = {};
+    customizations[noteId].diffData = data;
+    saveNoteCustomizations(customizations);
+}
+
+function diffInit() {
+    document.querySelectorAll('.diff-widget').forEach(widget => {
+        const noteId = diffGetNoteId(widget);
+        if (!noteId) return;
+
+        const data = diffGetData(noteId);
+
+        // Populate textareas
+        const textareas = widget.querySelectorAll('.diff-edit-pane textarea');
+        if (textareas[0]) textareas[0].value = data.original;
+        if (textareas[1]) textareas[1].value = data.modified;
+
+        // Set mode
+        const modeButtons = widget.querySelectorAll('.diff-mode-btn');
+        modeButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode);
+        });
+
+        // Set view type
+        const viewButtons = widget.querySelectorAll('.diff-view-btn');
+        viewButtons.forEach(btn => {
+            const btnView = btn.textContent.toLowerCase();
+            btn.classList.toggle('active', btnView === data.viewType);
+        });
+
+        // Set hide whitespace checkbox
+        const wsCheckbox = widget.querySelector('.diff-whitespace-toggle input');
+        if (wsCheckbox) wsCheckbox.checked = data.hideWhitespace;
+
+        // Show correct container
+        const editContainer = widget.querySelector('.diff-edit-container');
+        const viewContainer = widget.querySelector('.diff-view-container');
+        if (data.mode === 'view') {
+            editContainer.classList.add('hidden');
+            viewContainer.classList.add('active');
+            diffRenderOutput(widget, noteId);
+        } else {
+            editContainer.classList.remove('hidden');
+            viewContainer.classList.remove('active');
+        }
+
+        // Update stats
+        diffUpdateStats(widget, noteId);
+    });
+}
+
+function diffOnInput(textarea, field) {
+    const noteId = diffGetNoteId(textarea);
+    if (!noteId) return;
+
+    const data = diffGetData(noteId);
+    data[field] = textarea.value;
+    diffSaveData(noteId, data);
+
+    const widget = textarea.closest('.diff-widget');
+    diffUpdateStats(widget, noteId);
+}
+
+function diffSetMode(btn, mode) {
+    const widget = btn.closest('.diff-widget');
+    const noteId = diffGetNoteId(widget);
+    if (!noteId) return;
+
+    const data = diffGetData(noteId);
+    data.mode = mode;
+    diffSaveData(noteId, data);
+
+    // Update button states
+    widget.querySelectorAll('.diff-mode-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase() === mode);
+    });
+
+    // Toggle containers
+    const editContainer = widget.querySelector('.diff-edit-container');
+    const viewContainer = widget.querySelector('.diff-view-container');
+
+    if (mode === 'view') {
+        editContainer.classList.add('hidden');
+        viewContainer.classList.add('active');
+        diffRenderOutput(widget, noteId);
+    } else {
+        editContainer.classList.remove('hidden');
+        viewContainer.classList.remove('active');
+    }
+}
+
+function diffSetView(btn, viewType) {
+    const widget = btn.closest('.diff-widget');
+    const noteId = diffGetNoteId(widget);
+    if (!noteId) return;
+
+    const data = diffGetData(noteId);
+    data.viewType = viewType;
+    diffSaveData(noteId, data);
+
+    // Update button states
+    widget.querySelectorAll('.diff-view-btn').forEach(b => {
+        const bView = b.textContent.toLowerCase();
+        b.classList.toggle('active', bView === viewType);
+    });
+
+    // Re-render if in view mode
+    if (data.mode === 'view') {
+        diffRenderOutput(widget, noteId);
+    }
+}
+
+function diffToggleWhitespace(checkbox) {
+    const widget = checkbox.closest('.diff-widget');
+    const noteId = diffGetNoteId(widget);
+    if (!noteId) return;
+
+    const data = diffGetData(noteId);
+    data.hideWhitespace = checkbox.checked;
+    diffSaveData(noteId, data);
+
+    // Re-render if in view mode
+    if (data.mode === 'view') {
+        diffRenderOutput(widget, noteId);
+    }
+
+    diffUpdateStats(widget, noteId);
+}
+
+function diffSyncScroll(textarea, source) {
+    const widget = textarea.closest('.diff-widget');
+    const textareas = widget.querySelectorAll('.diff-edit-pane textarea');
+
+    const other = source === 'original' ? textareas[1] : textareas[0];
+    if (other && other !== textarea) {
+        other.scrollTop = textarea.scrollTop;
+        other.scrollLeft = textarea.scrollLeft;
+    }
+}
+
+// LCS-based diff algorithm
+function computeDiff(original, modified, hideWhitespace) {
+    let origLines = original.split('\n');
+    let modLines = modified.split('\n');
+
+    if (hideWhitespace) {
+        // For comparison, normalize whitespace but keep original for display
+        const normalize = line => line.replace(/\s+/g, ' ').trim();
+        const origNorm = origLines.map(normalize);
+        const modNorm = modLines.map(normalize);
+
+        const lcs = buildLCSMatrix(origNorm, modNorm);
+        return backtrackDiff(lcs, origNorm, modNorm, origLines, modLines);
+    }
+
+    const lcs = buildLCSMatrix(origLines, modLines);
+    return backtrackDiff(lcs, origLines, modLines, origLines, modLines);
+}
+
+function buildLCSMatrix(a, b) {
+    const m = a.length;
+    const n = b.length;
+    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (a[i - 1] === b[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+
+    return dp;
+}
+
+function backtrackDiff(dp, aNorm, bNorm, aOrig, bOrig) {
+    const result = [];
+    let i = aNorm.length;
+    let j = bNorm.length;
+
+    const stack = [];
+
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && aNorm[i - 1] === bNorm[j - 1]) {
+            stack.push({ type: 'unchanged', origLine: i, modLine: j, origContent: aOrig[i - 1], modContent: bOrig[j - 1] });
+            i--;
+            j--;
+        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+            stack.push({ type: 'addition', modLine: j, content: bOrig[j - 1] });
+            j--;
+        } else {
+            stack.push({ type: 'deletion', origLine: i, content: aOrig[i - 1] });
+            i--;
+        }
+    }
+
+    // Reverse to get correct order
+    while (stack.length) {
+        result.push(stack.pop());
+    }
+
+    return result;
+}
+
+function diffRenderOutput(widget, noteId) {
+    const data = diffGetData(noteId);
+    const output = widget.querySelector('.diff-output');
+
+    if (!data.original && !data.modified) {
+        output.innerHTML = '<div class="diff-empty-message">Enter text in both panes to see the diff</div>';
+        return;
+    }
+
+    const diff = computeDiff(data.original, data.modified, data.hideWhitespace);
+
+    if (data.viewType === 'split') {
+        output.innerHTML = renderSplitView(diff);
+    } else {
+        output.innerHTML = renderUnifiedView(diff);
+    }
+}
+
+function renderSplitView(diff) {
+    let leftLines = '';
+    let rightLines = '';
+
+    diff.forEach(item => {
+        if (item.type === 'unchanged') {
+            leftLines += renderDiffLine(item.origLine, item.origContent, 'unchanged');
+            rightLines += renderDiffLine(item.modLine, item.modContent, 'unchanged');
+        } else if (item.type === 'deletion') {
+            leftLines += renderDiffLine(item.origLine, item.content, 'deletion');
+            rightLines += renderDiffLine('', '', 'empty');
+        } else if (item.type === 'addition') {
+            leftLines += renderDiffLine('', '', 'empty');
+            rightLines += renderDiffLine(item.modLine, item.content, 'addition');
+        }
+    });
+
+    return `
+        <div class="diff-split-view">
+            <div class="diff-split-pane">
+                <div class="diff-split-header">Original</div>
+                ${leftLines}
+            </div>
+            <div class="diff-split-pane">
+                <div class="diff-split-header">Modified</div>
+                ${rightLines}
+            </div>
+        </div>
+    `;
+}
+
+function renderUnifiedView(diff) {
+    let lines = '';
+
+    diff.forEach(item => {
+        if (item.type === 'unchanged') {
+            lines += renderUnifiedLine(item.origLine, item.modLine, item.origContent, 'unchanged', ' ');
+        } else if (item.type === 'deletion') {
+            lines += renderUnifiedLine(item.origLine, '', item.content, 'deletion', '-');
+        } else if (item.type === 'addition') {
+            lines += renderUnifiedLine('', item.modLine, item.content, 'addition', '+');
+        }
+    });
+
+    return `<div class="diff-unified-view">${lines}</div>`;
+}
+
+function renderDiffLine(lineNum, content, type) {
+    const escapedContent = escapeHtml(content || '');
+    const displayContent = escapedContent || '&nbsp;';
+    return `
+        <div class="diff-line ${type}">
+            <div class="diff-gutter">${lineNum || ''}</div>
+            <div class="diff-content">${displayContent}</div>
+        </div>
+    `;
+}
+
+function renderUnifiedLine(origLine, modLine, content, type, prefix) {
+    const escapedContent = escapeHtml(content || '');
+    const lineInfo = origLine && modLine ? `${origLine}/${modLine}` : (origLine || modLine || '');
+    return `
+        <div class="diff-line ${type}">
+            <div class="diff-gutter">${lineInfo}</div>
+            <div class="diff-prefix">${prefix}</div>
+            <div class="diff-content">${escapedContent || '&nbsp;'}</div>
+        </div>
+    `;
+}
+
+function diffUpdateStats(widget, noteId) {
+    const data = diffGetData(noteId);
+    const statsEl = widget.querySelector('.diff-stats');
+
+    if (!data.original && !data.modified) {
+        statsEl.innerHTML = '';
+        return;
+    }
+
+    const diff = computeDiff(data.original, data.modified, data.hideWhitespace);
+
+    let additions = 0;
+    let deletions = 0;
+
+    diff.forEach(item => {
+        if (item.type === 'addition') additions++;
+        if (item.type === 'deletion') deletions++;
+    });
+
+    statsEl.innerHTML = `
+        <span class="diff-stats-additions">+${additions} addition${additions !== 1 ? 's' : ''}</span>
+        <span class="diff-stats-deletions">-${deletions} deletion${deletions !== 1 ? 's' : ''}</span>
+    `;
+}
+
 // Simple Markdown Parser
 function parseMarkdown(text) {
     if (!text) return '';
@@ -4718,7 +5514,7 @@ function setupContentEditor() {
     const noteboard = document.getElementById('noteboard');
     noteboard.addEventListener('dblclick', (e) => {
         // Don't trigger on interactive elements
-        if (e.target.closest('input, button, select, textarea, a, .checklist-widget, .calendar-widget')) return;
+        if (e.target.closest('input, button, select, textarea, a, .checklist-widget, .calendar-widget, .diff-widget')) return;
 
         const noteContent = e.target.closest('.note-content');
         if (!noteContent) return;
@@ -4956,6 +5752,7 @@ function createNote(noteId) {
             <span class="note-title">${displayTitle}</span>
             <div class="header-buttons">
                 <button class="header-btn minimize-btn${isMinimized ? ' minimized' : ''}" title="Minimize">&#9650;</button>
+                <button class="header-btn fullscreen-btn" title="Fullscreen">&#9974;</button>
                 <button class="header-btn settings-btn" title="Settings">&#9881;</button>
             </div>
         </div>
