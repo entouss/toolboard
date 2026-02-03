@@ -12,7 +12,7 @@
     --bg-secondary: white;
     --bg-tertiary: #f8f9fa;
     --bg-header: #2c3e50;
-    --bg-note-header: #34495e;
+    --bg-tool-header: #34495e;
     --text-primary: #333;
     --text-secondary: #666;
     --text-muted: #7f8c8d;
@@ -38,7 +38,7 @@ body.dark-mode {
     --bg-secondary: #16213e;
     --bg-tertiary: #1f2940;
     --bg-header: #0f0f23;
-    --bg-note-header: #1f2940;
+    --bg-tool-header: #1f2940;
     --text-primary: #e4e4e7;
     --text-secondary: #a1a1aa;
     --text-muted: #71717a;
@@ -80,6 +80,106 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 
 body.dark-mode {
     scrollbar-color: #4a4a5a var(--bg-secondary);
+}
+
+/* Calculator Widget Styles */
+.calc-widget {
+    background: var(--bg-tertiary);
+    padding: 15px;
+    border-radius: 6px;
+}
+.calc-widget input, .calc-widget select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+}
+.calc-widget label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.calc-card {
+    background: var(--bg-secondary);
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+.calc-card-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.calc-card-value {
+    font-size: 18px;
+    font-weight: 600;
+}
+.calc-card-value.large {
+    font-size: 20px;
+}
+.calc-card-value.positive { color: #27ae60; }
+.calc-card-value.negative { color: #c0392b; }
+.calc-card-value.info { color: #2980b9; }
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 12px;
+}
+.calc-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+}
+.calc-highlight {
+    background: var(--success-bg);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+.calc-highlight-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--success-text);
+    margin-bottom: 5px;
+}
+.calc-toggle {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.calc-toggle label {
+    flex: 1;
+    margin: 0;
+}
+.calc-toggle span {
+    display: block;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+.calc-toggle input:checked + span {
+    background: #3498db;
+    color: white;
+}
+.calc-toggle input {
+    display: none;
 }
 
 * {
@@ -141,7 +241,7 @@ header h1 {
     height: 28px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -162,7 +262,7 @@ header h1 {
     border-radius: 10px;
 }
 
-.noteboard-settings {
+.toolboard-settings {
     position: absolute;
     top: 100%;
     left: 20px;
@@ -176,11 +276,11 @@ header h1 {
     color: var(--text-primary);
 }
 
-.noteboard-settings.open {
+.toolboard-settings.open {
     display: block;
 }
 
-.noteboard-settings label {
+.toolboard-settings label {
     display: block;
     font-size: 11px;
     color: var(--text-secondary);
@@ -188,7 +288,7 @@ header h1 {
     font-weight: 500;
 }
 
-.noteboard-settings input[type="text"] {
+.toolboard-settings input[type="text"] {
     width: 100%;
     padding: 6px 8px;
     border: 1px solid var(--border-color);
@@ -199,7 +299,7 @@ header h1 {
     color: var(--text-primary);
 }
 
-.noteboard-settings input[type="text"]:focus {
+.toolboard-settings input[type="text"]:focus {
     outline: none;
     border-color: #3498db;
 }
@@ -208,6 +308,137 @@ header h1 {
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.storage-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.9);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.storage-indicator:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.storage-bar {
+    width: 60px;
+    height: 8px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.storage-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s, background 0.3s;
+}
+
+.storage-bar-fill.low { background: #27ae60; }
+.storage-bar-fill.medium { background: #f39c12; }
+.storage-bar-fill.high { background: #e74c3c; }
+
+.storage-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.storage-modal {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px var(--shadow-heavy);
+}
+
+.storage-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.storage-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.storage-modal-header button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.storage-modal-header button:hover {
+    color: var(--text-primary);
+}
+
+.storage-modal-body {
+    padding: 15px 20px;
+    overflow-y: auto;
+}
+
+.storage-total {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.storage-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.storage-table th,
+.storage-table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.storage-table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+}
+
+.storage-table td:first-child {
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.storage-table td:last-child {
+    color: var(--text-secondary);
+    white-space: nowrap;
+    text-align: right;
 }
 
 .header-controls button {
@@ -261,12 +492,12 @@ header h1 {
     background: #2980b9;
 }
 
-#addNoteBtn {
+#addToolBtn {
     background: #27ae60;
     color: white;
 }
 
-#addNoteBtn:hover {
+#addToolBtn:hover {
     background: #219a52;
 }
 
@@ -349,16 +580,16 @@ header h1 {
     color: white;
 }
 
-.import-export-note {
+.import-export-tool {
     display: none;
     margin-bottom: 15px;
 }
 
-.import-export-note.active {
+.import-export-tool.active {
     display: block;
 }
 
-.import-export-note h3 {
+.import-export-tool h3 {
     margin-bottom: 10px;
     color: var(--text-heading);
     font-size: 14px;
@@ -482,13 +713,13 @@ header h1 {
     color: var(--error-text);
 }
 
-main#noteboard {
+main#toolboard {
     position: relative;
     min-height: calc(100vh - 60px);
     padding: 20px;
 }
 
-.note {
+.tool {
     position: absolute;
     background: var(--bg-secondary);
     border-radius: 8px;
@@ -511,8 +742,8 @@ main#noteboard {
     touch-action: none;
 }
 
-.note:hover .resize-handle,
-.note:active .resize-handle {
+.tool:hover .resize-handle,
+.tool:active .resize-handle {
     opacity: 1;
 }
 
@@ -576,7 +807,7 @@ main#noteboard {
     transition: opacity 0.15s;
 }
 
-.note:hover .resize-handle-se::after {
+.tool:hover .resize-handle-se::after {
     opacity: 1;
 }
 
@@ -613,18 +844,18 @@ main#noteboard {
     cursor: e-resize;
 }
 
-.note:hover {
+.tool:hover {
     box-shadow: 0 4px 20px var(--shadow-medium);
 }
 
-.note.dragging {
+.tool.dragging {
     opacity: 0.9;
     box-shadow: 0 8px 30px var(--shadow-heavy);
     z-index: 1000 !important;
 }
 
-.note-header {
-    background: var(--bg-note-header);
+.tool-header {
+    background: var(--bg-tool-header);
     color: white;
     padding: 10px 15px;
     font-weight: bold;
@@ -639,25 +870,25 @@ main#noteboard {
     transition: background 0.3s;
 }
 
-.note-header:active {
+.tool-header:active {
     cursor: grabbing;
 }
 
-.note-header {
+.tool-header {
     touch-action: none;
 }
 
-.note-header .drag-handle {
+.tool-header .drag-handle {
     opacity: 0.7;
 }
 
-.note-header .header-buttons {
+.tool-header .header-buttons {
     display: flex;
     gap: 4px;
     align-items: center;
 }
 
-.note-header .header-btn {
+.tool-header .header-btn {
     background: rgba(255,255,255,0.2);
     border: none;
     color: white;
@@ -665,7 +896,7 @@ main#noteboard {
     height: 20px;
     border-radius: 3px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -674,7 +905,7 @@ main#noteboard {
     padding: 0;
 }
 
-.note:hover .header-btn {
+.tool:hover .header-btn {
     opacity: 1;
 }
 
@@ -682,20 +913,20 @@ main#noteboard {
     background: rgba(255,255,255,0.35);
 }
 
-.note.minimized .note-content {
+.tool.minimized .tool-content {
     display: none;
 }
 
-.note.minimized {
+.tool.minimized {
     min-height: auto !important;
     height: auto !important;
 }
 
-.note.minimized .resize-handle {
+.tool.minimized .resize-handle {
     display: none;
 }
 
-.note.minimized .note-header {
+.tool.minimized .tool-header {
     border-radius: 8px;
 }
 
@@ -704,7 +935,7 @@ main#noteboard {
 }
 
 /* Fullscreen mode */
-.note.fullscreen {
+.tool.fullscreen {
     position: fixed !important;
     top: 56px !important;
     left: 0 !important;
@@ -717,16 +948,16 @@ main#noteboard {
     margin: 0 !important;
 }
 
-.note.fullscreen .note-header {
+.tool.fullscreen .tool-header {
     border-radius: 0;
 }
 
-.note.fullscreen .note-content {
+.tool.fullscreen .tool-content {
     max-height: calc(100vh - 56px - 36px);
     overflow: auto;
 }
 
-.note.fullscreen .resize-handle {
+.tool.fullscreen .resize-handle {
     display: none;
 }
 
@@ -750,8 +981,8 @@ main#noteboard {
     display: block;
 }
 
-/* Note settings popup - modal style */
-.note-settings-overlay {
+/* Tool settings popup - modal style */
+.tool-settings-overlay {
     display: none;
     position: fixed;
     top: 0;
@@ -764,11 +995,11 @@ main#noteboard {
     align-items: center;
 }
 
-.note-settings-overlay.open {
+.tool-settings-overlay.open {
     display: flex;
 }
 
-.note-settings {
+.tool-settings {
     background: var(--bg-secondary);
     border-radius: 8px;
     box-shadow: 0 4px 20px var(--shadow-heavy);
@@ -779,7 +1010,7 @@ main#noteboard {
     font-weight: normal;
 }
 
-.note-settings-header {
+.tool-settings-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -788,13 +1019,13 @@ main#noteboard {
     border-bottom: 1px solid var(--border-light);
 }
 
-.note-settings-header h3 {
+.tool-settings-header h3 {
     margin: 0;
     font-size: 16px;
     color: var(--text-heading);
 }
 
-.note-settings-close {
+.tool-settings-close {
     background: none;
     border: none;
     font-size: 24px;
@@ -804,11 +1035,11 @@ main#noteboard {
     line-height: 1;
 }
 
-.note-settings-close:hover {
+.tool-settings-close:hover {
     color: var(--text-primary);
 }
 
-.note-settings label {
+.tool-settings label {
     display: block;
     font-size: 11px;
     color: var(--text-secondary);
@@ -816,7 +1047,7 @@ main#noteboard {
     font-weight: 500;
 }
 
-.note-settings input[type="text"] {
+.tool-settings input[type="text"] {
     width: 100%;
     padding: 6px 8px;
     border: 1px solid var(--border-color);
@@ -827,7 +1058,7 @@ main#noteboard {
     margin-bottom: 10px;
 }
 
-.note-settings input[type="text"]:focus {
+.tool-settings input[type="text"]:focus {
     outline: none;
     border-color: #3498db;
 }
@@ -873,7 +1104,7 @@ main#noteboard {
     background: #2980b9;
 }
 
-.duplicate-note-btn {
+.duplicate-tool-btn {
     width: 100%;
     padding: 6px 12px;
     background: #9b59b6;
@@ -885,11 +1116,11 @@ main#noteboard {
     margin-top: 4px;
 }
 
-.duplicate-note-btn:hover {
+.duplicate-tool-btn:hover {
     background: #8e44ad;
 }
 
-.export-note-btn {
+.export-tool-btn {
     width: 100%;
     padding: 6px 12px;
     background: #1abc9c;
@@ -901,7 +1132,7 @@ main#noteboard {
     margin-top: 4px;
 }
 
-.export-note-btn:hover {
+.export-tool-btn:hover {
     background: #16a085;
 }
 
@@ -921,7 +1152,7 @@ main#noteboard {
     background: #d35400;
 }
 
-.delete-note-btn {
+.delete-tool-btn {
     width: 100%;
     padding: 6px 12px;
     background: #e74c3c;
@@ -933,7 +1164,7 @@ main#noteboard {
     margin-top: 4px;
 }
 
-.delete-note-btn:hover {
+.delete-tool-btn:hover {
     background: #c0392b;
 }
 
@@ -1002,7 +1233,7 @@ main#noteboard {
 
 .content-editor-header {
     padding: 15px 20px;
-    background: var(--bg-note-header);
+    background: var(--bg-tool-header);
     color: white;
     display: flex;
     justify-content: space-between;
@@ -1216,18 +1447,18 @@ main#noteboard {
     margin: 0.5em 0;
 }
 
-.note-content {
+.tool-content {
     padding: 15px;
     overflow: auto;
     flex: 1;
     min-height: 0;
 }
 
-.note.resizing {
+.tool.resizing {
     user-select: none;
 }
 
-.note.resizing .note-content {
+.tool.resizing .tool-content {
     pointer-events: none;
 }
 
@@ -1492,7 +1723,7 @@ tr:hover {
 }
 
 /* Calendar Widget Styles */
-.note-content:has(.calendar-widget) {
+.tool-content:has(.calendar-widget) {
     display: flex;
     flex-direction: column;
 }
@@ -1962,7 +2193,7 @@ tr:hover {
 }
 
 /* Diff Viewer Widget Styles */
-.note-content:has(.diff-widget) {
+.tool-content:has(.diff-widget) {
     display: flex;
     flex-direction: column;
 }
@@ -2143,7 +2374,7 @@ tr:hover {
 
 .diff-split-header {
     padding: 6px 10px;
-    background: var(--bg-note-header);
+    background: var(--bg-tool-header);
     color: white;
     font-weight: 600;
     font-size: 11px;
@@ -2262,7 +2493,7 @@ body.dark-mode .diff-line.deletion .diff-gutter {
 }
 
 /* Sequence Diagram Widget Styles */
-.note-content:has(.seq-widget) {
+.tool-content:has(.seq-widget) {
     display: flex;
     flex-direction: column;
 }
@@ -2633,6 +2864,209 @@ body.dark-mode .seq-dashed-number-bg {
     fill: #8e44ad;
 }
 
+/* JWT Decoder Widget */
+.tool-content:has(.jwt-widget) {
+    display: flex;
+    flex-direction: column;
+}
+
+.jwt-widget {
+    padding: 10px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 0;
+    gap: 10px;
+}
+
+.jwt-input-section {
+    flex-shrink: 0;
+}
+
+.jwt-input-section label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.jwt-input-section textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 11px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    resize: vertical;
+    box-sizing: border-box;
+    word-break: break-all;
+}
+
+.jwt-input-section textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.jwt-output-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+}
+
+.jwt-parts {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.jwt-part {
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.jwt-part-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.jwt-part-header.header { background: #e74c3c; color: white; }
+.jwt-part-header.payload { background: #9b59b6; color: white; }
+.jwt-part-header.signature { background: #3498db; color: white; }
+
+.jwt-part-content {
+    padding: 10px 12px;
+    font-family: monospace;
+    font-size: 11px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.jwt-part-content.raw {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+.jwt-error {
+    padding: 12px;
+    background: var(--error-bg);
+    color: var(--error-text);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.jwt-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.jwt-status.valid {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.jwt-status.invalid {
+    background: var(--error-bg);
+    color: var(--error-text);
+}
+
+.jwt-status.info {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.jwt-claims {
+    margin-top: 8px;
+}
+
+.jwt-claim {
+    display: flex;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 11px;
+}
+
+.jwt-claim:last-child {
+    border-bottom: none;
+}
+
+.jwt-claim-key {
+    min-width: 80px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.jwt-claim-value {
+    flex: 1;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.jwt-claim-value.expired {
+    color: #e74c3c;
+}
+
+.jwt-claim-value.valid {
+    color: #27ae60;
+}
+
+.jwt-copy-btn {
+    padding: 2px 8px;
+    font-size: 10px;
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: inherit;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.jwt-copy-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.jwt-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.jwt-sample-btn {
+    padding: 4px 10px;
+    font-size: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.jwt-sample-btn:hover {
+    background: var(--table-hover);
+}
+
 /* Feature Selection Modal */
 .feature-select-modal {
     display: none;
@@ -2741,7 +3175,7 @@ body.dark-mode .seq-dashed-number-bg {
     box-shadow: 0 0 4px rgba(52, 152, 219, 0.8);
 }
 
-.note.snapping {
+.tool.snapping {
     transition: none;
 }
 
@@ -2779,16 +3213,16 @@ body.dark-mode .seq-dashed-number-bg {
         padding: 10px 12px;
     }
 
-    main#noteboard {
+    main#toolboard {
         padding: 10px;
     }
 
-    .note {
+    .tool {
         min-width: 120px;
         min-height: 80px;
     }
 
-    .note-header {
+    .tool-header {
         padding: 12px 10px;
         font-size: 0.85rem;
     }
@@ -2886,8 +3320,8 @@ body.dark-mode .seq-dashed-number-bg {
         min-height: 150px;
     }
 
-    /* Note settings modal adjustments */
-    .note-settings {
+    /* Tool settings modal adjustments */
+    .tool-settings {
         width: 90%;
         max-width: 320px;
     }
@@ -2900,13 +3334,13 @@ body.dark-mode .seq-dashed-number-bg {
     }
 
     /* Better tap feedback */
-    .note-header .header-btn {
+    .tool-header .header-btn {
         opacity: 1;
         width: 28px;
         height: 28px;
     }
 
-    .noteboard-settings {
+    .toolboard-settings {
         left: 10px;
         right: 10px;
         min-width: unset;
@@ -2915,7 +3349,7 @@ body.dark-mode .seq-dashed-number-bg {
 
 /* Touch-specific improvements */
 @media (pointer: coarse) {
-    .note-header {
+    .tool-header {
         cursor: grab;
         -webkit-user-select: none;
         user-select: none;
@@ -2929,7 +3363,7 @@ body.dark-mode .seq-dashed-number-bg {
         background: rgba(52, 152, 219, 0.4);
     }
 
-    .note-header .header-btn {
+    .tool-header .header-btn {
         opacity: 1;
     }
 }
@@ -2939,24 +3373,25 @@ body.dark-mode .seq-dashed-number-bg {
     <header id="mainHeader">
         <div class="header-title-area">
             <a href="https://toolboard.me" title="Visit Toolboard.me"><img alt="Toolboard Logo" style="width: 32px; height: 32px;" src="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%20%20%3Crect%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22%23444%22%20rx%3D%2210%22%20ry%3D%2210%22%20%2F%3E%20%20%3Cdefs%3E%20%20%20%20%3Cpattern%20id%3D%22peg-grid%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%20%20%20%20%20%20%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%2210.5%22%20fill%3D%22%23000%22%20%2F%3E%20%20%20%20%3C%2Fpattern%3E%20%20%3C%2Fdefs%3E%20%20%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22275%22%20height%3D%22275%22%20fill%3D%22url(%23peg-grid)%22%20%2F%3E%20%20%3Cg%20fill%3D%22%23ff8%22%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E"></a>
-            <h1 id="noteboardTitle">My Toolboard</h1>
-            <button id="noteboardSettingsBtn" class="header-settings-btn" title="Edit Toolboard">&#9881;</button>
+            <h1 id="toolboardTitle">My Toolboard</h1>
+            <button id="toolboardSettingsBtn" class="header-settings-btn" title="Edit Toolboard">&#9881;</button>
             <span id="toolboardVersion" class="toolboard-version"></span>
         </div>
         <div class="header-controls">
+            <div id="storageIndicator" class="storage-indicator" title="localStorage usage"></div>
             <button id="darkModeToggle" class="header-settings-btn" title="Toggle Dark Mode">&#9790;</button>
             <div class="board-selector-wrapper">
                 <select id="boardSelector"></select>
             </div>
-            <button id="addNoteBtn">+ Add Note</button>
+            <button id="addToolBtn">+ Add Tool</button>
             <button id="deleteBoardBtn">Delete Board</button>
             <button id="importExportBtn">Import/Export</button>
         </div>
-        <div id="noteboardSettings" class="noteboard-settings">
+        <div id="toolboardSettings" class="toolboard-settings">
             <label>Board Title</label>
-            <input type="text" id="noteboardTitleInput" placeholder="Board title">
+            <input type="text" id="toolboardTitleInput" placeholder="Board title">
             <label>Header Color</label>
-            <div class="color-picker-row" id="noteboardColorPicker"></div>
+            <div class="color-picker-row" id="toolboardColorPicker"></div>
         </div>
     </header>
 
@@ -2972,11 +3407,11 @@ body.dark-mode .seq-dashed-number-bg {
                 <button class="import-export-tab" data-tab="restore">Restore</button>
             </div>
 
-            <!-- Export Note -->
-            <div id="exportNote" class="import-export-note active">
-                <h3>Export Notes</h3>
-                <div id="exportNotesList" class="checkbox-list"></div>
-                <button id="exportSelectedNotes" class="export-btn">Export Selected Notes</button>
+            <!-- Export Tool -->
+            <div id="exportTool" class="import-export-tool active">
+                <h3>Export Tools</h3>
+                <div id="exportToolsList" class="checkbox-list"></div>
+                <button id="exportSelectedTools" class="export-btn">Export Selected Tools</button>
 
                 <h3 style="margin-top: 15px;">Export Boards</h3>
                 <div id="exportBoardsList" class="checkbox-list"></div>
@@ -2990,8 +3425,8 @@ body.dark-mode .seq-dashed-number-bg {
                 </div>
             </div>
 
-            <!-- Import Note -->
-            <div id="importNote" class="import-export-note">
+            <!-- Import Tool -->
+            <div id="importTool" class="import-export-tool">
                 <h3>Import from File</h3>
                 <input type="file" id="importFileInput" class="import-file-input" accept=".json">
 
@@ -3002,12 +3437,12 @@ body.dark-mode .seq-dashed-number-bg {
                 <div id="importResult"></div>
             </div>
 
-            <!-- Restore Note -->
-            <div id="restoreNote" class="import-export-note">
-                <h3>Restore Hidden Notes</h3>
-                <p style="color: #7f8c8d; margin-bottom: 10px; font-size: 12px;">These built-in notes have been hidden. Select notes to restore them to your board.</p>
-                <div id="hiddenNotesList" class="checkbox-list"></div>
-                <button id="restoreSelectedNotes" class="import-btn">Restore Selected</button>
+            <!-- Restore Tool -->
+            <div id="restoreTool" class="import-export-tool">
+                <h3>Restore Hidden Tools</h3>
+                <p style="color: #7f8c8d; margin-bottom: 10px; font-size: 12px;">These built-in tools have been hidden. Select tools to restore them to your board.</p>
+                <div id="hiddenToolsList" class="checkbox-list"></div>
+                <button id="restoreSelectedTools" class="import-btn">Restore Selected</button>
                 <div id="restoreResult"></div>
             </div>
         </div>
@@ -3016,15 +3451,15 @@ body.dark-mode .seq-dashed-number-bg {
     <!-- Fullscreen backdrop -->
     <div id="fullscreenBackdrop" class="fullscreen-backdrop"></div>
 
-    <main id="noteboard">
-        <!-- Notes will be dynamically generated -->
+    <main id="toolboard">
+        <!-- Tools will be dynamically generated -->
     </main>
 
     <!-- Content Editor Modal -->
     <div id="contentEditorOverlay" class="content-editor-overlay">
         <div class="content-editor">
             <div class="content-editor-header">
-                <h3>Edit Content: <span id="editorNoteTitle"></span></h3>
+                <h3>Edit Content: <span id="editorToolTitle"></span></h3>
                 <button class="content-editor-close">&times;</button>
             </div>
             <div class="content-editor-body">
@@ -3053,52 +3488,52 @@ body.dark-mode .seq-dashed-number-bg {
     <div id="featureSelectModal" class="feature-select-modal">
         <div class="feature-select-content">
             <span class="feature-select-close">&times;</span>
-            <h2>Choose Note Type</h2>
+            <h2>Choose Tool Type</h2>
             <div id="featureSelectList" class="feature-select-list"></div>
         </div>
     </div>
 
-    <!-- Note Settings Modal -->
-    <div id="noteSettingsOverlay" class="note-settings-overlay">
-        <div class="note-settings">
-            <div class="note-settings-header">
-                <h3>Note Settings</h3>
-                <button class="note-settings-close">&times;</button>
+    <!-- Tool Settings Modal -->
+    <div id="toolSettingsOverlay" class="tool-settings-overlay">
+        <div class="tool-settings">
+            <div class="tool-settings-header">
+                <h3>Tool Settings</h3>
+                <button class="tool-settings-close">&times;</button>
             </div>
             <label>Title</label>
-            <input type="text" id="noteSettingsTitleInput" class="title-input" placeholder="Note title">
+            <input type="text" id="toolSettingsTitleInput" class="title-input" placeholder="Tool title">
             <label>Color</label>
-            <div class="color-picker-row" id="noteSettingsColorPicker"></div>
-            <button class="edit-content-btn" id="noteSettingsEditBtn">Edit Content</button>
-            <button class="duplicate-note-btn" id="noteSettingsDuplicateBtn">Duplicate Note</button>
-            <button class="export-note-btn" id="noteSettingsExportBtn">Export as HTML</button>
-            <button class="export-png-btn" id="noteSettingsExportPngBtn">Export as PNG</button>
-            <button class="delete-note-btn" id="noteSettingsDeleteBtn">Hide Note</button>
+            <div class="color-picker-row" id="toolSettingsColorPicker"></div>
+            <button class="edit-content-btn" id="toolSettingsEditBtn">Edit Content</button>
+            <button class="duplicate-tool-btn" id="toolSettingsDuplicateBtn">Duplicate Tool</button>
+            <button class="export-tool-btn" id="toolSettingsExportBtn">Export as HTML</button>
+            <button class="export-png-btn" id="toolSettingsExportPngBtn">Export as PNG</button>
+            <button class="delete-tool-btn" id="toolSettingsDeleteBtn">Hide Tool</button>
         </div>
     </div>
 
     <script>
-// Default variables - empty for generic noteboard, import a board to add data
+// Default variables - empty for generic toolboard, import a board to add data
 const DEFAULT_VARIABLES = {};
 
-// Built-in notes - empty for generic noteboard, import notes/boards to add
+// Built-in tools - empty for generic toolboard, import tools/boards to add
 const SECTIONS = [];
 
-// Generate default positions (empty for generic noteboard)
+// Generate default positions (empty for generic toolboard)
 function generateDefaultPositions() {
     return {};
 }
 
 const DEFAULT_POSITIONS = generateDefaultPositions();
 
-// Note templates for feature selection
+// Tool templates for feature selection
 const NOTE_TEMPLATES = {
     'blank': {
         id: 'blank',
-        name: 'Blank Note',
-        description: 'Start with an empty note',
+        name: 'Blank Tool',
+        description: 'Start with an empty tool',
         icon: '📝',
-        title: 'New Note',
+        title: 'New Tool',
         content: ''
     },
     'dynamic-investment-calculator': {
@@ -3107,30 +3542,30 @@ const NOTE_TEMPLATES = {
         description: 'Interactive calculator with inputs for initial amount, monthly contribution, rate, and years',
         icon: '📈',
         title: 'Investment Growth Calculator',
-        content: `<div style="background:#f8f9fa;padding:15px;border-radius:6px;">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        content: `<div class="calc-widget">
+<div class="calc-grid">
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Initial Investment</label>
-<input type="number" id="growthInitial" value="10000" oninput="calculateGrowth()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Initial Investment</label>
+<input type="number" id="growthInitial" value="10000" oninput="calculateGrowth()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Monthly Contribution</label>
-<input type="number" id="growthMonthly" value="500" oninput="calculateGrowth()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Monthly Contribution</label>
+<input type="number" id="growthMonthly" value="500" oninput="calculateGrowth()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Annual Return (%)</label>
-<input type="number" id="growthRate" value="7" step="0.1" oninput="calculateGrowth()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Annual Return (%)</label>
+<input type="number" id="growthRate" value="7" step="0.1" oninput="calculateGrowth()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Years</label>
-<input type="number" id="growthYears" value="30" oninput="calculateGrowth()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Years</label>
+<input type="number" id="growthYears" value="30" oninput="calculateGrowth()">
 </div>
 </div>
 <div style="margin-bottom:15px;">
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Compounding</label>
-<div style="display:flex;gap:0;border:1px solid #ddd;border-radius:4px;overflow:hidden;">
-<label style="flex:1;margin:0;"><input type="radio" name="growthCompound" value="monthly" checked onchange="calculateGrowth()" style="display:none;"><span id="compoundMonthlyBtn" style="display:block;padding:8px;text-align:center;cursor:pointer;background:#3498db;color:white;font-size:12px;">Monthly</span></label>
-<label style="flex:1;margin:0;"><input type="radio" name="growthCompound" value="annual" onchange="calculateGrowth()" style="display:none;"><span id="compoundAnnualBtn" style="display:block;padding:8px;text-align:center;cursor:pointer;background:white;color:#333;font-size:12px;">Annual</span></label>
+<label>Compounding</label>
+<div class="calc-toggle">
+<label><input type="radio" name="growthCompound" value="monthly" checked onchange="calculateGrowth()"><span>Monthly</span></label>
+<label><input type="radio" name="growthCompound" value="annual" onchange="calculateGrowth()"><span>Annual</span></label>
 </div>
 </div>
 <div id="growthResults"></div>
@@ -3174,15 +3609,15 @@ const NOTE_TEMPLATES = {
         description: 'Interactive calculator for estimating federal income tax',
         icon: '🧾',
         title: 'Tax Calculator',
-        content: `<div style="background:#f8f9fa;padding:15px;border-radius:6px;">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        content: `<div class="calc-widget">
+<div class="calc-grid">
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Annual Income</label>
-<input type="number" id="taxIncome" value="75000" oninput="calculateTax()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Annual Income</label>
+<input type="number" id="taxIncome" value="75000" oninput="calculateTax()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Filing Status</label>
-<select id="taxStatus" onchange="calculateTax()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:white;">
+<label>Filing Status</label>
+<select id="taxStatus" onchange="calculateTax()">
 <option value="single">Single</option>
 <option value="married">Married Filing Jointly</option>
 </select>
@@ -3198,23 +3633,23 @@ const NOTE_TEMPLATES = {
         description: 'Calculate monthly payments, total interest, and amortization',
         icon: '🏦',
         title: 'Loan Calculator',
-        content: `<div style="background:#f8f9fa;padding:15px;border-radius:6px;">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        content: `<div class="calc-widget">
+<div class="calc-grid">
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Loan Amount</label>
-<input type="number" id="loanAmount" value="300000" oninput="calculateLoan()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Loan Amount</label>
+<input type="number" id="loanAmount" value="300000" oninput="calculateLoan()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Interest Rate (%)</label>
-<input type="number" id="loanRate" value="6.5" step="0.125" oninput="calculateLoan()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Interest Rate (%)</label>
+<input type="number" id="loanRate" value="6.5" step="0.125" oninput="calculateLoan()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Loan Term (years)</label>
-<input type="number" id="loanYears" value="30" oninput="calculateLoan()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Loan Term (years)</label>
+<input type="number" id="loanYears" value="30" oninput="calculateLoan()">
 </div>
 <div>
-<label style="display:block;font-size:11px;color:#666;margin-bottom:4px;">Extra Monthly Payment</label>
-<input type="number" id="loanExtra" value="0" oninput="calculateLoan()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+<label>Extra Monthly Payment</label>
+<input type="number" id="loanExtra" value="0" oninput="calculateLoan()">
 </div>
 </div>
 <div id="loanResults"></div>
@@ -3337,6 +3772,27 @@ Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
 </div>
 </div>`,
         onInit: 'seqInit'
+    },
+    'jwt-decoder': {
+        id: 'jwt-decoder',
+        name: 'JWT Decoder',
+        description: 'Decode and inspect JSON Web Tokens',
+        icon: '🔐',
+        title: 'JWT Decoder',
+        content: `<div class="jwt-widget">
+<div class="jwt-input-section">
+<label>Paste JWT Token</label>
+<div class="jwt-toolbar">
+<button class="jwt-sample-btn" onclick="jwtLoadSample()">Load Sample</button>
+<button class="jwt-sample-btn" onclick="jwtClear()">Clear</button>
+</div>
+<textarea placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c" oninput="jwtDecode(this)"></textarea>
+</div>
+<div class="jwt-output-section">
+<div class="jwt-results"></div>
+</div>
+</div>`,
+        onInit: 'jwtInit'
     }
 };
 
@@ -3355,6 +3811,7 @@ function loadBoards() {
 
 function saveBoards(boards) {
     localStorage.setItem('financeBoards', JSON.stringify(boards));
+    updateStorageIndicator();
 }
 
 function getCurrentBoardId() {
@@ -3377,9 +3834,9 @@ function migrateOldData() {
     const migrations = {
         'financeVariables': 'variables',
         'financeNotePositions': 'positions',
-        'financeNoteCustomizations': 'noteCustomizations',
-        'financeCustomNotes': 'customNotes',
-        'financeNoteboardSettings': 'noteboardSettings'
+        'financeNoteCustomizations': 'toolCustomizations',
+        'financeCustomNotes': 'customTools',
+        'financeToolboardSettings': 'toolboardSettings'
     };
 
     let hadOldData = false;
@@ -3425,9 +3882,10 @@ function loadVariables() {
 // Save variables to localStorage
 function saveVariables(variables) {
     localStorage.setItem(boardKey('variables'), JSON.stringify(variables));
+    updateStorageIndicator();
 }
 
-// Load note positions from localStorage or use defaults
+// Load tool positions from localStorage or use defaults
 function loadPositions() {
     const stored = localStorage.getItem(boardKey('positions'));
     if (stored) {
@@ -3441,19 +3899,22 @@ function loadPositions() {
     return { ...DEFAULT_POSITIONS };
 }
 
-// Save note positions to localStorage
+// Save tool positions to localStorage
 function savePositions(positions) {
     localStorage.setItem(boardKey('positions'), JSON.stringify(positions));
+    updateStorageIndicator();
 }
 
 // Reset everything
 function resetVariables() {
     localStorage.removeItem(boardKey('variables'));
+    updateStorageIndicator();
     return DEFAULT_VARIABLES;
 }
 
 function resetPositions() {
     localStorage.removeItem(boardKey('positions'));
+    updateStorageIndicator();
     return { ...generateDefaultPositions() };
 }
 
@@ -3482,7 +3943,7 @@ const SNAP_THRESHOLD = 15;
 // Drag state
 let dragState = {
     isDragging: false,
-    note: null,
+    tool: null,
     startX: 0,
     startY: 0,
     offsetX: 0,
@@ -3492,7 +3953,7 @@ let dragState = {
 // Resize state
 let resizeState = {
     isResizing: false,
-    note: null,
+    tool: null,
     handle: null,
     startX: 0,
     startY: 0,
@@ -3523,21 +3984,22 @@ function setupDarkMode() {
     });
 }
 
-// Initialize the noteboard
+// Initialize the toolboard
 function init() {
     setupDarkMode();
     populateBoardSelector();
-    applyNoteboardSettings();
-    setupNoteboardSettings();
-    renderNoteboard();
+    applyToolboardSettings();
+    setupToolboardSettings();
+    renderToolboard();
     setupDragging();
     setupResizing();
-    setupNoteControls();
+    setupToolControls();
     setupContentEditor();
     setupButtons();
     setupImportExport();
     setupFeatureSelect();
     displayVersion();
+    updateStorageIndicator();
 }
 
 // Display Toolboard version based on file modification date
@@ -3551,20 +4013,124 @@ function displayVersion() {
     }
 }
 
-// Setup note minimize and settings controls
-let currentSettingsNoteId = null;
+// Display localStorage usage and quota
+function updateStorageIndicator() {
+    const indicator = document.getElementById('storageIndicator');
+    if (!indicator) return;
 
-function setupNoteControls() {
-    const noteboard = document.getElementById('noteboard');
-    const settingsOverlay = document.getElementById('noteSettingsOverlay');
-    const settingsTitleInput = document.getElementById('noteSettingsTitleInput');
-    const settingsColorPicker = document.getElementById('noteSettingsColorPicker');
-    const settingsEditBtn = document.getElementById('noteSettingsEditBtn');
-    const settingsDuplicateBtn = document.getElementById('noteSettingsDuplicateBtn');
-    const settingsExportBtn = document.getElementById('noteSettingsExportBtn');
-    const settingsExportPngBtn = document.getElementById('noteSettingsExportPngBtn');
-    const settingsDeleteBtn = document.getElementById('noteSettingsDeleteBtn');
-    const settingsCloseBtn = settingsOverlay.querySelector('.note-settings-close');
+    // Calculate total localStorage size
+    let totalSize = 0;
+    for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+            totalSize += key.length + localStorage[key].length;
+        }
+    }
+    const usedKB = (totalSize * 2) / 1024; // UTF-16 = 2 bytes per char
+    const usedMB = usedKB / 1024;
+
+    // Estimate quota (typically 5-10MB, test by trying to write)
+    let quotaMB = 5; // Default assumption
+    try {
+        // Try to detect actual quota by attempting storage
+        const testKey = '__storage_test__';
+        const testData = 'x'.repeat(1024 * 1024); // 1MB test
+        let canStore = true;
+        for (let i = 0; i < 10 && canStore; i++) {
+            try {
+                localStorage.setItem(testKey + i, testData);
+                localStorage.removeItem(testKey + i);
+            } catch (e) {
+                quotaMB = usedMB + i;
+                canStore = false;
+            }
+        }
+        if (canStore) quotaMB = 10; // Could store 10MB, assume 10MB quota
+    } catch (e) {
+        // Ignore test errors
+    }
+
+    const percent = Math.min(100, (usedMB / quotaMB) * 100);
+    const levelClass = percent < 50 ? 'low' : percent < 80 ? 'medium' : 'high';
+
+    // Format display
+    const usedDisplay = usedKB < 1024
+        ? usedKB.toFixed(1) + ' KB'
+        : usedMB.toFixed(2) + ' MB';
+    const quotaDisplay = quotaMB + ' MB';
+
+    indicator.innerHTML = `
+        <span class="storage-label">${usedDisplay} / ${quotaDisplay}</span>
+        <div class="storage-bar">
+            <div class="storage-bar-fill ${levelClass}" style="width: ${percent}%"></div>
+        </div>
+    `;
+    indicator.title = `localStorage: ${usedDisplay} used of ~${quotaDisplay} (${percent.toFixed(1)}%)\nClick to see storage breakdown`;
+
+    // Add click handler to show details
+    indicator.onclick = showStorageDetails;
+}
+
+function showStorageDetails() {
+    // Gather storage breakdown
+    const items = [];
+    let totalSize = 0;
+    for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+            const size = (key.length + localStorage[key].length) * 2;
+            totalSize += size;
+            items.push({ key, size });
+        }
+    }
+    items.sort((a, b) => b.size - a.size);
+
+    const formatSize = (bytes) => {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    };
+
+    let html = `
+        <div class="storage-modal-overlay" onclick="this.remove()">
+            <div class="storage-modal" onclick="event.stopPropagation()">
+                <div class="storage-modal-header">
+                    <h3>localStorage Usage</h3>
+                    <button onclick="this.closest('.storage-modal-overlay').remove()">&times;</button>
+                </div>
+                <div class="storage-modal-body">
+                    <div class="storage-total">Total: ${formatSize(totalSize)}</div>
+                    <table class="storage-table">
+                        <thead><tr><th>Key</th><th>Size</th></tr></thead>
+                        <tbody>
+                            ${items.slice(0, 50).map(item => `
+                                <tr>
+                                    <td title="${item.key}">${item.key.length > 40 ? item.key.slice(0, 40) + '...' : item.key}</td>
+                                    <td>${formatSize(item.size)}</td>
+                                </tr>
+                            `).join('')}
+                            ${items.length > 50 ? `<tr><td colspan="2">... and ${items.length - 50} more items</td></tr>` : ''}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// Setup tool minimize and settings controls
+let currentSettingsToolId = null;
+
+function setupToolControls() {
+    const toolboard = document.getElementById('toolboard');
+    const settingsOverlay = document.getElementById('toolSettingsOverlay');
+    const settingsTitleInput = document.getElementById('toolSettingsTitleInput');
+    const settingsColorPicker = document.getElementById('toolSettingsColorPicker');
+    const settingsEditBtn = document.getElementById('toolSettingsEditBtn');
+    const settingsDuplicateBtn = document.getElementById('toolSettingsDuplicateBtn');
+    const settingsExportBtn = document.getElementById('toolSettingsExportBtn');
+    const settingsExportPngBtn = document.getElementById('toolSettingsExportPngBtn');
+    const settingsDeleteBtn = document.getElementById('toolSettingsDeleteBtn');
+    const settingsCloseBtn = settingsOverlay.querySelector('.tool-settings-close');
 
     // Populate color picker
     settingsColorPicker.innerHTML = HEADER_COLORS.map(c =>
@@ -3572,52 +4138,52 @@ function setupNoteControls() {
     ).join('');
 
     // Minimize button
-    noteboard.addEventListener('click', (e) => {
+    toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.minimize-btn')) {
             e.stopPropagation();
-            const note = e.target.closest('.note');
-            const noteId = note.getAttribute('data-note');
+            const tool = e.target.closest('.tool');
+            const toolId = tool.getAttribute('data-tool');
             const btn = e.target.closest('.minimize-btn');
 
-            note.classList.toggle('minimized');
+            tool.classList.toggle('minimized');
             btn.classList.toggle('minimized');
 
             // Save state
-            noteCustomizations[noteId] = noteCustomizations[noteId] || {};
-            noteCustomizations[noteId].minimized = note.classList.contains('minimized');
-            saveNoteCustomizations(noteCustomizations);
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].minimized = tool.classList.contains('minimized');
+            saveToolCustomizations(toolCustomizations);
         }
     });
 
     // Fullscreen button
     const fullscreenBackdrop = document.getElementById('fullscreenBackdrop');
-    let currentFullscreenNote = null;
+    let currentFullscreenTool = null;
 
     function exitFullscreen() {
-        if (currentFullscreenNote) {
-            currentFullscreenNote.classList.remove('fullscreen');
-            const btn = currentFullscreenNote.querySelector('.fullscreen-btn');
+        if (currentFullscreenTool) {
+            currentFullscreenTool.classList.remove('fullscreen');
+            const btn = currentFullscreenTool.querySelector('.fullscreen-btn');
             if (btn) btn.classList.remove('active');
             fullscreenBackdrop.classList.remove('active');
-            currentFullscreenNote = null;
+            currentFullscreenTool = null;
         }
     }
 
-    noteboard.addEventListener('click', (e) => {
+    toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.fullscreen-btn')) {
             e.stopPropagation();
-            const note = e.target.closest('.note');
+            const tool = e.target.closest('.tool');
             const btn = e.target.closest('.fullscreen-btn');
 
-            if (note.classList.contains('fullscreen')) {
+            if (tool.classList.contains('fullscreen')) {
                 exitFullscreen();
             } else {
                 // Exit any existing fullscreen first
                 exitFullscreen();
-                note.classList.add('fullscreen');
+                tool.classList.add('fullscreen');
                 btn.classList.add('active');
                 fullscreenBackdrop.classList.add('active');
-                currentFullscreenNote = note;
+                currentFullscreenTool = tool;
             }
         }
     });
@@ -3627,39 +4193,39 @@ function setupNoteControls() {
 
     // ESC key to exit fullscreen
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && currentFullscreenNote) {
+        if (e.key === 'Escape' && currentFullscreenTool) {
             exitFullscreen();
         }
     });
 
     // Settings button - open modal
-    noteboard.addEventListener('click', (e) => {
+    toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.settings-btn')) {
             e.stopPropagation();
-            const note = e.target.closest('.note');
-            const noteId = note.getAttribute('data-note');
-            currentSettingsNoteId = noteId;
+            const tool = e.target.closest('.tool');
+            const toolId = tool.getAttribute('data-tool');
+            currentSettingsToolId = toolId;
 
-            // Bring note to front
+            // Bring tool to front
             let highestZ = 0;
-            document.querySelectorAll('.note').forEach(s => {
+            document.querySelectorAll('.tool').forEach(s => {
                 const z = parseInt(s.style.zIndex) || 0;
                 if (z > highestZ) highestZ = z;
             });
             maxZ = highestZ + 1;
-            note.style.zIndex = maxZ;
-            positions[noteId] = positions[noteId] || {};
-            positions[noteId].z = maxZ;
+            tool.style.zIndex = maxZ;
+            positions[toolId] = positions[toolId] || {};
+            positions[toolId].z = maxZ;
 
-            // Populate modal with current note settings
-            const custom = noteCustomizations[noteId] || {};
-            const content = getNoteContent(noteId);
+            // Populate modal with current tool settings
+            const custom = toolCustomizations[toolId] || {};
+            const content = getToolContent(toolId);
             const displayTitle = custom.title || content.title;
             const headerColor = custom.color || null;
-            const isCustomNote = customNotes.includes(noteId);
+            const isCustomTool = customTools.includes(toolId);
 
             settingsTitleInput.value = displayTitle;
-            settingsDeleteBtn.textContent = isCustomNote ? 'Delete Note' : 'Hide Note';
+            settingsDeleteBtn.textContent = isCustomTool ? 'Delete Tool' : 'Hide Tool';
 
             // Update color picker selection
             settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => {
@@ -3674,7 +4240,7 @@ function setupNoteControls() {
     // Close modal
     function closeSettingsModal() {
         settingsOverlay.classList.remove('open');
-        currentSettingsNoteId = null;
+        currentSettingsToolId = null;
     }
 
     settingsCloseBtn.addEventListener('click', closeSettingsModal);
@@ -3688,12 +4254,12 @@ function setupNoteControls() {
 
     // Color swatch click in modal
     settingsColorPicker.addEventListener('click', (e) => {
-        if (e.target.classList.contains('color-swatch') && currentSettingsNoteId) {
+        if (e.target.classList.contains('color-swatch') && currentSettingsToolId) {
             e.stopPropagation();
-            const noteId = currentSettingsNoteId;
-            const note = document.querySelector(`.note[data-note="${noteId}"]`);
+            const toolId = currentSettingsToolId;
+            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
             const color = e.target.getAttribute('data-color');
-            const header = note.querySelector('.note-header');
+            const header = tool.querySelector('.tool-header');
 
             // Update UI
             header.style.background = color;
@@ -3701,120 +4267,120 @@ function setupNoteControls() {
             e.target.classList.add('selected');
 
             // Save
-            noteCustomizations[noteId] = noteCustomizations[noteId] || {};
-            noteCustomizations[noteId].color = color;
-            saveNoteCustomizations(noteCustomizations);
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].color = color;
+            saveToolCustomizations(toolCustomizations);
         }
     });
 
     // Title input change in modal
     settingsTitleInput.addEventListener('input', (e) => {
-        if (currentSettingsNoteId) {
-            const noteId = currentSettingsNoteId;
-            const note = document.querySelector(`.note[data-note="${noteId}"]`);
-            const titleSpan = note.querySelector('.note-title');
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+            const titleSpan = tool.querySelector('.tool-title');
             const newTitle = e.target.value;
 
             // Update UI
             titleSpan.textContent = newTitle;
 
             // Save
-            noteCustomizations[noteId] = noteCustomizations[noteId] || {};
-            noteCustomizations[noteId].title = newTitle;
-            saveNoteCustomizations(noteCustomizations);
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].title = newTitle;
+            saveToolCustomizations(toolCustomizations);
         }
     });
 
     // Edit content button in modal
     settingsEditBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentSettingsNoteId) {
-            const noteId = currentSettingsNoteId;
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
             closeSettingsModal();
-            openContentEditor(noteId);
+            openContentEditor(toolId);
         }
     });
 
-    // Duplicate note button in modal
+    // Duplicate tool button in modal
     settingsDuplicateBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentSettingsNoteId) {
-            const noteId = currentSettingsNoteId;
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
             closeSettingsModal();
-            duplicateNote(noteId);
+            duplicateTool(toolId);
         }
     });
 
-    // Export note button in modal
+    // Export tool button in modal
     settingsExportBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentSettingsNoteId) {
-            const noteId = currentSettingsNoteId;
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
             closeSettingsModal();
-            exportNoteAsHtml(noteId);
+            exportToolAsHtml(toolId);
         }
     });
 
-    // Export note as PNG button in modal
+    // Export tool as PNG button in modal
     settingsExportPngBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentSettingsNoteId) {
-            const noteId = currentSettingsNoteId;
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
             closeSettingsModal();
-            exportNoteAsPng(noteId);
+            exportToolAsPng(toolId);
         }
     });
 
-    // Delete note button in modal
+    // Delete tool button in modal
     settingsDeleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentSettingsNoteId) {
-            const noteId = currentSettingsNoteId;
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
             closeSettingsModal();
-            deleteNote(noteId);
+            deleteTool(toolId);
         }
     });
 
     // Prevent dragging when interacting with header buttons
-    noteboard.addEventListener('mousedown', (e) => {
+    toolboard.addEventListener('mousedown', (e) => {
         if (e.target.closest('.header-btn')) {
             e.stopPropagation();
         }
     });
 }
 
-// Render all notes
-function renderNoteboard() {
-    const noteboard = document.getElementById('noteboard');
-    noteboard.innerHTML = '';
+// Render all tools
+function renderToolboard() {
+    const toolboard = document.getElementById('toolboard');
+    toolboard.innerHTML = '';
 
-    const notesToAutoFit = [];
+    const toolsToAutoFit = [];
 
-    // Render built-in notes (excluding hidden ones)
-    SECTIONS.forEach(noteId => {
-        if (hiddenNotes.includes(noteId)) return;
-        const note = createNote(noteId);
-        if (note) {
-            noteboard.appendChild(note);
-            // Check if note needs auto-fitting (no saved dimensions and has content)
-            const pos = positions[noteId];
-            const custom = noteCustomizations[noteId] || {};
+    // Render built-in tools (excluding hidden ones)
+    SECTIONS.forEach(toolId => {
+        if (hiddenTools.includes(toolId)) return;
+        const tool = createTool(toolId);
+        if (tool) {
+            toolboard.appendChild(tool);
+            // Check if tool needs auto-fitting (no saved dimensions and has content)
+            const pos = positions[toolId];
+            const custom = toolCustomizations[toolId] || {};
             if ((!pos || (!pos.width && !pos.height)) && custom.customContent) {
-                notesToAutoFit.push(note);
+                toolsToAutoFit.push(tool);
             }
         }
     });
 
-    // Render custom notes
-    customNotes.forEach(noteId => {
-        const note = createNote(noteId);
-        if (note) {
-            noteboard.appendChild(note);
-            // Check if note needs auto-fitting (no saved dimensions)
-            const pos = positions[noteId];
-            const custom = noteCustomizations[noteId] || {};
+    // Render custom tools
+    customTools.forEach(toolId => {
+        const tool = createTool(toolId);
+        if (tool) {
+            toolboard.appendChild(tool);
+            // Check if tool needs auto-fitting (no saved dimensions)
+            const pos = positions[toolId];
+            const custom = toolCustomizations[toolId] || {};
             if ((!pos || (!pos.width && !pos.height)) && (custom.customContent || custom.templateId)) {
-                notesToAutoFit.push(note);
+                toolsToAutoFit.push(tool);
             }
         }
     });
@@ -3822,10 +4388,10 @@ function renderNoteboard() {
     // Initialize dynamic calculators if present
     initializeCalculators();
 
-    // Auto-fit notes after DOM is ready
-    if (notesToAutoFit.length > 0) {
+    // Auto-fit tools after DOM is ready
+    if (toolsToAutoFit.length > 0) {
         requestAnimationFrame(() => {
-            notesToAutoFit.forEach(note => autoFitNoteContent(note, true));
+            toolsToAutoFit.forEach(tool => autoFitToolContent(tool, true));
         });
     }
 }
@@ -3839,6 +4405,7 @@ function initializeCalculators() {
         if (document.querySelector('.calendar-widget')) calendarInit();
         if (document.querySelector('.diff-widget')) diffInit();
         if (document.querySelector('.seq-widget')) seqInit();
+        if (document.querySelector('.jwt-widget')) jwtInit();
     }, 50);
 }
 
@@ -3884,7 +4451,7 @@ function calculateTax() {
             const tax = amt * b.rate;
             totalTax += tax;
             if (amt > 0) {
-                breakdown += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;"><span>${(b.rate*100)}%</span><span>$${amt.toLocaleString()}</span><span style="color:#c0392b">$${tax.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span></div>`;
+                breakdown += `<div class="calc-row"><span>${(b.rate*100)}%</span><span>$${amt.toLocaleString()}</span><span class="calc-card-value negative">$${tax.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span></div>`;
             }
         }
     }
@@ -3894,29 +4461,29 @@ function calculateTax() {
     const margRate = margBracket ? margBracket.rate * 100 : 37;
 
     resultsEl.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Standard Deduction</div>
-                <div style="font-size:18px;font-weight:600;color:#27ae60;">$${ded.toLocaleString()}</div>
+        <div class="calc-grid">
+            <div class="calc-card">
+                <div class="calc-card-label">Standard Deduction</div>
+                <div class="calc-card-value positive">$${ded.toLocaleString()}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Taxable Income</div>
-                <div style="font-size:18px;font-weight:600;">$${taxable.toLocaleString()}</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Taxable Income</div>
+                <div class="calc-card-value">$${taxable.toLocaleString()}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Total Tax</div>
-                <div style="font-size:18px;font-weight:600;color:#c0392b;">$${totalTax.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Total Tax</div>
+                <div class="calc-card-value negative">$${totalTax.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Effective / Marginal</div>
-                <div style="font-size:18px;font-weight:600;">${effRate}% / ${margRate}%</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Effective / Marginal</div>
+                <div class="calc-card-value">${effRate}% / ${margRate}%</div>
             </div>
         </div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#7f8c8d;">TAX BY BRACKET</div>
+        <div class="calc-section-title">TAX BY BRACKET</div>
         ${breakdown}
-        <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:600;">
+        <div class="calc-row" style="padding:8px 0;font-weight:600;">
             <span>Take Home (Monthly)</span>
-            <span style="color:#27ae60;">$${((income - totalTax) / 12).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span>
+            <span class="calc-card-value positive">$${((income - totalTax) / 12).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span>
         </div>
     `;
 }
@@ -3976,52 +4543,52 @@ function calculateLoan() {
         paidPrincipal += prinPmt;
         bal -= prinPmt;
         if (checkYears.includes(m / 12)) {
-            milestones += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;font-size:12px;"><span>Year ${m/12}</span><span>Balance: $${Math.max(0,bal).toLocaleString(undefined,{maximumFractionDigits:0})}</span><span style="color:#7f8c8d;">Paid: $${paidPrincipal.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>`;
+            milestones += `<div class="calc-row"><span>Year ${m/12}</span><span>Balance: $${Math.max(0,bal).toLocaleString(undefined,{maximumFractionDigits:0})}</span><span style="color:var(--text-muted);">Paid: $${paidPrincipal.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>`;
         }
     }
 
     resultsEl.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Monthly Payment</div>
-                <div style="font-size:20px;font-weight:600;color:#2980b9;">$${monthlyPayment.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="calc-grid">
+            <div class="calc-card">
+                <div class="calc-card-label">Monthly Payment</div>
+                <div class="calc-card-value large info">$${monthlyPayment.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Total Interest</div>
-                <div style="font-size:20px;font-weight:600;color:#c0392b;">$${totalInterest.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Total Interest</div>
+                <div class="calc-card-value large negative">$${totalInterest.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Total Cost</div>
-                <div style="font-size:18px;font-weight:600;">$${totalPayment.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Total Cost</div>
+                <div class="calc-card-value">$${totalPayment.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Interest Ratio</div>
-                <div style="font-size:18px;font-weight:600;">${(totalInterest/principal*100).toFixed(1)}%</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Interest Ratio</div>
+                <div class="calc-card-value">${(totalInterest/principal*100).toFixed(1)}%</div>
             </div>
         </div>
         ${extraPayment > 0 ? `
-        <div style="background:#e8f5e9;padding:10px;border-radius:4px;margin-bottom:15px;">
-            <div style="font-size:12px;font-weight:600;color:#2e7d32;margin-bottom:5px;">WITH $${extraPayment.toLocaleString()}/mo EXTRA</div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <div class="calc-highlight">
+            <div class="calc-highlight-title">WITH $${extraPayment.toLocaleString()}/mo EXTRA</div>
+            <div class="calc-row" style="border:none;font-size:13px;">
                 <span>Payoff: ${yearsWithExtra}y ${monthsRemainder}m</span>
-                <span style="color:#27ae60;font-weight:600;">Save $${interestSaved.toLocaleString(undefined,{maximumFractionDigits:0})}</span>
+                <span class="calc-card-value positive" style="font-size:13px;">Save $${interestSaved.toLocaleString(undefined,{maximumFractionDigits:0})}</span>
             </div>
         </div>` : ''}
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#7f8c8d;">AMORTIZATION</div>
+        <div class="calc-section-title">AMORTIZATION</div>
         ${milestones}
     `;
 }
 
 // Checklist Widget Functions
-let checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+let checklistDragState = { dragging: null, toolId: null, parentIdx: null };
 
-function checklistGetNoteId(element) {
-    const note = element.closest('.note');
-    return note ? note.getAttribute('data-note') : null;
+function checklistGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
 }
 
-function checklistGetData(noteId) {
-    const custom = noteCustomizations[noteId] || {};
+function checklistGetData(toolId) {
+    const custom = toolCustomizations[toolId] || {};
     // Migrate old format: convert completed boolean to status
     let items = custom.checklistItems || [];
     items = items.map(item => {
@@ -4033,17 +4600,17 @@ function checklistGetData(noteId) {
     return items;
 }
 
-function checklistSaveData(noteId, items) {
-    noteCustomizations[noteId] = noteCustomizations[noteId] || {};
-    noteCustomizations[noteId].checklistItems = items;
-    saveNoteCustomizations(noteCustomizations);
+function checklistSaveData(toolId, items) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].checklistItems = items;
+    saveToolCustomizations(toolCustomizations);
 }
 
 function checklistInit() {
     document.querySelectorAll('.checklist-widget').forEach(widget => {
-        const noteId = checklistGetNoteId(widget);
-        if (noteId) {
-            checklistRender(widget, noteId);
+        const toolId = checklistGetToolId(widget);
+        if (toolId) {
+            checklistRender(widget, toolId);
         }
     });
 }
@@ -4085,8 +4652,8 @@ function checklistRenderItem(item, idx, parentIdx = null) {
     `;
 }
 
-function checklistRender(widget, noteId) {
-    const items = checklistGetData(noteId);
+function checklistRender(widget, toolId) {
+    const items = checklistGetData(toolId);
     const listEl = widget.querySelector('.checklist-items');
     const summaryEl = widget.querySelector('.checklist-summary');
 
@@ -4144,28 +4711,28 @@ function checklistSetItemByPath(items, path, value) {
 function checklistAddItem(btn) {
     const widget = btn.closest('.checklist-widget');
     const input = widget.querySelector('.checklist-input');
-    const noteId = checklistGetNoteId(widget);
+    const toolId = checklistGetToolId(widget);
 
-    if (!noteId || !input.value.trim()) return;
+    if (!toolId || !input.value.trim()) return;
 
-    const items = checklistGetData(noteId);
+    const items = checklistGetData(toolId);
     items.push({ text: input.value.trim(), status: 'pending', children: [] });
-    checklistSaveData(noteId, items);
+    checklistSaveData(toolId, items);
 
     input.value = '';
-    checklistRender(widget, noteId);
+    checklistRender(widget, toolId);
 }
 
 function checklistAddSub(el, parentIdx) {
     const widget = el.closest('.checklist-widget');
-    const noteId = checklistGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = checklistGetToolId(widget);
+    if (!toolId) return;
 
-    const items = checklistGetData(noteId);
+    const items = checklistGetData(toolId);
     if (!items[parentIdx].children) items[parentIdx].children = [];
     items[parentIdx].children.push({ text: 'New sub-item', status: 'pending' });
-    checklistSaveData(noteId, items);
-    checklistRender(widget, noteId);
+    checklistSaveData(toolId, items);
+    checklistRender(widget, toolId);
 
     // Focus the new item for editing
     setTimeout(() => {
@@ -4179,10 +4746,10 @@ function checklistAddSub(el, parentIdx) {
 
 function checklistCycleStatus(el, path) {
     const widget = el.closest('.checklist-widget');
-    const noteId = checklistGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = checklistGetToolId(widget);
+    if (!toolId) return;
 
-    const items = checklistGetData(noteId);
+    const items = checklistGetData(toolId);
     const item = checklistGetItemByPath(items, path);
     if (!item) return;
 
@@ -4190,23 +4757,23 @@ function checklistCycleStatus(el, path) {
     const cycle = { 'pending': 'in_progress', 'in_progress': 'completed', 'completed': 'pending' };
     item.status = cycle[item.status] || 'pending';
 
-    checklistSaveData(noteId, items);
-    checklistRender(widget, noteId);
+    checklistSaveData(toolId, items);
+    checklistRender(widget, toolId);
 }
 
 function checklistUpdateText(el, path) {
     const widget = el.closest('.checklist-widget');
-    const noteId = checklistGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = checklistGetToolId(widget);
+    if (!toolId) return;
 
-    const items = checklistGetData(noteId);
+    const items = checklistGetData(toolId);
     const item = checklistGetItemByPath(items, path);
     if (!item) return;
 
     const newText = el.textContent.trim();
     if (newText && newText !== item.text) {
         item.text = newText;
-        checklistSaveData(noteId, items);
+        checklistSaveData(toolId, items);
     } else if (!newText) {
         el.textContent = item.text; // Restore if empty
     }
@@ -4218,9 +4785,9 @@ function checklistTextKeydown(e, el) {
         el.blur();
     } else if (e.key === 'Escape') {
         const widget = el.closest('.checklist-widget');
-        const noteId = checklistGetNoteId(widget);
+        const toolId = checklistGetToolId(widget);
         const path = el.closest('.checklist-item').dataset.path;
-        const items = checklistGetData(noteId);
+        const items = checklistGetData(toolId);
         const item = checklistGetItemByPath(items, path);
         if (item) el.textContent = item.text;
         el.blur();
@@ -4229,20 +4796,20 @@ function checklistTextKeydown(e, el) {
 
 function checklistDelete(btn, path) {
     const widget = btn.closest('.checklist-widget');
-    const noteId = checklistGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = checklistGetToolId(widget);
+    if (!toolId) return;
 
-    const items = checklistGetData(noteId);
+    const items = checklistGetData(toolId);
     checklistSetItemByPath(items, path, null);
-    checklistSaveData(noteId, items);
-    checklistRender(widget, noteId);
+    checklistSaveData(toolId, items);
+    checklistRender(widget, toolId);
 }
 
 // Drag and drop for reordering
 function checklistDragStart(e, path) {
     const widget = e.target.closest('.checklist-widget');
     checklistDragState.dragging = path;
-    checklistDragState.noteId = checklistGetNoteId(widget);
+    checklistDragState.toolId = checklistGetToolId(widget);
     checklistDragState.parentIdx = path.includes('.') ? parseInt(path.split('.')[0]) : null;
     e.target.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
@@ -4267,10 +4834,10 @@ function checklistDrop(e, targetPath) {
     if (targetItem) targetItem.classList.remove('drag-over');
 
     const sourcePath = checklistDragState.dragging;
-    const noteId = checklistDragState.noteId;
+    const toolId = checklistDragState.toolId;
 
-    if (!sourcePath || !noteId || sourcePath === targetPath) {
-        checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+    if (!sourcePath || !toolId || sourcePath === targetPath) {
+        checklistDragState = { dragging: null, toolId: null, parentIdx: null };
         return;
     }
 
@@ -4279,11 +4846,11 @@ function checklistDrop(e, targetPath) {
     const targetParent = targetPath.includes('.') ? targetPath.split('.')[0] : null;
 
     if (sourceParent !== targetParent) {
-        checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+        checklistDragState = { dragging: null, toolId: null, parentIdx: null };
         return;
     }
 
-    const items = checklistGetData(noteId);
+    const items = checklistGetData(toolId);
     const sourceIdx = parseInt(sourcePath.split('.').pop());
     const targetIdx = parseInt(targetPath.split('.').pop());
 
@@ -4296,18 +4863,18 @@ function checklistDrop(e, targetPath) {
     const [moved] = arr.splice(sourceIdx, 1);
     arr.splice(targetIdx > sourceIdx ? targetIdx : targetIdx, 0, moved);
 
-    checklistSaveData(noteId, items);
+    checklistSaveData(toolId, items);
 
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .checklist-widget`);
-    if (widget) checklistRender(widget, noteId);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .checklist-widget`);
+    if (widget) checklistRender(widget, toolId);
 
-    checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+    checklistDragState = { dragging: null, toolId: null, parentIdx: null };
 }
 
 document.addEventListener('dragend', (e) => {
     document.querySelectorAll('.checklist-item.dragging').forEach(el => el.classList.remove('dragging'));
     document.querySelectorAll('.checklist-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-    checklistDragState = { dragging: null, noteId: null, parentIdx: null };
+    checklistDragState = { dragging: null, toolId: null, parentIdx: null };
 });
 
 // Add enter key support for checklist input
@@ -4435,8 +5002,6 @@ function calculateGrowth() {
     const yearsEl = document.getElementById('growthYears');
     const resultsEl = document.getElementById('growthResults');
     const compoundEl = document.querySelector('input[name="growthCompound"]:checked');
-    const monthlyBtn = document.getElementById('compoundMonthlyBtn');
-    const annualBtn = document.getElementById('compoundAnnualBtn');
     if (!initialEl || !monthlyEl || !rateEl || !yearsEl || !resultsEl) return;
 
     const initial = parseFloat(initialEl.value) || 0;
@@ -4444,14 +5009,6 @@ function calculateGrowth() {
     const rate = (parseFloat(rateEl.value) || 0) / 100;
     const years = parseInt(yearsEl.value) || 0;
     const isMonthly = !compoundEl || compoundEl.value === 'monthly';
-
-    // Update toggle button styles
-    if (monthlyBtn && annualBtn) {
-        monthlyBtn.style.background = isMonthly ? '#3498db' : 'white';
-        monthlyBtn.style.color = isMonthly ? 'white' : '#333';
-        annualBtn.style.background = isMonthly ? 'white' : '#3498db';
-        annualBtn.style.color = isMonthly ? '#333' : 'white';
-    }
 
     const months = years * 12;
     const totalContrib = initial + (monthly * months);
@@ -4482,29 +5039,29 @@ function calculateGrowth() {
         } else {
             for (let i = 0; i < y; i++) val = val * (1 + rate) + (monthly * 12);
         }
-        timeline += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;"><span>${y} years</span><span style="color:#27ae60;font-weight:600;">$${val.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span></div>`;
+        timeline += `<div class="calc-row"><span>${y} years</span><span class="calc-card-value positive">$${val.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span></div>`;
     }
 
     resultsEl.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Future Value</div>
-                <div style="font-size:20px;font-weight:700;color:#27ae60;">$${fv.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
+        <div class="calc-grid">
+            <div class="calc-card">
+                <div class="calc-card-label">Future Value</div>
+                <div class="calc-card-value large positive">$${fv.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Total Contributions</div>
-                <div style="font-size:20px;font-weight:600;">$${totalContrib.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Total Contributions</div>
+                <div class="calc-card-value large">$${totalContrib.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Investment Growth</div>
-                <div style="font-size:20px;font-weight:600;color:#27ae60;">$${growth.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Investment Growth</div>
+                <div class="calc-card-value large positive">$${growth.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
             </div>
-            <div style="background:#fff;padding:10px;border-radius:4px;text-align:center;">
-                <div style="font-size:12px;color:#7f8c8d;">Growth Multiple</div>
-                <div style="font-size:20px;font-weight:600;">${totalContrib > 0 ? (fv / totalContrib).toFixed(1) : '0.0'}x</div>
+            <div class="calc-card">
+                <div class="calc-card-label">Growth Multiple</div>
+                <div class="calc-card-value large">${totalContrib > 0 ? (fv / totalContrib).toFixed(1) : '0.0'}x</div>
             </div>
         </div>
-        ${timeline ? `<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#7f8c8d;">GROWTH TIMELINE</div>${timeline}` : ''}
+        ${timeline ? `<div class="calc-section-title">GROWTH TIMELINE</div>${timeline}` : ''}
     `;
 }
 
@@ -4517,38 +5074,38 @@ const CALENDAR_COLORS = [
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-function calendarGetNoteId(widget) {
-    const note = widget.closest('.note');
-    return note ? note.dataset.note : null;
+function calendarGetToolId(widget) {
+    const tool = widget.closest('.tool');
+    return tool ? tool.dataset.tool: null;
 }
 
-function calendarGetData(noteId) {
-    const customizations = loadNoteCustomizations();
-    const custom = customizations[noteId] || {};
+function calendarGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
     const data = custom.calendarData || { calendars: [], events: [] };
     return data;
 }
 
-function calendarSaveData(noteId, data) {
-    const customizations = loadNoteCustomizations();
-    if (!customizations[noteId]) customizations[noteId] = {};
-    customizations[noteId].calendarData = data;
-    saveNoteCustomizations(customizations);
+function calendarSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].calendarData = data;
+    saveToolCustomizations(customizations);
 }
 
 function calendarInit() {
     document.querySelectorAll('.calendar-widget').forEach(widget => {
-        const noteId = calendarGetNoteId(widget);
-        if (!noteId) return;
+        const toolId = calendarGetToolId(widget);
+        if (!toolId) return;
 
-        const data = calendarGetData(noteId);
+        const data = calendarGetData(toolId);
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     });
 }
 
-function calendarRender(widget, noteId, year) {
-    const data = calendarGetData(noteId);
+function calendarRender(widget, toolId, year) {
+    const data = calendarGetData(toolId);
     const grid = widget.querySelector('.calendar-year-grid');
     const legend = widget.querySelector('.calendar-legend');
     const yearDisplay = widget.querySelector('.calendar-year-display');
@@ -4689,18 +5246,18 @@ function calendarCountTotal(data) {
 
 function calendarPrevYear(btn) {
     const widget = btn.closest('.calendar-widget');
-    const noteId = calendarGetNoteId(widget);
+    const toolId = calendarGetToolId(widget);
     const yearDisplay = widget.querySelector('.calendar-year-display');
     const year = parseInt(yearDisplay.textContent) - 1;
-    calendarRender(widget, noteId, year);
+    calendarRender(widget, toolId, year);
 }
 
 function calendarNextYear(btn) {
     const widget = btn.closest('.calendar-widget');
-    const noteId = calendarGetNoteId(widget);
+    const toolId = calendarGetToolId(widget);
     const yearDisplay = widget.querySelector('.calendar-year-display');
     const year = parseInt(yearDisplay.textContent) + 1;
-    calendarRender(widget, noteId, year);
+    calendarRender(widget, toolId, year);
 }
 
 function calendarShowDayEvents(dayEl, dateStr) {
@@ -4708,14 +5265,14 @@ function calendarShowDayEvents(dayEl, dateStr) {
     document.querySelectorAll('.calendar-day-tooltip').forEach(t => t.remove());
 
     const widget = dayEl.closest('.calendar-widget');
-    const noteId = calendarGetNoteId(widget);
-    const data = calendarGetData(noteId);
+    const toolId = calendarGetToolId(widget);
+    const data = calendarGetData(toolId);
     const events = calendarGetEventsForDate(data, dateStr);
 
     const date = new Date(dateStr + 'T00:00:00');
     const dateFormatted = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
-    let html = `<div class="calendar-day-tooltip" data-note-id="${noteId}" data-date="${dateStr}">
+    let html = `<div class="calendar-day-tooltip" data-tool-id="${toolId}" data-date="${dateStr}">
         <div class="calendar-day-tooltip-date">${dateFormatted}</div>`;
 
     events.forEach(event => {
@@ -4785,8 +5342,8 @@ function calendarShowDayEvents(dayEl, dateStr) {
 
 function calendarOpenManage(btn) {
     const widget = btn.closest('.calendar-widget');
-    const noteId = calendarGetNoteId(widget);
-    const data = calendarGetData(noteId);
+    const toolId = calendarGetToolId(widget);
+    const data = calendarGetData(toolId);
 
     // Create modal if it doesn't exist
     let modal = document.getElementById('calendarManageModal');
@@ -4851,7 +5408,7 @@ function calendarOpenManage(btn) {
         document.getElementById('calendarImportFile').addEventListener('change', calendarHandleFileImport);
     }
 
-    modal.dataset.noteId = noteId;
+    modal.dataset.toolId = toolId;
     modal.classList.add('open');
 
     // Render color picker
@@ -4913,7 +5470,7 @@ function calendarRenderManageList(data) {
 
 function calendarAddCalendar() {
     const modal = document.getElementById('calendarManageModal');
-    const noteId = modal.dataset.noteId;
+    const toolId = modal.dataset.toolId;
     const nameInput = document.getElementById('calendarAddName');
     const colorEl = document.querySelector('.calendar-color-option.selected');
 
@@ -4924,7 +5481,7 @@ function calendarAddCalendar() {
     }
 
     const color = colorEl ? colorEl.dataset.color : CALENDAR_COLORS[0];
-    const data = calendarGetData(noteId);
+    const data = calendarGetData(toolId);
 
     const newCal = {
         id: 'cal_' + Date.now(),
@@ -4933,22 +5490,22 @@ function calendarAddCalendar() {
     };
 
     data.calendars.push(newCal);
-    calendarSaveData(noteId, data);
+    calendarSaveData(toolId, data);
 
     nameInput.value = '';
     calendarRenderManageList(data);
 
     // Re-render calendar
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
     if (widget) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     }
 }
 
 function calendarAddEvent() {
     const modal = document.getElementById('calendarManageModal');
-    const noteId = modal.dataset.noteId;
+    const toolId = modal.dataset.toolId;
 
     const titleInput = document.getElementById('calendarEventTitle');
     const startInput = document.getElementById('calendarEventStart');
@@ -4975,7 +5532,7 @@ function calendarAddEvent() {
         return;
     }
 
-    const data = calendarGetData(noteId);
+    const data = calendarGetData(toolId);
 
     const newEvent = {
         uid: 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -4986,7 +5543,7 @@ function calendarAddEvent() {
     };
 
     data.events.push(newEvent);
-    calendarSaveData(noteId, data);
+    calendarSaveData(toolId, data);
 
     // Clear inputs
     titleInput.value = '';
@@ -4996,16 +5553,16 @@ function calendarAddEvent() {
     calendarRenderManageList(data);
 
     // Re-render calendar
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
     if (widget) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     }
 }
 
 function calendarAddEventFromDay(btn) {
     const tooltip = btn.closest('.calendar-day-tooltip');
-    const noteId = tooltip.dataset.noteId;
+    const toolId = tooltip.dataset.toolId;
     const dateStr = tooltip.dataset.date;
 
     const titleInput = tooltip.querySelector('.calendar-day-add-input');
@@ -5019,7 +5576,7 @@ function calendarAddEventFromDay(btn) {
         return;
     }
 
-    const data = calendarGetData(noteId);
+    const data = calendarGetData(toolId);
 
     const newEvent = {
         uid: 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -5030,16 +5587,16 @@ function calendarAddEventFromDay(btn) {
     };
 
     data.events.push(newEvent);
-    calendarSaveData(noteId, data);
+    calendarSaveData(toolId, data);
 
     // Close tooltip
     tooltip.remove();
 
     // Re-render calendar
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
     if (widget) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     }
 }
 
@@ -5047,40 +5604,40 @@ function calendarDeleteEvent(eventUid) {
     const tooltip = document.querySelector('.calendar-day-tooltip');
     if (!tooltip) return;
 
-    const noteId = tooltip.dataset.noteId;
+    const toolId = tooltip.dataset.toolId;
     const dateStr = tooltip.dataset.date;
-    const data = calendarGetData(noteId);
+    const data = calendarGetData(toolId);
 
     data.events = data.events.filter(e => e.uid !== eventUid);
-    calendarSaveData(noteId, data);
+    calendarSaveData(toolId, data);
 
     // Close tooltip
     tooltip.remove();
 
     // Re-render calendar
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
     if (widget) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     }
 }
 
 function calendarRemoveCalendar(calId) {
     const modal = document.getElementById('calendarManageModal');
-    const noteId = modal.dataset.noteId;
-    const data = calendarGetData(noteId);
+    const toolId = modal.dataset.toolId;
+    const data = calendarGetData(toolId);
 
     data.calendars = data.calendars.filter(c => c.id !== calId);
     data.events = data.events.filter(e => e.calendarId !== calId);
-    calendarSaveData(noteId, data);
+    calendarSaveData(toolId, data);
 
     calendarRenderManageList(data);
 
     // Re-render calendar
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
     if (widget) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     }
 }
 
@@ -5157,7 +5714,7 @@ async function calendarImportFromUrl() {
 
 function calendarImportICS(content) {
     const modal = document.getElementById('calendarManageModal');
-    const noteId = modal.dataset.noteId;
+    const toolId = modal.dataset.toolId;
     const select = document.getElementById('calendarImportSelect');
     const calendarId = select.value;
 
@@ -5173,7 +5730,7 @@ function calendarImportICS(content) {
         return;
     }
 
-    const data = calendarGetData(noteId);
+    const data = calendarGetData(toolId);
 
     // Add events (avoiding duplicates by UID)
     const existingUids = new Set(data.events.map(e => e.uid));
@@ -5187,14 +5744,14 @@ function calendarImportICS(content) {
         }
     });
 
-    calendarSaveData(noteId, data);
+    calendarSaveData(toolId, data);
     calendarRenderManageList(data);
 
     // Re-render calendar
-    const widget = document.querySelector(`.note[data-note="${noteId}"] .calendar-widget`);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
     if (widget) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
-        calendarRender(widget, noteId, year);
+        calendarRender(widget, toolId, year);
     }
 
     alert(`Imported ${added} event(s).`);
@@ -5368,14 +5925,14 @@ function expandRRULE(event) {
 
 // ==================== Diff Viewer Functions ====================
 
-function diffGetNoteId(element) {
-    const note = element.closest('.note');
-    return note ? note.dataset.note : null;
+function diffGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.dataset.tool: null;
 }
 
-function diffGetData(noteId) {
-    const customizations = loadNoteCustomizations();
-    const custom = customizations[noteId] || {};
+function diffGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
     return custom.diffData || {
         original: '',
         modified: '',
@@ -5385,19 +5942,19 @@ function diffGetData(noteId) {
     };
 }
 
-function diffSaveData(noteId, data) {
-    const customizations = loadNoteCustomizations();
-    if (!customizations[noteId]) customizations[noteId] = {};
-    customizations[noteId].diffData = data;
-    saveNoteCustomizations(customizations);
+function diffSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].diffData = data;
+    saveToolCustomizations(customizations);
 }
 
 function diffInit() {
     document.querySelectorAll('.diff-widget').forEach(widget => {
-        const noteId = diffGetNoteId(widget);
-        if (!noteId) return;
+        const toolId = diffGetToolId(widget);
+        if (!toolId) return;
 
-        const data = diffGetData(noteId);
+        const data = diffGetData(toolId);
 
         // Populate textareas
         const textareas = widget.querySelectorAll('.diff-edit-pane textarea');
@@ -5427,37 +5984,37 @@ function diffInit() {
         if (data.mode === 'view') {
             editContainer.classList.add('hidden');
             viewContainer.classList.add('active');
-            diffRenderOutput(widget, noteId);
+            diffRenderOutput(widget, toolId);
         } else {
             editContainer.classList.remove('hidden');
             viewContainer.classList.remove('active');
         }
 
         // Update stats
-        diffUpdateStats(widget, noteId);
+        diffUpdateStats(widget, toolId);
     });
 }
 
 function diffOnInput(textarea, field) {
-    const noteId = diffGetNoteId(textarea);
-    if (!noteId) return;
+    const toolId = diffGetToolId(textarea);
+    if (!toolId) return;
 
-    const data = diffGetData(noteId);
+    const data = diffGetData(toolId);
     data[field] = textarea.value;
-    diffSaveData(noteId, data);
+    diffSaveData(toolId, data);
 
     const widget = textarea.closest('.diff-widget');
-    diffUpdateStats(widget, noteId);
+    diffUpdateStats(widget, toolId);
 }
 
 function diffSetMode(btn, mode) {
     const widget = btn.closest('.diff-widget');
-    const noteId = diffGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = diffGetToolId(widget);
+    if (!toolId) return;
 
-    const data = diffGetData(noteId);
+    const data = diffGetData(toolId);
     data.mode = mode;
-    diffSaveData(noteId, data);
+    diffSaveData(toolId, data);
 
     // Update button states
     widget.querySelectorAll('.diff-mode-btn').forEach(b => {
@@ -5471,7 +6028,7 @@ function diffSetMode(btn, mode) {
     if (mode === 'view') {
         editContainer.classList.add('hidden');
         viewContainer.classList.add('active');
-        diffRenderOutput(widget, noteId);
+        diffRenderOutput(widget, toolId);
     } else {
         editContainer.classList.remove('hidden');
         viewContainer.classList.remove('active');
@@ -5480,12 +6037,12 @@ function diffSetMode(btn, mode) {
 
 function diffSetView(btn, viewType) {
     const widget = btn.closest('.diff-widget');
-    const noteId = diffGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = diffGetToolId(widget);
+    if (!toolId) return;
 
-    const data = diffGetData(noteId);
+    const data = diffGetData(toolId);
     data.viewType = viewType;
-    diffSaveData(noteId, data);
+    diffSaveData(toolId, data);
 
     // Update button states
     widget.querySelectorAll('.diff-view-btn').forEach(b => {
@@ -5495,25 +6052,25 @@ function diffSetView(btn, viewType) {
 
     // Re-render if in view mode
     if (data.mode === 'view') {
-        diffRenderOutput(widget, noteId);
+        diffRenderOutput(widget, toolId);
     }
 }
 
 function diffToggleWhitespace(checkbox) {
     const widget = checkbox.closest('.diff-widget');
-    const noteId = diffGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = diffGetToolId(widget);
+    if (!toolId) return;
 
-    const data = diffGetData(noteId);
+    const data = diffGetData(toolId);
     data.hideWhitespace = checkbox.checked;
-    diffSaveData(noteId, data);
+    diffSaveData(toolId, data);
 
     // Re-render if in view mode
     if (data.mode === 'view') {
-        diffRenderOutput(widget, noteId);
+        diffRenderOutput(widget, toolId);
     }
 
-    diffUpdateStats(widget, noteId);
+    diffUpdateStats(widget, toolId);
 }
 
 function diffSyncScroll(textarea, source) {
@@ -5593,8 +6150,8 @@ function backtrackDiff(dp, aNorm, bNorm, aOrig, bOrig) {
     return result;
 }
 
-function diffRenderOutput(widget, noteId) {
-    const data = diffGetData(noteId);
+function diffRenderOutput(widget, toolId) {
+    const data = diffGetData(toolId);
     const output = widget.querySelector('.diff-output');
 
     if (!data.original && !data.modified) {
@@ -5681,8 +6238,8 @@ function renderUnifiedLine(origLine, modLine, content, type, prefix) {
     `;
 }
 
-function diffUpdateStats(widget, noteId) {
-    const data = diffGetData(noteId);
+function diffUpdateStats(widget, toolId) {
+    const data = diffGetData(toolId);
     const statsEl = widget.querySelector('.diff-stats');
 
     if (!data.original && !data.modified) {
@@ -5708,33 +6265,33 @@ function diffUpdateStats(widget, noteId) {
 
 // ==================== Sequence Diagram Functions ====================
 
-function seqGetNoteId(element) {
-    const note = element.closest('.note');
-    return note ? note.dataset.note : null;
+function seqGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.dataset.tool: null;
 }
 
-function seqGetData(noteId) {
-    const customizations = loadNoteCustomizations();
-    const custom = customizations[noteId] || {};
+function seqGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
     return custom.seqData || {
         text: '',
         mode: 'split'
     };
 }
 
-function seqSaveData(noteId, data) {
-    const customizations = loadNoteCustomizations();
-    if (!customizations[noteId]) customizations[noteId] = {};
-    customizations[noteId].seqData = data;
-    saveNoteCustomizations(customizations);
+function seqSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].seqData = data;
+    saveToolCustomizations(customizations);
 }
 
 function seqInit() {
     document.querySelectorAll('.seq-widget').forEach(widget => {
-        const noteId = seqGetNoteId(widget);
-        if (!noteId) return;
+        const toolId = seqGetToolId(widget);
+        if (!toolId) return;
 
-        const data = seqGetData(noteId);
+        const data = seqGetData(toolId);
 
         // Populate all textareas
         widget.querySelectorAll('textarea').forEach(ta => {
@@ -5748,11 +6305,11 @@ function seqInit() {
         });
 
         // Show correct container
-        seqUpdateContainers(widget, data.mode, noteId);
+        seqUpdateContainers(widget, data.mode, toolId);
     });
 }
 
-function seqUpdateContainers(widget, mode, noteId) {
+function seqUpdateContainers(widget, mode, toolId) {
     const editContainer = widget.querySelector('.seq-edit-container');
     const splitContainer = widget.querySelector('.seq-split-container');
     const viewContainer = widget.querySelector('.seq-view-container');
@@ -5766,21 +6323,21 @@ function seqUpdateContainers(widget, mode, noteId) {
         editContainer.classList.add('active');
     } else if (mode === 'split') {
         splitContainer.classList.add('active');
-        seqRenderDiagram(widget, noteId, '.seq-split-container .seq-diagram');
+        seqRenderDiagram(widget, toolId, '.seq-split-container .seq-diagram');
     } else if (mode === 'view') {
         viewContainer.classList.add('active');
-        seqRenderDiagram(widget, noteId, '.seq-view-container .seq-diagram');
+        seqRenderDiagram(widget, toolId, '.seq-view-container .seq-diagram');
     }
 }
 
 function seqOnInput(textarea) {
     const widget = textarea.closest('.seq-widget');
-    const noteId = seqGetNoteId(textarea);
-    if (!noteId) return;
+    const toolId = seqGetToolId(textarea);
+    if (!toolId) return;
 
-    const data = seqGetData(noteId);
+    const data = seqGetData(toolId);
     data.text = textarea.value;
-    seqSaveData(noteId, data);
+    seqSaveData(toolId, data);
 
     // Sync all textareas in the widget
     widget.querySelectorAll('textarea').forEach(ta => {
@@ -5789,18 +6346,18 @@ function seqOnInput(textarea) {
 
     // Live render if in split mode
     if (data.mode === 'split') {
-        seqRenderDiagram(widget, noteId, '.seq-split-container .seq-diagram');
+        seqRenderDiagram(widget, toolId, '.seq-split-container .seq-diagram');
     }
 }
 
 function seqSetMode(btn, mode) {
     const widget = btn.closest('.seq-widget');
-    const noteId = seqGetNoteId(widget);
-    if (!noteId) return;
+    const toolId = seqGetToolId(widget);
+    if (!toolId) return;
 
-    const data = seqGetData(noteId);
+    const data = seqGetData(toolId);
     data.mode = mode;
-    seqSaveData(noteId, data);
+    seqSaveData(toolId, data);
 
     // Update button states
     widget.querySelectorAll('.seq-mode-btn').forEach(b => {
@@ -5814,7 +6371,7 @@ function seqSetMode(btn, mode) {
     });
 
     // Update containers
-    seqUpdateContainers(widget, mode, noteId);
+    seqUpdateContainers(widget, mode, toolId);
 }
 
 function seqShowHelp(btn) {
@@ -5979,8 +6536,8 @@ function seqParseText(text) {
     return { participants, items };
 }
 
-function seqRenderDiagram(widget, noteId, containerSelector) {
-    const data = seqGetData(noteId);
+function seqRenderDiagram(widget, toolId, containerSelector) {
+    const data = seqGetData(toolId);
     const container = widget.querySelector(containerSelector || '.seq-diagram');
 
     if (!container) return;
@@ -6287,8 +6844,241 @@ function convertTableToHtml(tableLines) {
     return html;
 }
 
+// JWT Decoder Widget
+function jwtGetToolId(element) {
+    const widget = element.closest('.jwt-widget');
+    return widget?.closest('.tool')?.getAttribute('data-tool');
+}
+
+function jwtInit() {
+    document.querySelectorAll('.jwt-widget').forEach(widget => {
+        const textarea = widget.querySelector('textarea');
+        if (textarea && textarea.value) {
+            jwtDecode(textarea);
+        }
+    });
+}
+
+function jwtDecode(textarea) {
+    const widget = textarea.closest('.jwt-widget');
+    const results = widget.querySelector('.jwt-results');
+    const token = textarea.value.trim();
+
+    if (!token) {
+        results.innerHTML = '<div class="jwt-status info">Paste a JWT token above to decode it</div>';
+        return;
+    }
+
+    // Split token into parts
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+        results.innerHTML = '<div class="jwt-error">Invalid JWT format. A JWT should have 3 parts separated by dots (header.payload.signature)</div>';
+        return;
+    }
+
+    try {
+        // Decode header
+        const header = JSON.parse(jwtBase64Decode(parts[0]));
+        // Decode payload
+        const payload = JSON.parse(jwtBase64Decode(parts[1]));
+        // Signature is the third part (we can't verify it without the secret)
+        const signature = parts[2];
+
+        let html = '<div class="jwt-parts">';
+
+        // Header section
+        html += `
+            <div class="jwt-part">
+                <div class="jwt-part-header header">
+                    <span>HEADER</span>
+                    <button class="jwt-copy-btn" onclick="jwtCopyPart(this, 'header')">Copy</button>
+                </div>
+                <div class="jwt-part-content">${jwtSyntaxHighlight(JSON.stringify(header, null, 2))}</div>
+            </div>
+        `;
+
+        // Payload section with claim analysis
+        html += `
+            <div class="jwt-part">
+                <div class="jwt-part-header payload">
+                    <span>PAYLOAD</span>
+                    <button class="jwt-copy-btn" onclick="jwtCopyPart(this, 'payload')">Copy</button>
+                </div>
+                <div class="jwt-part-content">${jwtSyntaxHighlight(JSON.stringify(payload, null, 2))}</div>
+                ${jwtRenderClaims(payload)}
+            </div>
+        `;
+
+        // Signature section
+        html += `
+            <div class="jwt-part">
+                <div class="jwt-part-header signature">
+                    <span>SIGNATURE</span>
+                    <button class="jwt-copy-btn" onclick="jwtCopyPart(this, 'signature')">Copy</button>
+                </div>
+                <div class="jwt-part-content raw">${signature}</div>
+                <div style="padding: 8px 12px; font-size: 11px; color: var(--text-muted);">
+                    Algorithm: <strong>${header.alg || 'Unknown'}</strong>
+                    ${header.alg ? ` - Signature cannot be verified without the ${header.alg.startsWith('HS') ? 'secret key' : 'public key'}` : ''}
+                </div>
+            </div>
+        `;
+
+        html += '</div>';
+
+        // Store decoded parts for copy function
+        widget._decodedHeader = JSON.stringify(header, null, 2);
+        widget._decodedPayload = JSON.stringify(payload, null, 2);
+        widget._signature = signature;
+
+        results.innerHTML = html;
+
+    } catch (e) {
+        results.innerHTML = `<div class="jwt-error">Failed to decode JWT: ${e.message}</div>`;
+    }
+}
+
+function jwtBase64Decode(str) {
+    // Handle URL-safe base64
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding if needed
+    while (base64.length % 4) {
+        base64 += '=';
+    }
+    return decodeURIComponent(atob(base64).split('').map(c => {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+}
+
+function jwtSyntaxHighlight(json) {
+    return json
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+            let cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                    return `<span style="color: #9b59b6">${match}</span>`;
+                } else {
+                    cls = 'string';
+                    return `<span style="color: #27ae60">${match}</span>`;
+                }
+            } else if (/true|false/.test(match)) {
+                return `<span style="color: #e67e22">${match}</span>`;
+            } else if (/null/.test(match)) {
+                return `<span style="color: #95a5a6">${match}</span>`;
+            }
+            return `<span style="color: #3498db">${match}</span>`;
+        });
+}
+
+function jwtRenderClaims(payload) {
+    const standardClaims = {
+        'iss': 'Issuer',
+        'sub': 'Subject',
+        'aud': 'Audience',
+        'exp': 'Expiration',
+        'nbf': 'Not Before',
+        'iat': 'Issued At',
+        'jti': 'JWT ID'
+    };
+
+    const now = Math.floor(Date.now() / 1000);
+    let claimsHtml = '<div class="jwt-claims">';
+
+    for (const [key, value] of Object.entries(payload)) {
+        let displayValue = value;
+        let valueClass = '';
+
+        // Format timestamp claims
+        if (['exp', 'nbf', 'iat'].includes(key) && typeof value === 'number') {
+            const date = new Date(value * 1000);
+            const formatted = date.toLocaleString();
+
+            if (key === 'exp') {
+                if (value < now) {
+                    displayValue = `${formatted} (EXPIRED)`;
+                    valueClass = 'expired';
+                } else {
+                    const diff = value - now;
+                    const hours = Math.floor(diff / 3600);
+                    const mins = Math.floor((diff % 3600) / 60);
+                    displayValue = `${formatted} (valid for ${hours}h ${mins}m)`;
+                    valueClass = 'valid';
+                }
+            } else if (key === 'nbf') {
+                if (value > now) {
+                    displayValue = `${formatted} (NOT YET VALID)`;
+                    valueClass = 'expired';
+                } else {
+                    displayValue = `${formatted} (active)`;
+                    valueClass = 'valid';
+                }
+            } else {
+                displayValue = formatted;
+            }
+        } else if (typeof value === 'object') {
+            displayValue = JSON.stringify(value);
+        }
+
+        const label = standardClaims[key] || key;
+        claimsHtml += `
+            <div class="jwt-claim">
+                <span class="jwt-claim-key">${label}</span>
+                <span class="jwt-claim-value ${valueClass}">${displayValue}</span>
+            </div>
+        `;
+    }
+
+    claimsHtml += '</div>';
+    return claimsHtml;
+}
+
+function jwtCopyPart(btn, part) {
+    const widget = btn.closest('.jwt-widget');
+    let text = '';
+    if (part === 'header') text = widget._decodedHeader;
+    else if (part === 'payload') text = widget._decodedPayload;
+    else if (part === 'signature') text = widget._signature;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 1500);
+    });
+}
+
+function jwtLoadSample() {
+    const widget = event.target.closest('.jwt-widget');
+    const textarea = widget.querySelector('textarea');
+    // Sample JWT with typical claims
+    const samplePayload = {
+        sub: '1234567890',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'admin',
+        iat: Math.floor(Date.now() / 1000) - 3600,
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iss: 'https://example.com'
+    };
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const payload = btoa(JSON.stringify(samplePayload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const signature = 'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+    textarea.value = `${header}.${payload}.${signature}`;
+    jwtDecode(textarea);
+}
+
+function jwtClear() {
+    const widget = event.target.closest('.jwt-widget');
+    const textarea = widget.querySelector('textarea');
+    textarea.value = '';
+    jwtDecode(textarea);
+}
+
 // Content Editor State
-let currentEditingNote = null;
+let currentEditingTool = null;
 
 function setupContentEditor() {
     const overlay = document.getElementById('contentEditorOverlay');
@@ -6296,7 +7086,7 @@ function setupContentEditor() {
     const header = overlay.querySelector('.content-editor-header');
     const textarea = document.getElementById('contentEditorTextarea');
     const preview = document.getElementById('contentEditorPreview');
-    const titleSpan = document.getElementById('editorNoteTitle');
+    const titleSpan = document.getElementById('editorToolTitle');
     const closeBtn = overlay.querySelector('.content-editor-close');
     const saveBtn = overlay.querySelector('.content-editor-save');
     const cancelBtn = overlay.querySelector('.content-editor-cancel');
@@ -6335,58 +7125,58 @@ function setupContentEditor() {
     // Close button
     closeBtn.addEventListener('click', () => {
         overlay.classList.remove('open');
-        currentEditingNote = null;
+        currentEditingTool = null;
     });
 
     // Cancel button
     cancelBtn.addEventListener('click', () => {
         overlay.classList.remove('open');
-        currentEditingNote = null;
+        currentEditingTool = null;
     });
 
     // Save button
     saveBtn.addEventListener('click', () => {
-        if (currentEditingNote) {
-            const noteId = currentEditingNote;
-            noteCustomizations[noteId] = noteCustomizations[noteId] || {};
-            noteCustomizations[noteId].customContent = textarea.value;
-            saveNoteCustomizations(noteCustomizations);
+        if (currentEditingTool) {
+            const toolId = currentEditingTool;
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].customContent = textarea.value;
+            saveToolCustomizations(toolCustomizations);
 
-            // Update the note content
-            const note = document.querySelector(`[data-note="${noteId}"]`);
-            if (note) {
-                const contentDiv = note.querySelector('.note-content');
+            // Update the tool content
+            const tool = document.querySelector(`[data-tool="${toolId}"]`);
+            if (tool) {
+                const contentDiv = tool.querySelector('.tool-content');
                 contentDiv.innerHTML = `<div class="markdown-content">${parseMarkdown(textarea.value)}</div>`;
 
-                // Auto-resize note to fit new content
+                // Auto-resize tool to fit new content
                 requestAnimationFrame(() => {
-                    autoFitNoteContent(note, false);
+                    autoFitToolContent(tool, false);
                 });
             }
         }
         overlay.classList.remove('open');
-        currentEditingNote = null;
+        currentEditingTool = null;
     });
 
     // Reset button
     resetBtn.addEventListener('click', () => {
-        if (currentEditingNote && confirm('Reset to default content? This will remove your custom content.')) {
-            const noteId = currentEditingNote;
-            if (noteCustomizations[noteId]) {
-                delete noteCustomizations[noteId].customContent;
-                saveNoteCustomizations(noteCustomizations);
+        if (currentEditingTool && confirm('Reset to default content? This will remove your custom content.')) {
+            const toolId = currentEditingTool;
+            if (toolCustomizations[toolId]) {
+                delete toolCustomizations[toolId].customContent;
+                saveToolCustomizations(toolCustomizations);
             }
 
             // Restore default content
-            const note = document.querySelector(`[data-note="${noteId}"]`);
-            if (note) {
-                const content = getNoteContent(noteId);
-                const contentDiv = note.querySelector('.note-content');
+            const tool = document.querySelector(`[data-tool="${toolId}"]`);
+            if (tool) {
+                const content = getToolContent(toolId);
+                const contentDiv = tool.querySelector('.tool-content');
                 contentDiv.innerHTML = content.html;
             }
 
             overlay.classList.remove('open');
-            currentEditingNote = null;
+            currentEditingTool = null;
         }
     });
 
@@ -6394,7 +7184,7 @@ function setupContentEditor() {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             overlay.classList.remove('open');
-            currentEditingNote = null;
+            currentEditingTool = null;
         }
     });
 
@@ -6558,40 +7348,40 @@ function setupContentEditor() {
     document.addEventListener('touchend', endEditorResize);
     document.addEventListener('touchcancel', endEditorResize);
 
-    // Double-click on note content to edit
-    const noteboard = document.getElementById('noteboard');
-    noteboard.addEventListener('dblclick', (e) => {
+    // Double-click on tool content to edit
+    const toolboard = document.getElementById('toolboard');
+    toolboard.addEventListener('dblclick', (e) => {
         // Don't trigger on interactive elements
         if (e.target.closest('input, button, select, textarea, a, .checklist-widget, .calendar-widget, .diff-widget, .seq-widget')) return;
 
-        const noteContent = e.target.closest('.note-content');
-        if (!noteContent) return;
+        const toolContent = e.target.closest('.tool-content');
+        if (!toolContent) return;
 
-        const note = noteContent.closest('.note');
-        if (!note) return;
+        const tool = toolContent.closest('.tool');
+        if (!tool) return;
 
-        const noteId = note.getAttribute('data-note');
-        if (noteId) {
+        const toolId = tool.getAttribute('data-tool');
+        if (toolId) {
             e.preventDefault();
-            openContentEditor(noteId);
+            openContentEditor(toolId);
         }
     });
 }
 
-function openContentEditor(noteId) {
+function openContentEditor(toolId) {
     const overlay = document.getElementById('contentEditorOverlay');
     const editor = overlay.querySelector('.content-editor');
     const textarea = document.getElementById('contentEditorTextarea');
     const preview = document.getElementById('contentEditorPreview');
-    const titleSpan = document.getElementById('editorNoteTitle');
+    const titleSpan = document.getElementById('editorToolTitle');
     const inputPane = overlay.querySelector('.content-editor-input');
     const previewPane = overlay.querySelector('.content-editor-preview');
 
-    currentEditingNote = noteId;
+    currentEditingTool = toolId;
 
-    // Get note info
-    const custom = noteCustomizations[noteId] || {};
-    const content = getNoteContent(noteId);
+    // Get tool info
+    const custom = toolCustomizations[toolId] || {};
+    const content = getToolContent(toolId);
     const displayTitle = custom.title || content.title;
 
     titleSpan.textContent = displayTitle;
@@ -6600,8 +7390,8 @@ function openContentEditor(noteId) {
     if (custom.customContent) {
         textarea.value = custom.customContent;
     } else {
-        // Provide a hint with the note name
-        textarea.value = `# ${content.title}\n\nEdit this content using Markdown.\n\n**Note:** The default dynamic content will be replaced with your custom content.`;
+        // Provide a hint with the tool name
+        textarea.value = `# ${content.title}\n\nEdit this content using Markdown.\n\n**Note:** The default content will be replaced with your custom content.`;
     }
 
     // Reset pane widths to default 50/50
@@ -6627,15 +7417,15 @@ function openContentEditor(noteId) {
     textarea.focus();
 }
 
-// Noteboard settings
+// Toolboard settings
 const DASHBOARD_COLORS = [
     '#2c3e50', '#34495e', '#1a252f', '#2980b9', '#3498db',
     '#8e44ad', '#9b59b6', '#16a085', '#1abc9c', '#27ae60',
     '#d35400', '#e67e22', '#c0392b', '#e74c3c', '#7f8c8d'
 ];
 
-function loadNoteboardSettings() {
-    const stored = localStorage.getItem(boardKey('noteboardSettings'));
+function loadToolboardSettings() {
+    const stored = localStorage.getItem(boardKey('toolboardSettings'));
     if (stored) {
         try {
             return JSON.parse(stored);
@@ -6646,53 +7436,54 @@ function loadNoteboardSettings() {
     return { title: 'My Toolboard', color: '#2c3e50' };
 }
 
-function saveNoteboardSettings(settings) {
-    localStorage.setItem(boardKey('noteboardSettings'), JSON.stringify(settings));
+function saveToolboardSettings(settings) {
+    localStorage.setItem(boardKey('toolboardSettings'), JSON.stringify(settings));
+    updateStorageIndicator();
 }
 
-let noteboardSettings = loadNoteboardSettings();
+let toolboardSettings = loadToolboardSettings();
 
-function applyNoteboardSettings() {
+function applyToolboardSettings() {
     const header = document.getElementById('mainHeader');
-    const title = document.getElementById('noteboardTitle');
-    const titleInput = document.getElementById('noteboardTitleInput');
-    const colorPicker = document.getElementById('noteboardColorPicker');
+    const title = document.getElementById('toolboardTitle');
+    const titleInput = document.getElementById('toolboardTitleInput');
+    const colorPicker = document.getElementById('toolboardColorPicker');
 
-    title.textContent = noteboardSettings.title;
-    header.style.background = noteboardSettings.color;
-    titleInput.value = noteboardSettings.title;
+    title.textContent = toolboardSettings.title;
+    header.style.background = toolboardSettings.color;
+    titleInput.value = toolboardSettings.title;
 
     // Update browser tab title
-    document.title = noteboardSettings.title + ' - Toolboard';
+    document.title = toolboardSettings.title + ' - Toolboard';
 
     // Populate color picker
     colorPicker.innerHTML = DASHBOARD_COLORS.map(c =>
-        `<div class="color-swatch${noteboardSettings.color === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`
+        `<div class="color-swatch${toolboardSettings.color === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`
     ).join('');
 }
 
-function setupNoteboardSettings() {
-    const settingsBtn = document.getElementById('noteboardSettingsBtn');
-    const settingsPanel = document.getElementById('noteboardSettings');
-    const titleInput = document.getElementById('noteboardTitleInput');
-    const colorPicker = document.getElementById('noteboardColorPicker');
+function setupToolboardSettings() {
+    const settingsBtn = document.getElementById('toolboardSettingsBtn');
+    const settingsPanel = document.getElementById('toolboardSettings');
+    const titleInput = document.getElementById('toolboardTitleInput');
+    const colorPicker = document.getElementById('toolboardColorPicker');
     const header = document.getElementById('mainHeader');
-    const title = document.getElementById('noteboardTitle');
+    const title = document.getElementById('toolboardTitle');
 
     // Toggle settings panel
     settingsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Close note settings modal
-        document.getElementById('noteSettingsOverlay').classList.remove('open');
+        // Close tool settings modal
+        document.getElementById('toolSettingsOverlay').classList.remove('open');
         settingsPanel.classList.toggle('open');
     });
 
     // Title input
     titleInput.addEventListener('input', (e) => {
-        noteboardSettings.title = e.target.value;
+        toolboardSettings.title = e.target.value;
         title.textContent = e.target.value;
-        saveNoteboardSettings(noteboardSettings);
-        // Update board name to match noteboard title
+        saveToolboardSettings(toolboardSettings);
+        // Update board name to match toolboard title
         renameBoardInSelector();
     });
 
@@ -6700,32 +7491,32 @@ function setupNoteboardSettings() {
     colorPicker.addEventListener('click', (e) => {
         if (e.target.classList.contains('color-swatch')) {
             const color = e.target.getAttribute('data-color');
-            noteboardSettings.color = color;
+            toolboardSettings.color = color;
             header.style.background = color;
             colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
             e.target.classList.add('selected');
-            saveNoteboardSettings(noteboardSettings);
+            saveToolboardSettings(toolboardSettings);
         }
     });
 
     // Close when clicking outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.noteboard-settings') && !e.target.closest('#noteboardSettingsBtn')) {
+        if (!e.target.closest('.toolboard-settings') && !e.target.closest('#toolboardSettingsBtn')) {
             settingsPanel.classList.remove('open');
         }
     });
 }
 
-// Available colors for note headers
+// Available colors for tool headers
 const HEADER_COLORS = [
     '#8e44ad', '#9b59b6', '#3498db', '#2980b9', '#1abc9c',
     '#16a085', '#27ae60', '#2ecc71', '#f39c12', '#e67e22',
     '#d35400', '#e74c3c', '#c0392b', '#34495e', '#7f8c8d'
 ];
 
-// Load note customizations
-function loadNoteCustomizations() {
-    const stored = localStorage.getItem(boardKey('noteCustomizations'));
+// Load tool customizations
+function loadToolCustomizations() {
+    const stored = localStorage.getItem(boardKey('toolCustomizations'));
     if (stored) {
         try {
             return JSON.parse(stored);
@@ -6736,14 +7527,15 @@ function loadNoteCustomizations() {
     return {};
 }
 
-// Save note customizations
-function saveNoteCustomizations(customizations) {
-    localStorage.setItem(boardKey('noteCustomizations'), JSON.stringify(customizations));
+// Save tool customizations
+function saveToolCustomizations(customizations) {
+    localStorage.setItem(boardKey('toolCustomizations'), JSON.stringify(customizations));
+    updateStorageIndicator();
 }
 
-// Custom notes storage
-function loadCustomNotes() {
-    const stored = localStorage.getItem(boardKey('customNotes'));
+// Custom tools storage
+function loadCustomTools() {
+    const stored = localStorage.getItem(boardKey('customTools'));
     if (stored) {
         try {
             return JSON.parse(stored);
@@ -6754,13 +7546,14 @@ function loadCustomNotes() {
     return [];
 }
 
-function saveCustomNotes(notes) {
-    localStorage.setItem(boardKey('customNotes'), JSON.stringify(notes));
+function saveCustomTools(tools) {
+    localStorage.setItem(boardKey('customTools'), JSON.stringify(tools));
+    updateStorageIndicator();
 }
 
-// Hidden notes storage (for built-in notes that have been deleted)
-function loadHiddenNotes() {
-    const stored = localStorage.getItem(boardKey('hiddenNotes'));
+// Hidden tools storage (for built-in tools that have been deleted)
+function loadHiddenTools() {
+    const stored = localStorage.getItem(boardKey('hiddenTools'));
     if (stored) {
         try {
             return JSON.parse(stored);
@@ -6771,40 +7564,41 @@ function loadHiddenNotes() {
     return [];
 }
 
-function saveHiddenNotes(notes) {
-    localStorage.setItem(boardKey('hiddenNotes'), JSON.stringify(notes));
+function saveHiddenTools(tools) {
+    localStorage.setItem(boardKey('hiddenTools'), JSON.stringify(tools));
+    updateStorageIndicator();
 }
 
-let noteCustomizations = loadNoteCustomizations();
-let customNotes = loadCustomNotes();
-let hiddenNotes = loadHiddenNotes();
+let toolCustomizations = loadToolCustomizations();
+let customTools = loadCustomTools();
+let hiddenTools = loadHiddenTools();
 
-// Create a note element
-function createNote(noteId) {
-    const note = document.createElement('div');
-    note.className = 'note';
-    note.setAttribute('data-note', noteId);
+// Create a tool element
+function createTool(toolId) {
+    const tool = document.createElement('div');
+    tool.className = 'tool';
+    tool.setAttribute('data-tool', toolId);
 
-    const content = getNoteContent(noteId);
+    const content = getToolContent(toolId);
     if (!content) return null;
 
-    // Get customizations for this note
-    const custom = noteCustomizations[noteId] || {};
+    // Get customizations for this tool
+    const custom = toolCustomizations[toolId] || {};
     const displayTitle = custom.title || content.title;
     const headerColor = custom.color || null;
     const isMinimized = custom.minimized || false;
-    const isCustomNote = customNotes.includes(noteId);
+    const isCustomTool = customTools.includes(toolId);
 
-    note.innerHTML = `
-        <div class="note-header"${headerColor ? ` style="background: ${headerColor}"` : ''}>
-            <span class="note-title">${displayTitle}</span>
+    tool.innerHTML = `
+        <div class="tool-header"${headerColor ? ` style="background: ${headerColor}"` : ''}>
+            <span class="tool-title">${displayTitle}</span>
             <div class="header-buttons">
                 <button class="header-btn minimize-btn${isMinimized ? ' minimized' : ''}" title="Minimize">&#9650;</button>
-                <button class="header-btn fullscreen-btn" title="Fullscreen"><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="12" height="12" rx="1" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+                <button class="header-btn fullscreen-btn" title="Fullscreen"><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="12" height="12" rx="1" stroke="currentColor" stroke-width="4" fill="none"/></svg></button>
                 <button class="header-btn settings-btn" title="Settings">&#9881;</button>
             </div>
         </div>
-        <div class="note-content">
+        <div class="tool-content">
             ${custom.customContent ? `<div class="markdown-content">${parseMarkdown(custom.customContent)}</div>` : content.html}
         </div>
         <div class="resize-handle resize-handle-n" data-resize="n"></div>
@@ -6819,33 +7613,33 @@ function createNote(noteId) {
 
     // Apply minimized state
     if (isMinimized) {
-        note.classList.add('minimized');
+        tool.classList.add('minimized');
     }
 
     // Apply position and size
-    const pos = positions[noteId] || { x: 20, y: 20, z: 1 };
-    note.style.left = pos.x + 'px';
-    note.style.top = pos.y + 'px';
-    note.style.zIndex = pos.z || 1;
+    const pos = positions[toolId] || { x: 20, y: 20, z: 1 };
+    tool.style.left = pos.x + 'px';
+    tool.style.top = pos.y + 'px';
+    tool.style.zIndex = pos.z || 1;
 
     // Apply saved dimensions if they exist
     if (pos.width) {
-        note.style.width = pos.width + 'px';
+        tool.style.width = pos.width + 'px';
     }
     if (pos.height) {
-        note.style.height = pos.height + 'px';
+        tool.style.height = pos.height + 'px';
     }
 
-    return note;
+    return tool;
 }
 
-// Get content for each note
-function getNoteContent(noteId) {
-    // All notes are custom notes in the generic noteboard
-    if (customNotes.includes(noteId)) {
-        const custom = noteCustomizations[noteId] || {};
+// Get content for each tool
+function getToolContent(toolId) {
+    // All tools are custom tools in the generic toolboard
+    if (customTools.includes(toolId)) {
+        const custom = toolCustomizations[toolId] || {};
 
-        // Check if this note uses a template with HTML content
+        // Check if this tool uses a template with HTML content
         if (custom.templateId && NOTE_TEMPLATES[custom.templateId]) {
             const template = NOTE_TEMPLATES[custom.templateId];
             const isHtml = template.content.trim().startsWith('<');
@@ -6858,8 +7652,8 @@ function getNoteContent(noteId) {
         }
 
         return {
-            title: custom.title || 'New Note',
-            html: custom.customContent ? `<div class="markdown-content">${parseMarkdown(custom.customContent)}</div>` : '<p>Click the settings gear and "Edit Content" to add content to this note.</p>'
+            title: custom.title || 'New Tool',
+            html: custom.customContent ? `<div class="markdown-content">${parseMarkdown(custom.customContent)}</div>` : '<p>Click the settings gear and "Edit Content" to add content to this tool.</p>'
         };
     }
     return null;
@@ -6878,18 +7672,18 @@ function getEventCoords(e) {
 
 // Free-form Drag functionality
 function setupDragging() {
-    const noteboard = document.getElementById('noteboard');
+    const toolboard = document.getElementById('toolboard');
 
     // Start drag handler (mouse and touch)
     function startDrag(e) {
-        const header = e.target.closest('.note-header');
+        const header = e.target.closest('.tool-header');
         if (!header) return;
 
         // Don't drag if clicking buttons
         if (e.target.closest('.header-btn')) return;
 
-        const note = header.closest('.note');
-        if (!note) return;
+        const tool = header.closest('.tool');
+        if (!tool) return;
 
         e.preventDefault();
 
@@ -6897,27 +7691,27 @@ function setupDragging() {
 
         // Bring to front
         maxZ++;
-        note.style.zIndex = maxZ;
+        tool.style.zIndex = maxZ;
 
-        const noteId = note.getAttribute('data-note');
-        positions[noteId] = positions[noteId] || { x: 0, y: 0, z: 1 };
-        positions[noteId].z = maxZ;
+        const toolId = tool.getAttribute('data-tool');
+        positions[toolId] = positions[toolId] || { x: 0, y: 0, z: 1 };
+        positions[toolId].z = maxZ;
 
         // Start dragging
         dragState.isDragging = true;
-        dragState.note = note;
+        dragState.tool = tool;
         dragState.startX = coords.clientX;
         dragState.startY = coords.clientY;
-        dragState.offsetX = note.offsetLeft;
-        dragState.offsetY = note.offsetTop;
+        dragState.offsetX = tool.offsetLeft;
+        dragState.offsetY = tool.offsetTop;
 
-        note.classList.add('dragging');
+        tool.classList.add('dragging');
         document.body.classList.add('is-dragging');
     }
 
-    // Mouse/touch down on note header starts drag
-    noteboard.addEventListener('mousedown', startDrag);
-    noteboard.addEventListener('touchstart', startDrag, { passive: false });
+    // Mouse/touch down on tool header starts drag
+    toolboard.addEventListener('mousedown', startDrag);
+    toolboard.addEventListener('touchstart', startDrag, { passive: false });
 
     // Move handler (mouse and touch)
     function moveDrag(e) {
@@ -6931,12 +7725,12 @@ function setupDragging() {
         let newY = Math.max(0, dragState.offsetY + dy);
 
         // Get snap positions
-        const snapped = getSnapPosition(dragState.note, newX, newY);
+        const snapped = getSnapPosition(dragState.tool, newX, newY);
         newX = snapped.x;
         newY = snapped.y;
 
-        dragState.note.style.left = newX + 'px';
-        dragState.note.style.top = newY + 'px';
+        dragState.tool.style.left = newX + 'px';
+        dragState.tool.style.top = newY + 'px';
 
         // Show/hide snap guides
         updateSnapGuides(snapped.guides);
@@ -6950,24 +7744,24 @@ function setupDragging() {
     function endDrag() {
         if (!dragState.isDragging) return;
 
-        const note = dragState.note;
-        const noteId = note.getAttribute('data-note');
+        const tool = dragState.tool;
+        const toolId = tool.getAttribute('data-tool');
 
         // Save position (preserve existing width/height if set)
-        const existing = positions[noteId] || {};
-        positions[noteId] = {
-            x: note.offsetLeft,
-            y: note.offsetTop,
-            z: parseInt(note.style.zIndex) || 1,
-            width: existing.width || note.offsetWidth,
-            height: existing.height || note.offsetHeight
+        const existing = positions[toolId] || {};
+        positions[toolId] = {
+            x: tool.offsetLeft,
+            y: tool.offsetTop,
+            z: parseInt(tool.style.zIndex) || 1,
+            width: existing.width || tool.offsetWidth,
+            height: existing.height || tool.offsetHeight
         };
         savePositions(positions);
 
-        note.classList.remove('dragging');
+        tool.classList.remove('dragging');
         document.body.classList.remove('is-dragging');
         dragState.isDragging = false;
-        dragState.note = null;
+        dragState.tool= null;
 
         // Hide snap guides
         updateSnapGuides([]);
@@ -6978,18 +7772,18 @@ function setupDragging() {
     document.addEventListener('touchend', endDrag);
     document.addEventListener('touchcancel', endDrag);
 
-    // Click on note brings it to front
-    noteboard.addEventListener('mousedown', (e) => {
-        const note = e.target.closest('.note');
-        if (!note) return;
+    // Click on tool brings it to front
+    toolboard.addEventListener('mousedown', (e) => {
+        const tool = e.target.closest('.tool');
+        if (!tool) return;
 
         // Only bring to front if not clicking header (header handles its own)
-        if (!e.target.closest('.note-header')) {
+        if (!e.target.closest('.tool-header')) {
             maxZ++;
-            note.style.zIndex = maxZ;
-            const noteId = note.getAttribute('data-note');
-            positions[noteId] = positions[noteId] || { x: note.offsetLeft, y: note.offsetTop, z: 1 };
-            positions[noteId].z = maxZ;
+            tool.style.zIndex = maxZ;
+            const toolId = tool.getAttribute('data-tool');
+            positions[toolId] = positions[toolId] || { x: tool.offsetLeft, y: tool.offsetTop, z: 1 };
+            positions[toolId].z = maxZ;
             savePositions(positions);
         }
     });
@@ -6997,21 +7791,21 @@ function setupDragging() {
 
 // Resize functionality
 function setupResizing() {
-    const noteboard = document.getElementById('noteboard');
+    const toolboard = document.getElementById('toolboard');
 
     // Double-click/double-tap on resize handle for auto-resize
-    noteboard.addEventListener('dblclick', (e) => {
+    toolboard.addEventListener('dblclick', (e) => {
         const handle = e.target.closest('.resize-handle');
         if (!handle) return;
 
-        const note = handle.closest('.note');
-        if (!note) return;
+        const tool = handle.closest('.tool');
+        if (!tool) return;
 
         e.preventDefault();
         e.stopPropagation();
 
         const handleType = handle.getAttribute('data-resize');
-        autoResizeNote(note, handleType);
+        autoResizeTool(tool, handleType);
     });
 
     // Start resize handler (mouse and touch)
@@ -7019,8 +7813,8 @@ function setupResizing() {
         const handle = e.target.closest('.resize-handle');
         if (!handle) return;
 
-        const note = handle.closest('.note');
-        if (!note) return;
+        const tool = handle.closest('.tool');
+        if (!tool) return;
 
         e.preventDefault();
         e.stopPropagation();
@@ -7029,31 +7823,31 @@ function setupResizing() {
 
         // Bring to front
         maxZ++;
-        note.style.zIndex = maxZ;
+        tool.style.zIndex = maxZ;
 
-        const noteId = note.getAttribute('data-note');
-        positions[noteId] = positions[noteId] || { x: 0, y: 0, z: 1 };
-        positions[noteId].z = maxZ;
+        const toolId = tool.getAttribute('data-tool');
+        positions[toolId] = positions[toolId] || { x: 0, y: 0, z: 1 };
+        positions[toolId].z = maxZ;
 
         // Start resizing
         resizeState.isResizing = true;
-        resizeState.note = note;
+        resizeState.tool = tool;
         resizeState.handle = handle.getAttribute('data-resize');
         resizeState.startX = coords.clientX;
         resizeState.startY = coords.clientY;
-        resizeState.startWidth = note.offsetWidth;
-        resizeState.startHeight = note.offsetHeight;
-        resizeState.startLeft = note.offsetLeft;
-        resizeState.startTop = note.offsetTop;
+        resizeState.startWidth = tool.offsetWidth;
+        resizeState.startHeight = tool.offsetHeight;
+        resizeState.startLeft = tool.offsetLeft;
+        resizeState.startTop = tool.offsetTop;
 
         handle.classList.add('active');
-        note.classList.add('resizing');
+        tool.classList.add('resizing');
         document.body.classList.add('is-resizing');
     }
 
     // Mouse/touch down on resize handle starts resize
-    noteboard.addEventListener('mousedown', startResize);
-    noteboard.addEventListener('touchstart', startResize, { passive: false });
+    toolboard.addEventListener('mousedown', startResize);
+    toolboard.addEventListener('touchstart', startResize, { passive: false });
 
     // Move resize handler (mouse and touch)
     function moveResize(e) {
@@ -7062,7 +7856,7 @@ function setupResizing() {
         const coords = getEventCoords(e);
         const dx = coords.clientX - resizeState.startX;
         const dy = coords.clientY - resizeState.startY;
-        const note = resizeState.note;
+        const tool = resizeState.tool;
         const handle = resizeState.handle;
 
         let newWidth = resizeState.startWidth;
@@ -7096,12 +7890,12 @@ function setupResizing() {
         }
 
         // Apply snapping for resize edges
-        const snapped = getResizeSnapPosition(note, newLeft, newTop, newWidth, newHeight, handle);
+        const snapped = getResizeSnapPosition(tool, newLeft, newTop, newWidth, newHeight, handle);
 
-        note.style.width = snapped.width + 'px';
-        note.style.height = snapped.height + 'px';
-        note.style.left = snapped.left + 'px';
-        note.style.top = snapped.top + 'px';
+        tool.style.width = snapped.width + 'px';
+        tool.style.height = snapped.height + 'px';
+        tool.style.left = snapped.left + 'px';
+        tool.style.top = snapped.top + 'px';
 
         updateSnapGuides(snapped.guides);
     }
@@ -7114,25 +7908,25 @@ function setupResizing() {
     function endResize() {
         if (!resizeState.isResizing) return;
 
-        const note = resizeState.note;
-        const noteId = note.getAttribute('data-note');
+        const tool = resizeState.tool;
+        const toolId = tool.getAttribute('data-tool');
 
         // Save position and dimensions
-        positions[noteId] = {
-            x: note.offsetLeft,
-            y: note.offsetTop,
-            z: parseInt(note.style.zIndex) || 1,
-            width: note.offsetWidth,
-            height: note.offsetHeight
+        positions[toolId] = {
+            x: tool.offsetLeft,
+            y: tool.offsetTop,
+            z: parseInt(tool.style.zIndex) || 1,
+            width: tool.offsetWidth,
+            height: tool.offsetHeight
         };
         savePositions(positions);
 
         // Clean up
         document.querySelectorAll('.resize-handle.active').forEach(h => h.classList.remove('active'));
-        note.classList.remove('resizing');
+        tool.classList.remove('resizing');
         document.body.classList.remove('is-resizing');
         resizeState.isResizing = false;
-        resizeState.note = null;
+        resizeState.tool= null;
         resizeState.handle = null;
 
         updateSnapGuides([]);
@@ -7144,23 +7938,23 @@ function setupResizing() {
     document.addEventListener('touchcancel', endResize);
 }
 
-// Auto-fit note to its content (used on initial render)
-function autoFitNoteContent(note, skipAnimation = false) {
-    const noteId = note.getAttribute('data-note');
-    const content = note.querySelector('.note-content');
-    const header = note.querySelector('.note-header');
+// Auto-fit tool to its content (used on initial render)
+function autoFitToolContent(tool, skipAnimation = false) {
+    const toolId = tool.getAttribute('data-tool');
+    const content = tool.querySelector('.tool-content');
+    const header = tool.querySelector('.tool-header');
 
     if (!content || !header) return;
 
     // Temporarily remove constraints to measure natural size
-    const originalWidth = note.style.width;
-    const originalHeight = note.style.height;
-    note.style.width = 'auto';
-    note.style.height = 'auto';
+    const originalWidth = tool.style.width;
+    const originalHeight = tool.style.height;
+    tool.style.width = 'auto';
+    tool.style.height = 'auto';
     content.style.overflow = 'visible';
 
     // Force reflow
-    note.offsetHeight;
+    tool.offsetHeight;
 
     // Measure natural dimensions with reasonable bounds
     const newWidth = Math.max(200, Math.min(600, content.scrollWidth + 30));
@@ -7171,21 +7965,21 @@ function autoFitNoteContent(note, skipAnimation = false) {
 
     // Apply dimensions
     if (!skipAnimation) {
-        note.style.transition = 'width 0.2s ease, height 0.2s ease';
+        tool.style.transition = 'width 0.2s ease, height 0.2s ease';
     }
 
-    note.style.width = newWidth + 'px';
-    note.style.height = newHeight + 'px';
+    tool.style.width = newWidth + 'px';
+    tool.style.height = newHeight + 'px';
 
     if (!skipAnimation) {
         setTimeout(() => {
-            note.style.transition = '';
+            tool.style.transition = '';
         }, 200);
     }
 
     // Save dimensions
-    const existing = positions[noteId] || { x: note.offsetLeft, y: note.offsetTop, z: 1 };
-    positions[noteId] = {
+    const existing = positions[toolId] || { x: tool.offsetLeft, y: tool.offsetTop, z: 1 };
+    positions[toolId] = {
         x: existing.x,
         y: existing.y,
         z: existing.z,
@@ -7195,36 +7989,36 @@ function autoFitNoteContent(note, skipAnimation = false) {
     savePositions(positions);
 }
 
-// Auto-resize note to fit content
-function autoResizeNote(note, handleType) {
-    const noteId = note.getAttribute('data-note');
-    const content = note.querySelector('.note-content');
-    const header = note.querySelector('.note-header');
+// Auto-resize tool to fit content
+function autoResizeTool(tool, handleType) {
+    const toolId = tool.getAttribute('data-tool');
+    const content = tool.querySelector('.tool-content');
+    const header = tool.querySelector('.tool-header');
 
     // Determine which dimensions to auto-resize
     const autoWidth = handleType.includes('e') || handleType.includes('w');
     const autoHeight = handleType.includes('s') || handleType.includes('n');
 
     // Store current dimensions
-    const currentWidth = note.style.width;
-    const currentHeight = note.style.height;
+    const currentWidth = tool.style.width;
+    const currentHeight = tool.style.height;
 
     // Temporarily remove constraints to measure natural size
     if (autoWidth) {
-        note.style.width = 'auto';
+        tool.style.width = 'auto';
         content.style.overflow = 'visible';
     }
     if (autoHeight) {
-        note.style.height = 'auto';
+        tool.style.height = 'auto';
         content.style.overflow = 'visible';
     }
 
     // Force reflow
-    note.offsetHeight;
+    tool.offsetHeight;
 
     // Measure natural dimensions
-    let newWidth = note.offsetWidth;
-    let newHeight = note.offsetHeight;
+    let newWidth = tool.offsetWidth;
+    let newHeight = tool.offsetHeight;
 
     // Add some padding for comfortable viewing
     if (autoWidth) {
@@ -7238,41 +8032,41 @@ function autoResizeNote(note, handleType) {
     content.style.overflow = '';
 
     // Apply new dimensions with animation
-    note.style.transition = 'width 0.2s ease, height 0.2s ease';
+    tool.style.transition = 'width 0.2s ease, height 0.2s ease';
 
     if (autoWidth) {
-        note.style.width = newWidth + 'px';
+        tool.style.width = newWidth + 'px';
     } else {
-        note.style.width = currentWidth;
+        tool.style.width = currentWidth;
     }
 
     if (autoHeight) {
-        note.style.height = newHeight + 'px';
+        tool.style.height = newHeight + 'px';
     } else {
-        note.style.height = currentHeight;
+        tool.style.height = currentHeight;
     }
 
     // Remove transition after animation
     setTimeout(() => {
-        note.style.transition = '';
+        tool.style.transition = '';
     }, 200);
 
     // Save new dimensions
-    const existing = positions[noteId] || { x: note.offsetLeft, y: note.offsetTop, z: 1 };
-    positions[noteId] = {
+    const existing = positions[toolId] || { x: tool.offsetLeft, y: tool.offsetTop, z: 1 };
+    positions[toolId] = {
         x: existing.x,
         y: existing.y,
         z: existing.z,
-        width: autoWidth ? newWidth : (existing.width || note.offsetWidth),
-        height: autoHeight ? newHeight : (existing.height || note.offsetHeight)
+        width: autoWidth ? newWidth : (existing.width || tool.offsetWidth),
+        height: autoHeight ? newHeight : (existing.height || tool.offsetHeight)
     };
     savePositions(positions);
 }
 
 // Snapping for resize operations
-function getResizeSnapPosition(note, left, top, width, height, handle) {
-    const noteboard = document.getElementById('noteboard');
-    const notes = noteboard.querySelectorAll('.note');
+function getResizeSnapPosition(tool, left, top, width, height, handle) {
+    const toolboard = document.getElementById('toolboard');
+    const tools = toolboard.querySelectorAll('.tool');
 
     const right = left + width;
     const bottom = top + height;
@@ -7283,12 +8077,12 @@ function getResizeSnapPosition(note, left, top, width, height, handle) {
     let snapHeight = height;
     const guides = [];
 
-    // Collect edges from other notes
+    // Collect edges from other tools
     const verticalEdges = [0];
     const horizontalEdges = [0];
 
-    notes.forEach(s => {
-        if (s === note) return;
+    tools.forEach(s => {
+        if (s === tool) return;
 
         const sLeft = s.offsetLeft;
         const sTop = s.offsetTop;
@@ -7357,13 +8151,13 @@ function getResizeSnapPosition(note, left, top, width, height, handle) {
 }
 
 // Snapping functionality
-function getSnapPosition(draggedNote, x, y) {
-    const noteboard = document.getElementById('noteboard');
-    const notes = noteboard.querySelectorAll('.note');
-    const width = draggedNote.offsetWidth;
-    const height = draggedNote.offsetHeight;
+function getSnapPosition(draggedTool, x, y) {
+    const toolboard = document.getElementById('toolboard');
+    const tools = toolboard.querySelectorAll('.tool');
+    const width = draggedTool.offsetWidth;
+    const height = draggedTool.offsetHeight;
 
-    // Dragged note edges
+    // Dragged tool edges
     const dragLeft = x;
     const dragRight = x + width;
     const dragTop = y;
@@ -7375,17 +8169,17 @@ function getSnapPosition(draggedNote, x, y) {
     let bestDiffY = SNAP_THRESHOLD;
     const guides = [];
 
-    // Collect all edges from other notes
-    const verticalEdges = [0]; // Noteboard left edge
-    const horizontalEdges = [0]; // Noteboard top edge
+    // Collect all edges from other tools
+    const verticalEdges = [0]; // Toolboard left edge
+    const horizontalEdges = [0]; // Toolboard top edge
 
-    notes.forEach(note => {
-        if (note === draggedNote) return;
+    tools.forEach(t => {
+        if (t === draggedTool) return;
 
-        const left = note.offsetLeft;
-        const top = note.offsetTop;
-        const right = left + note.offsetWidth;
-        const bottom = top + note.offsetHeight;
+        const left = t.offsetLeft;
+        const top = t.offsetTop;
+        const right = left + t.offsetWidth;
+        const bottom = top + t.offsetHeight;
 
         verticalEdges.push(left, right);
         horizontalEdges.push(top, bottom);
@@ -7446,7 +8240,7 @@ function updateSnapGuides(guides) {
 
     if (guides.length === 0) return;
 
-    const noteboard = document.getElementById('noteboard');
+    const toolboard = document.getElementById('toolboard');
 
     guides.forEach(guide => {
         const el = document.createElement('div');
@@ -7476,7 +8270,7 @@ function updateSnapGuides(guides) {
             `;
         }
 
-        noteboard.appendChild(el);
+        toolboard.appendChild(el);
     });
 }
 
@@ -7485,8 +8279,8 @@ function setupImportExport() {
     const modal = document.getElementById('importExportModal');
     const closeBtn = modal.querySelector('.import-export-close');
     const tabs = modal.querySelectorAll('.import-export-tab');
-    const exportNote = document.getElementById('exportNote');
-    const importNote = document.getElementById('importNote');
+    const exportTool = document.getElementById('exportTool');
+    const importTool = document.getElementById('importTool');
 
     // Open modal
     document.getElementById('importExportBtn').onclick = () => {
@@ -7500,30 +8294,30 @@ function setupImportExport() {
         if (e.target === modal) modal.classList.remove('open');
     };
 
-    const restoreNote = document.getElementById('restoreNote');
+    const restoreTool = document.getElementById('restoreTool');
 
     // Tab switching
     tabs.forEach(tab => {
         tab.onclick = () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            exportNote.classList.remove('active');
-            importNote.classList.remove('active');
-            restoreNote.classList.remove('active');
+            exportTool.classList.remove('active');
+            importTool.classList.remove('active');
+            restoreTool.classList.remove('active');
 
             if (tab.dataset.tab === 'export') {
-                exportNote.classList.add('active');
+                exportTool.classList.add('active');
             } else if (tab.dataset.tab === 'import') {
-                importNote.classList.add('active');
+                importTool.classList.add('active');
             } else if (tab.dataset.tab === 'restore') {
-                restoreNote.classList.add('active');
+                restoreTool.classList.add('active');
                 populateHiddenNotesList();
             }
         };
     });
 
     // Export buttons
-    document.getElementById('exportSelectedNotes').onclick = exportNotes;
+    document.getElementById('exportSelectedTools').onclick = exportTools;
     document.getElementById('exportSelectedBoards').onclick = exportBoards;
     document.getElementById('exportBoardAsHTML').onclick = exportBoardAsHTML;
     document.getElementById('exportBoardAsPNG').onclick = exportBoardAsPNG;
@@ -7533,7 +8327,7 @@ function setupImportExport() {
     document.getElementById('importFileInput').onchange = handleFileImport;
 
     // Restore
-    document.getElementById('restoreSelectedNotes').onclick = restoreSelectedNotes;
+    document.getElementById('restoreSelectedTools').onclick = restoreSelectedTools;
 }
 
 // Feature Selection Modal
@@ -7585,48 +8379,48 @@ function createNoteWithTemplate(templateId) {
     if (!template) return;
 
     // Generate unique ID
-    const noteId = 'custom-' + Date.now();
+    const toolId = 'custom-' + Date.now();
 
     // Add to custom notes list
-    customNotes.push(noteId);
-    saveCustomNotes(customNotes);
+    customTools.push(toolId);
+    saveCustomTools(customTools);
 
     // Determine if content is HTML or Markdown
     const isHtml = template.content.trim().startsWith('<');
 
     // Initialize customizations with template content
-    noteCustomizations[noteId] = {
+    toolCustomizations[toolId] = {
         title: template.title,
         templateId: templateId, // Store template ID for HTML templates
         customContent: isHtml ? '' : template.content // Only store markdown in customContent
     };
-    saveNoteCustomizations(noteCustomizations);
+    saveToolCustomizations(toolCustomizations);
 
-    // Create and add the note to the noteboard
-    const note = createNote(noteId);
-    if (note) {
-        const noteboard = document.getElementById('noteboard');
-        noteboard.appendChild(note);
+    // Create and add the note to the toolboard
+    const tool = createTool(toolId);
+    if (tool) {
+        const toolboard = document.getElementById('toolboard');
+        toolboard.appendChild(tool);
 
         // Position it in a visible area with slight offset from others
-        const offset = customNotes.length * 20;
-        note.style.left = (100 + offset) + 'px';
-        note.style.top = (100 + offset) + 'px';
+        const offset = customTools.length * 20;
+        tool.style.left = (100 + offset) + 'px';
+        tool.style.top = (100 + offset) + 'px';
 
         // Bring to front
         maxZ++;
-        note.style.zIndex = maxZ;
+        tool.style.zIndex = maxZ;
 
-        // Auto-fit note to content after DOM is ready
+        // Auto-fit tool to content after DOM is ready
         requestAnimationFrame(() => {
-            autoFitNoteContent(note, false);
+            autoFitToolContent(tool, false);
 
             // Update position with auto-fit dimensions
-            positions[noteId] = {
+            positions[toolId] = {
                 x: 100 + offset,
                 y: 100 + offset,
-                width: note.offsetWidth,
-                height: note.offsetHeight,
+                width: tool.offsetWidth,
+                height: tool.offsetHeight,
                 z: maxZ
             };
             savePositions(positions);
@@ -7637,30 +8431,30 @@ function createNoteWithTemplate(templateId) {
             setTimeout(() => window[template.onInit](), 50);
         }
 
-        // For blank notes, open the content editor immediately
+        // For blank tools, open the content editor immediately
         if (templateId === 'blank') {
-            openContentEditor(noteId);
+            openContentEditor(toolId);
         }
     }
 }
 
 function populateExportLists() {
     // Populate notes list (exclude hidden notes)
-    const notesList = document.getElementById('exportNotesList');
-    const visibleBuiltIn = SECTIONS.filter(id => !hiddenNotes.includes(id));
-    const allNotes = [...visibleBuiltIn, ...customNotes];
+    const notesList = document.getElementById('exportToolsList');
+    const visibleBuiltIn = SECTIONS.filter(id => !hiddenTools.includes(id));
+    const allNotes = [...visibleBuiltIn, ...customTools];
 
     notesList.innerHTML = `
         <label class="select-all-row">
             <input type="checkbox" id="selectAllNotes"> <strong>Select All</strong>
         </label>
-        ${allNotes.map(noteId => {
-            const custom = noteCustomizations[noteId] || {};
-            const content = getNoteContent(noteId);
-            const title = custom.title || (content ? content.title : noteId);
-            const isCustom = customNotes.includes(noteId);
+        ${allNotes.map(toolId => {
+            const custom = toolCustomizations[toolId] || {};
+            const content = getToolContent(toolId);
+            const title = custom.title || (content ? content.title : toolId);
+            const isCustom = customTools.includes(toolId);
             return `<label>
-                <input type="checkbox" class="note-checkbox" value="${noteId}">
+                <input type="checkbox" class="tool-checkbox" value="${toolId}">
                 ${title}${isCustom ? ' <em>(custom)</em>' : ''}
             </label>`;
         }).join('')}
@@ -7668,7 +8462,7 @@ function populateExportLists() {
 
     // Select all for notes
     document.getElementById('selectAllNotes').onchange = (e) => {
-        notesList.querySelectorAll('.note-checkbox').forEach(cb => {
+        notesList.querySelectorAll('.tool-checkbox').forEach(cb => {
             cb.checked = e.target.checked;
         });
     };
@@ -7694,11 +8488,11 @@ function populateExportLists() {
 }
 
 function populateHiddenNotesList() {
-    const list = document.getElementById('hiddenNotesList');
+    const list = document.getElementById('hiddenToolsList');
     const resultDiv = document.getElementById('restoreResult');
     resultDiv.innerHTML = '';
 
-    if (hiddenNotes.length === 0) {
+    if (hiddenTools.length === 0) {
         list.innerHTML = '<p style="color: #7f8c8d; padding: 10px;">No hidden notes. All built-in notes are visible.</p>';
         return;
     }
@@ -7707,11 +8501,11 @@ function populateHiddenNotesList() {
         <label class="select-all-row">
             <input type="checkbox" id="selectAllHidden"> <strong>Select All</strong>
         </label>
-        ${hiddenNotes.map(noteId => {
-            const content = getNoteContent(noteId);
-            const title = content ? content.title : noteId;
+        ${hiddenTools.map(toolId => {
+            const content = getToolContent(toolId);
+            const title = content ? content.title : toolId;
             return `<label>
-                <input type="checkbox" class="hidden-note-checkbox" value="${noteId}">
+                <input type="checkbox" class="hidden-note-checkbox" value="${toolId}">
                 ${title}
             </label>`;
         }).join('')}
@@ -7724,7 +8518,7 @@ function populateHiddenNotesList() {
     };
 }
 
-function restoreSelectedNotes() {
+function restoreSelectedTools() {
     const checkboxes = document.querySelectorAll('.hidden-note-checkbox:checked');
     const resultDiv = document.getElementById('restoreResult');
 
@@ -7739,11 +8533,11 @@ function restoreSelectedNotes() {
     });
 
     // Remove from hidden notes
-    hiddenNotes = hiddenNotes.filter(id => !notesToRestore.includes(id));
-    saveHiddenNotes(hiddenNotes);
+    hiddenTools = hiddenTools.filter(id => !notesToRestore.includes(id));
+    saveHiddenTools(hiddenTools);
 
     // Refresh UI
-    renderNoteboard();
+    renderToolboard();
     populateHiddenNotesList();
     populateExportLists();
 
@@ -7751,31 +8545,31 @@ function restoreSelectedNotes() {
     resultDiv.textContent = `Successfully restored ${notesToRestore.length} note(s).`;
 }
 
-function exportNotes() {
-    const checkboxes = document.querySelectorAll('.note-checkbox:checked');
+function exportTools() {
+    const checkboxes = document.querySelectorAll('.tool-checkbox:checked');
     if (checkboxes.length === 0) {
         alert('Please select at least one note to export.');
         return;
     }
 
     const exportData = {
-        type: 'notes',
+        type: 'tools',
         exportedAt: new Date().toISOString(),
-        notes: []
+        tools: []
     };
 
     checkboxes.forEach(cb => {
-        const noteId = cb.value;
-        const noteData = {
-            id: noteId,
-            isCustom: customNotes.includes(noteId),
-            customizations: noteCustomizations[noteId] || {},
-            position: positions[noteId] || null
+        const toolId = cb.value;
+        const toolData = {
+            id: toolId,
+            isCustom: customTools.includes(toolId),
+            customizations: toolCustomizations[toolId] || {},
+            position: positions[toolId] || null
         };
-        exportData.notes.push(noteData);
+        exportData.tools.push(toolData);
     });
 
-    downloadJSON(exportData, `notes-export-${getTimestamp()}.json`);
+    downloadJSON(exportData, `tools-export-${getTimestamp()}.json`);
 }
 
 function exportBoards() {
@@ -7801,10 +8595,10 @@ function exportBoards() {
             name: board.name,
             variables: JSON.parse(localStorage.getItem(`finance_${boardId}_variables`) || 'null'),
             positions: JSON.parse(localStorage.getItem(`finance_${boardId}_positions`) || '{}'),
-            noteCustomizations: JSON.parse(localStorage.getItem(`finance_${boardId}_noteCustomizations`) || '{}'),
-            customNotes: JSON.parse(localStorage.getItem(`finance_${boardId}_customNotes`) || '[]'),
-            hiddenNotes: JSON.parse(localStorage.getItem(`finance_${boardId}_hiddenNotes`) || '[]'),
-            noteboardSettings: JSON.parse(localStorage.getItem(`finance_${boardId}_noteboardSettings`) || 'null')
+            toolCustomizations: JSON.parse(localStorage.getItem(`finance_${boardId}_toolCustomizations`) || '{}'),
+            customTools: JSON.parse(localStorage.getItem(`finance_${boardId}_customTools`) || '[]'),
+            hiddenTools: JSON.parse(localStorage.getItem(`finance_${boardId}_hiddenTools`) || '[]'),
+            toolboardSettings: JSON.parse(localStorage.getItem(`finance_${boardId}_toolboardSettings`) || 'null')
         };
 
         exportData.boards.push(boardData);
@@ -7840,7 +8634,7 @@ function downloadJSON(data, filename) {
 
 function exportBoardAsHTML() {
     // Get current board data
-    const boardTitle = document.getElementById('noteboardTitle').textContent || 'toolboard';
+    const boardTitle = document.getElementById('toolboardTitle').textContent || 'toolboard';
     const safeTitle = boardTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase();
 
     const embeddedData = {
@@ -7848,10 +8642,10 @@ function exportBoardAsHTML() {
         currentBoard: 'default',
         variables: variables,
         positions: positions,
-        noteCustomizations: noteCustomizations,
-        customNotes: customNotes,
-        hiddenNotes: hiddenNotes,
-        noteboardSettings: noteboardSettings
+        toolCustomizations: toolCustomizations,
+        customTools: customTools,
+        hiddenTools: hiddenTools,
+        toolboardSettings: toolboardSettings
     };
 
     // Close modal before capturing HTML
@@ -7880,10 +8674,10 @@ function exportBoardAsHTML() {
         '        localStorage.setItem("financeCurrentBoard", "default");\n' +
         '        localStorage.setItem("finance_default_variables", JSON.stringify(data.variables));\n' +
         '        localStorage.setItem("finance_default_positions", JSON.stringify(data.positions));\n' +
-        '        localStorage.setItem("finance_default_noteCustomizations", JSON.stringify(data.noteCustomizations));\n' +
-        '        localStorage.setItem("finance_default_customNotes", JSON.stringify(data.customNotes));\n' +
-        '        localStorage.setItem("finance_default_hiddenNotes", JSON.stringify(data.hiddenNotes));\n' +
-        '        localStorage.setItem("finance_default_noteboardSettings", JSON.stringify(data.noteboardSettings));\n' +
+        '        localStorage.setItem("finance_default_toolCustomizations", JSON.stringify(data.toolCustomizations));\n' +
+        '        localStorage.setItem("finance_default_customTools", JSON.stringify(data.customTools));\n' +
+        '        localStorage.setItem("finance_default_hiddenTools", JSON.stringify(data.hiddenTools));\n' +
+        '        localStorage.setItem("finance_default_toolboardSettings", JSON.stringify(data.toolboardSettings));\n' +
         '        dataScript.remove();\n' +
         '    } catch (e) { console.error("Failed to import embedded board data:", e); }\n' +
         '})();\n' +
@@ -7921,7 +8715,7 @@ function exportBoardAsPNG() {
 }
 
 function captureAndDownloadPNG() {
-    const boardTitle = document.getElementById('noteboardTitle').textContent || 'toolboard';
+    const boardTitle = document.getElementById('toolboardTitle').textContent || 'toolboard';
     const safeTitle = boardTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase();
 
     // Close modal first so it's not in the screenshot
@@ -7968,20 +8762,21 @@ function importData() {
     try {
         const data = JSON.parse(textarea.value);
 
-        if (data.type === 'notes') {
-            importNotes(data);
+        if (data.type === 'tools' || data.type === 'notes') {
+            importTools(data);
             resultDiv.className = 'import-result success';
-            resultDiv.textContent = `Successfully imported ${data.notes.length} note(s).`;
+            const toolsList = data.tools || data.notes;
+            resultDiv.textContent = `Successfully imported ${toolsList.length} tool(s).`;
         } else if (data.type === 'boards') {
             importBoards(data);
             resultDiv.className = 'import-result success';
             resultDiv.textContent = `Successfully imported ${data.boards.length} board(s).`;
         } else {
-            throw new Error('Unknown export format. Expected "notes" or "boards" type.');
+            throw new Error('Unknown export format. Expected "tools" or "boards" type.');
         }
 
         // Refresh the UI
-        renderNoteboard();
+        renderToolboard();
         populateBoardSelector();
         populateExportLists();
 
@@ -7991,43 +8786,44 @@ function importData() {
     }
 }
 
-function importNotes(data) {
-    data.notes.forEach(noteData => {
-        let noteId = noteData.id;
+function importTools(data) {
+    const toolsList = data.tools || data.notes; // Support both new and old format
+    toolsList.forEach(toolData => {
+        let toolId = toolData.id;
 
-        // If it's a custom note, check for conflicts
-        if (noteData.isCustom) {
+        // If it's a custom tool, check for conflicts
+        if (toolData.isCustom) {
             // Generate new ID if already exists
-            if (customNotes.includes(noteId)) {
-                noteId = 'custom-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            if (customTools.includes(toolId)) {
+                toolId = 'custom-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
             }
-            // Add to custom notes
-            if (!customNotes.includes(noteId)) {
-                customNotes.push(noteId);
+            // Add to custom tools
+            if (!customTools.includes(toolId)) {
+                customTools.push(toolId);
             }
         }
 
         // Import customizations
-        if (noteData.customizations && Object.keys(noteData.customizations).length > 0) {
-            noteCustomizations[noteId] = { ...noteData.customizations };
+        if (toolData.customizations && Object.keys(toolData.customizations).length > 0) {
+            toolCustomizations[toolId] = { ...toolData.customizations };
         }
 
         // Import position (with offset if position exists)
-        if (noteData.position) {
-            const pos = { ...noteData.position };
+        if (toolData.position) {
+            const pos = { ...toolData.position };
             // Offset if position already taken
-            if (positions[noteId]) {
+            if (positions[toolId]) {
                 pos.x = (pos.x || 0) + 30;
                 pos.y = (pos.y || 0) + 30;
             }
             pos.z = ++maxZ;
-            positions[noteId] = pos;
+            positions[toolId] = pos;
         }
     });
 
     // Save changes
-    saveCustomNotes(customNotes);
-    saveNoteCustomizations(noteCustomizations);
+    saveCustomTools(customTools);
+    saveToolCustomizations(toolCustomizations);
     savePositions(positions);
 }
 
@@ -8053,17 +8849,17 @@ function importBoards(data) {
         if (boardData.positions) {
             localStorage.setItem(`finance_${boardId}_positions`, JSON.stringify(boardData.positions));
         }
-        if (boardData.noteCustomizations) {
-            localStorage.setItem(`finance_${boardId}_noteCustomizations`, JSON.stringify(boardData.noteCustomizations));
+        if (boardData.toolCustomizations) {
+            localStorage.setItem(`finance_${boardId}_toolCustomizations`, JSON.stringify(boardData.toolCustomizations));
         }
-        if (boardData.customNotes) {
-            localStorage.setItem(`finance_${boardId}_customNotes`, JSON.stringify(boardData.customNotes));
+        if (boardData.customTools) {
+            localStorage.setItem(`finance_${boardId}_customTools`, JSON.stringify(boardData.customTools));
         }
-        if (boardData.hiddenNotes) {
-            localStorage.setItem(`finance_${boardId}_hiddenNotes`, JSON.stringify(boardData.hiddenNotes));
+        if (boardData.hiddenTools) {
+            localStorage.setItem(`finance_${boardId}_hiddenTools`, JSON.stringify(boardData.hiddenTools));
         }
-        if (boardData.noteboardSettings) {
-            localStorage.setItem(`finance_${boardId}_noteboardSettings`, JSON.stringify(boardData.noteboardSettings));
+        if (boardData.toolboardSettings) {
+            localStorage.setItem(`finance_${boardId}_toolboardSettings`, JSON.stringify(boardData.toolboardSettings));
         }
     });
 
@@ -8072,7 +8868,7 @@ function importBoards(data) {
 }
 
 function setupButtons() {
-    document.getElementById('addNoteBtn').onclick = addNewNote;
+    document.getElementById('addToolBtn').onclick = addNewNote;
 
     // Delete board button
     document.getElementById('deleteBoardBtn').onclick = deleteCurrentBoard;
@@ -8094,9 +8890,9 @@ function addNewNote() {
 }
 
 // Delete a custom note
-function deleteNote(noteId) {
-    const isCustom = customNotes.includes(noteId);
-    const isBuiltIn = SECTIONS.includes(noteId);
+function deleteTool(toolId) {
+    const isCustom = customTools.includes(toolId);
+    const isBuiltIn = SECTIONS.includes(toolId);
 
     if (!isCustom && !isBuiltIn) return;
 
@@ -8106,52 +8902,52 @@ function deleteNote(noteId) {
 
     if (confirm(message)) {
         if (isCustom) {
-            // Remove from customNotes array
-            customNotes = customNotes.filter(id => id !== noteId);
-            saveCustomNotes(customNotes);
+            // Remove from customTools array
+            customTools = customTools.filter(id => id !== toolId);
+            saveCustomTools(customTools);
 
             // Remove customizations
-            delete noteCustomizations[noteId];
-            saveNoteCustomizations(noteCustomizations);
+            delete toolCustomizations[toolId];
+            saveToolCustomizations(toolCustomizations);
 
             // Remove position data
-            delete positions[noteId];
+            delete positions[toolId];
             savePositions(positions);
         } else {
             // Hide built-in note
-            if (!hiddenNotes.includes(noteId)) {
-                hiddenNotes.push(noteId);
-                saveHiddenNotes(hiddenNotes);
+            if (!hiddenTools.includes(toolId)) {
+                hiddenTools.push(toolId);
+                saveHiddenTools(hiddenTools);
             }
         }
 
         // Remove from DOM
-        const note = document.querySelector(`[data-note="${noteId}"]`);
-        if (note) {
-            note.remove();
+        const tool = document.querySelector(`[data-tool="${toolId}"]`);
+        if (tool) {
+            tool.remove();
         }
     }
 }
 
-// Duplicate a note
-function duplicateNote(noteId) {
-    const sourceCustom = noteCustomizations[noteId] || {};
-    const sourcePos = positions[noteId] || { x: 50, y: 50 };
+// Duplicate a tool
+function duplicateTool(toolId) {
+    const sourceCustom = toolCustomizations[toolId] || {};
+    const sourcePos = positions[toolId] || { x: 50, y: 50 };
 
-    // Generate new note ID
-    const newNoteId = 'note_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    // Generate new tool ID
+    const newToolId = 'tool_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-    // Add to custom notes
-    customNotes.push(newNoteId);
-    saveCustomNotes(customNotes);
+    // Add to custom tools
+    customTools.push(newToolId);
+    saveCustomTools(customTools);
 
     // Copy customizations (deep clone)
-    noteCustomizations[newNoteId] = JSON.parse(JSON.stringify(sourceCustom));
-    noteCustomizations[newNoteId].title = (sourceCustom.title || 'Note') + ' (Copy)';
-    saveNoteCustomizations(noteCustomizations);
+    toolCustomizations[newToolId] = JSON.parse(JSON.stringify(sourceCustom));
+    toolCustomizations[newToolId].title = (sourceCustom.title || 'Tool') + ' (Copy)';
+    saveToolCustomizations(toolCustomizations);
 
     // Set position offset from original
-    positions[newNoteId] = {
+    positions[newToolId] = {
         x: sourcePos.x + 30,
         y: sourcePos.y + 30,
         z: ++maxZ,
@@ -8160,28 +8956,28 @@ function duplicateNote(noteId) {
     };
     savePositions(positions);
 
-    // Create and add the note to DOM
-    const note = createNote(newNoteId);
-    if (note) {
-        document.getElementById('noteboard').appendChild(note);
+    // Create and add the tool to DOM
+    const tool = createTool(newToolId);
+    if (tool) {
+        document.getElementById('toolboard').appendChild(tool);
         // Initialize if it's a checklist or calculator
         initializeCalculators();
     }
 }
 
-// Export a note as HTML file
-function exportNoteAsHtml(noteId) {
-    const custom = noteCustomizations[noteId] || {};
-    const content = getNoteContent(noteId);
-    const title = custom.title || content.title || 'Note';
+// Export a tool as HTML file
+function exportToolAsHtml(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const content = getToolContent(toolId);
+    const title = custom.title || content.title || 'Tool';
     const headerColor = custom.color || '#34495e';
 
     // Get the rendered content from the DOM
-    const noteEl = document.querySelector(`[data-note="${noteId}"]`);
+    const noteEl = document.querySelector(`[data-tool="${toolId}"]`);
     let bodyContent = '';
 
     if (noteEl) {
-        const contentEl = noteEl.querySelector('.note-content');
+        const contentEl = noteEl.querySelector('.tool-content');
         if (contentEl) {
             bodyContent = contentEl.innerHTML;
         }
@@ -8206,7 +9002,7 @@ function exportNoteAsHtml(noteId) {
             padding: 20px;
             line-height: 1.6;
         }
-        .note {
+        .tool {
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -8214,14 +9010,14 @@ function exportNoteAsHtml(noteId) {
             margin: 0 auto;
             overflow: hidden;
         }
-        .note-header {
+        .tool-header {
             background: ${headerColor};
             color: white;
             padding: 15px 20px;
             font-size: 18px;
             font-weight: 600;
         }
-        .note-content {
+        .tool-content {
             padding: 20px;
         }
         h1, h2, h3, h4, h5, h6 { margin: 1em 0 0.5em; color: #2c3e50; }
@@ -8249,9 +9045,9 @@ function exportNoteAsHtml(noteId) {
     </style>
 </head>
 <body>
-    <div class="note">
-        <div class="note-header">${escapeHtml(title)}</div>
-        <div class="note-content">
+    <div class="tool">
+        <div class="tool-header">${escapeHtml(title)}</div>
+        <div class="tool-content">
             ${bodyContent}
             <div class="exported-date">Exported from Toolboard.me on ${new Date().toLocaleDateString()}</div>
         </div>
@@ -8296,12 +9092,12 @@ function renderChecklistForExport(items, isSublist = false) {
 }
 
 // Export a note as PNG image
-async function exportNoteAsPng(noteId) {
-    const noteEl = document.querySelector(`[data-note="${noteId}"]`);
+async function exportToolAsPng(toolId) {
+    const noteEl = document.querySelector(`[data-tool="${toolId}"]`);
     if (!noteEl) return;
 
-    const custom = noteCustomizations[noteId] || {};
-    const content = getNoteContent(noteId);
+    const custom = toolCustomizations[toolId] || {};
+    const content = getToolContent(toolId);
     const title = custom.title || content.title || 'Note';
 
     // Store original styles
@@ -8389,8 +9185,8 @@ function createNewBoard() {
     boards.push({ id: newBoardId, name: name });
     saveBoards(boards);
 
-    // Initialize noteboard settings with the provided name
-    localStorage.setItem(`finance_${newBoardId}_noteboardSettings`, JSON.stringify({ title: name, color: '#2c3e50' }));
+    // Initialize toolboard settings with the provided name
+    localStorage.setItem(`finance_${newBoardId}_toolboardSettings`, JSON.stringify({ title: name, color: '#2c3e50' }));
 
     // Switch to the new board
     switchToBoard(newBoardId);
@@ -8405,16 +9201,16 @@ function switchToBoard(boardId) {
     // Reload all board-specific data
     variables = loadVariables();
     positions = loadPositions();
-    noteCustomizations = loadNoteCustomizations();
-    customNotes = loadCustomNotes();
-    hiddenNotes = loadHiddenNotes();
-    noteboardSettings = loadNoteboardSettings();
+    toolCustomizations = loadToolCustomizations();
+    customTools = loadCustomTools();
+    hiddenTools = loadHiddenTools();
+    toolboardSettings = loadToolboardSettings();
     maxZ = Math.max(...Object.values(positions).map(p => p.z || 1), 1);
 
     // Update UI
     populateBoardSelector();
-    applyNoteboardSettings();
-    renderNoteboard();
+    applyToolboardSettings();
+    renderToolboard();
 }
 
 function deleteCurrentBoard() {
@@ -8431,10 +9227,10 @@ function deleteCurrentBoard() {
     // Remove board-specific data from localStorage
     localStorage.removeItem(boardKey('variables'));
     localStorage.removeItem(boardKey('positions'));
-    localStorage.removeItem(boardKey('noteCustomizations'));
-    localStorage.removeItem(boardKey('customNotes'));
-    localStorage.removeItem(boardKey('hiddenNotes'));
-    localStorage.removeItem(boardKey('noteboardSettings'));
+    localStorage.removeItem(boardKey('toolCustomizations'));
+    localStorage.removeItem(boardKey('customTools'));
+    localStorage.removeItem(boardKey('hiddenTools'));
+    localStorage.removeItem(boardKey('toolboardSettings'));
 
     // Remove from boards array
     boards = boards.filter(b => b.id !== currentBoardId);
@@ -8446,8 +9242,8 @@ function deleteCurrentBoard() {
 
 function renameBoardInSelector() {
     const currentBoard = boards.find(b => b.id === currentBoardId);
-    if (currentBoard && noteboardSettings.title !== currentBoard.name) {
-        currentBoard.name = noteboardSettings.title;
+    if (currentBoard && toolboardSettings.title !== currentBoard.name) {
+        currentBoard.name = toolboardSettings.title;
         saveBoards(boards);
         populateBoardSelector();
     }

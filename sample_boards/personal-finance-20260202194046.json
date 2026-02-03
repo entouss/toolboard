@@ -1,0 +1,235 @@
+{
+  "type": "boards",
+  "exportedAt": "2026-02-03T00:40:46.174Z",
+  "boards": [
+    {
+      "id": "board-1770076516044-87vvc",
+      "name": "Personal Finance",
+      "variables": null,
+      "positions": {
+        "finance-investment-growth": {
+          "x": 1648,
+          "y": 747,
+          "z": 609,
+          "width": 319,
+          "height": 301
+        },
+        "finance-sp-returns": {
+          "x": 1255,
+          "y": 747,
+          "z": 641,
+          "width": 393,
+          "height": 301
+        },
+        "finance-qualified-distribution": {
+          "x": 607,
+          "y": 192,
+          "z": 669,
+          "width": 648,
+          "height": 335
+        },
+        "finance-hsa-tax-treatment": {
+          "x": 0,
+          "y": 281,
+          "z": 675,
+          "width": 607,
+          "height": 208
+        },
+        "finance-traditional-vs-roth": {
+          "x": 607,
+          "y": 0,
+          "z": 663,
+          "width": 648,
+          "height": 192
+        },
+        "finance-income-tax-summary": {
+          "x": 1255,
+          "y": 328,
+          "z": 621,
+          "width": 712,
+          "height": 308
+        },
+        "finance-tax-brackets": {
+          "x": 1255,
+          "y": 0,
+          "z": 620,
+          "width": 712,
+          "height": 328
+        },
+        "finance-hsa-contributions": {
+          "x": 0,
+          "y": 747,
+          "z": 615,
+          "width": 607,
+          "height": 301
+        },
+        "finance-ira-contributions": {
+          "x": 0,
+          "y": 527,
+          "z": 533,
+          "width": 607,
+          "height": 220
+        },
+        "finance-401k-contributions": {
+          "x": 607,
+          "y": 747,
+          "z": 666,
+          "width": 648,
+          "height": 301
+        },
+        "finance-401k-limits": {
+          "x": 607,
+          "y": 527,
+          "z": 667,
+          "width": 648,
+          "height": 218
+        },
+        "finance-champagne-pyramid": {
+          "x": 0,
+          "y": 0,
+          "z": 674,
+          "width": 607,
+          "height": 281
+        },
+        "custom-1769899142983": {
+          "x": 1967,
+          "y": 0,
+          "z": 678,
+          "width": 400,
+          "height": 455
+        },
+        "custom-1769899162997": {
+          "x": 1967,
+          "y": 449,
+          "z": 679,
+          "width": 400,
+          "height": 599
+        },
+        "custom-1769900028248": {
+          "x": 2367,
+          "y": 0,
+          "z": 694,
+          "width": 281,
+          "height": 448
+        },
+        "custom-1770072158990": {
+          "x": 2367,
+          "y": 448,
+          "z": 687,
+          "width": 428,
+          "height": 567
+        }
+      },
+      "toolCustomizations": {
+        "finance-champagne-pyramid": {
+          "title": "Suggested Investment Priority",
+          "color": "#8e44ad",
+          "customContent": "**1. Roth 401k to the match**\n<span style=\"color:#27ae60\">Instant ROI.</span> You put in $1, they give you $0.##. No other investment beats this.\n\n**2. HSA (if eligible)**\n<span style=\"color:#27ae60\">Triple Tax Advantage.</span> It's the only account that beats Roth because it's <span style=\"color:#27ae60\">tax-free</span> on the way in and out.\n\n**3. Roth IRA**\nFlexibility. You can pull your original contributions out anytime if life happens.\n\n**4. Max out Roth 401k**\nFill the rest of your $24,500 personal limit.\n\n**5. Mega Backdoor Roth**\nIf you still have cash, fill the \"gap\" up to the $72,000 total limit."
+        },
+        "finance-401k-limits": {
+          "title": "401k Combined Limits (2026)",
+          "color": "#3498db",
+          "customContent": "| Age Group | Total Limit | Personal Limit |\n|-----------|-------------|----------------|\n| Under 50 | **$72,000** | $24,500 |\n| Age 50-59, 64+ | **$80,000** | $32,500 |\n| Age 60-63 | **$84,000** | $36,500 |\n\n*Total = Personal contribution + Company match + After-tax contributions*"
+        },
+        "finance-401k-contributions": {
+          "title": "401k Combined Contributions Sample (2026)",
+          "color": "#3498db",
+          "customContent": "| Category | Max Contribution | Company Match<br/>(45% up to max) | Total | Monthly | Semi-Monthly |\n|----------|------------------|---------------------|-------|---------|-------------|\n| Standard (<50) | $24,500 | $11,025 | $35,525 | $2,042 | $1,021 |\n| Catch Up (50-59, 64+) | $32,500 | $14,625 | $47,125 | $2,708 | $1,354 |\n| Super Catch Up (60-63) | $35,750 | $16,088 | $51,838 | $2,979 | $1,490 |"
+        },
+        "finance-ira-contributions": {
+          "title": "IRA Combined Limits (2026)",
+          "color": "#1abc9c",
+          "customContent": "| Category | Max Contribution | Monthly | Semi-Monthly |\n|----------|------------------|---------|-------------|\n| Standard (<50) | $7,500 | $625 | $312.50 |\n| Catch Up (50+) | $8,600 | $717 | $358.33 |"
+        },
+        "finance-hsa-contributions": {
+          "title": "HSA Contributions Limits + Sample (2026)",
+          "color": "#9b59b6",
+          "customContent": "| | Single | Family | Self Catch Up | Spouse Catch Up |\n|---|--------|--------|---------------|----------------|\n| **Total HSA Limit** | $4,400 | $8,750 | +$1,000 | +$1,000 |\n| Company Contribution | $600 | $1,200 | - | - |\n| **Employee Contribution** | $3,800 | $7,550 | $1,000 | $1,000 |\n| Monthly | $317 | $629 | $83 | $83 |\n| Semi-Monthly | $158 | $315 | $42 | $42 |"
+        },
+        "finance-tax-brackets": {
+          "title": "Tax Brackets (2026)",
+          "color": "#c0392b",
+          "customContent": "**Standard Deductions:** Single: $16,100 | Married Filing Jointly: $32,200\n\n| Rate | Single Filers | Taxable → Tax | Married Filing Jointly | Taxable → Tax |\n|------|---------------|---------------|------------------------|---------------|\n| 10% | $0 - $12,400 | $12,400 → $1,240 | $0 - $24,800 | $24,800 → $2,480 |\n| 12% | $12,401 - $50,400 | $38,000 → $4,560 | $24,801 - $100,800 | $76,000 → $9,120 |\n| 22% | $50,401 - $105,700 | $55,300 → $12,166 | $100,801 - $211,400 | $110,600 → $24,332 |\n| 24% | $105,701 - $201,775 | $96,075 → $23,058 | $211,401 - $403,550 | $192,150 → $46,116 |\n| 32% | $201,776 - $256,225 | $54,450 → $17,424 | $403,551 - $512,450 | $108,900 → $34,848 |\n| 35% | $256,226 - $640,800 | $384,575 → $134,601 | $512,451 - $788,700 | $276,250 → $96,688 |\n| 37% | $640,801+ | - | $788,701+ | - |"
+        },
+        "finance-income-tax-summary": {
+          "title": "Income Tax Samples (2026)",
+          "color": "#c0392b",
+          "customContent": "| Tax Rate | $50k Single | $100k Single | $150k Single | $200k Single | $250k Married | $300k Married |\n| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n| 10% | $1,240 | $1,240 | $1,240 | $1,240 | $2,480 | $2,480 |\n| 12% | $2,580 | $4,560 | $4,560 | $4,560 | $9,120 | $9,120 |\n| 22% | — | $7,370 | $12,166 | $12,166 | $15,356 | $24,332 |\n| 24% | — | — | $6,768 | $18,768 | — | $13,512 |\n| **Total/year** | **$3,820** | **$13,170** | **$24,734** | **$36,734** | **$26,956** | **$49,444** |\n| Total/month | $318 | $1,098 | $2,061 | $3,061 | $2,246 | $4,120 |\n| Total/semi-mo| $159 | $549 | $1,031 | $1,531 | $1,123 | $2,060 |"
+        },
+        "finance-traditional-vs-roth": {
+          "title": "Traditional vs Roth Tax Treatment",
+          "color": "#2980b9",
+          "customContent": "| Account | Money In | Growth | Money Out | FICA Tax |\n|---------|----------|--------|-----------|----------|\n| **Traditional** | <span style=\"color:#27ae60\">Tax-Free</span> (Pre-Tax) | <span style=\"color:#27ae60\">Tax-Free</span> | <span style=\"color:#c0392b\">Taxed</span> (Income Tax) | <span style=\"color:#c0392b\">Taxed</span> (via payroll) |\n| **Roth** | <span style=\"color:#c0392b\">Taxed</span> (Post-Tax) | <span style=\"color:#27ae60\">Tax-Free</span> | <span style=\"color:#27ae60\">Tax-Free</span> (Qualified*) | <span style=\"color:#c0392b\">Taxed</span> (via payroll) |\n\n*See Qualified Distribution requirements*",
+          "minimized": false
+        },
+        "finance-hsa-tax-treatment": {
+          "title": "HSA Tax Treatment",
+          "color": "#9b59b6",
+          "customContent": "| Account | Money In | Growth | Money Out<br/>(Medical) | Money Out<br/>(Non-Medical 65+) | FICA Tax |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| **HSA** | <span style=\"color:#27ae60\">Tax-Free</span><br/>(Deductible) | <span style=\"color:#27ae60\">Tax-Free</span> | <span style=\"color:#27ae60\">Tax-Free</span> | <span style=\"color:#c0392b\">Taxed</span><br/>(Income Tax Only) | <span style=\"color:#27ae60\">Exempt</span><br/>(If via payroll) |\n\n**\"The Hidden HSA Perk\":** If you contribute directly from payroll (Section 125 Cafeteria Plan), you <span style=\"color:#27ae60\">skip BOTH income tax AND FICA tax</span>!"
+        },
+        "finance-qualified-distribution": {
+          "title": "Requirements for Qualified Distribution (2026)",
+          "color": "#2980b9",
+          "customContent": "## To be considered qualified, a withdrawal must meet two main tests:\n\n### 1. The 5-Year Rule\n\nThe account must have been open for at least 5 tax years, starting from the first day of the year you made your very first contribution.\n\n### 2. The \"Event\" Requirement\n\nThe withdrawal must occur after one of these events:\n- You have reached age 59 1/2\n- The withdrawal is due to a permanent disability\n- The withdrawal is made to a beneficiary after your death\n- You are using it for a first-time home purchase (up to a $10k lifetime limit)\n\n---\n\n**401k vs IRA Difference:** Big difference is that contributions (not earnings) to IRA can be withdrawn <span style=\"color:#27ae60\">penalty free</span>.",
+          "minimized": false
+        },
+        "finance-sp-returns": {
+          "title": "S&P Horizon Returns",
+          "color": "#27ae60",
+          "customContent": "| Strategy | Expected Nominal Returns | Expected Real Returns (after inflation) |\n|----------|-------------------------|----------------------------------------|\n| Aggressive (recent) | 14.5% | 11.5% |\n| Standard (historical) | 10% | 7% |\n| Conservative | 8% | 5% |"
+        },
+        "finance-investment-growth": {
+          "title": "Investment Growth Samples",
+          "color": "#27ae60",
+          "customContent": "| Initial Investment | Annual Return | Time Horizon | Expected Value |\n|--------------------|---------------|--------------|----------------|\n| $1,000 | 10% | 10 years | **$2,594** |\n| $1,000 | 10% | 20 years | **$6,727** |\n| $1,000 | 10% | 30 years | **$17,449** |\n| $10,000 | 10% | 30 years | **$174,494** |\n| $20,000 | 10% | 30 years | **$348,988** |\n\n(Annual Compounding)"
+        },
+        "custom-1769899142983": {
+          "title": "Tax Calculator",
+          "templateId": "dynamic-tax-calculator",
+          "customContent": "",
+          "color": "#c0392b"
+        },
+        "custom-1769899162997": {
+          "title": "Investment Growth Calculator",
+          "templateId": "dynamic-investment-calculator",
+          "customContent": "",
+          "color": "#27ae60"
+        },
+        "custom-1769900028248": {
+          "title": "Calculator",
+          "templateId": "simple-calculator",
+          "customContent": "",
+          "minimized": false
+        },
+        "custom-1770072158990": {
+          "title": "Loan Calculator",
+          "templateId": "loan-calculator",
+          "customContent": ""
+        }
+      },
+      "customTools": [
+        "finance-champagne-pyramid",
+        "finance-401k-limits",
+        "finance-401k-contributions",
+        "finance-ira-contributions",
+        "finance-hsa-contributions",
+        "finance-tax-brackets",
+        "finance-income-tax-summary",
+        "finance-traditional-vs-roth",
+        "finance-hsa-tax-treatment",
+        "finance-qualified-distribution",
+        "finance-sp-returns",
+        "finance-investment-growth",
+        "custom-1769899142983",
+        "custom-1769899162997",
+        "custom-1769900028248",
+        "custom-1770072158990"
+      ],
+      "hiddenTools": [],
+      "toolboardSettings": {
+        "title": "Personal Finance",
+        "color": "#2c3e50"
+      }
+    }
+  ]
+}
