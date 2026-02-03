@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toolboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter&family=Lato&family=Montserrat&family=Nunito&family=Open+Sans&family=Poppins&family=Roboto&family=Source+Sans+Pro&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%20%20%3Crect%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22%23444%22%20rx%3D%2210%22%20ry%3D%2210%22%20%2F%3E%20%20%3Cdefs%3E%20%20%20%20%3Cpattern%20id%3D%22peg-grid%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%20%20%20%20%20%20%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%2210.5%22%20fill%3D%22%23000%22%20%2F%3E%20%20%20%20%3C%2Fpattern%3E%20%20%3C%2Fdefs%3E%20%20%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22275%22%20height%3D%22275%22%20fill%3D%22url(%23peg-grid)%22%20%2F%3E%20%20%3Cg%20fill%3D%22%23ff8%22%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%20%20%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210.5%22%20%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E">
     <style>
 :root {
@@ -300,6 +304,23 @@ header h1 {
 }
 
 .toolboard-settings input[type="text"]:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.font-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 10px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.font-select:focus {
     outline: none;
     border-color: #3498db;
 }
@@ -1815,6 +1836,14 @@ tr:hover {
     font-size: 11px;
     color: var(--text-heading);
     flex-shrink: 0;
+    border-radius: 3px;
+    padding: 2px 4px;
+    transition: background 0.15s;
+}
+
+.calendar-month-name:hover {
+    background: var(--table-hover);
+    color: #3498db;
 }
 
 .calendar-month-grid {
@@ -1908,6 +1937,172 @@ tr:hover {
 .calendar-legend-count {
     color: var(--text-muted);
     margin-left: 2px;
+}
+
+/* Calendar View Toggle */
+.calendar-view-toggle {
+    display: flex;
+    gap: 4px;
+}
+
+.calendar-view-btn {
+    padding: 4px 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.calendar-view-btn:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.calendar-view-btn:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.calendar-view-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+/* Month View */
+.calendar-month-view {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.calendar-month-view.active {
+    display: flex;
+}
+
+.calendar-year-grid.hidden {
+    display: none;
+}
+
+.calendar-month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.calendar-month-nav button {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.calendar-month-nav button:hover {
+    background: var(--table-hover);
+}
+
+.calendar-month-nav .calendar-month-title {
+    font-weight: 600;
+    font-size: 16px;
+    min-width: 150px;
+    text-align: center;
+}
+
+.calendar-month-nav .calendar-today-btn {
+    background: #27ae60;
+    color: white;
+    border: none;
+    font-size: 10px;
+    padding: 4px 8px;
+}
+
+.calendar-month-detail {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: auto repeat(6, 1fr);
+    gap: 4px;
+    min-height: 0;
+}
+
+.calendar-month-detail .calendar-dow {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 8px 4px;
+}
+
+.calendar-month-detail .calendar-day-cell {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    padding: 4px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.calendar-month-detail .calendar-day-cell:hover {
+    background: var(--table-hover);
+}
+
+.calendar-month-detail .calendar-day-cell.other-month {
+    opacity: 0.4;
+    background: transparent;
+}
+
+.calendar-month-detail .calendar-day-cell.today {
+    box-shadow: inset 0 0 0 2px #3498db;
+}
+
+.calendar-day-number {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.calendar-day-cell.today .calendar-day-number {
+    background: #3498db;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-day-events {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendar-day-event {
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+}
+
+.calendar-day-more {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-align: center;
 }
 
 /* Calendar Management Modal */
@@ -3067,6 +3262,163 @@ body.dark-mode .seq-dashed-number-bg {
     background: var(--table-hover);
 }
 
+/* Code Formatter Widget Styles */
+.tool-content:has(.fmt-widget) {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.fmt-widget {
+    padding: 10px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 0;
+}
+
+.fmt-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.fmt-format-toggle {
+    display: flex;
+    gap: 0;
+}
+
+.fmt-format-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: -1px;
+}
+
+.fmt-format-btn:first-child {
+    border-radius: 4px 0 0 4px;
+    margin-left: 0;
+}
+
+.fmt-format-btn:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.fmt-format-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+    z-index: 1;
+}
+
+.fmt-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.fmt-action-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.fmt-action-btn:hover {
+    background: var(--table-hover);
+}
+
+.fmt-container {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    min-height: 0;
+}
+
+.fmt-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.fmt-pane label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.fmt-pane textarea {
+    flex: 1;
+    resize: none;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    min-height: 100px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+.fmt-pane textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.fmt-pane textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.fmt-pane textarea.fmt-output {
+    background: var(--bg-tertiary);
+}
+
+.fmt-resizer {
+    width: 6px;
+    background: var(--border-color);
+    cursor: col-resize;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.fmt-resizer:hover {
+    background: #3498db;
+}
+
+.fmt-status {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-height: 16px;
+}
+
+.fmt-status.error {
+    color: #e74c3c;
+}
+
+.fmt-status.success {
+    color: #27ae60;
+}
+
 /* Feature Selection Modal */
 .feature-select-modal {
     display: none;
@@ -3182,35 +3534,71 @@ body.dark-mode .seq-dashed-number-bg {
 /* Responsive */
 @media (max-width: 768px) {
     header {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px 15px;
+        padding: 8px 10px;
+        gap: 8px;
     }
 
     .header-title-area {
-        width: 100%;
-        justify-content: center;
+        gap: 6px;
+    }
+
+    .header-title-area img {
+        width: 24px !important;
+        height: 24px !important;
     }
 
     header h1 {
-        font-size: 1.2rem;
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .toolboard-version {
+        display: none;
+    }
+
+    .storage-indicator {
+        display: none;
     }
 
     .header-controls {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
+        gap: 6px;
     }
 
     .header-controls button {
-        padding: 10px 14px;
-        font-size: 0.85rem;
+        padding: 8px 10px;
+        font-size: 0.8rem;
     }
 
     #boardSelector {
-        min-width: 120px;
-        padding: 10px 12px;
+        min-width: 100px;
+        max-width: 120px;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Hide button text on mobile, show icons */
+    #addToolBtn {
+        font-size: 0;
+    }
+    #addToolBtn::before {
+        content: "+";
+        font-size: 1.2rem;
+    }
+
+    #deleteBoardBtn {
+        font-size: 0;
+    }
+    #deleteBoardBtn::before {
+        content: "\1F5D1";
+        font-size: 1rem;
+    }
+
+    #importExportBtn {
+        font-size: 0;
+    }
+    #importExportBtn::before {
+        content: "\21C5";
+        font-size: 1rem;
     }
 
     main#toolboard {
@@ -3347,6 +3735,42 @@ body.dark-mode .seq-dashed-number-bg {
     }
 }
 
+/* Extra small screens (portrait phones) */
+@media (max-width: 480px) {
+    header {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+
+    header h1 {
+        font-size: 0.9rem;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .header-settings-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .header-controls {
+        gap: 4px;
+    }
+
+    .header-controls button {
+        padding: 8px;
+        min-width: 36px;
+    }
+
+    #boardSelector {
+        min-width: 70px;
+        max-width: 90px;
+        padding: 8px 6px;
+    }
+
+}
+
 /* Touch-specific improvements */
 @media (pointer: coarse) {
     .tool-header {
@@ -3392,6 +3816,32 @@ body.dark-mode .seq-dashed-number-bg {
             <input type="text" id="toolboardTitleInput" placeholder="Board title">
             <label>Header Color</label>
             <div class="color-picker-row" id="toolboardColorPicker"></div>
+            <label>Board Font</label>
+            <select id="toolboardFontFamily" class="font-select">
+                <option value="">System Default</option>
+                <option value="Inter, sans-serif">Inter</option>
+                <option value="'Roboto', sans-serif">Roboto</option>
+                <option value="'Open Sans', sans-serif">Open Sans</option>
+                <option value="'Lato', sans-serif">Lato</option>
+                <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
+                <option value="'Nunito', sans-serif">Nunito</option>
+                <option value="'Poppins', sans-serif">Poppins</option>
+                <option value="'Montserrat', sans-serif">Montserrat</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Courier New', monospace">Courier New</option>
+                <option value="'Monaco', monospace">Monaco</option>
+                <option value="'Fira Code', monospace">Fira Code</option>
+            </select>
+            <label>Font Size</label>
+            <select id="toolboardFontSize" class="font-select">
+                <option value="">Default</option>
+                <option value="11px">Small (11px)</option>
+                <option value="13px">Medium (13px)</option>
+                <option value="14px">Large (14px)</option>
+                <option value="16px">X-Large (16px)</option>
+                <option value="18px">XX-Large (18px)</option>
+            </select>
         </div>
     </header>
 
@@ -3504,6 +3954,33 @@ body.dark-mode .seq-dashed-number-bg {
             <input type="text" id="toolSettingsTitleInput" class="title-input" placeholder="Tool title">
             <label>Color</label>
             <div class="color-picker-row" id="toolSettingsColorPicker"></div>
+            <label>Font Family</label>
+            <select id="toolSettingsFontFamily" class="font-select">
+                <option value="">Use Board Default</option>
+                <option value="Inter, sans-serif">Inter</option>
+                <option value="'Roboto', sans-serif">Roboto</option>
+                <option value="'Open Sans', sans-serif">Open Sans</option>
+                <option value="'Lato', sans-serif">Lato</option>
+                <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
+                <option value="'Nunito', sans-serif">Nunito</option>
+                <option value="'Poppins', sans-serif">Poppins</option>
+                <option value="'Montserrat', sans-serif">Montserrat</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Courier New', monospace">Courier New</option>
+                <option value="'Monaco', monospace">Monaco</option>
+                <option value="'Fira Code', monospace">Fira Code</option>
+            </select>
+            <label>Font Size</label>
+            <select id="toolSettingsFontSize" class="font-select">
+                <option value="">Use Board Default</option>
+                <option value="10px">X-Small (10px)</option>
+                <option value="11px">Small (11px)</option>
+                <option value="12px">Medium (12px)</option>
+                <option value="13px">Large (13px)</option>
+                <option value="14px">X-Large (14px)</option>
+                <option value="16px">XX-Large (16px)</option>
+            </select>
             <button class="edit-content-btn" id="toolSettingsEditBtn">Edit Content</button>
             <button class="duplicate-tool-btn" id="toolSettingsDuplicateBtn">Duplicate Tool</button>
             <button class="export-tool-btn" id="toolSettingsExportBtn">Export as HTML</button>
@@ -3680,14 +4157,27 @@ const NOTE_TEMPLATES = {
         title: 'Calendar ' + new Date().getFullYear(),
         content: `<div class="calendar-widget">
 <div class="calendar-header">
+<div class="calendar-view-toggle">
+<button class="calendar-view-btn active" onclick="calendarSetView(this, 'year')">Year</button>
+<button class="calendar-view-btn" onclick="calendarSetView(this, 'month')">Month</button>
+</div>
 <div class="calendar-year-nav">
 <button onclick="calendarPrevYear(this)">&lt;</button>
 <span class="calendar-year-display">${new Date().getFullYear()}</span>
 <button onclick="calendarNextYear(this)">&gt;</button>
 </div>
-<button class="calendar-manage-btn" onclick="calendarOpenManage(this)">Manage Calendars</button>
+<button class="calendar-manage-btn" onclick="calendarOpenManage(this)">Manage</button>
 </div>
 <div class="calendar-year-grid"></div>
+<div class="calendar-month-view">
+<div class="calendar-month-nav">
+<button onclick="calendarPrevMonth(this)">&lt;</button>
+<span class="calendar-month-title"></span>
+<button onclick="calendarNextMonth(this)">&gt;</button>
+<button class="calendar-today-btn" onclick="calendarGoToToday(this)">Today</button>
+</div>
+<div class="calendar-month-detail"></div>
+</div>
 <div class="calendar-legend"></div>
 </div>`,
         onInit: 'calendarInit'
@@ -3793,6 +4283,42 @@ Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
 </div>
 </div>`,
         onInit: 'jwtInit'
+    },
+    'code-formatter': {
+        id: 'code-formatter',
+        name: 'Code Formatter',
+        description: 'Prettify or minify JSON, XML, CSV, and SQL',
+        icon: '🎨',
+        title: 'Code Formatter',
+        content: `<div class="fmt-widget">
+<div class="fmt-toolbar">
+<div class="fmt-format-toggle">
+<button class="fmt-format-btn active" onclick="fmtSetFormat(this, 'json')">JSON</button>
+<button class="fmt-format-btn" onclick="fmtSetFormat(this, 'xml')">XML</button>
+<button class="fmt-format-btn" onclick="fmtSetFormat(this, 'csv')">CSV</button>
+<button class="fmt-format-btn" onclick="fmtSetFormat(this, 'sql')">SQL</button>
+</div>
+<div class="fmt-actions">
+<button class="fmt-action-btn" onclick="fmtPrettify(this)">Prettify</button>
+<button class="fmt-action-btn" onclick="fmtMinify(this)">Minify</button>
+<button class="fmt-action-btn" onclick="fmtCopy(this)">Copy</button>
+<button class="fmt-action-btn" onclick="fmtSwap(this)">Swap</button>
+</div>
+</div>
+<div class="fmt-container">
+<div class="fmt-pane">
+<label>Input</label>
+<textarea class="fmt-input" placeholder="Paste your code here..." oninput="fmtOnInput(this)"></textarea>
+</div>
+<div class="fmt-resizer"></div>
+<div class="fmt-pane">
+<label>Output</label>
+<textarea class="fmt-output" readonly placeholder="Formatted output will appear here..."></textarea>
+</div>
+</div>
+<div class="fmt-status"></div>
+</div>`,
+        onInit: 'fmtInit'
     }
 };
 
@@ -4125,6 +4651,8 @@ function setupToolControls() {
     const settingsOverlay = document.getElementById('toolSettingsOverlay');
     const settingsTitleInput = document.getElementById('toolSettingsTitleInput');
     const settingsColorPicker = document.getElementById('toolSettingsColorPicker');
+    const settingsFontFamily = document.getElementById('toolSettingsFontFamily');
+    const settingsFontSize = document.getElementById('toolSettingsFontSize');
     const settingsEditBtn = document.getElementById('toolSettingsEditBtn');
     const settingsDuplicateBtn = document.getElementById('toolSettingsDuplicateBtn');
     const settingsExportBtn = document.getElementById('toolSettingsExportBtn');
@@ -4232,6 +4760,10 @@ function setupToolControls() {
                 s.classList.toggle('selected', s.getAttribute('data-color') === headerColor);
             });
 
+            // Update font selects
+            settingsFontFamily.value = custom.fontFamily || '';
+            settingsFontSize.value = custom.fontSize || '';
+
             // Open modal
             settingsOverlay.classList.add('open');
         }
@@ -4288,6 +4820,28 @@ function setupToolControls() {
             toolCustomizations[toolId] = toolCustomizations[toolId] || {};
             toolCustomizations[toolId].title = newTitle;
             saveToolCustomizations(toolCustomizations);
+        }
+    });
+
+    // Font family change in modal
+    settingsFontFamily.addEventListener('change', (e) => {
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].fontFamily = e.target.value;
+            saveToolCustomizations(toolCustomizations);
+            applyToolFont(toolId);
+        }
+    });
+
+    // Font size change in modal
+    settingsFontSize.addEventListener('change', (e) => {
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].fontSize = e.target.value;
+            saveToolCustomizations(toolCustomizations);
+            applyToolFont(toolId);
         }
     });
 
@@ -4406,6 +4960,7 @@ function initializeCalculators() {
         if (document.querySelector('.diff-widget')) diffInit();
         if (document.querySelector('.seq-widget')) seqInit();
         if (document.querySelector('.jwt-widget')) jwtInit();
+        if (document.querySelector('.fmt-widget')) fmtInit();
     }, 50);
 }
 
@@ -5112,12 +5667,18 @@ function calendarRender(widget, toolId, year) {
 
     if (yearDisplay) yearDisplay.textContent = year;
 
-    // Render 12 months
+    // Render 12 months in year grid
     let html = '';
     for (let month = 0; month < 12; month++) {
         html += calendarRenderMonth(year, month, data);
     }
     grid.innerHTML = html;
+
+    // Also update month view if it exists and has data
+    const monthView = widget.querySelector('.calendar-month-view');
+    if (monthView && widget.dataset.viewMonth !== undefined) {
+        calendarRenderMonthView(widget, toolId);
+    }
 
     // Render legend with event counts
     const counts = calendarCountByType(data, year);
@@ -5144,7 +5705,7 @@ function calendarRenderMonth(year, month, data) {
     const todayDate = today.getDate();
 
     let html = `<div class="calendar-month">
-        <div class="calendar-month-name">${MONTH_NAMES[month]}</div>
+        <div class="calendar-month-name" onclick="calendarGoToMonth(this, ${year}, ${month})" style="cursor:pointer" title="Click for month view">${MONTH_NAMES[month]}</div>
         <div class="calendar-month-grid">`;
 
     // Day of week headers
@@ -5258,6 +5819,174 @@ function calendarNextYear(btn) {
     const yearDisplay = widget.querySelector('.calendar-year-display');
     const year = parseInt(yearDisplay.textContent) + 1;
     calendarRender(widget, toolId, year);
+}
+
+function calendarSetView(btn, view) {
+    const widget = btn.closest('.calendar-widget');
+    const toolId = calendarGetToolId(widget);
+
+    // Update toggle buttons
+    widget.querySelectorAll('.calendar-view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const yearGrid = widget.querySelector('.calendar-year-grid');
+    const monthView = widget.querySelector('.calendar-month-view');
+    const yearNav = widget.querySelector('.calendar-year-nav');
+
+    if (view === 'month') {
+        yearGrid.classList.add('hidden');
+        monthView.classList.add('active');
+        yearNav.style.display = 'none';
+
+        // Initialize month view with current month if not set
+        if (!widget.dataset.viewMonth) {
+            const now = new Date();
+            widget.dataset.viewMonth = now.getMonth();
+            widget.dataset.viewYear = now.getFullYear();
+        }
+        calendarRenderMonthView(widget, toolId);
+    } else {
+        yearGrid.classList.remove('hidden');
+        monthView.classList.remove('active');
+        yearNav.style.display = 'flex';
+    }
+}
+
+function calendarPrevMonth(btn) {
+    const widget = btn.closest('.calendar-widget');
+    const toolId = calendarGetToolId(widget);
+    let month = parseInt(widget.dataset.viewMonth);
+    let year = parseInt(widget.dataset.viewYear);
+
+    month--;
+    if (month < 0) {
+        month = 11;
+        year--;
+    }
+
+    widget.dataset.viewMonth = month;
+    widget.dataset.viewYear = year;
+    calendarRenderMonthView(widget, toolId);
+}
+
+function calendarNextMonth(btn) {
+    const widget = btn.closest('.calendar-widget');
+    const toolId = calendarGetToolId(widget);
+    let month = parseInt(widget.dataset.viewMonth);
+    let year = parseInt(widget.dataset.viewYear);
+
+    month++;
+    if (month > 11) {
+        month = 0;
+        year++;
+    }
+
+    widget.dataset.viewMonth = month;
+    widget.dataset.viewYear = year;
+    calendarRenderMonthView(widget, toolId);
+}
+
+function calendarGoToMonth(el, year, month) {
+    const widget = el.closest('.calendar-widget');
+    const toolId = calendarGetToolId(widget);
+
+    // Set the month/year
+    widget.dataset.viewMonth = month;
+    widget.dataset.viewYear = year;
+
+    // Switch to month view
+    const monthBtn = widget.querySelector('.calendar-view-btn:last-child');
+    calendarSetView(monthBtn, 'month');
+}
+
+function calendarGoToToday(btn) {
+    const widget = btn.closest('.calendar-widget');
+    const toolId = calendarGetToolId(widget);
+    const now = new Date();
+
+    widget.dataset.viewMonth = now.getMonth();
+    widget.dataset.viewYear = now.getFullYear();
+    calendarRenderMonthView(widget, toolId);
+}
+
+function calendarRenderMonthView(widget, toolId) {
+    const data = calendarGetData(toolId);
+    const month = parseInt(widget.dataset.viewMonth);
+    const year = parseInt(widget.dataset.viewYear);
+
+    const monthTitle = widget.querySelector('.calendar-month-title');
+    const monthDetail = widget.querySelector('.calendar-month-detail');
+
+    monthTitle.textContent = `${MONTH_NAMES[month]} ${year}`;
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDow = firstDay.getDay();
+    const daysInMonth = lastDay.getDate();
+
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+    const todayDate = today.getDate();
+
+    let html = '';
+
+    // Day of week headers
+    DAY_NAMES.forEach(d => {
+        html += `<div class="calendar-dow">${d}</div>`;
+    });
+
+    // Days from previous month
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = startDow - 1; i >= 0; i--) {
+        const day = prevMonthLastDay - i;
+        const prevMonth = month === 0 ? 11 : month - 1;
+        const prevYear = month === 0 ? year - 1 : year;
+        const dateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        html += `<div class="calendar-day-cell other-month" data-date="${dateStr}" onclick="calendarShowDayEvents(this, '${dateStr}')">
+            <div class="calendar-day-number">${day}</div>
+        </div>`;
+    }
+
+    // Days of current month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = calendarGetEventsForDate(data, dateStr);
+        const isToday = isCurrentMonth && day === todayDate;
+
+        let classes = 'calendar-day-cell';
+        if (isToday) classes += ' today';
+
+        html += `<div class="${classes}" data-date="${dateStr}" onclick="calendarShowDayEvents(this, '${dateStr}')">
+            <div class="calendar-day-number">${day}</div>
+            <div class="calendar-day-events">`;
+
+        // Show up to 3 events
+        dayEvents.slice(0, 3).forEach(event => {
+            const cal = data.calendars.find(c => c.id === event.calendarId);
+            const color = cal ? cal.color : '#999';
+            html += `<div class="calendar-day-event" style="background:${color}" title="${event.summary}">${event.summary}</div>`;
+        });
+
+        if (dayEvents.length > 3) {
+            html += `<div class="calendar-day-more">+${dayEvents.length - 3} more</div>`;
+        }
+
+        html += `</div></div>`;
+    }
+
+    // Days from next month to fill the grid
+    const totalCells = startDow + daysInMonth;
+    const remainingCells = (7 - (totalCells % 7)) % 7;
+    for (let day = 1; day <= remainingCells; day++) {
+        const nextMonth = month === 11 ? 0 : month + 1;
+        const nextYear = month === 11 ? year + 1 : year;
+        const dateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        html += `<div class="calendar-day-cell other-month" data-date="${dateStr}" onclick="calendarShowDayEvents(this, '${dateStr}')">
+            <div class="calendar-day-number">${day}</div>
+        </div>`;
+    }
+
+    monthDetail.innerHTML = html;
 }
 
 function calendarShowDayEvents(dayEl, dateStr) {
@@ -6713,74 +7442,35 @@ function seqRenderDiagram(widget, toolId, containerSelector) {
     container.innerHTML = svg;
 }
 
-// Simple Markdown Parser
+// Markdown Parser using marked.js (GitHub Flavored Markdown)
+(function() {
+    // Custom renderer to open links in new tabs
+    const renderer = new marked.Renderer();
+    renderer.link = function(href, title, text) {
+        // Handle marked v5+ object format
+        if (typeof href === 'object') {
+            const token = href;
+            href = token.href;
+            title = token.title;
+            text = token.text;
+        }
+        const titleAttr = title ? ` title="${title}"` : '';
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`;
+    };
+
+    // Configure marked with GFM options
+    marked.setOptions({
+        renderer: renderer,
+        gfm: true,           // GitHub Flavored Markdown
+        breaks: true,        // Convert \n to <br>
+        pedantic: false,
+        smartypants: false
+    });
+})();
+
 function parseMarkdown(text) {
     if (!text) return '';
-
-    // Split into blocks (separated by blank lines)
-    const blocks = text.split(/\n\n+/);
-    const htmlBlocks = [];
-
-    for (let block of blocks) {
-        block = block.trim();
-        if (!block) continue;
-
-        // Check if this block is a table
-        const lines = block.split('\n');
-        if (lines.length >= 2 &&
-            lines[0].trim().startsWith('|') &&
-            /^\|[\s\-:|]+\|?$/.test(lines[1].trim())) {
-            htmlBlocks.push(convertTableToHtml(lines));
-            continue;
-        }
-
-        // Check if this is a code block
-        if (block.startsWith('```')) {
-            const match = block.match(/```(\w*)\n([\s\S]*?)```/);
-            if (match) {
-                htmlBlocks.push(`<pre><code>${escapeHtml(match[2])}</code></pre>`);
-                continue;
-            }
-        }
-
-        // Check if this is a header
-        const headerMatch = block.match(/^(#{1,6})\s+(.*)$/);
-        if (headerMatch) {
-            const level = headerMatch[1].length;
-            htmlBlocks.push(`<h${level}>${parseInline(headerMatch[2])}</h${level}>`);
-            continue;
-        }
-
-        // Check if this is a horizontal rule
-        if (/^(-{3,}|\*{3,})$/.test(block)) {
-            htmlBlocks.push('<hr>');
-            continue;
-        }
-
-        // Check if this is a list
-        if (/^[\*\-]\s/.test(block) || /^\d+\.\s/.test(block)) {
-            const listItems = block.split('\n').map(line => {
-                const content = line.replace(/^[\*\-]\s+/, '').replace(/^\d+\.\s+/, '');
-                return `<li>${parseInline(content)}</li>`;
-            }).join('');
-            const listType = /^\d+\./.test(block) ? 'ol' : 'ul';
-            htmlBlocks.push(`<${listType}>${listItems}</${listType}>`);
-            continue;
-        }
-
-        // Check if this is a blockquote
-        if (block.startsWith('>')) {
-            const content = block.split('\n').map(line => line.replace(/^>\s*/, '')).join('<br>');
-            htmlBlocks.push(`<blockquote>${parseInline(content)}</blockquote>`);
-            continue;
-        }
-
-        // Regular paragraph - convert single newlines to <br>
-        const paraContent = block.split('\n').map(line => parseInline(line)).join('<br>');
-        htmlBlocks.push(`<p>${paraContent}</p>`);
-    }
-
-    return htmlBlocks.join('\n');
+    return marked.parse(text);
 }
 
 function escapeHtml(text) {
@@ -6788,60 +7478,6 @@ function escapeHtml(text) {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
-}
-
-function parseInline(text) {
-    return text
-        // Bold and italic
-        .replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-        .replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>')
-        .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-        .replace(/_([^_]+)_/g, '<em>$1</em>')
-        // Inline code
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        // Images: ![alt](src)
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-        // Links
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-}
-
-function convertTableToHtml(tableLines) {
-    if (tableLines.length < 2) return tableLines.join('\n');
-
-    const parseRow = (line) => {
-        // Remove leading/trailing pipes and split by |
-        return line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
-    };
-
-    const headerCells = parseRow(tableLines[0]);
-    const alignments = parseRow(tableLines[1]).map(cell => {
-        if (cell.startsWith(':') && cell.endsWith(':')) return 'center';
-        if (cell.endsWith(':')) return 'right';
-        return 'left';
-    });
-
-    let html = '<table>\n<thead>\n<tr>\n';
-    headerCells.forEach((cell, idx) => {
-        const align = alignments[idx] || 'left';
-        html += `<th style="text-align: ${align}">${parseInline(cell)}</th>\n`;
-    });
-    html += '</tr>\n</thead>\n<tbody>\n';
-
-    // Process body rows (skip header and separator)
-    for (let i = 2; i < tableLines.length; i++) {
-        const cells = parseRow(tableLines[i]);
-        html += '<tr>\n';
-        cells.forEach((cell, idx) => {
-            const align = alignments[idx] || 'left';
-            html += `<td style="text-align: ${align}">${parseInline(cell)}</td>\n`;
-        });
-        html += '</tr>\n';
-    }
-
-    html += '</tbody>\n</table>';
-    return html;
 }
 
 // JWT Decoder Widget
@@ -7075,6 +7711,442 @@ function jwtClear() {
     const textarea = widget.querySelector('textarea');
     textarea.value = '';
     jwtDecode(textarea);
+}
+
+// Code Formatter Widget
+function fmtGetToolId(element) {
+    const widget = element.closest('.fmt-widget');
+    return widget?.closest('.tool')?.getAttribute('data-tool');
+}
+
+function fmtGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
+    return custom.fmtData || { input: '', output: '', format: 'json' };
+}
+
+function fmtSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].fmtData = data;
+    saveToolCustomizations(customizations);
+}
+
+function fmtInit() {
+    document.querySelectorAll('.fmt-widget').forEach(widget => {
+        const toolId = fmtGetToolId(widget);
+        if (!toolId) return;
+
+        const data = fmtGetData(toolId);
+        const input = widget.querySelector('.fmt-input');
+        const output = widget.querySelector('.fmt-output');
+
+        if (input && data.input) input.value = data.input;
+        if (output && data.output) output.value = data.output;
+
+        // Restore format selection
+        if (data.format) {
+            widget.querySelectorAll('.fmt-format-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase() === data.format);
+            });
+        }
+
+        // Setup resizer
+        fmtSetupResizer(widget);
+    });
+}
+
+function fmtSetupResizer(widget) {
+    const resizer = widget.querySelector('.fmt-resizer');
+    const container = widget.querySelector('.fmt-container');
+    const leftPane = container.querySelector('.fmt-pane:first-child');
+    const rightPane = container.querySelector('.fmt-pane:last-child');
+
+    if (!resizer) return;
+
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const total = rect.width - 6; // resizer width
+        const leftWidth = Math.max(100, Math.min(x, total - 100));
+        const rightWidth = total - leftWidth;
+        leftPane.style.flex = `0 0 ${leftWidth}px`;
+        rightPane.style.flex = `0 0 ${rightWidth}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+}
+
+function fmtSetFormat(btn, format) {
+    const widget = btn.closest('.fmt-widget');
+    widget.querySelectorAll('.fmt-format-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const toolId = fmtGetToolId(widget);
+    if (toolId) {
+        const data = fmtGetData(toolId);
+        data.format = format;
+        fmtSaveData(toolId, data);
+    }
+
+    fmtUpdateStatus(widget, '');
+}
+
+function fmtGetFormat(widget) {
+    const activeBtn = widget.querySelector('.fmt-format-btn.active');
+    return activeBtn ? activeBtn.textContent.toLowerCase() : 'json';
+}
+
+function fmtOnInput(textarea) {
+    const widget = textarea.closest('.fmt-widget');
+    const toolId = fmtGetToolId(widget);
+    if (toolId) {
+        const data = fmtGetData(toolId);
+        data.input = textarea.value;
+        fmtSaveData(toolId, data);
+    }
+}
+
+function fmtPrettify(btn) {
+    const widget = btn.closest('.fmt-widget');
+    const format = fmtGetFormat(widget);
+    const input = widget.querySelector('.fmt-input').value;
+    const output = widget.querySelector('.fmt-output');
+
+    if (!input.trim()) {
+        fmtUpdateStatus(widget, 'No input provided', 'error');
+        return;
+    }
+
+    try {
+        let result;
+        switch (format) {
+            case 'json':
+                result = fmtPrettifyJSON(input);
+                break;
+            case 'xml':
+                result = fmtPrettifyXML(input);
+                break;
+            case 'csv':
+                result = fmtPrettifyCSV(input);
+                break;
+            case 'sql':
+                result = fmtPrettifySQL(input);
+                break;
+            default:
+                result = input;
+        }
+        output.value = result;
+        fmtUpdateStatus(widget, `Prettified ${format.toUpperCase()} successfully`, 'success');
+
+        const toolId = fmtGetToolId(widget);
+        if (toolId) {
+            const data = fmtGetData(toolId);
+            data.output = result;
+            fmtSaveData(toolId, data);
+        }
+    } catch (e) {
+        fmtUpdateStatus(widget, `Error: ${e.message}`, 'error');
+    }
+}
+
+function fmtMinify(btn) {
+    const widget = btn.closest('.fmt-widget');
+    const format = fmtGetFormat(widget);
+    const input = widget.querySelector('.fmt-input').value;
+    const output = widget.querySelector('.fmt-output');
+
+    if (!input.trim()) {
+        fmtUpdateStatus(widget, 'No input provided', 'error');
+        return;
+    }
+
+    try {
+        let result;
+        switch (format) {
+            case 'json':
+                result = fmtMinifyJSON(input);
+                break;
+            case 'xml':
+                result = fmtMinifyXML(input);
+                break;
+            case 'csv':
+                result = fmtMinifyCSV(input);
+                break;
+            case 'sql':
+                result = fmtMinifySQL(input);
+                break;
+            default:
+                result = input;
+        }
+        output.value = result;
+        fmtUpdateStatus(widget, `Minified ${format.toUpperCase()} successfully`, 'success');
+
+        const toolId = fmtGetToolId(widget);
+        if (toolId) {
+            const data = fmtGetData(toolId);
+            data.output = result;
+            fmtSaveData(toolId, data);
+        }
+    } catch (e) {
+        fmtUpdateStatus(widget, `Error: ${e.message}`, 'error');
+    }
+}
+
+function fmtCopy(btn) {
+    const widget = btn.closest('.fmt-widget');
+    const output = widget.querySelector('.fmt-output').value;
+
+    if (!output) {
+        fmtUpdateStatus(widget, 'Nothing to copy', 'error');
+        return;
+    }
+
+    navigator.clipboard.writeText(output).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 1500);
+    });
+}
+
+function fmtSwap(btn) {
+    const widget = btn.closest('.fmt-widget');
+    const input = widget.querySelector('.fmt-input');
+    const output = widget.querySelector('.fmt-output');
+
+    const temp = input.value;
+    input.value = output.value;
+    output.value = temp;
+
+    const toolId = fmtGetToolId(widget);
+    if (toolId) {
+        const data = fmtGetData(toolId);
+        data.input = input.value;
+        data.output = output.value;
+        fmtSaveData(toolId, data);
+    }
+
+    fmtUpdateStatus(widget, 'Swapped input and output', 'success');
+}
+
+function fmtUpdateStatus(widget, message, type = '') {
+    const status = widget.querySelector('.fmt-status');
+    status.textContent = message;
+    status.className = 'fmt-status' + (type ? ` ${type}` : '');
+}
+
+// JSON formatting
+function fmtPrettifyJSON(input) {
+    const obj = JSON.parse(input);
+    return JSON.stringify(obj, null, 2);
+}
+
+function fmtMinifyJSON(input) {
+    const obj = JSON.parse(input);
+    return JSON.stringify(obj);
+}
+
+// XML formatting
+function fmtPrettifyXML(input) {
+    // Remove existing formatting
+    let xml = input.replace(/>\s+</g, '><').trim();
+
+    // Check for valid XML structure
+    if (!xml.startsWith('<')) {
+        throw new Error('Invalid XML: must start with <');
+    }
+
+    let formatted = '';
+    let indent = 0;
+    const tab = '  ';
+
+    // Split by tags
+    const parts = xml.split(/(<[^>]+>)/);
+
+    for (let part of parts) {
+        part = part.trim();
+        if (!part) continue;
+
+        if (part.startsWith('</')) {
+            // Closing tag
+            indent--;
+            formatted += tab.repeat(Math.max(0, indent)) + part + '\n';
+        } else if (part.startsWith('<?') || part.startsWith('<!')) {
+            // XML declaration or doctype
+            formatted += part + '\n';
+        } else if (part.startsWith('<') && part.endsWith('/>')) {
+            // Self-closing tag
+            formatted += tab.repeat(indent) + part + '\n';
+        } else if (part.startsWith('<')) {
+            // Opening tag
+            formatted += tab.repeat(indent) + part + '\n';
+            indent++;
+        } else {
+            // Text content
+            indent--;
+            formatted = formatted.trimEnd() + part + '\n';
+            indent++;
+        }
+    }
+
+    return formatted.trim();
+}
+
+function fmtMinifyXML(input) {
+    // Remove comments, newlines, and extra whitespace between tags
+    return input
+        .replace(/<!--[\s\S]*?-->/g, '')  // Remove comments
+        .replace(/>\s+</g, '><')          // Remove whitespace between tags
+        .replace(/\s+/g, ' ')             // Collapse whitespace
+        .trim();
+}
+
+// CSV formatting
+function fmtPrettifyCSV(input) {
+    const lines = input.trim().split(/\r?\n/);
+    if (lines.length === 0) return input;
+
+    // Parse CSV properly handling quoted fields
+    const rows = lines.map(line => fmtParseCSVLine(line));
+
+    // Find max width for each column
+    const colWidths = [];
+    for (const row of rows) {
+        for (let i = 0; i < row.length; i++) {
+            const len = row[i].length;
+            if (!colWidths[i] || len > colWidths[i]) {
+                colWidths[i] = len;
+            }
+        }
+    }
+
+    // Format with padding
+    return rows.map(row =>
+        row.map((cell, i) => cell.padEnd(colWidths[i] || 0)).join(' | ')
+    ).join('\n');
+}
+
+function fmtParseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+
+    return result;
+}
+
+function fmtMinifyCSV(input) {
+    const lines = input.trim().split(/\r?\n/);
+    return lines.map(line => {
+        // Parse and re-join to remove padding
+        const cells = fmtParseCSVLine(line);
+        return cells.map(cell => {
+            cell = cell.trim();
+            // Re-quote if needed
+            if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+                return '"' + cell.replace(/"/g, '""') + '"';
+            }
+            return cell;
+        }).join(',');
+    }).join('\n');
+}
+
+// SQL formatting
+function fmtPrettifySQL(input) {
+    // Keywords to add newlines before
+    const majorKeywords = [
+        'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY',
+        'HAVING', 'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN',
+        'INNER JOIN', 'OUTER JOIN', 'FULL JOIN', 'CROSS JOIN',
+        'ON', 'SET', 'VALUES', 'INSERT INTO', 'UPDATE', 'DELETE FROM',
+        'CREATE TABLE', 'ALTER TABLE', 'DROP TABLE', 'CREATE INDEX',
+        'UNION', 'UNION ALL', 'EXCEPT', 'INTERSECT', 'CASE', 'WHEN',
+        'THEN', 'ELSE', 'END', 'AS'
+    ];
+
+    // Normalize whitespace
+    let sql = input.replace(/\s+/g, ' ').trim();
+
+    // Sort keywords by length (longest first) to avoid partial replacements
+    const sortedKeywords = majorKeywords.sort((a, b) => b.length - a.length);
+
+    // Add newlines before major keywords (case-insensitive)
+    for (const keyword of sortedKeywords) {
+        const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+        sql = sql.replace(regex, '\n$1');
+    }
+
+    // Indent subqueries
+    let result = '';
+    let indent = 0;
+    const lines = sql.split('\n');
+
+    for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+
+        // Check for opening/closing parens to adjust indent
+        const openCount = (line.match(/\(/g) || []).length;
+        const closeCount = (line.match(/\)/g) || []).length;
+
+        // Decrease indent for lines starting with )
+        if (line.startsWith(')')) indent = Math.max(0, indent - 1);
+
+        result += '  '.repeat(indent) + line.toUpperCase().replace(/\b(SELECT|FROM|WHERE|AND|OR|ORDER BY|GROUP BY|HAVING|JOIN|LEFT|RIGHT|INNER|OUTER|FULL|CROSS|ON|SET|VALUES|INSERT|INTO|UPDATE|DELETE|CREATE|ALTER|DROP|TABLE|INDEX|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|AS|LIMIT|OFFSET|NULL|NOT|IN|IS|LIKE|BETWEEN)\b/gi,
+            match => match.toUpperCase()) + '\n';
+
+        // Increase indent for lines ending with (
+        if (line.endsWith('(')) indent++;
+
+        // Adjust for balanced parens
+        indent += openCount - closeCount - (line.startsWith(')') ? 0 : 0);
+        indent = Math.max(0, indent);
+    }
+
+    return result.trim();
+}
+
+function fmtMinifySQL(input) {
+    return input
+        .replace(/--[^\n]*/g, '')          // Remove single-line comments
+        .replace(/\/\*[\s\S]*?\*\//g, '')  // Remove multi-line comments
+        .replace(/\s+/g, ' ')              // Collapse whitespace
+        .replace(/\s*([(),])\s*/g, '$1')   // Remove space around punctuation
+        .replace(/\s*([=<>!]+)\s*/g, ' $1 ')  // Normalize operators
+        .trim();
 }
 
 // Content Editor State
@@ -7425,15 +8497,16 @@ const DASHBOARD_COLORS = [
 ];
 
 function loadToolboardSettings() {
+    const defaults = { title: 'My Toolboard', color: '#2c3e50', fontFamily: '', fontSize: '' };
     const stored = localStorage.getItem(boardKey('toolboardSettings'));
     if (stored) {
         try {
-            return JSON.parse(stored);
+            return { ...defaults, ...JSON.parse(stored) };
         } catch (e) {
-            return { title: 'My Toolboard', color: '#2c3e50' };
+            return defaults;
         }
     }
-    return { title: 'My Toolboard', color: '#2c3e50' };
+    return defaults;
 }
 
 function saveToolboardSettings(settings) {
@@ -7448,6 +8521,9 @@ function applyToolboardSettings() {
     const title = document.getElementById('toolboardTitle');
     const titleInput = document.getElementById('toolboardTitleInput');
     const colorPicker = document.getElementById('toolboardColorPicker');
+    const fontFamilySelect = document.getElementById('toolboardFontFamily');
+    const fontSizeSelect = document.getElementById('toolboardFontSize');
+    const toolboard = document.getElementById('toolboard');
 
     title.textContent = toolboardSettings.title;
     header.style.background = toolboardSettings.color;
@@ -7460,6 +8536,64 @@ function applyToolboardSettings() {
     colorPicker.innerHTML = DASHBOARD_COLORS.map(c =>
         `<div class="color-swatch${toolboardSettings.color === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`
     ).join('');
+
+    // Apply font settings
+    if (fontFamilySelect) fontFamilySelect.value = toolboardSettings.fontFamily || '';
+    if (fontSizeSelect) fontSizeSelect.value = toolboardSettings.fontSize || '';
+
+    // Apply board-level fonts to toolboard
+    if (toolboardSettings.fontFamily) {
+        toolboard.style.fontFamily = toolboardSettings.fontFamily;
+    } else {
+        toolboard.style.fontFamily = '';
+    }
+    if (toolboardSettings.fontSize) {
+        toolboard.style.fontSize = toolboardSettings.fontSize;
+    } else {
+        toolboard.style.fontSize = '';
+    }
+
+    // Re-apply tool-specific fonts (they override board settings)
+    applyAllToolFonts();
+}
+
+function applyAllToolFonts() {
+    document.querySelectorAll('.tool').forEach(tool => {
+        const toolId = tool.getAttribute('data-tool');
+        const custom = toolCustomizations[toolId] || {};
+        const content = tool.querySelector('.tool-content');
+        if (content) {
+            if (custom.fontFamily) {
+                content.style.fontFamily = custom.fontFamily;
+            } else {
+                content.style.fontFamily = '';
+            }
+            if (custom.fontSize) {
+                content.style.fontSize = custom.fontSize;
+            } else {
+                content.style.fontSize = '';
+            }
+        }
+    });
+}
+
+function applyToolFont(toolId) {
+    const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+    if (!tool) return;
+    const custom = toolCustomizations[toolId] || {};
+    const content = tool.querySelector('.tool-content');
+    if (content) {
+        if (custom.fontFamily) {
+            content.style.fontFamily = custom.fontFamily;
+        } else {
+            content.style.fontFamily = '';
+        }
+        if (custom.fontSize) {
+            content.style.fontSize = custom.fontSize;
+        } else {
+            content.style.fontSize = '';
+        }
+    }
 }
 
 function setupToolboardSettings() {
@@ -7467,8 +8601,11 @@ function setupToolboardSettings() {
     const settingsPanel = document.getElementById('toolboardSettings');
     const titleInput = document.getElementById('toolboardTitleInput');
     const colorPicker = document.getElementById('toolboardColorPicker');
+    const fontFamilySelect = document.getElementById('toolboardFontFamily');
+    const fontSizeSelect = document.getElementById('toolboardFontSize');
     const header = document.getElementById('mainHeader');
     const title = document.getElementById('toolboardTitle');
+    const toolboard = document.getElementById('toolboard');
 
     // Toggle settings panel
     settingsBtn.addEventListener('click', (e) => {
@@ -7497,6 +8634,30 @@ function setupToolboardSettings() {
             e.target.classList.add('selected');
             saveToolboardSettings(toolboardSettings);
         }
+    });
+
+    // Font family select
+    fontFamilySelect.addEventListener('change', (e) => {
+        toolboardSettings.fontFamily = e.target.value;
+        if (e.target.value) {
+            toolboard.style.fontFamily = e.target.value;
+        } else {
+            toolboard.style.fontFamily = '';
+        }
+        saveToolboardSettings(toolboardSettings);
+        applyAllToolFonts(); // Re-apply tool overrides
+    });
+
+    // Font size select
+    fontSizeSelect.addEventListener('change', (e) => {
+        toolboardSettings.fontSize = e.target.value;
+        if (e.target.value) {
+            toolboard.style.fontSize = e.target.value;
+        } else {
+            toolboard.style.fontSize = '';
+        }
+        saveToolboardSettings(toolboardSettings);
+        applyAllToolFonts(); // Re-apply tool overrides
     });
 
     // Close when clicking outside
@@ -7628,6 +8789,17 @@ function createTool(toolId) {
     }
     if (pos.height) {
         tool.style.height = pos.height + 'px';
+    }
+
+    // Apply tool-specific fonts
+    const toolContent = tool.querySelector('.tool-content');
+    if (toolContent) {
+        if (custom.fontFamily) {
+            toolContent.style.fontFamily = custom.fontFamily;
+        }
+        if (custom.fontSize) {
+            toolContent.style.fontSize = custom.fontSize;
+        }
     }
 
     return tool;
@@ -8972,15 +10144,22 @@ function exportToolAsHtml(toolId) {
     const title = custom.title || content.title || 'Tool';
     const headerColor = custom.color || '#34495e';
 
-    // Get the rendered content from the DOM
+    // Check if this is an interactive tool that needs the full app
     const noteEl = document.querySelector(`[data-tool="${toolId}"]`);
+    const contentEl = noteEl?.querySelector('.tool-content');
+    const isInteractiveTool = contentEl?.querySelector('.seq-widget, .diff-widget, .calendar-widget, .loan-calc-widget, .jwt-widget');
+
+    if (isInteractiveTool) {
+        // Use full-app export for interactive tools
+        exportToolAsFullHtml(toolId, title);
+        return;
+    }
+
+    // Simple export for static content
     let bodyContent = '';
 
-    if (noteEl) {
-        const contentEl = noteEl.querySelector('.tool-content');
-        if (contentEl) {
-            bodyContent = contentEl.innerHTML;
-        }
+    if (contentEl) {
+        bodyContent = contentEl.innerHTML;
     }
 
     // If it's a checklist, render it nicely for export
@@ -9057,6 +10236,81 @@ function exportToolAsHtml(toolId) {
 
     // Download the file
     const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Export interactive tool as full standalone HTML (like board export but single tool)
+function exportToolAsFullHtml(toolId, title) {
+    const custom = toolCustomizations[toolId] || {};
+    const pos = positions[toolId] || {};
+
+    // Create minimal data for just this one tool
+    const embeddedData = {
+        boards: [{ id: 'default', name: title }],
+        currentBoard: 'default',
+        variables: {},
+        positions: {
+            [toolId]: {
+                x: 50,
+                y: 20,
+                w: pos.w || 500,
+                h: pos.h || 400,
+                z: 1
+            }
+        },
+        toolCustomizations: {
+            [toolId]: custom
+        },
+        customTools: customTools.includes(toolId) ? [toolId] : [],
+        hiddenTools: customTools.filter(id => id !== toolId),
+        toolboardSettings: {
+            title: title,
+            color: custom.color || toolboardSettings.color || '#34495e'
+        }
+    };
+
+    // Close any open modals
+    document.querySelectorAll('.modal.open, .tool-settings.open').forEach(m => m.classList.remove('open'));
+
+    // Get the full HTML of the current document
+    const originalHTML = document.documentElement.outerHTML;
+
+    // Create the embedded data script that will auto-import on load
+    const embedScript = '<scr' + 'ipt id="embedded-tool-data" type="application/json">\n' +
+        JSON.stringify(embeddedData, null, 2) +
+        '\n<\/scr' + 'ipt>\n' +
+        '<scr' + 'ipt>\n' +
+        '// Auto-import embedded tool data on load\n' +
+        '(function() {\n' +
+        '    var dataScript = document.getElementById("embedded-tool-data");\n' +
+        '    if (!dataScript) return;\n' +
+        '    try {\n' +
+        '        var data = JSON.parse(dataScript.textContent);\n' +
+        '        localStorage.setItem("financeBoards", JSON.stringify(data.boards));\n' +
+        '        localStorage.setItem("financeCurrentBoard", "default");\n' +
+        '        localStorage.setItem("finance_default_variables", JSON.stringify(data.variables));\n' +
+        '        localStorage.setItem("finance_default_positions", JSON.stringify(data.positions));\n' +
+        '        localStorage.setItem("finance_default_toolCustomizations", JSON.stringify(data.toolCustomizations));\n' +
+        '        localStorage.setItem("finance_default_customTools", JSON.stringify(data.customTools));\n' +
+        '        localStorage.setItem("finance_default_hiddenTools", JSON.stringify(data.hiddenTools));\n' +
+        '        localStorage.setItem("finance_default_toolboardSettings", JSON.stringify(data.toolboardSettings));\n' +
+        '        dataScript.remove();\n' +
+        '    } catch (e) { console.error("Failed to import embedded tool data:", e); }\n' +
+        '})();\n' +
+        '<\/scr' + 'ipt>\n';
+
+    // Insert the embed script just before </head>
+    const htmlContent = '<!DOCTYPE html>\n' + originalHTML.replace('</head>', embedScript + '</head>');
+
+    // Download
+    const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
