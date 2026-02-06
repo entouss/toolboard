@@ -337,6 +337,67 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .ascii-lookup-input:focus { outline: none; border-color: #3498db; }
 .ascii-lookup-result { font-family: monospace; font-size: 11px; color: var(--text-primary); padding: 4px 8px; background: var(--bg-tertiary); border-radius: 4px; border: 1px solid var(--border-color); min-width: 60px; }
 .ascii-count { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+/* Hash Generator Widget Styles */
+.tool-content:has(.hash-widget) { display: flex; flex-direction: column; padding: 0; }
+.hash-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 8px; }
+.hash-toolbar { display: flex; justify-content: flex-end; gap: 4px; flex-shrink: 0; }
+.hash-action-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.hash-action-btn:hover { background: var(--table-hover); }
+.hash-input-pane { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.hash-input-pane label { font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+.hash-input-pane label .hash-byte-count { font-weight: 400; color: var(--text-muted); }
+.hash-input-pane textarea { flex: 1; resize: none; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 60px; }
+.hash-input-pane textarea:focus { outline: none; border-color: #3498db; }
+.hash-results { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.hash-result-row { display: flex; align-items: center; gap: 8px; }
+.hash-result-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); min-width: 52px; flex-shrink: 0; }
+.hash-result-value { flex: 1; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 11px; background: var(--bg-tertiary); color: var(--text-primary); word-break: break-all; min-height: 18px; user-select: all; }
+.hash-result-copy { padding: 4px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 4px; flex-shrink: 0; }
+.hash-result-copy:hover { background: var(--table-hover); }
+.hash-case-toggle { display: flex; gap: 4px; }
+.hash-case-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.hash-case-btn:first-child { border-radius: 4px 0 0 4px; }
+.hash-case-btn:last-child { border-radius: 0 4px 4px 0; }
+.hash-case-btn.active { background: #3498db; color: white; border-color: #3498db; }
+
+/* Password Generator Widget Styles */
+.tool-content:has(.pwgen-widget) { display: flex; flex-direction: column; padding: 0; }
+.pwgen-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 10px; }
+.pwgen-output { display: flex; align-items: center; gap: 8px; }
+.pwgen-output-field { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 14px; background: var(--bg-tertiary); color: var(--text-primary); word-break: break-all; min-height: 20px; user-select: all; letter-spacing: 0.5px; }
+.pwgen-output-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.pwgen-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.pwgen-btn:hover { background: var(--table-hover); }
+.pwgen-btn-primary { background: #3498db; color: white; border-color: #3498db; }
+.pwgen-btn-primary:hover { background: #2980b9; }
+.pwgen-controls { display: flex; flex-direction: column; gap: 8px; }
+.pwgen-length-row { display: flex; align-items: center; gap: 10px; }
+.pwgen-length-row label { font-size: 11px; color: var(--text-secondary); font-weight: 500; min-width: 48px; }
+.pwgen-length-row input[type="range"] { flex: 1; }
+.pwgen-length-row input[type="number"] { width: 52px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; background: var(--input-bg); color: var(--text-primary); text-align: center; font-family: monospace; }
+.pwgen-charsets { display: flex; flex-wrap: wrap; gap: 6px; }
+.pwgen-charset-toggle { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; font-size: 11px; color: var(--text-primary); background: var(--bg-tertiary); user-select: none; }
+.pwgen-charset-toggle:hover { background: var(--table-hover); }
+.pwgen-charset-toggle.active { background: #3498db; color: white; border-color: #3498db; }
+.pwgen-charset-toggle input { display: none; }
+.pwgen-custom-row { display: flex; align-items: center; gap: 8px; }
+.pwgen-custom-row label { font-size: 11px; color: var(--text-secondary); font-weight: 500; flex-shrink: 0; }
+.pwgen-custom-input { flex: 1; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); }
+.pwgen-custom-input:focus { outline: none; border-color: #3498db; }
+.pwgen-strength { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.pwgen-strength-bar { flex: 1; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden; }
+.pwgen-strength-fill { height: 100%; border-radius: 3px; transition: width 0.2s, background 0.2s; }
+.pwgen-strength-label { font-size: 11px; font-weight: 500; min-width: 70px; text-align: right; }
+.pwgen-entropy { font-size: 10px; color: var(--text-muted); }
+.pwgen-history { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 4px; }
+.pwgen-history-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+.pwgen-history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+.pwgen-history-item { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 3px; font-family: monospace; font-size: 11px; color: var(--text-primary); }
+.pwgen-history-item:hover { background: var(--table-hover); }
+.pwgen-history-item span { flex: 1; word-break: break-all; user-select: all; }
+.pwgen-history-copy { padding: 2px 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; flex-shrink: 0; }
+.pwgen-history-copy:hover { background: var(--table-hover); }
 `;
     document.head.appendChild(style);
 })();
@@ -349,7 +410,7 @@ PluginRegistry.registerToolbox({
     icon: '🛠️',
     color: '#3498db',
     version: '1.0.0',
-    tools: ['jwt-decoder', 'code-formatter', 'regex-tester', 'cron-expression', 'epoch-converter', 'base64-encoder', 'lorem-ipsum', 'ascii-codes', 'diff-viewer', 'sequence-diagram', 'http-request-builder'],
+    tools: ['jwt-decoder', 'code-formatter', 'regex-tester', 'cron-expression', 'epoch-converter', 'base64-encoder', 'lorem-ipsum', 'ascii-codes', 'diff-viewer', 'sequence-diagram', 'http-request-builder', 'hash-generator', 'password-generator'],
     source: 'external'
 });
 
@@ -791,7 +852,102 @@ Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
     source: 'external'
 });
 
-console.log('Developer Tools plugin loaded: 10 tools registered');
+// Hash Generator
+PluginRegistry.registerTool({
+    id: 'hash-generator',
+    name: 'Hash Generator',
+    description: 'Generate MD5, SHA-1, and SHA-256 hashes from text input',
+    icon: '#️⃣',
+    version: '1.0.0',
+    toolbox: 'developer-tools',
+    tags: ['hash', 'md5', 'sha1', 'sha256', 'checksum', 'digest', 'crypto'],
+    title: 'Hash Generator',
+    content: `<div class="hash-widget">
+<div class="hash-toolbar">
+<div class="hash-case-toggle">
+<button class="hash-case-btn active" onclick="hashSetCase(this, 'lower')">lower</button>
+<button class="hash-case-btn" onclick="hashSetCase(this, 'upper')">UPPER</button>
+</div>
+<button class="hash-action-btn" onclick="hashClearAll(this)">Clear</button>
+</div>
+<div class="hash-input-pane">
+<label><span>Text Input</span><span class="hash-byte-count"></span></label>
+<textarea class="hash-input" placeholder="Enter text to hash..." oninput="hashOnInput(this)"></textarea>
+</div>
+<div class="hash-results">
+<div class="hash-result-row" data-algo="MD5">
+<span class="hash-result-label">MD5</span>
+<span class="hash-result-value"></span>
+<button class="hash-result-copy" onclick="hashCopyResult(this)">Copy</button>
+</div>
+<div class="hash-result-row" data-algo="SHA-1">
+<span class="hash-result-label">SHA-1</span>
+<span class="hash-result-value"></span>
+<button class="hash-result-copy" onclick="hashCopyResult(this)">Copy</button>
+</div>
+<div class="hash-result-row" data-algo="SHA-256">
+<span class="hash-result-label">SHA-256</span>
+<span class="hash-result-value"></span>
+<button class="hash-result-copy" onclick="hashCopyResult(this)">Copy</button>
+</div>
+</div>
+</div>`,
+    contentType: 'html',
+    onInit: 'hashInit',
+    source: 'external'
+});
+
+// Password Generator
+PluginRegistry.registerTool({
+    id: 'password-generator',
+    name: 'Password Generator',
+    description: 'Configurable secure password generation',
+    icon: '🔑',
+    version: '1.0.0',
+    toolbox: 'developer-tools',
+    tags: ['password', 'random', 'secure', 'generate', 'crypto'],
+    title: 'Password Generator',
+    content: `<div class="pwgen-widget">
+<div class="pwgen-output">
+<div class="pwgen-output-field"></div>
+<div class="pwgen-output-actions">
+<button class="pwgen-btn pwgen-btn-primary" onclick="pwgenGenerate(this)">Generate</button>
+<button class="pwgen-btn" onclick="pwgenCopy(this)">Copy</button>
+</div>
+</div>
+<div class="pwgen-strength">
+<div class="pwgen-strength-bar"><div class="pwgen-strength-fill"></div></div>
+<span class="pwgen-strength-label"></span>
+<span class="pwgen-entropy"></span>
+</div>
+<div class="pwgen-controls">
+<div class="pwgen-length-row">
+<label>Length</label>
+<input type="range" min="4" max="128" value="20" oninput="pwgenLengthChange(this)">
+<input type="number" min="4" max="128" value="20" oninput="pwgenLengthInput(this)">
+</div>
+<div class="pwgen-charsets">
+<label class="pwgen-charset-toggle active" data-charset="upper"><input type="checkbox" checked onchange="pwgenToggleCharset(this)">A-Z</label>
+<label class="pwgen-charset-toggle active" data-charset="lower"><input type="checkbox" checked onchange="pwgenToggleCharset(this)">a-z</label>
+<label class="pwgen-charset-toggle active" data-charset="digits"><input type="checkbox" checked onchange="pwgenToggleCharset(this)">0-9</label>
+<label class="pwgen-charset-toggle active" data-charset="symbols"><input type="checkbox" checked onchange="pwgenToggleCharset(this)">!@#$</label>
+</div>
+<div class="pwgen-custom-row">
+<label>Exclude</label>
+<input type="text" class="pwgen-custom-input pwgen-exclude" placeholder="Characters to exclude, e.g. 0OlI1" oninput="pwgenExcludeChange(this)">
+</div>
+</div>
+<div class="pwgen-history">
+<span class="pwgen-history-label">History</span>
+<div class="pwgen-history-list"></div>
+</div>
+</div>`,
+    contentType: 'html',
+    onInit: 'pwgenInit',
+    source: 'external'
+});
+
+console.log('Developer Tools plugin loaded: 12 tools registered');
 
 // ==================== Diff Viewer Functions ====================
 function diffGetToolId(element) {
@@ -2106,6 +2262,395 @@ function asciiLookup(input) {
     }
 }
 
+// ==================== Hash Generator Functions ====================
+
+// MD5 implementation (RFC 1321)
+function hashMD5(input) {
+    // Convert to UTF-8 byte string
+    var str = unescape(encodeURIComponent(input));
+    function md5cycle(x, k) {
+        var a = x[0], b = x[1], c = x[2], d = x[3];
+        a = ff(a, b, c, d, k[0], 7, -680876936);  d = ff(d, a, b, c, k[1], 12, -389564586);
+        c = ff(c, d, a, b, k[2], 17, 606105819);   b = ff(b, c, d, a, k[3], 22, -1044525330);
+        a = ff(a, b, c, d, k[4], 7, -176418897);   d = ff(d, a, b, c, k[5], 12, 1200080426);
+        c = ff(c, d, a, b, k[6], 17, -1473231341);  b = ff(b, c, d, a, k[7], 22, -45705983);
+        a = ff(a, b, c, d, k[8], 7, 1770035416);   d = ff(d, a, b, c, k[9], 12, -1958414417);
+        c = ff(c, d, a, b, k[10], 17, -42063);      b = ff(b, c, d, a, k[11], 22, -1990404162);
+        a = ff(a, b, c, d, k[12], 7, 1804603682);  d = ff(d, a, b, c, k[13], 12, -40341101);
+        c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+        a = gg(a, b, c, d, k[1], 5, -165796510);   d = gg(d, a, b, c, k[6], 9, -1069501632);
+        c = gg(c, d, a, b, k[11], 14, 643717713);  b = gg(b, c, d, a, k[0], 20, -373897302);
+        a = gg(a, b, c, d, k[5], 5, -701558691);   d = gg(d, a, b, c, k[10], 9, 38016083);
+        c = gg(c, d, a, b, k[15], 14, -660478335);  b = gg(b, c, d, a, k[4], 20, -405537848);
+        a = gg(a, b, c, d, k[9], 5, 568446438);    d = gg(d, a, b, c, k[14], 9, -1019803690);
+        c = gg(c, d, a, b, k[3], 14, -187363961);   b = gg(b, c, d, a, k[8], 20, 1163531501);
+        a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784);
+        c = gg(c, d, a, b, k[7], 14, 1735328473);   b = gg(b, c, d, a, k[12], 20, -1926607734);
+        a = hh(a, b, c, d, k[5], 4, -378558);      d = hh(d, a, b, c, k[8], 11, -2022574463);
+        c = hh(c, d, a, b, k[11], 16, 1839030562);  b = hh(b, c, d, a, k[14], 23, -35309556);
+        a = hh(a, b, c, d, k[1], 4, -1530992060);  d = hh(d, a, b, c, k[4], 11, 1272893353);
+        c = hh(c, d, a, b, k[7], 16, -155497632);   b = hh(b, c, d, a, k[10], 23, -1094730640);
+        a = hh(a, b, c, d, k[13], 4, 681279174);   d = hh(d, a, b, c, k[0], 11, -358537222);
+        c = hh(c, d, a, b, k[3], 16, -722521979);   b = hh(b, c, d, a, k[6], 23, 76029189);
+        a = hh(a, b, c, d, k[9], 4, -640364487);   d = hh(d, a, b, c, k[12], 11, -421815835);
+        c = hh(c, d, a, b, k[15], 16, 530742520);   b = hh(b, c, d, a, k[2], 23, -995338651);
+        a = ii(a, b, c, d, k[0], 6, -198630844);   d = ii(d, a, b, c, k[7], 10, 1126891415);
+        c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+        a = ii(a, b, c, d, k[12], 6, 1700485571);  d = ii(d, a, b, c, k[3], 10, -1894986606);
+        c = ii(c, d, a, b, k[10], 15, -1051523);    b = ii(b, c, d, a, k[1], 21, -2054922799);
+        a = ii(a, b, c, d, k[8], 6, 1873313359);   d = ii(d, a, b, c, k[15], 10, -30611744);
+        c = ii(c, d, a, b, k[6], 15, -1560198380);  b = ii(b, c, d, a, k[13], 21, 1309151649);
+        a = ii(a, b, c, d, k[4], 6, -145523070);   d = ii(d, a, b, c, k[11], 10, -1120210379);
+        c = ii(c, d, a, b, k[2], 15, 718787259);    b = ii(b, c, d, a, k[9], 21, -343485551);
+        x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+    }
+    function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32((a << s) | (a >>> (32 - s)), b); }
+    function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+    function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+    function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+    function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+    function add32(a, b) { return (a + b) & 0xFFFFFFFF; }
+
+    var n = str.length;
+    var state = [1732584193, -271733879, -1732584194, 271733878];
+    var tail = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    var i, lo;
+    for (i = 64; i <= n; i += 64) {
+        var block = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        for (var j = 0; j < 64; j += 4) {
+            block[j >> 2] = str.charCodeAt(i - 64 + j) | (str.charCodeAt(i - 64 + j + 1) << 8) |
+                (str.charCodeAt(i - 64 + j + 2) << 16) | (str.charCodeAt(i - 64 + j + 3) << 24);
+        }
+        md5cycle(state, block);
+    }
+    lo = i - 64;
+    for (i = 0; i < 16; i++) tail[i] = 0;
+    for (i = 0; i < n - lo; i++) tail[i >> 2] |= str.charCodeAt(lo + i) << ((i % 4) << 3);
+    tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+    if (i > 55) { md5cycle(state, tail); for (i = 0; i < 16; i++) tail[i] = 0; }
+    tail[14] = n * 8;
+    md5cycle(state, tail);
+
+    var hex = '';
+    for (i = 0; i < 4; i++) {
+        for (var j = 0; j < 4; j++) {
+            hex += ('0' + ((state[i] >> (j * 8)) & 0xFF).toString(16)).slice(-2);
+        }
+    }
+    return hex;
+}
+
+function hashGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.dataset.tool : null;
+}
+
+function hashGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
+    return custom.hashData || { input: '', hashCase: 'lower' };
+}
+
+function hashSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].hashData = data;
+    saveToolCustomizations(customizations);
+}
+
+function hashInit() {
+    document.querySelectorAll('.hash-widget').forEach(widget => {
+        const toolId = hashGetToolId(widget);
+        if (!toolId) return;
+        const data = hashGetData(toolId);
+        const input = widget.querySelector('.hash-input');
+        if (input && data.input) {
+            input.value = data.input;
+            hashCompute(widget, toolId);
+        }
+        widget.querySelectorAll('.hash-case-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.textContent === (data.hashCase === 'upper' ? 'UPPER' : 'lower'));
+        });
+    });
+}
+
+function hashOnInput(textarea) {
+    const widget = textarea.closest('.hash-widget');
+    const toolId = hashGetToolId(widget);
+    if (!toolId) return;
+    const data = hashGetData(toolId);
+    data.input = textarea.value;
+    hashSaveData(toolId, data);
+    hashCompute(widget, toolId);
+}
+
+async function hashCompute(widget, toolId) {
+    const data = hashGetData(toolId);
+    const input = data.input || '';
+    const upper = data.hashCase === 'upper';
+    const byteCount = widget.querySelector('.hash-byte-count');
+    if (byteCount) {
+        const bytes = new TextEncoder().encode(input).length;
+        byteCount.textContent = bytes > 0 ? bytes + ' bytes' : '';
+    }
+
+    const rows = widget.querySelectorAll('.hash-result-row');
+    if (!input) {
+        rows.forEach(row => { row.querySelector('.hash-result-value').textContent = ''; });
+        return;
+    }
+
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(input);
+
+    // MD5 (pure JS, no Web Crypto support)
+    const md5Hex = hashMD5(input);
+    const md5Row = widget.querySelector('[data-algo="MD5"] .hash-result-value');
+    if (md5Row) md5Row.textContent = upper ? md5Hex.toUpperCase() : md5Hex;
+
+    // SHA-1 and SHA-256 via Web Crypto API
+    try {
+        const sha1Buf = await crypto.subtle.digest('SHA-1', encoded);
+        const sha1Hex = Array.from(new Uint8Array(sha1Buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const sha1Row = widget.querySelector('[data-algo="SHA-1"] .hash-result-value');
+        if (sha1Row) sha1Row.textContent = upper ? sha1Hex.toUpperCase() : sha1Hex;
+
+        const sha256Buf = await crypto.subtle.digest('SHA-256', encoded);
+        const sha256Hex = Array.from(new Uint8Array(sha256Buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const sha256Row = widget.querySelector('[data-algo="SHA-256"] .hash-result-value');
+        if (sha256Row) sha256Row.textContent = upper ? sha256Hex.toUpperCase() : sha256Hex;
+    } catch (e) {
+        console.warn('Hash computation failed:', e);
+    }
+}
+
+function hashSetCase(btn, hashCase) {
+    const widget = btn.closest('.hash-widget');
+    const toolId = hashGetToolId(widget);
+    if (!toolId) return;
+    const data = hashGetData(toolId);
+    data.hashCase = hashCase;
+    hashSaveData(toolId, data);
+    widget.querySelectorAll('.hash-case-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent === (hashCase === 'upper' ? 'UPPER' : 'lower'));
+    });
+    hashCompute(widget, toolId);
+}
+
+function hashCopyResult(btn) {
+    const value = btn.previousElementSibling.textContent;
+    if (!value) return;
+    navigator.clipboard.writeText(value).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+    });
+}
+
+function hashClearAll(btn) {
+    const widget = btn.closest('.hash-widget');
+    const toolId = hashGetToolId(widget);
+    if (!toolId) return;
+    hashSaveData(toolId, { input: '', hashCase: hashGetData(toolId).hashCase });
+    widget.querySelector('.hash-input').value = '';
+    widget.querySelector('.hash-byte-count').textContent = '';
+    widget.querySelectorAll('.hash-result-value').forEach(el => { el.textContent = ''; });
+}
+
+// ==================== Password Generator Functions ====================
+const PWGEN_CHARSETS = {
+    upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    lower: 'abcdefghijklmnopqrstuvwxyz',
+    digits: '0123456789',
+    symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?/~`'
+};
+
+function pwgenGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.dataset.tool : null;
+}
+
+function pwgenGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
+    return custom.pwgenData || { length: 20, upper: true, lower: true, digits: true, symbols: true, exclude: '', history: [] };
+}
+
+function pwgenSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].pwgenData = data;
+    saveToolCustomizations(customizations);
+}
+
+function pwgenInit() {
+    document.querySelectorAll('.pwgen-widget').forEach(widget => {
+        const toolId = pwgenGetToolId(widget);
+        if (!toolId) return;
+        const data = pwgenGetData(toolId);
+        widget.querySelector('input[type="range"]').value = data.length;
+        widget.querySelector('input[type="number"]').value = data.length;
+        widget.querySelectorAll('.pwgen-charset-toggle').forEach(label => {
+            const key = label.dataset.charset;
+            const checked = data[key] !== false;
+            label.classList.toggle('active', checked);
+            label.querySelector('input').checked = checked;
+        });
+        const excludeInput = widget.querySelector('.pwgen-exclude');
+        if (excludeInput && data.exclude) excludeInput.value = data.exclude;
+        pwgenRenderHistory(widget, data);
+        pwgenGenerate(widget.querySelector('.pwgen-btn-primary'));
+    });
+}
+
+function pwgenBuildCharpool(data) {
+    let pool = '';
+    if (data.upper) pool += PWGEN_CHARSETS.upper;
+    if (data.lower) pool += PWGEN_CHARSETS.lower;
+    if (data.digits) pool += PWGEN_CHARSETS.digits;
+    if (data.symbols) pool += PWGEN_CHARSETS.symbols;
+    if (data.exclude) {
+        const excludeSet = new Set(data.exclude);
+        pool = pool.split('').filter(c => !excludeSet.has(c)).join('');
+    }
+    return pool;
+}
+
+function pwgenGenerate(btn) {
+    const widget = btn.closest('.pwgen-widget');
+    const toolId = pwgenGetToolId(widget);
+    if (!toolId) return;
+    const data = pwgenGetData(toolId);
+    const pool = pwgenBuildCharpool(data);
+    if (pool.length === 0) {
+        widget.querySelector('.pwgen-output-field').textContent = 'No characters available';
+        pwgenUpdateStrength(widget, '', 0);
+        return;
+    }
+    const len = Math.max(4, Math.min(128, data.length || 20));
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    let password = '';
+    for (let i = 0; i < len; i++) {
+        password += pool[arr[i] % pool.length];
+    }
+    widget.querySelector('.pwgen-output-field').textContent = password;
+    pwgenUpdateStrength(widget, password, pool.length);
+
+    // Add to history (max 20)
+    data.history = data.history || [];
+    data.history.unshift(password);
+    if (data.history.length > 20) data.history.pop();
+    pwgenSaveData(toolId, data);
+    pwgenRenderHistory(widget, data);
+}
+
+function pwgenUpdateStrength(widget, password, poolSize) {
+    const fill = widget.querySelector('.pwgen-strength-fill');
+    const label = widget.querySelector('.pwgen-strength-label');
+    const entropyEl = widget.querySelector('.pwgen-entropy');
+    if (!password) {
+        fill.style.width = '0';
+        label.textContent = '';
+        entropyEl.textContent = '';
+        return;
+    }
+    const entropy = password.length * Math.log2(poolSize || 1);
+    let strength, color, pct;
+    if (entropy < 28) { strength = 'Very Weak'; color = '#e74c3c'; pct = 10; }
+    else if (entropy < 36) { strength = 'Weak'; color = '#e67e22'; pct = 25; }
+    else if (entropy < 60) { strength = 'Fair'; color = '#f1c40f'; pct = 50; }
+    else if (entropy < 80) { strength = 'Strong'; color = '#2ecc71'; pct = 75; }
+    else { strength = 'Very Strong'; color = '#27ae60'; pct = 100; }
+    fill.style.width = pct + '%';
+    fill.style.background = color;
+    label.textContent = strength;
+    label.style.color = color;
+    entropyEl.textContent = Math.round(entropy) + ' bits';
+}
+
+function pwgenLengthChange(slider) {
+    const widget = slider.closest('.pwgen-widget');
+    const toolId = pwgenGetToolId(widget);
+    if (!toolId) return;
+    widget.querySelector('input[type="number"]').value = slider.value;
+    const data = pwgenGetData(toolId);
+    data.length = parseInt(slider.value);
+    pwgenSaveData(toolId, data);
+    pwgenGenerate(widget.querySelector('.pwgen-btn-primary'));
+}
+
+function pwgenLengthInput(input) {
+    const widget = input.closest('.pwgen-widget');
+    const toolId = pwgenGetToolId(widget);
+    if (!toolId) return;
+    const val = Math.max(4, Math.min(128, parseInt(input.value) || 4));
+    widget.querySelector('input[type="range"]').value = val;
+    const data = pwgenGetData(toolId);
+    data.length = val;
+    pwgenSaveData(toolId, data);
+    pwgenGenerate(widget.querySelector('.pwgen-btn-primary'));
+}
+
+function pwgenToggleCharset(checkbox) {
+    const label = checkbox.closest('.pwgen-charset-toggle');
+    const widget = checkbox.closest('.pwgen-widget');
+    const toolId = pwgenGetToolId(widget);
+    if (!toolId) return;
+    const data = pwgenGetData(toolId);
+    const key = label.dataset.charset;
+    data[key] = checkbox.checked;
+    label.classList.toggle('active', checkbox.checked);
+    // Prevent disabling all charsets
+    const anyEnabled = data.upper || data.lower || data.digits || data.symbols;
+    if (!anyEnabled) {
+        data[key] = true;
+        checkbox.checked = true;
+        label.classList.add('active');
+    }
+    pwgenSaveData(toolId, data);
+    pwgenGenerate(widget.querySelector('.pwgen-btn-primary'));
+}
+
+function pwgenExcludeChange(input) {
+    const widget = input.closest('.pwgen-widget');
+    const toolId = pwgenGetToolId(widget);
+    if (!toolId) return;
+    const data = pwgenGetData(toolId);
+    data.exclude = input.value;
+    pwgenSaveData(toolId, data);
+    pwgenGenerate(widget.querySelector('.pwgen-btn-primary'));
+}
+
+function pwgenCopy(btn) {
+    const widget = btn.closest('.pwgen-widget');
+    const value = widget.querySelector('.pwgen-output-field').textContent;
+    if (!value || value === 'No characters available') return;
+    navigator.clipboard.writeText(value).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+    });
+}
+
+function pwgenRenderHistory(widget, data) {
+    const list = widget.querySelector('.pwgen-history-list');
+    if (!list) return;
+    const history = data.history || [];
+    list.innerHTML = history.map(pw =>
+        `<div class="pwgen-history-item"><span>${pw.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span><button class="pwgen-history-copy" onclick="pwgenCopyHistoryItem(this)">Copy</button></div>`
+    ).join('');
+}
+
+function pwgenCopyHistoryItem(btn) {
+    const text = btn.previousElementSibling.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+    });
+}
+
 // Inject JavaScript functions into DOM for HTML export
 // The injected script only defines things if they don't already exist (for exported HTML)
 (function injectScriptsForExport() {
@@ -2136,7 +2681,12 @@ function asciiLookup(input) {
         loremGetToolId, loremPickWord, loremSentence, loremParagraph,
         loremInit, loremGenerate, loremCopy, loremClear,
         asciiGetCharData, asciiBuildRows, asciiGetToolId, asciiInit,
-        asciiGetRows, asciiSearchRows, asciiRender, asciiFilter, asciiSetRange, asciiCopyRow, asciiLookup
+        asciiGetRows, asciiSearchRows, asciiRender, asciiFilter, asciiSetRange, asciiCopyRow, asciiLookup,
+        hashMD5, hashGetToolId, hashGetData, hashSaveData, hashInit, hashOnInput, hashCompute,
+        hashSetCase, hashCopyResult, hashClearAll,
+        pwgenGetToolId, pwgenGetData, pwgenSaveData, pwgenInit, pwgenBuildCharpool,
+        pwgenGenerate, pwgenUpdateStrength, pwgenLengthChange, pwgenLengthInput,
+        pwgenToggleCharset, pwgenExcludeChange, pwgenCopy, pwgenRenderHistory, pwgenCopyHistoryItem
     ];
 
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
@@ -2149,6 +2699,7 @@ function asciiLookup(input) {
         'window.ASCII_CONTROL_DESC = ' + JSON.stringify(ASCII_CONTROL_DESC) + ';\n' +
         'window.ASCII_HTML_ENTITIES = ' + JSON.stringify(ASCII_HTML_ENTITIES) + ';\n' +
         'window.ASCII_RANGES = ' + JSON.stringify(ASCII_RANGES) + ';\n' +
+        'window.PWGEN_CHARSETS = ' + JSON.stringify(PWGEN_CHARSETS) + ';\n' +
         functionsToExport.map(fn => 'window.' + fn.name + ' = ' + fn.toString()).join(';\n') + ';\n' +
         '})();';
     const encoded = btoa(unescape(encodeURIComponent(code)));
