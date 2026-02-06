@@ -204,16 +204,6 @@ header h1 {
     background: rgba(255,255,255,0.3);
 }
 
-.toolboard-version {
-    font-size: 10px;
-    opacity: 0.7;
-    font-weight: normal;
-    margin-left: 8px;
-    background: rgba(255,255,255,0.15);
-    padding: 2px 8px;
-    border-radius: 10px;
-}
-
 .toolboard-settings {
     position: absolute;
     top: 100%;
@@ -3334,9 +3324,6 @@ tr:hover {
         max-width: 150px;
     }
 
-    .toolboard-version {
-        display: none;
-    }
 
     .storage-indicator {
         display: none;
@@ -3678,11 +3665,10 @@ tr:hover {
 <body>
     <header id="mainHeader">
         <div class="header-section header-section-board">
-            <a href="https://toolboard.me" title="Visit Toolboard.me"><img alt="Toolboard Logo" style="width: 24px; height: 24px;" src="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22board%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22300%22%20y2%3D%22300%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%233d4555%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%231e2230%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22vignette%22%20cx%3D%220.45%22%20cy%3D%220.4%22%20r%3D%220.65%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220.03%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220.2%22%2F%3E%3C%2FradialGradient%3E%3Cpattern%20id%3D%22holes%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%228%22%20fill%3D%22%2314171e%22%2F%3E%3C%2Fpattern%3E%3CclipPath%20id%3D%22hole-clip%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22274%22%20height%3D%22274%22%20rx%3D%2220%22%2F%3E%3C%2FclipPath%3E%3ClinearGradient%20id%3D%22amber%22%20x1%3D%22145%22%20y1%3D%2215%22%20x2%3D%22165%22%20y2%3D%22280%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fef3c7%22%2F%3E%3Cstop%20offset%3D%2225%25%22%20stop-color%3D%22%23fcd34d%22%2F%3E%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23f59e0b%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23d97706%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22bloom%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2218%22%2F%3E%3C%2Ffilter%3E%3Cfilter%20id%3D%22glow%22%20x%3D%22-15%25%22%20y%3D%22-15%25%22%20width%3D%22130%25%22%20height%3D%22130%25%22%3E%3CfeGaussianBlur%20in%3D%22SourceGraphic%22%20stdDeviation%3D%222%22%20result%3D%22blur%22%2F%3E%3CfeMerge%3E%3CfeMergeNode%20in%3D%22blur%22%2F%3E%3CfeMergeNode%20in%3D%22SourceGraphic%22%2F%3E%3C%2FfeMerge%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23board%29%22%2F%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23vignette%29%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%22298%22%20height%3D%22298%22%20rx%3D%2225%22%20fill%3D%22none%22%20stroke%3D%22%234c566a%22%20stroke-width%3D%221.2%22%20opacity%3D%220.35%22%2F%3E%3Cg%20clip-path%3D%22url%28%23hole-clip%29%22%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22url%28%23holes%29%22%2F%3E%3C%2Fg%3E%3Cg%20filter%3D%22url%28%23bloom%29%22%20opacity%3D%220.18%22%3E%3Crect%20x%3D%2215%22%20y%3D%2212%22%20width%3D%22260%22%20height%3D%2282%22%20rx%3D%2210%22%20fill%3D%22%23fbbf24%22%2F%3E%3Crect%20x%3D%22105%22%20y%3D%2282%22%20width%3D%2280%22%20height%3D%22195%22%20rx%3D%2210%22%20fill%3D%22%23f59e0b%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22url%28%23amber%29%22%20filter%3D%22url%28%23glow%29%22%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.3%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"></a>
+            <a id="toolboardLogo" href="https://toolboard.me" title="Visit Toolboard.me"><img alt="Toolboard Logo" style="width: 24px; height: 24px;" src="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22board%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22300%22%20y2%3D%22300%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%233d4555%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%231e2230%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22vignette%22%20cx%3D%220.45%22%20cy%3D%220.4%22%20r%3D%220.65%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220.03%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220.2%22%2F%3E%3C%2FradialGradient%3E%3Cpattern%20id%3D%22holes%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%228%22%20fill%3D%22%2314171e%22%2F%3E%3C%2Fpattern%3E%3CclipPath%20id%3D%22hole-clip%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22274%22%20height%3D%22274%22%20rx%3D%2220%22%2F%3E%3C%2FclipPath%3E%3ClinearGradient%20id%3D%22amber%22%20x1%3D%22145%22%20y1%3D%2215%22%20x2%3D%22165%22%20y2%3D%22280%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fef3c7%22%2F%3E%3Cstop%20offset%3D%2225%25%22%20stop-color%3D%22%23fcd34d%22%2F%3E%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23f59e0b%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23d97706%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22bloom%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2218%22%2F%3E%3C%2Ffilter%3E%3Cfilter%20id%3D%22glow%22%20x%3D%22-15%25%22%20y%3D%22-15%25%22%20width%3D%22130%25%22%20height%3D%22130%25%22%3E%3CfeGaussianBlur%20in%3D%22SourceGraphic%22%20stdDeviation%3D%222%22%20result%3D%22blur%22%2F%3E%3CfeMerge%3E%3CfeMergeNode%20in%3D%22blur%22%2F%3E%3CfeMergeNode%20in%3D%22SourceGraphic%22%2F%3E%3C%2FfeMerge%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23board%29%22%2F%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23vignette%29%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%22298%22%20height%3D%22298%22%20rx%3D%2225%22%20fill%3D%22none%22%20stroke%3D%22%234c566a%22%20stroke-width%3D%221.2%22%20opacity%3D%220.35%22%2F%3E%3Cg%20clip-path%3D%22url%28%23hole-clip%29%22%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22url%28%23holes%29%22%2F%3E%3C%2Fg%3E%3Cg%20filter%3D%22url%28%23bloom%29%22%20opacity%3D%220.18%22%3E%3Crect%20x%3D%2215%22%20y%3D%2212%22%20width%3D%22260%22%20height%3D%2282%22%20rx%3D%2210%22%20fill%3D%22%23fbbf24%22%2F%3E%3Crect%20x%3D%22105%22%20y%3D%2282%22%20width%3D%2280%22%20height%3D%22195%22%20rx%3D%2210%22%20fill%3D%22%23f59e0b%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22url%28%23amber%29%22%20filter%3D%22url%28%23glow%29%22%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.3%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"></a>
             <h1 id="toolboardTitle" style="display:none;">My Toolboard</h1>
             <button id="boardSelectorTrigger" class="board-selector-trigger" title="Manage Boards"></button>
             <button id="toolboardSettingsBtn" class="header-settings-btn" title="Edit Toolboard">&#8942;</button>
-            <span id="toolboardVersion" class="toolboard-version"></span>
         </div>
         <div class="header-section header-section-notes">
             <button id="addToolBtn" class="header-settings-btn" title="Add Tool">+</button>
@@ -5015,12 +5001,11 @@ async function init() {
 
 // Display Toolboard version based on file modification date
 function displayVersion() {
-    const versionEl = document.getElementById('toolboardVersion');
-    if (versionEl) {
+    const logoEl = document.getElementById('toolboardLogo');
+    if (logoEl) {
         const lastMod = new Date(document.lastModified);
         const version = lastMod.toISOString().slice(0, 10).replace(/-/g, '.');
-        versionEl.textContent = 'v' + version;
-        versionEl.title = 'Toolboard version (last modified: ' + lastMod.toLocaleString() + ')';
+        logoEl.title = 'Toolboard v' + version;
     }
 }
 
@@ -6681,9 +6666,77 @@ function calendarInit() {
         if (!toolId) return;
 
         const data = calendarGetData(toolId);
+        const now = new Date();
+        const view = data.viewState || {};
+        const year = view.year || now.getFullYear();
+        const savedView = view.mode || 'year';
+
+        calendarRender(widget, toolId, year);
+
+        if (savedView === 'month') {
+            widget.dataset.viewMonth = view.month != null ? view.month : now.getMonth();
+            widget.dataset.viewYear = view.monthYear || year;
+            const monthBtn = widget.querySelector('.calendar-view-btn:last-child');
+            if (monthBtn) calendarSetView(monthBtn, 'month');
+        }
+
+        // Refresh ICS subscriptions in the background
+        calendarRefreshSubscriptions(widget, toolId);
+    });
+}
+
+async function calendarFetchICS(url) {
+    const cacheBust = (u) => u + (u.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    // Try direct fetch first
+    try {
+        const response = await fetch(cacheBust(url), { cache: 'no-store' });
+        if (response.ok) {
+            const text = await response.text();
+            if (text.includes('BEGIN:VCALENDAR')) return text;
+        }
+    } catch (e) {
+        // Direct fetch failed (likely CORS), try proxy
+    }
+    // Fallback: CORS proxy
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(cacheBust(url));
+    const response = await fetch(proxyUrl, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Fetch failed: ' + response.status);
+    const text = await response.text();
+    if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not valid ICS data');
+    return text;
+}
+
+async function calendarRefreshSubscriptions(widget, toolId) {
+    const data = calendarGetData(toolId);
+    if (!data.subscriptions || data.subscriptions.length === 0) return;
+
+    let updated = false;
+
+    for (const sub of data.subscriptions) {
+        try {
+            const content = await calendarFetchICS(sub.url);
+
+            const freshData = calendarGetData(toolId);
+            freshData.events = freshData.events.filter(e => e.calendarId !== sub.calendarId);
+
+            const events = parseICSContent(content, sub.calendarId);
+            events.forEach(event => freshData.events.push(event));
+
+            calendarSaveData(toolId, freshData);
+            updated = true;
+            console.log('Calendar subscription refreshed:', sub.url, events.length, 'events');
+        } catch (e) {
+            console.warn('Calendar subscription error:', sub.url, e.message);
+        }
+    }
+
+    if (updated) {
         const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
         calendarRender(widget, toolId, year);
-    });
+        if (widget.dataset.viewMonth !== undefined) {
+            calendarRenderMonthView(widget, toolId);
+        }
+    }
 }
 
 function calendarRender(widget, toolId, year) {
@@ -6787,12 +6840,12 @@ function calendarGetEventsForDate(data, dateStr) {
     });
 }
 
-function calendarCountByType(data, year) {
+function calendarCountByType(data, year, month) {
     const counts = {};
     data.calendars.forEach(cal => counts[cal.id] = 0);
 
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year, 11, 31);
+    const rangeStart = month !== undefined ? new Date(year, month, 1) : new Date(year, 0, 1);
+    const rangeEnd = month !== undefined ? new Date(year, month + 1, 0) : new Date(year, 11, 31);
 
     data.events.forEach(event => {
         if (!counts.hasOwnProperty(event.calendarId)) return;
@@ -6800,12 +6853,10 @@ function calendarCountByType(data, year) {
         const startDate = new Date(event.startDate.split('T')[0]);
         const endDate = new Date((event.endDate || event.startDate).split('T')[0]);
 
-        // Clamp to year boundaries
-        const countStart = startDate < yearStart ? yearStart : startDate;
-        const countEnd = endDate > yearEnd ? yearEnd : endDate;
+        const countStart = startDate < rangeStart ? rangeStart : startDate;
+        const countEnd = endDate > rangeEnd ? rangeEnd : endDate;
 
         if (countStart <= countEnd) {
-            // Count number of days
             const days = Math.round((countEnd - countStart) / (1000 * 60 * 60 * 24)) + 1;
             counts[event.calendarId] += days;
         }
@@ -6832,11 +6883,18 @@ function calendarCountTotal(data) {
     return counts;
 }
 
+function calendarSaveViewState(widget, toolId, state) {
+    const data = calendarGetData(toolId);
+    data.viewState = Object.assign(data.viewState || {}, state);
+    calendarSaveData(toolId, data);
+}
+
 function calendarPrevYear(btn) {
     const widget = btn.closest('.calendar-widget');
     const toolId = calendarGetToolId(widget);
     const yearDisplay = widget.querySelector('.calendar-year-display');
     const year = parseInt(yearDisplay.textContent) - 1;
+    calendarSaveViewState(widget, toolId, { year });
     calendarRender(widget, toolId, year);
 }
 
@@ -6845,6 +6903,7 @@ function calendarNextYear(btn) {
     const toolId = calendarGetToolId(widget);
     const yearDisplay = widget.querySelector('.calendar-year-display');
     const year = parseInt(yearDisplay.textContent) + 1;
+    calendarSaveViewState(widget, toolId, { year });
     calendarRender(widget, toolId, year);
 }
 
@@ -6871,11 +6930,31 @@ function calendarSetView(btn, view) {
             widget.dataset.viewMonth = now.getMonth();
             widget.dataset.viewYear = now.getFullYear();
         }
+        calendarSaveViewState(widget, toolId, { mode: 'month', month: parseInt(widget.dataset.viewMonth), monthYear: parseInt(widget.dataset.viewYear) });
         calendarRenderMonthView(widget, toolId);
     } else {
         yearGrid.classList.remove('hidden');
         monthView.classList.remove('active');
         yearNav.style.display = 'flex';
+        calendarSaveViewState(widget, toolId, { mode: 'year' });
+
+        // Re-render legend with year counts
+        const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
+        const data = calendarGetData(toolId);
+        const legend = widget.querySelector('.calendar-legend');
+        if (legend) {
+            const counts = calendarCountByType(data, year);
+            let legendHtml = '';
+            data.calendars.forEach(cal => {
+                const count = counts[cal.id] || 0;
+                legendHtml += `<div class="calendar-legend-item">
+                    <span class="calendar-legend-dot" style="background:${cal.color}"></span>
+                    <span>${cal.name}</span>
+                    <span class="calendar-legend-count">${count}</span>
+                </div>`;
+            });
+            legend.innerHTML = legendHtml;
+        }
     }
 }
 
@@ -6893,6 +6972,7 @@ function calendarPrevMonth(btn) {
 
     widget.dataset.viewMonth = month;
     widget.dataset.viewYear = year;
+    calendarSaveViewState(widget, toolId, { month, monthYear: year });
     calendarRenderMonthView(widget, toolId);
 }
 
@@ -6910,6 +6990,7 @@ function calendarNextMonth(btn) {
 
     widget.dataset.viewMonth = month;
     widget.dataset.viewYear = year;
+    calendarSaveViewState(widget, toolId, { month, monthYear: year });
     calendarRenderMonthView(widget, toolId);
 }
 
@@ -6921,7 +7002,7 @@ function calendarGoToMonth(el, year, month) {
     widget.dataset.viewMonth = month;
     widget.dataset.viewYear = year;
 
-    // Switch to month view
+    // Switch to month view (calendarSetView will save the state)
     const monthBtn = widget.querySelector('.calendar-view-btn:last-child');
     calendarSetView(monthBtn, 'month');
 }
@@ -6933,6 +7014,7 @@ function calendarGoToToday(btn) {
 
     widget.dataset.viewMonth = now.getMonth();
     widget.dataset.viewYear = now.getFullYear();
+    calendarSaveViewState(widget, toolId, { month: now.getMonth(), monthYear: now.getFullYear() });
     calendarRenderMonthView(widget, toolId);
 }
 
@@ -7014,6 +7096,22 @@ function calendarRenderMonthView(widget, toolId) {
     }
 
     monthDetail.innerHTML = html;
+
+    // Update legend with month-specific counts
+    const legend = widget.querySelector('.calendar-legend');
+    if (legend) {
+        const counts = calendarCountByType(data, year, month);
+        let legendHtml = '';
+        data.calendars.forEach(cal => {
+            const count = counts[cal.id] || 0;
+            legendHtml += `<div class="calendar-legend-item">
+                <span class="calendar-legend-dot" style="background:${cal.color}"></span>
+                <span>${cal.name}</span>
+                <span class="calendar-legend-count">${count}</span>
+            </div>`;
+        });
+        legend.innerHTML = legendHtml;
+    }
 }
 
 function calendarShowDayEvents(dayEl, dateStr) {
@@ -7385,6 +7483,7 @@ function calendarRemoveCalendar(calId) {
 
     data.calendars = data.calendars.filter(c => c.id !== calId);
     data.events = data.events.filter(e => e.calendarId !== calId);
+    if (data.subscriptions) data.subscriptions = data.subscriptions.filter(s => s.calendarId !== calId);
     calendarSaveData(toolId, data);
 
     calendarRenderManageList(data);
@@ -7442,19 +7541,23 @@ async function calendarImportFromUrl() {
     fetchBtn.disabled = true;
 
     try {
-        const response = await fetch(url);
+        const content = await calendarFetchICS(url);
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const content = await response.text();
-
-        if (!content.includes('BEGIN:VCALENDAR')) {
-            throw new Error('The URL does not appear to contain valid ICS data.');
-        }
+        const modal = document.getElementById('calendarManageModal');
+        const toolId = modal.dataset.toolId;
+        const calendarId = select.value;
 
         calendarImportICS(content);
+
+        // Save the URL as a subscription for auto-refresh on load
+        const data = calendarGetData(toolId);
+        if (!data.subscriptions) data.subscriptions = [];
+        const existing = data.subscriptions.find(s => s.url === url && s.calendarId === calendarId);
+        if (!existing) {
+            data.subscriptions.push({ url, calendarId });
+            calendarSaveData(toolId, data);
+        }
+
         urlInput.value = '';
     } catch (error) {
         if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
