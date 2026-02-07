@@ -87,6 +87,64 @@
 .draw-actions button { padding: 4px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 3px; }
 .draw-actions button:hover { background: var(--table-hover); }
 .draw-actions .draw-status { flex: 1; text-align: right; font-size: 10px; color: var(--text-muted); }
+
+/* Family Tree Widget Styles */
+.tool-content:has(.ft-widget) { display: flex; flex-direction: column; }
+.ft-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.ft-toolbar { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap; }
+.ft-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.ft-btn:hover { background: var(--table-hover); }
+.ft-btn.primary { background: #27ae60; color: white; border-color: #27ae60; }
+.ft-btn.primary:hover { background: #219a52; }
+.ft-btn.danger { background: #e74c3c; color: white; border-color: #e74c3c; }
+.ft-btn.danger:hover { background: #c0392b; }
+.ft-btn.active { background: #3498db; color: white; border-color: #3498db; }
+.ft-diagram { flex: 1; min-height: 120px; overflow: auto; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); position: relative; }
+.ft-diagram svg { display: block; }
+.ft-node-rect { fill: var(--bg-primary); stroke: var(--border-color); stroke-width: 2; cursor: pointer; rx: 6; ry: 6; }
+.ft-node-rect.male { stroke: #3498db; }
+.ft-node-rect.female { stroke: #e91e8f; }
+.ft-node-rect.other { stroke: #9b59b6; }
+.ft-node-rect.selected { stroke-width: 3; }
+.ft-node-rect.selected.male { fill: rgba(52, 152, 219, 0.1); }
+.ft-node-rect.selected.female { fill: rgba(233, 30, 143, 0.1); }
+.ft-node-rect.selected.other { fill: rgba(155, 89, 182, 0.1); }
+.ft-node-name { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 600; fill: var(--text-primary); text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+.ft-node-years { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 9px; fill: var(--text-secondary); text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+.ft-conn-line { stroke: var(--text-secondary); stroke-width: 1.5; fill: none; }
+.ft-partner-line { stroke: var(--text-secondary); stroke-width: 1.5; stroke-dasharray: 5, 3; fill: none; }
+.ft-edit-panel { padding: 8px; border-top: 1px solid var(--border-color); flex-shrink: 0; }
+.ft-edit-title { font-weight: 600; font-size: 11px; margin-bottom: 6px; color: var(--text-heading); }
+.ft-edit-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.ft-edit-row label { font-size: 10px; color: var(--text-secondary); min-width: 40px; }
+.ft-edit-row input, .ft-edit-row select { padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 3px; font-size: 11px; background: var(--input-bg); color: var(--text-primary); }
+.ft-edit-row input { flex: 1; min-width: 60px; }
+.ft-edit-row select { min-width: 50px; }
+.ft-edit-actions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.ft-text-editor { flex: 1; min-height: 100px; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); line-height: 1.5; display: none; }
+.ft-text-editor:focus { outline: none; border-color: #3498db; }
+.ft-status { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-light); font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.ft-empty { padding: 30px; text-align: center; color: var(--text-muted); font-style: italic; }
+.ft-form-editor { flex: 1; overflow-y: auto; min-height: 0; display: none; padding: 4px 0; }
+.ft-form-card { border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; background: var(--bg-primary); }
+.ft-form-card.root { border-left: 3px solid #27ae60; }
+.ft-form-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; font-weight: 600; color: var(--text-heading); }
+.ft-form-header .ft-form-icon { font-size: 14px; }
+.ft-form-badge { font-size: 9px; font-weight: 700; background: #27ae60; color: white; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.5px; }
+.ft-form-fields { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.ft-form-fields input, .ft-form-fields select { padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 3px; font-size: 11px; background: var(--input-bg); color: var(--text-primary); }
+.ft-form-fields input:focus, .ft-form-fields select:focus { outline: none; border-color: #3498db; }
+.ft-form-fields input[data-field="name"] { flex: 1; min-width: 80px; }
+.ft-form-fields input[data-field="birthYear"], .ft-form-fields input[data-field="deathYear"] { width: 52px; }
+.ft-form-fields select { min-width: 50px; }
+.ft-form-rels { font-size: 10px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.5; }
+.ft-form-rels span { color: var(--text-primary); font-weight: 500; }
+.ft-form-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.ft-form-actions button { padding: 2px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+.ft-form-actions button:hover { background: var(--table-hover); }
+.ft-form-actions button:disabled { opacity: 0.4; cursor: default; }
+.ft-form-actions button.danger { color: #e74c3c; border-color: #e74c3c; }
+.ft-form-actions button.danger:hover { background: rgba(231, 76, 60, 0.1); }
 `;
     document.head.appendChild(style);
 })();
@@ -945,6 +1003,1195 @@ function drawSizeInput(input) {
 }
 
 // =============================================
+// FAMILY TREE
+// =============================================
+
+function ftGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.dataset.tool : null;
+}
+
+function ftGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
+    return custom.ftData || { members: [], relationships: [], selectedId: null, rootId: null, mode: 'visual', viewFilter: null, viewFilterId: null };
+}
+
+function ftSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].ftData = data;
+    saveToolCustomizations(customizations);
+}
+
+function ftGenId() {
+    return 'ft_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+}
+
+function ftInit() {
+    document.querySelectorAll('.ft-widget').forEach(function(widget) {
+        var toolId = ftGetToolId(widget);
+        if (!toolId) return;
+        var data = ftGetData(toolId);
+        ftRender(widget, toolId, data);
+    });
+}
+
+function ftRender(widget, toolId, data) {
+    ftRenderDiagram(widget, toolId, data);
+    ftRenderEditPanel(widget, toolId, data);
+    ftUpdateStatus(widget, data);
+
+    var diagram = widget.querySelector('.ft-diagram');
+    var textEditor = widget.querySelector('.ft-text-editor');
+    var formEditor = widget.querySelector('.ft-form-editor');
+    if (data.mode === 'text') {
+        diagram.style.display = 'none';
+        textEditor.style.display = '';
+        formEditor.style.display = 'none';
+        textEditor.value = ftToText(data);
+    } else if (data.mode === 'form') {
+        diagram.style.display = 'none';
+        textEditor.style.display = 'none';
+        formEditor.style.display = '';
+        widget.querySelector('.ft-edit-panel').style.display = 'none';
+        ftRenderForm(widget, toolId, data);
+    } else {
+        diagram.style.display = '';
+        textEditor.style.display = 'none';
+        formEditor.style.display = 'none';
+    }
+}
+
+function ftUpdateStatus(widget, data) {
+    var statusText = widget.querySelector('.ft-status-text');
+    if (!statusText) return;
+    var mc = data.members.length;
+    var rc = data.relationships.length;
+    var text = mc + ' member' + (mc !== 1 ? 's' : '') + ' · ' + rc + ' relationship' + (rc !== 1 ? 's' : '');
+    if (data.viewFilter && data.viewFilterId) {
+        var filterName = '';
+        for (var i = 0; i < data.members.length; i++) {
+            if (data.members[i].id === data.viewFilterId) { filterName = data.members[i].name; break; }
+        }
+        text += ' · ' + (data.viewFilter === 'descendants' ? '↓' : '↑') + ' ' + (filterName || 'Unknown');
+    }
+    statusText.textContent = text;
+}
+
+function ftRenderEditPanel(widget, toolId, data) {
+    var panel = widget.querySelector('.ft-edit-panel');
+    if (!data.selectedId) {
+        panel.style.display = 'none';
+        panel.innerHTML = '';
+        return;
+    }
+    var member = null;
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === data.selectedId) { member = data.members[i]; break; }
+    }
+    if (!member) {
+        panel.style.display = 'none';
+        panel.innerHTML = '';
+        return;
+    }
+    panel.style.display = '';
+    var genderOpts = '<option value="m"' + (member.gender === 'm' ? ' selected' : '') + '>Male</option>' +
+        '<option value="f"' + (member.gender === 'f' ? ' selected' : '') + '>Female</option>' +
+        '<option value="o"' + (member.gender === 'o' ? ' selected' : '') + '>Other</option>';
+    var isRoot = data.rootId === member.id;
+    panel.innerHTML =
+        '<div class="ft-edit-title">Edit: ' + (member.name || 'Unnamed') + '</div>' +
+        '<div class="ft-edit-row">' +
+            '<label>Name</label><input type="text" value="' + (member.name || '').replace(/"/g, '&quot;') + '" oninput="ftEditField(this,\'name\')">' +
+            '<label>Birth</label><input type="text" value="' + (member.birthYear || '') + '" placeholder="Year" style="max-width:60px" oninput="ftEditField(this,\'birthYear\')">' +
+        '</div>' +
+        '<div class="ft-edit-row">' +
+            '<label>Death</label><input type="text" value="' + (member.deathYear || '') + '" placeholder="Year" style="max-width:60px" oninput="ftEditField(this,\'deathYear\')">' +
+            '<label>Gender</label><select onchange="ftEditGender(this)">' + genderOpts + '</select>' +
+        '</div>' +
+        '<div class="ft-edit-actions">' +
+            '<button class="ft-btn" onclick="ftAddChild(this)">Add Child</button>' +
+            '<button class="ft-btn" onclick="ftAddPartner(this)">Add Partner</button>' +
+            (isRoot ? '<button class="ft-btn active" disabled>Root</button>' : '<button class="ft-btn" onclick="ftSetRoot(this)">Set Root</button>') +
+            '<button class="ft-btn' + (data.viewFilter === 'descendants' && data.viewFilterId === member.id ? ' active' : '') + '" onclick="ftSetViewFilter(this,\'descendants\')">↓ Descendants</button>' +
+            '<button class="ft-btn' + (data.viewFilter === 'ancestors' && data.viewFilterId === member.id ? ' active' : '') + '" onclick="ftSetViewFilter(this,\'ancestors\')">↑ Ancestors</button>' +
+            '<button class="ft-btn danger" onclick="ftDeletePerson(this)">✕ Delete</button>' +
+        '</div>';
+}
+
+function ftRenderDiagram(widget, toolId, data) {
+    var diagram = widget.querySelector('.ft-diagram');
+    if (data.members.length === 0) {
+        diagram.innerHTML = '<div class="ft-empty">Add a person or load a sample to get started</div>';
+        return;
+    }
+    var viewData = ftFilterData(data);
+    var layout = ftLayoutTree(viewData);
+    var nodes = layout.nodes;
+    var connections = layout.connections;
+    var svgW = layout.width;
+    var svgH = layout.height;
+
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + svgW + '" height="' + svgH + '">';
+
+    // Draw connections first (behind nodes)
+    for (var ci = 0; ci < connections.length; ci++) {
+        var conn = connections[ci];
+        if (conn.type === 'partner') {
+            svg += '<line x1="' + conn.x1 + '" y1="' + conn.y1 + '" x2="' + conn.x2 + '" y2="' + conn.y2 + '" class="ft-partner-line"/>';
+        } else {
+            svg += '<path d="' + conn.path + '" class="ft-conn-line"/>';
+        }
+    }
+
+    // Draw nodes
+    for (var ni = 0; ni < nodes.length; ni++) {
+        var node = nodes[ni];
+        var cls = 'ft-node-rect ' + node.gender;
+        if (node.id === data.selectedId) cls += ' selected';
+        svg += '<rect class="' + cls + '" x="' + node.x + '" y="' + node.y + '" width="' + node.w + '" height="' + node.h + '" onclick="ftSelectNode(this,\'' + node.id + '\')"/>';
+        svg += '<text class="ft-node-name" x="' + (node.x + node.w / 2) + '" y="' + (node.y + 18) + '" onclick="ftSelectNode(this,\'' + node.id + '\')">' + ftEscSvg(node.name || 'Unnamed') + '</text>';
+        var years = node.birthYear || '';
+        if (node.deathYear) years += '-' + node.deathYear;
+        if (years) {
+            svg += '<text class="ft-node-years" x="' + (node.x + node.w / 2) + '" y="' + (node.y + 34) + '" onclick="ftSelectNode(this,\'' + node.id + '\')">' + ftEscSvg(years) + '</text>';
+        }
+    }
+
+    svg += '</svg>';
+    diagram.innerHTML = svg;
+}
+
+function ftEscSvg(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function ftLayoutTree(data) {
+    var nodeW = 120, nodeH = 48, hGap = 30, vGap = 70, padding = 20;
+
+    // Find generations via BFS from root
+    var generations = ftFindGenerations(data);
+    if (generations.length === 0) {
+        // No root or disconnected — just lay out in a single row
+        var xs = padding;
+        var allNodes = [];
+        for (var mi = 0; mi < data.members.length; mi++) {
+            var m = data.members[mi];
+            allNodes.push({ id: m.id, name: m.name, birthYear: m.birthYear, deathYear: m.deathYear, gender: m.gender, x: xs, y: padding, w: nodeW, h: nodeH });
+            xs += nodeW + hGap;
+        }
+        return { nodes: allNodes, connections: [], width: xs + padding, height: nodeH + padding * 2 };
+    }
+
+    // Build a map of member by id
+    var memberMap = {};
+    for (var mi2 = 0; mi2 < data.members.length; mi2++) {
+        memberMap[data.members[mi2].id] = data.members[mi2];
+    }
+
+    // Build position map
+    var posMap = {}; // id -> {x, y}
+    var placedIds = {};
+    var maxX = 0;
+
+    for (var g = 0; g < generations.length; g++) {
+        var genIds = generations[g];
+        var y = padding + g * (nodeH + vGap);
+        // Group into units: partner pairs or singles
+        var units = [];
+        var usedInUnit = {};
+        for (var gi = 0; gi < genIds.length; gi++) {
+            var mid = genIds[gi];
+            if (usedInUnit[mid]) continue;
+            var partnerId = ftGetPartner(data, mid);
+            if (partnerId && !usedInUnit[partnerId]) {
+                // Check partner is in same generation
+                var partnerInGen = false;
+                for (var gj = 0; gj < genIds.length; gj++) {
+                    if (genIds[gj] === partnerId) { partnerInGen = true; break; }
+                }
+                if (partnerInGen) {
+                    units.push([mid, partnerId]);
+                    usedInUnit[mid] = true;
+                    usedInUnit[partnerId] = true;
+                } else {
+                    units.push([mid]);
+                    usedInUnit[mid] = true;
+                }
+            } else {
+                units.push([mid]);
+                usedInUnit[mid] = true;
+            }
+        }
+
+        // Place units left-to-right
+        var x = padding;
+        for (var u = 0; u < units.length; u++) {
+            var unit = units[u];
+            for (var ui = 0; ui < unit.length; ui++) {
+                posMap[unit[ui]] = { x: x, y: y };
+                placedIds[unit[ui]] = true;
+                x += nodeW + (ui < unit.length - 1 ? 15 : 0); // partners closer together
+            }
+            x += hGap;
+        }
+        if (x > maxX) maxX = x;
+    }
+
+    // Second pass: center children under parents
+    for (var g2 = 1; g2 < generations.length; g2++) {
+        var genIds2 = generations[g2];
+        // Group children by their parent unit
+        var parentGroups = {};
+        for (var ci = 0; ci < genIds2.length; ci++) {
+            var childId = genIds2[ci];
+            var parentIds = ftGetParents(data, childId);
+            var parentKey = parentIds.sort().join(',');
+            if (!parentGroups[parentKey]) parentGroups[parentKey] = { parentIds: parentIds, children: [] };
+            parentGroups[parentKey].children.push(childId);
+        }
+
+        for (var pk in parentGroups) {
+            var grp = parentGroups[pk];
+            if (grp.parentIds.length === 0) continue;
+            // Find center of parents
+            var pMinX = Infinity, pMaxX = -Infinity;
+            for (var pi = 0; pi < grp.parentIds.length; pi++) {
+                var pp = posMap[grp.parentIds[pi]];
+                if (pp) {
+                    if (pp.x < pMinX) pMinX = pp.x;
+                    if (pp.x + nodeW > pMaxX) pMaxX = pp.x + nodeW;
+                }
+            }
+            var parentCenter = (pMinX + pMaxX) / 2;
+
+            // Get partner pairs among children for width calculation
+            var childUnits = [];
+            var usedChild = {};
+            for (var cc = 0; cc < grp.children.length; cc++) {
+                var cid = grp.children[cc];
+                if (usedChild[cid]) continue;
+                var cp = ftGetPartner(data, cid);
+                if (cp && !usedChild[cp]) {
+                    var cpInGroup = false;
+                    for (var cc2 = 0; cc2 < grp.children.length; cc2++) {
+                        if (grp.children[cc2] === cp) { cpInGroup = true; break; }
+                    }
+                    if (cpInGroup) {
+                        childUnits.push([cid, cp]);
+                        usedChild[cid] = true;
+                        usedChild[cp] = true;
+                    } else {
+                        childUnits.push([cid]);
+                        usedChild[cid] = true;
+                    }
+                } else {
+                    childUnits.push([cid]);
+                    usedChild[cid] = true;
+                }
+            }
+
+            var totalW = 0;
+            for (var cu = 0; cu < childUnits.length; cu++) {
+                totalW += childUnits[cu].length * nodeW + (childUnits[cu].length - 1) * 15;
+                if (cu < childUnits.length - 1) totalW += hGap;
+            }
+
+            var startX = parentCenter - totalW / 2;
+            if (startX < padding) startX = padding;
+
+            var cx = startX;
+            for (var cu2 = 0; cu2 < childUnits.length; cu2++) {
+                var cunit = childUnits[cu2];
+                for (var cui = 0; cui < cunit.length; cui++) {
+                    posMap[cunit[cui]] = { x: cx, y: posMap[cunit[cui]].y };
+                    cx += nodeW + (cui < cunit.length - 1 ? 15 : 0);
+                }
+                cx += hGap;
+            }
+            if (cx > maxX) maxX = cx;
+        }
+    }
+
+    // Place any unplaced members
+    var unplacedX = maxX + hGap;
+    for (var mi3 = 0; mi3 < data.members.length; mi3++) {
+        if (!posMap[data.members[mi3].id]) {
+            posMap[data.members[mi3].id] = { x: unplacedX, y: padding };
+            unplacedX += nodeW + hGap;
+        }
+    }
+    if (unplacedX > maxX) maxX = unplacedX;
+
+    // Build node objects
+    var allNodes2 = [];
+    for (var mi4 = 0; mi4 < data.members.length; mi4++) {
+        var mem = data.members[mi4];
+        var pos = posMap[mem.id];
+        allNodes2.push({ id: mem.id, name: mem.name, birthYear: mem.birthYear, deathYear: mem.deathYear, gender: mem.gender, x: pos.x, y: pos.y, w: nodeW, h: nodeH });
+    }
+
+    // Build connections
+    var allConns = [];
+    for (var ri = 0; ri < data.relationships.length; ri++) {
+        var rel = data.relationships[ri];
+        var fromPos = posMap[rel.from];
+        var toPos = posMap[rel.to];
+        if (!fromPos || !toPos) continue;
+
+        if (rel.type === 'partner') {
+            // Dashed horizontal line between partners at mid-height
+            var lx1 = fromPos.x + nodeW;
+            var lx2 = toPos.x;
+            if (lx2 < lx1) { var tmp = lx1; lx1 = lx2 + nodeW; lx2 = tmp - nodeW; }
+            var ly = fromPos.y + nodeH / 2;
+            allConns.push({ type: 'partner', x1: lx1, y1: ly, x2: lx2, y2: ly });
+        } else if (rel.type === 'parent') {
+            // Solid line: from parent bottom center to child top center
+            var px = fromPos.x + nodeW / 2;
+            var py = fromPos.y + nodeH;
+            var chx = toPos.x + nodeW / 2;
+            var chy = toPos.y;
+            var midY = py + (chy - py) / 2;
+            var path = 'M' + px + ' ' + py + ' L' + px + ' ' + midY + ' L' + chx + ' ' + midY + ' L' + chx + ' ' + chy;
+            allConns.push({ type: 'parent', path: path });
+        }
+    }
+
+    var finalW = maxX + padding;
+    var finalH = padding + generations.length * (nodeH + vGap) - vGap + nodeH + padding;
+    // Ensure min height accounts for all nodes
+    for (var ni2 = 0; ni2 < allNodes2.length; ni2++) {
+        var nb = allNodes2[ni2].y + allNodes2[ni2].h + padding;
+        if (nb > finalH) finalH = nb;
+    }
+
+    return { nodes: allNodes2, connections: allConns, width: Math.max(finalW, 200), height: Math.max(finalH, 100) };
+}
+
+function ftFindGenerations(data) {
+    if (!data.rootId || data.members.length === 0) return [];
+    // Check root exists
+    var rootExists = false;
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === data.rootId) { rootExists = true; break; }
+    }
+    if (!rootExists) return [];
+
+    var genMap = {}; // id -> generation number
+    var queue = [data.rootId];
+    genMap[data.rootId] = 0;
+
+    // Also place root's partner at gen 0
+    var rootPartner = ftGetPartner(data, data.rootId);
+    if (rootPartner) {
+        genMap[rootPartner] = 0;
+        queue.push(rootPartner);
+    }
+
+    while (queue.length > 0) {
+        var current = queue.shift();
+        var currentGen = genMap[current];
+
+        // Find children of current (and current's partner)
+        var partnerOfCurrent = ftGetPartner(data, current);
+        var parentIds = [current];
+        if (partnerOfCurrent) parentIds.push(partnerOfCurrent);
+        var children = ftGetChildren(data, parentIds);
+
+        for (var c = 0; c < children.length; c++) {
+            var childId = children[c];
+            if (genMap[childId] !== undefined) continue;
+            genMap[childId] = currentGen + 1;
+            queue.push(childId);
+            // Also place child's partner at same gen
+            var childPartner = ftGetPartner(data, childId);
+            if (childPartner && genMap[childPartner] === undefined) {
+                genMap[childPartner] = currentGen + 1;
+                queue.push(childPartner);
+            }
+        }
+    }
+
+    // Build generation arrays
+    var maxGen = 0;
+    for (var id in genMap) {
+        if (genMap[id] > maxGen) maxGen = genMap[id];
+    }
+    var gens = [];
+    for (var g = 0; g <= maxGen; g++) {
+        var genArr = [];
+        for (var id2 in genMap) {
+            if (genMap[id2] === g) genArr.push(id2);
+        }
+        gens.push(genArr);
+    }
+    return gens;
+}
+
+function ftGetPartner(data, memberId) {
+    for (var i = 0; i < data.relationships.length; i++) {
+        var rel = data.relationships[i];
+        if (rel.type === 'partner') {
+            if (rel.from === memberId) return rel.to;
+            if (rel.to === memberId) return rel.from;
+        }
+    }
+    return null;
+}
+
+function ftGetChildren(data, parentIds) {
+    var children = [];
+    for (var i = 0; i < data.relationships.length; i++) {
+        var rel = data.relationships[i];
+        if (rel.type === 'parent') {
+            for (var p = 0; p < parentIds.length; p++) {
+                if (rel.from === parentIds[p]) {
+                    // Check not already added
+                    var found = false;
+                    for (var j = 0; j < children.length; j++) {
+                        if (children[j] === rel.to) { found = true; break; }
+                    }
+                    if (!found) children.push(rel.to);
+                }
+            }
+        }
+    }
+    return children;
+}
+
+function ftGetParents(data, childId) {
+    var parents = [];
+    for (var i = 0; i < data.relationships.length; i++) {
+        var rel = data.relationships[i];
+        if (rel.type === 'parent' && rel.to === childId) {
+            parents.push(rel.from);
+        }
+    }
+    return parents;
+}
+
+function ftSelectNode(el, memberId) {
+    var widget = el.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    var wasSelected = data.selectedId === memberId;
+    data.selectedId = wasSelected ? null : memberId;
+    // Clear filter when deselecting or selecting a different person
+    if (wasSelected || (data.viewFilterId && data.viewFilterId !== memberId)) {
+        data.viewFilter = null;
+        data.viewFilterId = null;
+    }
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftAddPerson(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    var newId = ftGenId();
+    data.members.push({ id: newId, name: 'New Person', birthYear: '', deathYear: '', gender: 'o' });
+    if (!data.rootId) data.rootId = newId;
+    data.selectedId = newId;
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftAddChild(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    var newId = ftGenId();
+    data.members.push({ id: newId, name: 'Child', birthYear: '', deathYear: '', gender: 'o' });
+    data.relationships.push({ type: 'parent', from: data.selectedId, to: newId });
+    // Also add partner as parent if exists
+    var partner = ftGetPartner(data, data.selectedId);
+    if (partner) {
+        data.relationships.push({ type: 'parent', from: partner, to: newId });
+    }
+    data.selectedId = newId;
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftAddPartner(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    // Check if already has a partner
+    if (ftGetPartner(data, data.selectedId)) return;
+    var newId = ftGenId();
+    data.members.push({ id: newId, name: 'Partner', birthYear: '', deathYear: '', gender: 'o' });
+    data.relationships.push({ type: 'partner', from: data.selectedId, to: newId });
+    data.selectedId = newId;
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftDeletePerson(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    var delId = data.selectedId;
+    // Remove member
+    data.members = data.members.filter(function(m) { return m.id !== delId; });
+    // Remove relationships involving this member
+    data.relationships = data.relationships.filter(function(r) { return r.from !== delId && r.to !== delId; });
+    if (data.rootId === delId) {
+        data.rootId = data.members.length > 0 ? data.members[0].id : null;
+    }
+    data.selectedId = null;
+    data.viewFilter = null;
+    data.viewFilterId = null;
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftSetRoot(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    data.rootId = data.selectedId;
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftEditField(input, field) {
+    var widget = input.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === data.selectedId) {
+            data.members[i][field] = input.value;
+            break;
+        }
+    }
+    ftSaveData(toolId, data);
+    // Re-render diagram but not the edit panel (to keep focus)
+    ftRenderDiagram(widget, toolId, data);
+    ftUpdateStatus(widget, data);
+    // Update edit title
+    var titleEl = widget.querySelector('.ft-edit-title');
+    if (titleEl && field === 'name') {
+        titleEl.textContent = 'Edit: ' + (input.value || 'Unnamed');
+    }
+}
+
+function ftEditGender(select) {
+    var widget = select.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === data.selectedId) {
+            data.members[i].gender = select.value;
+            break;
+        }
+    }
+    ftSaveData(toolId, data);
+    ftRenderDiagram(widget, toolId, data);
+}
+
+function ftToggleText(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+
+    var diagram = widget.querySelector('.ft-diagram');
+    var textEditor = widget.querySelector('.ft-text-editor');
+    var formEditor = widget.querySelector('.ft-form-editor');
+    var editPanel = widget.querySelector('.ft-edit-panel');
+    var formBtn = widget.querySelector('.ft-status .ft-btn:last-child');
+
+    if (data.mode === 'text') {
+        // Apply text and switch to visual
+        var newData = ftFromText(textEditor.value);
+        newData.mode = 'visual';
+        newData.selectedId = null;
+        ftSaveData(toolId, newData);
+        btn.classList.remove('active');
+        btn.textContent = '✎ Text';
+        diagram.style.display = '';
+        textEditor.style.display = 'none';
+        formEditor.style.display = 'none';
+        ftRender(widget, toolId, newData);
+    } else {
+        // Switch to text mode (from visual or form)
+        if (data.mode === 'form' && formBtn) {
+            formBtn.classList.remove('active');
+        }
+        data.mode = 'text';
+        data.selectedId = null;
+        ftSaveData(toolId, data);
+        btn.classList.add('active');
+        btn.textContent = '✓ Apply';
+        textEditor.value = ftToText(data);
+        diagram.style.display = 'none';
+        textEditor.style.display = '';
+        formEditor.style.display = 'none';
+        editPanel.style.display = 'none';
+        textEditor.focus();
+        ftUpdateStatus(widget, data);
+    }
+}
+
+function ftToText(data) {
+    if (data.members.length === 0) return '';
+
+    // Build adjacency for tree traversal
+    var memberMap = {};
+    for (var i = 0; i < data.members.length; i++) {
+        memberMap[data.members[i].id] = data.members[i];
+    }
+
+    var visited = {};
+    var lines = [];
+
+    function formatMember(m) {
+        var s = m.name || 'Unnamed';
+        s += ' (';
+        s += m.birthYear || '?';
+        if (m.deathYear) s += '-' + m.deathYear;
+        s += ', ' + (m.gender || 'o');
+        s += ')';
+        return s;
+    }
+
+    function traverse(memberId, depth) {
+        if (visited[memberId]) return;
+        visited[memberId] = true;
+        var mem = memberMap[memberId];
+        if (!mem) return;
+        var indent = '';
+        for (var d = 0; d < depth; d++) indent += '  ';
+        var line = indent + formatMember(mem);
+
+        // Check for partner
+        var partner = ftGetPartner(data, memberId);
+        if (partner && !visited[partner]) {
+            visited[partner] = true;
+            var partnerMem = memberMap[partner];
+            if (partnerMem) line += ' + ' + formatMember(partnerMem);
+        }
+        lines.push(line);
+
+        // Find children
+        var parentIds = [memberId];
+        if (partner) parentIds.push(partner);
+        var children = ftGetChildren(data, parentIds);
+        for (var c = 0; c < children.length; c++) {
+            traverse(children[c], depth + 1);
+        }
+    }
+
+    // Start from root
+    if (data.rootId && memberMap[data.rootId]) {
+        traverse(data.rootId, 0);
+    }
+    // Add any unvisited members
+    for (var j = 0; j < data.members.length; j++) {
+        if (!visited[data.members[j].id]) {
+            traverse(data.members[j].id, 0);
+        }
+    }
+
+    return lines.join('\n');
+}
+
+function ftFromText(text) {
+    var lines = text.split('\n');
+    var members = [];
+    var relationships = [];
+    var rootId = null;
+    var idCounter = 1;
+
+    // Stack to track parent at each indent level
+    // Each entry: { ids: [parentId, partnerParentId], indent: number }
+    var stack = [];
+
+    function parsePerson(str) {
+        str = str.trim();
+        var id = 'ft_' + Date.now() + '_' + (idCounter++);
+        var name = str;
+        var birthYear = '';
+        var deathYear = '';
+        var gender = 'o';
+
+        var parenMatch = str.match(/^(.+?)\s*\(([^)]*)\)\s*$/);
+        if (parenMatch) {
+            name = parenMatch[1].trim();
+            var inside = parenMatch[2].trim();
+            var parts = inside.split(',').map(function(p) { return p.trim(); });
+            if (parts.length >= 1) {
+                var yearPart = parts[0];
+                var yearMatch = yearPart.match(/^(\d+|[\?])\s*(?:-\s*(\d+))?\s*$/);
+                if (yearMatch) {
+                    birthYear = yearMatch[1] === '?' ? '' : yearMatch[1];
+                    deathYear = yearMatch[2] || '';
+                } else {
+                    birthYear = yearPart;
+                }
+            }
+            if (parts.length >= 2) {
+                var g = parts[parts.length - 1].toLowerCase();
+                if (g === 'm' || g === 'f' || g === 'o') gender = g;
+            }
+        }
+        members.push({ id: id, name: name, birthYear: birthYear, deathYear: deathYear, gender: gender });
+        return id;
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.trim() === '') continue;
+
+        // Calculate indent
+        var indent = 0;
+        while (indent < line.length && line[indent] === ' ') indent++;
+        indent = Math.floor(indent / 2);
+
+        // Split by ' + ' for partner
+        var personParts = line.trim().split(/\s\+\s/);
+        var personId = parsePerson(personParts[0]);
+        var partnerId = null;
+        if (personParts.length > 1) {
+            partnerId = parsePerson(personParts[1]);
+            relationships.push({ type: 'partner', from: personId, to: partnerId });
+        }
+
+        if (!rootId) rootId = personId;
+
+        // Pop stack to find parent at indent-1
+        while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+            stack.pop();
+        }
+        if (stack.length > 0) {
+            var parentEntry = stack[stack.length - 1];
+            for (var pi = 0; pi < parentEntry.ids.length; pi++) {
+                relationships.push({ type: 'parent', from: parentEntry.ids[pi], to: personId });
+            }
+        }
+
+        // Push current onto stack
+        var currentIds = [personId];
+        if (partnerId) currentIds.push(partnerId);
+        stack.push({ ids: currentIds, indent: indent });
+    }
+
+    return { members: members, relationships: relationships, selectedId: null, rootId: rootId, mode: 'visual' };
+}
+
+function ftCopySvg(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    var text = ftToText(data);
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    }
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+}
+
+function ftLoadSample(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+
+    var sampleText =
+        'James Wilson (1940-2010, m) + Mary Wilson (1942, f)\n' +
+        '  Robert Wilson (1965, m) + Susan Taylor (1967, f)\n' +
+        '    Emma Wilson (1990, f)\n' +
+        '    David Wilson (1993, m)\n' +
+        '  Linda Wilson (1970, f) + Tom Harris (1968, m)\n' +
+        '    Sarah Harris (1998, f)\n' +
+        '    Jake Harris (2001, m)\n' +
+        '    Lily Harris (2004, f)';
+
+    var data = ftFromText(sampleText);
+    data.mode = 'visual';
+    ftSaveData(toolId, data);
+    // Reset mode buttons
+    var btns = widget.querySelectorAll('.ft-status .ft-btn');
+    if (btns[0]) { btns[0].classList.remove('active'); btns[0].textContent = '✎ Text'; }
+    if (btns[1]) { btns[1].classList.remove('active'); }
+    widget.querySelector('.ft-diagram').style.display = '';
+    widget.querySelector('.ft-text-editor').style.display = 'none';
+    widget.querySelector('.ft-form-editor').style.display = 'none';
+    ftRender(widget, toolId, data);
+}
+
+function ftSetViewFilter(btn, filterType) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (!data.selectedId) return;
+    // Toggle off if same filter on same person
+    if (data.viewFilter === filterType && data.viewFilterId === data.selectedId) {
+        data.viewFilter = null;
+        data.viewFilterId = null;
+    } else {
+        data.viewFilter = filterType;
+        data.viewFilterId = data.selectedId;
+    }
+    ftSaveData(toolId, data);
+    ftRender(widget, toolId, data);
+}
+
+function ftCollectDescendants(data, personId) {
+    var ids = {};
+    ids[personId] = true;
+    // Include partner
+    var partner = ftGetPartner(data, personId);
+    if (partner) ids[partner] = true;
+    var queue = [personId];
+    if (partner) queue.push(partner);
+    while (queue.length > 0) {
+        var current = queue.shift();
+        var currentPartner = ftGetPartner(data, current);
+        var parentIds = [current];
+        if (currentPartner) parentIds.push(currentPartner);
+        var children = ftGetChildren(data, parentIds);
+        for (var c = 0; c < children.length; c++) {
+            if (!ids[children[c]]) {
+                ids[children[c]] = true;
+                queue.push(children[c]);
+                // Include child's partner
+                var cp = ftGetPartner(data, children[c]);
+                if (cp && !ids[cp]) {
+                    ids[cp] = true;
+                    queue.push(cp);
+                }
+            }
+        }
+    }
+    return ids;
+}
+
+function ftCollectAncestors(data, personId) {
+    var ids = {};
+    ids[personId] = true;
+    // Include partner
+    var partner = ftGetPartner(data, personId);
+    if (partner) ids[partner] = true;
+    var queue = [personId];
+    while (queue.length > 0) {
+        var current = queue.shift();
+        var parents = ftGetParents(data, current);
+        for (var p = 0; p < parents.length; p++) {
+            if (!ids[parents[p]]) {
+                ids[parents[p]] = true;
+                queue.push(parents[p]);
+                // Include parent's partner
+                var pp = ftGetPartner(data, parents[p]);
+                if (pp && !ids[pp]) {
+                    ids[pp] = true;
+                    queue.push(pp);
+                }
+            }
+        }
+    }
+    return ids;
+}
+
+function ftFilterData(data) {
+    if (!data.viewFilter || !data.viewFilterId) return data;
+    // Check filter person still exists
+    var exists = false;
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === data.viewFilterId) { exists = true; break; }
+    }
+    if (!exists) return data;
+
+    var ids;
+    if (data.viewFilter === 'descendants') {
+        ids = ftCollectDescendants(data, data.viewFilterId);
+    } else {
+        ids = ftCollectAncestors(data, data.viewFilterId);
+    }
+
+    var filtered = {
+        members: data.members.filter(function(m) { return ids[m.id]; }),
+        relationships: data.relationships.filter(function(r) { return ids[r.from] && ids[r.to]; }),
+        selectedId: data.selectedId,
+        rootId: data.viewFilter === 'ancestors' ? data.viewFilterId : data.rootId,
+        mode: data.mode,
+        viewFilter: data.viewFilter,
+        viewFilterId: data.viewFilterId
+    };
+    // For ancestors view, find the topmost ancestor as root
+    if (data.viewFilter === 'ancestors' && filtered.members.length > 0) {
+        // Find member with no parents in the filtered set
+        var topIds = [];
+        for (var j = 0; j < filtered.members.length; j++) {
+            var mid = filtered.members[j].id;
+            var hasParent = false;
+            for (var k = 0; k < filtered.relationships.length; k++) {
+                if (filtered.relationships[k].type === 'parent' && filtered.relationships[k].to === mid) {
+                    hasParent = true;
+                    break;
+                }
+            }
+            if (!hasParent) topIds.push(mid);
+        }
+        if (topIds.length > 0) filtered.rootId = topIds[0];
+    }
+    return filtered;
+}
+
+function ftClearAll(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = { members: [], relationships: [], selectedId: null, rootId: null, mode: 'visual', viewFilter: null, viewFilterId: null };
+    ftSaveData(toolId, data);
+    // Reset mode buttons
+    var btns = widget.querySelectorAll('.ft-status .ft-btn');
+    if (btns[0]) { btns[0].classList.remove('active'); btns[0].textContent = '✎ Text'; }
+    if (btns[1]) { btns[1].classList.remove('active'); }
+    widget.querySelector('.ft-diagram').style.display = '';
+    widget.querySelector('.ft-text-editor').style.display = 'none';
+    widget.querySelector('.ft-form-editor').style.display = 'none';
+    ftRender(widget, toolId, data);
+}
+
+// =============================================
+// FAMILY TREE — FORM EDITOR
+// =============================================
+
+function ftToggleForm(btn) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+
+    var diagram = widget.querySelector('.ft-diagram');
+    var textEditor = widget.querySelector('.ft-text-editor');
+    var formEditor = widget.querySelector('.ft-form-editor');
+    var editPanel = widget.querySelector('.ft-edit-panel');
+    var textBtn = widget.querySelectorAll('.ft-status .ft-btn')[0];
+
+    if (data.mode === 'form') {
+        // Switch back to visual
+        data.mode = 'visual';
+        data.selectedId = null;
+        ftSaveData(toolId, data);
+        btn.classList.remove('active');
+        diagram.style.display = '';
+        formEditor.style.display = 'none';
+        ftRender(widget, toolId, data);
+    } else {
+        // Entering form mode — if in text mode, apply text first
+        if (data.mode === 'text') {
+            var newData = ftFromText(textEditor.value);
+            newData.mode = 'form';
+            newData.selectedId = null;
+            ftSaveData(toolId, newData);
+            data = newData;
+            if (textBtn) { textBtn.classList.remove('active'); textBtn.textContent = '✎ Text'; }
+        } else {
+            data.mode = 'form';
+            data.selectedId = null;
+            ftSaveData(toolId, data);
+        }
+        btn.classList.add('active');
+        diagram.style.display = 'none';
+        textEditor.style.display = 'none';
+        formEditor.style.display = '';
+        editPanel.style.display = 'none';
+        ftRenderForm(widget, toolId, data);
+        ftUpdateStatus(widget, data);
+    }
+}
+
+function ftRenderForm(widget, toolId, data) {
+    var formEditor = widget.querySelector('.ft-form-editor');
+    if (data.members.length === 0) {
+        formEditor.innerHTML = '<div class="ft-empty">No members yet. Add a person to get started.</div>';
+        return;
+    }
+
+    // Build member map for lookups
+    var memberMap = {};
+    for (var i = 0; i < data.members.length; i++) {
+        memberMap[data.members[i].id] = data.members[i];
+    }
+
+    var html = '';
+    for (var i = 0; i < data.members.length; i++) {
+        var m = data.members[i];
+        var isRoot = data.rootId === m.id;
+        var genderIcon = m.gender === 'm' ? '\u2642' : m.gender === 'f' ? '\u2640' : '\u26A5';
+
+        // Relationships
+        var partnerId = ftGetPartner(data, m.id);
+        var partnerName = partnerId && memberMap[partnerId] ? memberMap[partnerId].name || 'Unnamed' : null;
+        var parentIds = ftGetParents(data, m.id);
+        var parentNames = [];
+        for (var p = 0; p < parentIds.length; p++) {
+            if (memberMap[parentIds[p]]) parentNames.push(memberMap[parentIds[p]].name || 'Unnamed');
+        }
+        var childIds = ftGetChildren(data, [m.id]);
+        var childNames = [];
+        for (var c = 0; c < childIds.length; c++) {
+            if (memberMap[childIds[c]]) childNames.push(memberMap[childIds[c]].name || 'Unnamed');
+        }
+
+        var esc = function(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+
+        html += '<div class="ft-form-card' + (isRoot ? ' root' : '') + '">';
+
+        // Header
+        html += '<div class="ft-form-header"><span class="ft-form-icon">' + genderIcon + '</span>';
+        if (isRoot) html += ' <span class="ft-form-badge">ROOT</span>';
+        html += '</div>';
+
+        // Fields row
+        html += '<div class="ft-form-fields">';
+        html += '<input type="text" data-field="name" value="' + esc(m.name || '') + '" placeholder="Name" oninput="ftFormEditField(this,\'' + m.id + '\',\'name\')">';
+        html += '<input type="text" data-field="birthYear" value="' + esc(String(m.birthYear || '')) + '" placeholder="Born" oninput="ftFormEditField(this,\'' + m.id + '\',\'birthYear\')">';
+        html += '<input type="text" data-field="deathYear" value="' + esc(String(m.deathYear || '')) + '" placeholder="Died" oninput="ftFormEditField(this,\'' + m.id + '\',\'deathYear\')">';
+        html += '<select onchange="ftFormEditGender(this,\'' + m.id + '\')">';
+        html += '<option value="m"' + (m.gender === 'm' ? ' selected' : '') + '>Male</option>';
+        html += '<option value="f"' + (m.gender === 'f' ? ' selected' : '') + '>Female</option>';
+        html += '<option value="o"' + (m.gender === 'o' ? ' selected' : '') + '>Other</option>';
+        html += '</select>';
+        html += '</div>';
+
+        // Relationships
+        var rels = [];
+        if (partnerName) rels.push('Partner: <span>' + esc(partnerName) + '</span>');
+        if (parentNames.length > 0) rels.push('Parents: <span>' + parentNames.map(esc).join(' &amp; ') + '</span>');
+        if (childNames.length > 0) rels.push('Children: <span>' + childNames.map(esc).join(', ') + '</span>');
+        if (rels.length > 0) {
+            html += '<div class="ft-form-rels">' + rels.join(' \u00B7 ') + '</div>';
+        }
+
+        // Actions
+        html += '<div class="ft-form-actions">';
+        html += '<button onclick="ftFormAddChild(this,\'' + m.id + '\')">+ Child</button>';
+        if (!partnerId) {
+            html += '<button onclick="ftFormAddPartner(this,\'' + m.id + '\')">+ Partner</button>';
+        }
+        if (isRoot) {
+            html += '<button disabled>Root</button>';
+        } else {
+            html += '<button onclick="ftFormSetRoot(this,\'' + m.id + '\')">Set Root</button>';
+        }
+        html += '<button class="danger" onclick="ftFormDelete(this,\'' + m.id + '\')">Delete</button>';
+        html += '</div>';
+
+        html += '</div>';
+    }
+    formEditor.innerHTML = html;
+}
+
+function ftFormEditField(input, memberId, field) {
+    var widget = input.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === memberId) {
+            data.members[i][field] = input.value;
+            break;
+        }
+    }
+    ftSaveData(toolId, data);
+    ftUpdateStatus(widget, data);
+}
+
+function ftFormEditGender(select, memberId) {
+    var widget = select.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    for (var i = 0; i < data.members.length; i++) {
+        if (data.members[i].id === memberId) {
+            data.members[i].gender = select.value;
+            break;
+        }
+    }
+    ftSaveData(toolId, data);
+    ftRenderForm(widget, toolId, data);
+}
+
+function ftFormAddChild(btn, memberId) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    var newId = ftGenId();
+    data.members.push({ id: newId, name: 'Child', birthYear: '', deathYear: '', gender: 'o' });
+    data.relationships.push({ type: 'parent', from: memberId, to: newId });
+    var partner = ftGetPartner(data, memberId);
+    if (partner) {
+        data.relationships.push({ type: 'parent', from: partner, to: newId });
+    }
+    ftSaveData(toolId, data);
+    ftRenderForm(widget, toolId, data);
+    ftUpdateStatus(widget, data);
+}
+
+function ftFormAddPartner(btn, memberId) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    if (ftGetPartner(data, memberId)) return;
+    var newId = ftGenId();
+    data.members.push({ id: newId, name: 'Partner', birthYear: '', deathYear: '', gender: 'o' });
+    data.relationships.push({ type: 'partner', from: memberId, to: newId });
+    ftSaveData(toolId, data);
+    ftRenderForm(widget, toolId, data);
+    ftUpdateStatus(widget, data);
+}
+
+function ftFormSetRoot(btn, memberId) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    data.rootId = memberId;
+    ftSaveData(toolId, data);
+    ftRenderForm(widget, toolId, data);
+}
+
+function ftFormDelete(btn, memberId) {
+    var widget = btn.closest('.ft-widget');
+    var toolId = ftGetToolId(widget);
+    if (!toolId) return;
+    var data = ftGetData(toolId);
+    data.members = data.members.filter(function(m) { return m.id !== memberId; });
+    data.relationships = data.relationships.filter(function(r) { return r.from !== memberId && r.to !== memberId; });
+    if (data.rootId === memberId) {
+        data.rootId = data.members.length > 0 ? data.members[0].id : null;
+    }
+    ftSaveData(toolId, data);
+    ftRenderForm(widget, toolId, data);
+    ftUpdateStatus(widget, data);
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -954,7 +2201,8 @@ function drawSizeInput(input) {
     var cpkFunctions = [cpkHsvToRgb, cpkRgbToHsv, cpkRgbToHsl, cpkHslToRgb, cpkGetState, cpkDrawWheel, cpkDrawSV, cpkUpdateCursors, cpkUpdateAlpha, cpkUpdateValues, cpkFullUpdate, cpkWheelEvent, cpkSVEvent, cpkAlphaEvent, cpkMakeDraggable, cpkHexTyped, cpkRgbaTyped, cpkHslaTyped, cpkAlphaTyped, cpkCopyVal, cpkSaveColor, cpkInit];
     var emoteFunctions = [emoteInit, emoteSelectTab, emoteRender, emoteSearch, emoteCopy];
     var drawFunctions = [drawGetState, drawInit, drawBeginStroke, drawMoveStroke, drawEndStroke, drawSetColor, drawSetSize, drawToggleEraser, drawClear, drawUndo, drawDownload, drawResizeCanvas, drawColorInput, drawSizeInput];
-    var allFunctions = cpkFunctions.concat(emoteFunctions).concat(drawFunctions);
+    var ftFunctions = [ftGetToolId, ftGetData, ftSaveData, ftGenId, ftInit, ftRender, ftUpdateStatus, ftRenderEditPanel, ftRenderDiagram, ftEscSvg, ftLayoutTree, ftFindGenerations, ftGetPartner, ftGetChildren, ftGetParents, ftSelectNode, ftAddPerson, ftAddChild, ftAddPartner, ftDeletePerson, ftSetRoot, ftEditField, ftEditGender, ftToggleText, ftToText, ftFromText, ftCopySvg, ftLoadSample, ftSetViewFilter, ftCollectDescendants, ftCollectAncestors, ftFilterData, ftClearAll, ftToggleForm, ftRenderForm, ftFormEditField, ftFormEditGender, ftFormAddChild, ftFormAddPartner, ftFormSetRoot, ftFormDelete];
+    var allFunctions = cpkFunctions.concat(emoteFunctions).concat(drawFunctions).concat(ftFunctions);
 
     var code = '(function() {\n' +
         'if (typeof cpkInit !== "undefined") return;\n' +
@@ -982,7 +2230,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDFA8',
     color: '#e74c3c',
     version: '1.0.0',
-    tools: ['color-picker', 'emoticon-picker', 'drawing-canvas'],
+    tools: ['color-picker', 'drawing-canvas', 'emoticon-picker', 'family-tree'],
     source: 'external'
 });
 
@@ -1105,4 +2353,34 @@ PluginRegistry.registerTool({
     defaultHeight: 420
 });
 
-console.log('Creative Tools plugin loaded (3 tools)');
+// Family Tree
+PluginRegistry.registerTool({
+    id: 'family-tree',
+    name: 'Family Tree',
+    description: 'Build and visualize multi-generational family trees',
+    icon: '🌳',
+    version: '1.0.0',
+    toolbox: 'creative-tools',
+    tags: ['family', 'tree', 'genealogy', 'diagram', 'relationship', 'graph'],
+    title: 'Family Tree',
+    content: '<div class="ft-widget">' +
+        '<div class="ft-toolbar">' +
+            '<button class="ft-btn primary" onclick="ftAddPerson(this)">+ Add Person</button>' +
+            '<button class="ft-btn" onclick="ftLoadSample(this)">Sample</button>' +
+            '<button class="ft-btn" onclick="ftCopySvg(this)">Copy</button>' +
+            '<button class="ft-btn danger" onclick="ftClearAll(this)">Clear</button>' +
+        '</div>' +
+        '<div class="ft-diagram"><div class="ft-empty">Add a person or load a sample to get started</div></div>' +
+        '<textarea class="ft-text-editor" placeholder="Name (birthYear-deathYear, gender) + Partner (year, gender)\n  Child Name (year, gender)\n\nGender: m, f, or o"></textarea>' +
+        '<div class="ft-form-editor"></div>' +
+        '<div class="ft-edit-panel" style="display:none"></div>' +
+        '<div class="ft-status"><span class="ft-status-text"></span><span style="display:flex;gap:4px"><button class="ft-btn" onclick="ftToggleText(this)">✎ Text</button><button class="ft-btn" onclick="ftToggleForm(this)">☰ Form</button></span></div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'ftInit',
+    source: 'external',
+    defaultWidth: 500,
+    defaultHeight: 500
+});
+
+console.log('Creative Tools plugin loaded (4 tools)');

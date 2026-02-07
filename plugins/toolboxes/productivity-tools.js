@@ -1022,7 +1022,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['simple-calculator', 'checklist', 'calendar', 'stopwatch', 'dice-roller', 'ip-address-info', 'youtube-embed', 'pomodoro-timer', 'analog-clock', 'unit-converter', 'playback-speed-calc'],
+    tools: ['analog-clock', 'dice-roller', 'playback-speed-calc', 'pomodoro-timer', 'stopwatch', 'unit-converter', 'youtube-embed'],
     source: 'external'
 });
 

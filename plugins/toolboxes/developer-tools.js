@@ -329,7 +329,7 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .ascii-table .ascii-html-cell { color: #e67e22; }
 .ascii-table tr.ascii-control td { opacity: 0.7; }
 .ascii-table tr.ascii-highlight td { background: rgba(52,152,219,0.12); }
-.ascii-copy-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #27ae60; color: white; padding: 6px 16px; border-radius: 4px; font-size: 12px; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.ascii-copy-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #27ae60; color: white; padding: 6px 16px; border-radius: 4px; font-size: 12px; z-index: 10010; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .ascii-copy-toast.show { opacity: 1; }
 .ascii-lookup { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
 .ascii-lookup label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
@@ -681,6 +681,54 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .dirtree-md-btn.active { background: #3498db; border-color: #3498db; color: white; }
 .dirtree-markdown-editor { width: 100%; min-height: 150px; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; line-height: 1.6; background: var(--input-bg); color: var(--text-primary); resize: vertical; box-sizing: border-box; tab-size: 2; flex: 1; }
 .dirtree-markdown-editor:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+
+/* SQL Query Explainer Styles */
+.tool-content:has(.sqle-widget) { display: flex; flex-direction: column; }
+.sqle-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.sqle-toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-shrink: 0; flex-wrap: wrap; }
+.sqle-sample-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; position: relative; }
+.sqle-sample-btn:hover { background: var(--table-hover); }
+.sqle-sample-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px var(--shadow-medium); z-index: 100; min-width: 220px; max-height: 260px; overflow-y: auto; margin-top: 2px; }
+.sqle-sample-menu.open { display: block; }
+.sqle-sample-item { padding: 6px 12px; cursor: pointer; font-size: 11px; color: var(--text-primary); white-space: nowrap; }
+.sqle-sample-item:hover { background: var(--table-hover); }
+.sqle-toolbar-spacer { flex: 1; }
+.sqle-action-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.sqle-action-btn:hover { background: var(--table-hover); }
+.sqle-input-pane { display: flex; flex-direction: column; margin-bottom: 10px; flex-shrink: 0; }
+.sqle-input-pane label { font-size: 11px; font-weight: 600; color: var(--text-heading); margin-bottom: 4px; display: flex; justify-content: space-between; }
+.sqle-input-pane label span { font-weight: 400; color: var(--text-muted); }
+.sqle-input { width: 100%; min-height: 80px; max-height: 200px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); resize: vertical; box-sizing: border-box; line-height: 1.5; }
+.sqle-input:focus { outline: none; border-color: #3498db; }
+.sqle-output { flex: 1; overflow-y: auto; min-height: 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); padding: 10px; }
+.sqle-summary { padding: 8px 10px; margin-bottom: 10px; background: rgba(52, 152, 219, 0.08); border-left: 3px solid #3498db; border-radius: 0 4px 4px 0; font-size: 12px; line-height: 1.5; color: var(--text-primary); }
+.sqle-clause { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; padding: 4px 0; }
+.sqle-clause-keyword { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; flex-shrink: 0; min-width: 70px; text-align: center; color: white; }
+.sqle-clause-body { font-size: 12px; line-height: 1.5; color: var(--text-primary); word-break: break-word; }
+.sqle-kw-select { background: #3498db; }
+.sqle-kw-from { background: #27ae60; }
+.sqle-kw-where { background: #e67e22; }
+.sqle-kw-join { background: #9b59b6; }
+.sqle-kw-group { background: #16a085; }
+.sqle-kw-having { background: #2980b9; }
+.sqle-kw-order { background: #34495e; }
+.sqle-kw-limit { background: #7f8c8d; }
+.sqle-kw-insert { background: #27ae60; }
+.sqle-kw-update { background: #f39c12; }
+.sqle-kw-delete { background: #e74c3c; }
+.sqle-kw-create { background: #3498db; }
+.sqle-kw-alter { background: #f39c12; }
+.sqle-kw-drop { background: #e74c3c; }
+.sqle-kw-set { background: #8e44ad; }
+.sqle-kw-values { background: #16a085; }
+.sqle-kw-into { background: #27ae60; }
+.sqle-kw-union { background: #2c3e50; }
+.sqle-kw-offset { background: #7f8c8d; }
+.sqle-kw-distinct { background: #2980b9; }
+.sqle-kw-subquery { background: #8e44ad; }
+.sqle-empty { padding: 20px; text-align: center; color: var(--text-muted); font-style: italic; }
+.sqle-status { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-light); font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.sqle-status.error { color: #e74c3c; }
 `;
     document.head.appendChild(style);
 })();
@@ -693,7 +741,7 @@ PluginRegistry.registerToolbox({
     icon: '🛠️',
     color: '#3498db',
     version: '1.0.0',
-    tools: ['jwt-decoder', 'code-formatter', 'regex-tester', 'cron-expression', 'epoch-converter', 'base64-encoder', 'lorem-ipsum', 'ascii-codes', 'diff-viewer', 'sequence-diagram', 'http-request-builder', 'hash-generator', 'password-generator', 'case-converter', 'uuid-generator', 'url-parser', 'qr-code-generator', 'jsonpath-tester', 'number-base-converter', 'directory-structure'],
+    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'hash-generator', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sequence-diagram', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
     source: 'external'
 });
 
@@ -1635,7 +1683,50 @@ PluginRegistry.registerTool({
     defaultHeight: 440
 });
 
-console.log('Developer Tools plugin loaded: 21 tools registered');
+// SQL Query Explainer
+PluginRegistry.registerTool({
+    id: 'sql-query-explainer',
+    name: 'SQL Explainer',
+    description: 'Parse and explain SQL queries in plain English',
+    icon: '🔍',
+    version: '1.0.0',
+    toolbox: 'developer-tools',
+    tags: ['sql', 'query', 'explain', 'database', 'select', 'join', 'parse'],
+    title: 'SQL Explainer',
+    content: '<div class="sqle-widget">' +
+        '<div class="sqle-toolbar">' +
+            '<div class="sqle-sample-btn" onclick="sqleToggleSampleMenu(this)">' +
+                'Sample ▼' +
+                '<div class="sqle-sample-menu">' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 0)">Basic SELECT</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 1)">JOIN query</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 2)">Aggregate / GROUP BY</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 3)">INSERT INTO</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 4)">UPDATE</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 5)">DELETE</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 6)">Subquery</div>' +
+                    '<div class="sqle-sample-item" onclick="event.stopPropagation();sqleSample(this, 7)">CREATE TABLE</div>' +
+                '</div>' +
+            '</div>' +
+            '<span class="sqle-toolbar-spacer"></span>' +
+            '<button class="sqle-action-btn" onclick="sqleCopy(this)">Copy</button>' +
+            '<button class="sqle-action-btn" onclick="sqleClear(this)">Clear</button>' +
+        '</div>' +
+        '<div class="sqle-input-pane">' +
+            '<label>SQL Query <span class="sqle-char-count"></span></label>' +
+            '<textarea class="sqle-input" placeholder="Enter a SQL query to explain..." oninput="sqleOnInput(this)"></textarea>' +
+        '</div>' +
+        '<div class="sqle-output"><div class="sqle-empty">Enter a SQL query above to see its explanation</div></div>' +
+        '<div class="sqle-status"></div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'sqleInit',
+    source: 'external',
+    defaultWidth: 440,
+    defaultHeight: 480
+});
+
+console.log('Developer Tools plugin loaded: 22 tools registered');
 
 // ==================== Diff Viewer Functions ====================
 function diffGetToolId(element) {
@@ -5607,6 +5698,432 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// ==================== SQL Query Explainer Functions ====================
+
+const SQLE_SAMPLES = [
+    "SELECT name, email FROM users WHERE active = true ORDER BY name",
+    "SELECT o.id, c.name, o.total FROM orders o INNER JOIN customers c ON o.customer_id = c.id WHERE o.total > 100",
+    "SELECT department, COUNT(*) as total, AVG(salary) as avg_salary FROM employees GROUP BY department HAVING COUNT(*) > 5 ORDER BY avg_salary DESC",
+    "INSERT INTO users (name, email, role) VALUES ('Alice', 'alice@example.com', 'admin')",
+    "UPDATE products SET price = price * 1.1, updated_at = NOW() WHERE category = 'electronics'",
+    "DELETE FROM sessions WHERE last_active < '2024-01-01'",
+    "SELECT name FROM users WHERE id IN (SELECT user_id FROM orders WHERE total > 500)",
+    "CREATE TABLE posts (id INT PRIMARY KEY AUTO_INCREMENT, title VARCHAR(255) NOT NULL, body TEXT, author_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+];
+
+function sqleGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.dataset.tool : null;
+}
+
+function sqleGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const custom = customizations[toolId] || {};
+    return custom.sqlExplainData || { query: '' };
+}
+
+function sqleSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].sqlExplainData = data;
+    saveToolCustomizations(customizations);
+}
+
+function sqleInit() {
+    document.querySelectorAll('.sqle-widget').forEach(function(widget) {
+        const toolId = sqleGetToolId(widget);
+        if (!toolId) return;
+        const data = sqleGetData(toolId);
+        const input = widget.querySelector('.sqle-input');
+        if (data.query) {
+            input.value = data.query;
+            sqleParse(widget);
+        }
+    });
+}
+
+function sqleOnInput(el) {
+    const widget = el.closest('.sqle-widget');
+    const toolId = sqleGetToolId(widget);
+    if (!toolId) return;
+    const query = el.value;
+    sqleSaveData(toolId, { query: query });
+    const charCount = widget.querySelector('.sqle-char-count');
+    if (charCount) charCount.textContent = query.length > 0 ? query.length + ' chars' : '';
+    sqleParse(widget);
+}
+
+function sqleParse(widget) {
+    const input = widget.querySelector('.sqle-input');
+    const output = widget.querySelector('.sqle-output');
+    const status = widget.querySelector('.sqle-status');
+    const query = input.value.trim();
+
+    if (!query) {
+        output.innerHTML = '<div class="sqle-empty">Enter a SQL query above to see its explanation</div>';
+        status.textContent = '';
+        status.className = 'sqle-status';
+        return;
+    }
+
+    var result = sqleExtractClauses(query);
+    sqleRender(widget, result.clauses, result.summary, result.error);
+}
+
+function sqleExtractClauses(query) {
+    var q = query.replace(/\s+/g, ' ').trim();
+    // Remove trailing semicolon
+    if (q.endsWith(';')) q = q.slice(0, -1).trim();
+    var upper = q.toUpperCase();
+    var clauses = [];
+    var summary = '';
+    var error = null;
+
+    // Detect statement type
+    if (upper.startsWith('SELECT')) {
+        summary = sqleParseSelect(q, upper, clauses);
+    } else if (upper.startsWith('INSERT')) {
+        summary = sqleParseInsert(q, upper, clauses);
+    } else if (upper.startsWith('UPDATE')) {
+        summary = sqleParseUpdate(q, upper, clauses);
+    } else if (upper.startsWith('DELETE')) {
+        summary = sqleParseDelete(q, upper, clauses);
+    } else if (upper.startsWith('CREATE TABLE')) {
+        summary = sqleParseCreate(q, upper, clauses);
+    } else if (upper.startsWith('ALTER TABLE')) {
+        summary = sqleParseAlter(q, upper, clauses);
+    } else if (upper.startsWith('DROP TABLE')) {
+        summary = sqleParseDropTable(q, upper, clauses);
+    } else {
+        error = 'Unrecognized statement type. Supported: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE';
+    }
+
+    return { clauses: clauses, summary: summary, error: error };
+}
+
+function sqleFindKeyword(upper, keyword, startFrom) {
+    // Find keyword at word boundary (not inside a string or subquery)
+    var depth = 0;
+    var inSingle = false;
+    var inDouble = false;
+    var kw = keyword.toUpperCase();
+    for (var i = startFrom || 0; i < upper.length; i++) {
+        var c = upper[i];
+        if (c === "'" && !inDouble) inSingle = !inSingle;
+        else if (c === '"' && !inSingle) inDouble = !inDouble;
+        if (inSingle || inDouble) continue;
+        if (c === '(') depth++;
+        else if (c === ')') depth--;
+        if (depth > 0) continue;
+        if (upper.substring(i, i + kw.length) === kw) {
+            // Check word boundary before
+            if (i > 0 && /[A-Z0-9_]/.test(upper[i - 1])) continue;
+            // Check word boundary after
+            var afterIdx = i + kw.length;
+            if (afterIdx < upper.length && /[A-Z0-9_]/.test(upper[afterIdx])) continue;
+            return i;
+        }
+    }
+    return -1;
+}
+
+function sqleSplitByKeywords(query, upper, keywords) {
+    var parts = [];
+    var positions = [];
+    for (var k = 0; k < keywords.length; k++) {
+        var kw = keywords[k];
+        var pos = sqleFindKeyword(upper, kw, 0);
+        if (pos >= 0) positions.push({ keyword: kw, pos: pos });
+    }
+    positions.sort(function(a, b) { return a.pos - b.pos; });
+    for (var i = 0; i < positions.length; i++) {
+        var start = positions[i].pos + positions[i].keyword.length;
+        var end = (i + 1 < positions.length) ? positions[i + 1].pos : query.length;
+        parts.push({ keyword: positions[i].keyword, content: query.substring(start, end).trim() });
+    }
+    return parts;
+}
+
+function sqleParseSelect(query, upper, clauses) {
+    var keywords = ['SELECT', 'DISTINCT', 'FROM', 'INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'CROSS JOIN', 'JOIN', 'ON', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT', 'OFFSET', 'UNION ALL', 'UNION', 'INTERSECT', 'EXCEPT'];
+    var parts = sqleSplitByKeywords(query, upper, keywords);
+    var tableName = '?';
+    var isDistinct = false;
+
+    for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        var kw = p.keyword;
+        var content = p.content;
+
+        if (kw === 'DISTINCT') {
+            isDistinct = true;
+            // The content after DISTINCT is the column list if FROM hasn't been found yet
+            // We handle this by checking if this content is actually columns
+            if (content && sqleFindKeyword(content.toUpperCase(), 'FROM', 0) === -1) {
+                clauses.push({ keyword: 'DISTINCT', content: content, description: 'Selects only unique rows for columns: ' + content, cssClass: 'sqle-kw-distinct' });
+            } else {
+                clauses.push({ keyword: 'DISTINCT', content: '', description: 'Selects only unique (non-duplicate) rows', cssClass: 'sqle-kw-distinct' });
+            }
+            continue;
+        }
+
+        if (kw === 'SELECT') {
+            var cols = content;
+            if (cols === '*') {
+                clauses.push({ keyword: 'SELECT', content: cols, description: 'Selects all columns', cssClass: 'sqle-kw-select' });
+            } else {
+                clauses.push({ keyword: 'SELECT', content: cols, description: 'Selects columns: ' + cols, cssClass: 'sqle-kw-select' });
+            }
+        } else if (kw === 'FROM') {
+            tableName = content;
+            clauses.push({ keyword: 'FROM', content: content, description: 'From table: ' + content, cssClass: 'sqle-kw-from' });
+        } else if (kw.indexOf('JOIN') !== -1) {
+            // Find the ON part — look at the next part
+            var onContent = '';
+            if (i + 1 < parts.length && parts[i + 1].keyword === 'ON') {
+                onContent = parts[i + 1].content;
+                i++; // skip ON part
+            }
+            var joinType = kw.replace(' JOIN', '').toLowerCase();
+            if (kw === 'JOIN') joinType = 'inner';
+            var desc = joinType.charAt(0).toUpperCase() + joinType.slice(1) + ' joins with ' + content;
+            if (onContent) desc += ' where ' + onContent;
+            clauses.push({ keyword: kw, content: content + (onContent ? ' ON ' + onContent : ''), description: desc, cssClass: 'sqle-kw-join' });
+        } else if (kw === 'ON') {
+            // Handled with JOIN above; if standalone, just show it
+            clauses.push({ keyword: 'ON', content: content, description: 'Join condition: ' + content, cssClass: 'sqle-kw-join' });
+        } else if (kw === 'WHERE') {
+            // Check for subqueries
+            var whereDesc = 'Filters rows where ' + content;
+            if (/\bIN\s*\(/i.test(content) || /\bEXISTS\s*\(/i.test(content) || /\bANY\s*\(/i.test(content) || /\bALL\s*\(/i.test(content)) {
+                whereDesc += ' (contains subquery)';
+            }
+            clauses.push({ keyword: 'WHERE', content: content, description: whereDesc, cssClass: 'sqle-kw-where' });
+        } else if (kw === 'GROUP BY') {
+            clauses.push({ keyword: 'GROUP BY', content: content, description: 'Groups results by: ' + content, cssClass: 'sqle-kw-group' });
+        } else if (kw === 'HAVING') {
+            clauses.push({ keyword: 'HAVING', content: content, description: 'Filters groups where ' + content, cssClass: 'sqle-kw-having' });
+        } else if (kw === 'ORDER BY') {
+            var orderDesc = 'Orders results by ' + content;
+            if (/\bASC\b/i.test(content)) orderDesc += ' (ascending)';
+            if (/\bDESC\b/i.test(content)) orderDesc += ' (descending)';
+            clauses.push({ keyword: 'ORDER BY', content: content, description: orderDesc, cssClass: 'sqle-kw-order' });
+        } else if (kw === 'LIMIT') {
+            clauses.push({ keyword: 'LIMIT', content: content, description: 'Returns at most ' + content + ' row(s)', cssClass: 'sqle-kw-limit' });
+        } else if (kw === 'OFFSET') {
+            clauses.push({ keyword: 'OFFSET', content: content, description: 'Skips the first ' + content + ' row(s)', cssClass: 'sqle-kw-offset' });
+        } else if (kw === 'UNION ALL' || kw === 'UNION' || kw === 'INTERSECT' || kw === 'EXCEPT') {
+            var setDesc = kw === 'UNION ALL' ? 'Combines all rows (including duplicates) with another query'
+                : kw === 'UNION' ? 'Combines unique rows with another query'
+                : kw === 'INTERSECT' ? 'Returns only rows common to both queries'
+                : 'Returns rows from the first query that are not in the second';
+            clauses.push({ keyword: kw, content: content, description: setDesc, cssClass: 'sqle-kw-union' });
+        }
+    }
+
+    var summary = 'Retrieves ' + (isDistinct ? 'distinct ' : '') + 'data from ' + tableName;
+    return summary;
+}
+
+function sqleParseInsert(query, upper, clauses) {
+    var match = query.match(/INSERT\s+INTO\s+(\S+)\s*\(([^)]*)\)/i);
+    var tableName = '?';
+    var columns = '';
+    if (match) {
+        tableName = match[1];
+        columns = match[2].trim();
+        clauses.push({ keyword: 'INSERT INTO', content: tableName, description: 'Inserts a new row into table: ' + tableName, cssClass: 'sqle-kw-insert' });
+        clauses.push({ keyword: 'COLUMNS', content: columns, description: 'Target columns: ' + columns, cssClass: 'sqle-kw-into' });
+    } else {
+        var simpleMatch = query.match(/INSERT\s+INTO\s+(\S+)/i);
+        if (simpleMatch) {
+            tableName = simpleMatch[1];
+            clauses.push({ keyword: 'INSERT INTO', content: tableName, description: 'Inserts a new row into table: ' + tableName, cssClass: 'sqle-kw-insert' });
+        }
+    }
+    var valuesMatch = query.match(/VALUES\s*\((.+)\)/i);
+    if (valuesMatch) {
+        clauses.push({ keyword: 'VALUES', content: valuesMatch[1].trim(), description: 'Values: ' + valuesMatch[1].trim(), cssClass: 'sqle-kw-values' });
+    }
+    return 'Inserts a new row into ' + tableName;
+}
+
+function sqleParseUpdate(query, upper, clauses) {
+    var tableMatch = query.match(/UPDATE\s+(\S+)/i);
+    var tableName = tableMatch ? tableMatch[1] : '?';
+    clauses.push({ keyword: 'UPDATE', content: tableName, description: 'Updates rows in table: ' + tableName, cssClass: 'sqle-kw-update' });
+
+    var setIdx = sqleFindKeyword(upper, 'SET', 0);
+    var whereIdx = sqleFindKeyword(upper, 'WHERE', 0);
+    if (setIdx >= 0) {
+        var setEnd = whereIdx >= 0 ? whereIdx : query.length;
+        var setContent = query.substring(setIdx + 3, setEnd).trim();
+        clauses.push({ keyword: 'SET', content: setContent, description: 'Sets: ' + setContent, cssClass: 'sqle-kw-set' });
+    }
+    if (whereIdx >= 0) {
+        var whereContent = query.substring(whereIdx + 5).trim();
+        clauses.push({ keyword: 'WHERE', content: whereContent, description: 'Only where ' + whereContent, cssClass: 'sqle-kw-where' });
+    }
+    return 'Updates rows in ' + tableName + (whereIdx >= 0 ? ' (conditionally)' : ' (all rows!)');
+}
+
+function sqleParseDelete(query, upper, clauses) {
+    var tableMatch = query.match(/DELETE\s+FROM\s+(\S+)/i);
+    var tableName = tableMatch ? tableMatch[1] : '?';
+    clauses.push({ keyword: 'DELETE FROM', content: tableName, description: 'Deletes rows from table: ' + tableName, cssClass: 'sqle-kw-delete' });
+
+    var whereIdx = sqleFindKeyword(upper, 'WHERE', 0);
+    if (whereIdx >= 0) {
+        var whereContent = query.substring(whereIdx + 5).trim();
+        clauses.push({ keyword: 'WHERE', content: whereContent, description: 'Only where ' + whereContent, cssClass: 'sqle-kw-where' });
+    }
+    return 'Deletes rows from ' + tableName + (whereIdx >= 0 ? ' (conditionally)' : ' (all rows!)');
+}
+
+function sqleParseCreate(query, upper, clauses) {
+    var tableMatch = query.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\S+)/i);
+    var tableName = tableMatch ? tableMatch[1] : '?';
+    clauses.push({ keyword: 'CREATE TABLE', content: tableName, description: 'Creates a new table: ' + tableName, cssClass: 'sqle-kw-create' });
+
+    // Extract column definitions from parentheses
+    var parenStart = query.indexOf('(');
+    var parenEnd = query.lastIndexOf(')');
+    if (parenStart >= 0 && parenEnd > parenStart) {
+        var colDefs = query.substring(parenStart + 1, parenEnd).trim();
+        // Split by commas that are not inside parentheses
+        var cols = [];
+        var depth = 0;
+        var current = '';
+        for (var i = 0; i < colDefs.length; i++) {
+            if (colDefs[i] === '(') depth++;
+            else if (colDefs[i] === ')') depth--;
+            else if (colDefs[i] === ',' && depth === 0) {
+                cols.push(current.trim());
+                current = '';
+                continue;
+            }
+            current += colDefs[i];
+        }
+        if (current.trim()) cols.push(current.trim());
+
+        for (var c = 0; c < cols.length; c++) {
+            var col = cols[c];
+            var colUpper = col.toUpperCase();
+            if (colUpper.indexOf('PRIMARY KEY') === 0 || colUpper.indexOf('FOREIGN KEY') === 0 || colUpper.indexOf('UNIQUE') === 0 || colUpper.indexOf('CHECK') === 0 || colUpper.indexOf('INDEX') === 0 || colUpper.indexOf('CONSTRAINT') === 0) {
+                clauses.push({ keyword: 'CONSTRAINT', content: col, description: 'Table constraint: ' + col, cssClass: 'sqle-kw-alter' });
+            } else {
+                var parts = col.split(/\s+/);
+                var colName = parts[0];
+                var colType = parts.length > 1 ? parts.slice(1).join(' ') : 'unknown';
+                clauses.push({ keyword: 'COLUMN', content: col, description: colName + ': ' + colType, cssClass: 'sqle-kw-from' });
+            }
+        }
+    }
+    return 'Creates table ' + tableName + ' with its columns and constraints';
+}
+
+function sqleParseAlter(query, upper, clauses) {
+    var tableMatch = query.match(/ALTER\s+TABLE\s+(\S+)/i);
+    var tableName = tableMatch ? tableMatch[1] : '?';
+    clauses.push({ keyword: 'ALTER TABLE', content: tableName, description: 'Modifies table: ' + tableName, cssClass: 'sqle-kw-alter' });
+
+    var rest = query.substring(query.toUpperCase().indexOf(tableName.toUpperCase()) + tableName.length).trim();
+    if (rest) {
+        clauses.push({ keyword: 'ACTION', content: rest, description: 'Action: ' + rest, cssClass: 'sqle-kw-set' });
+    }
+    return 'Alters the structure of table ' + tableName;
+}
+
+function sqleParseDropTable(query, upper, clauses) {
+    var tableMatch = query.match(/DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(\S+)/i);
+    var tableName = tableMatch ? tableMatch[1] : '?';
+    clauses.push({ keyword: 'DROP TABLE', content: tableName, description: 'Permanently removes table: ' + tableName, cssClass: 'sqle-kw-drop' });
+    return 'Drops (permanently deletes) table ' + tableName;
+}
+
+function sqleRender(widget, clauses, summary, error) {
+    var output = widget.querySelector('.sqle-output');
+    var status = widget.querySelector('.sqle-status');
+
+    if (error) {
+        output.innerHTML = '<div class="sqle-empty">' + sqleEscapeHtml(error) + '</div>';
+        status.textContent = 'Could not parse query';
+        status.className = 'sqle-status error';
+        return;
+    }
+
+    var html = '';
+    if (summary) {
+        html += '<div class="sqle-summary">' + sqleEscapeHtml(summary) + '</div>';
+    }
+    for (var i = 0; i < clauses.length; i++) {
+        var c = clauses[i];
+        html += '<div class="sqle-clause">' +
+            '<span class="sqle-clause-keyword ' + c.cssClass + '">' + sqleEscapeHtml(c.keyword) + '</span>' +
+            '<span class="sqle-clause-body">' + sqleEscapeHtml(c.description) + '</span>' +
+            '</div>';
+    }
+    output.innerHTML = html;
+    status.textContent = clauses.length + ' clause' + (clauses.length !== 1 ? 's' : '') + ' identified';
+    status.className = 'sqle-status';
+}
+
+function sqleEscapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function sqleToggleSampleMenu(btn) {
+    var menu = btn.querySelector('.sqle-sample-menu');
+    if (menu) menu.classList.toggle('open');
+    // Close on outside click
+    function close(e) {
+        if (!btn.contains(e.target)) {
+            menu.classList.remove('open');
+            document.removeEventListener('click', close);
+        }
+    }
+    setTimeout(function() { document.addEventListener('click', close); }, 0);
+}
+
+function sqleSample(el, idx) {
+    var widget = el.closest('.sqle-widget');
+    var input = widget.querySelector('.sqle-input');
+    var menu = widget.querySelector('.sqle-sample-menu');
+    if (menu) menu.classList.remove('open');
+    input.value = SQLE_SAMPLES[idx] || '';
+    var toolId = sqleGetToolId(widget);
+    if (toolId) sqleSaveData(toolId, { query: input.value });
+    var charCount = widget.querySelector('.sqle-char-count');
+    if (charCount) charCount.textContent = input.value.length + ' chars';
+    sqleParse(widget);
+}
+
+function sqleCopy(btn) {
+    var widget = btn.closest('.sqle-widget');
+    var output = widget.querySelector('.sqle-output');
+    var text = output.innerText || output.textContent || '';
+    navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 1200);
+    });
+}
+
+function sqleClear(btn) {
+    var widget = btn.closest('.sqle-widget');
+    var input = widget.querySelector('.sqle-input');
+    var output = widget.querySelector('.sqle-output');
+    var status = widget.querySelector('.sqle-status');
+    var charCount = widget.querySelector('.sqle-char-count');
+    input.value = '';
+    output.innerHTML = '<div class="sqle-empty">Enter a SQL query above to see its explanation</div>';
+    status.textContent = '';
+    status.className = 'sqle-status';
+    if (charCount) charCount.textContent = '';
+    var toolId = sqleGetToolId(widget);
+    if (toolId) sqleSaveData(toolId, { query: '' });
+}
+
 // Inject JavaScript functions into DOM for HTML export
 // The injected script only defines things if they don't already exist (for exported HTML)
 (function injectScriptsForExport() {
@@ -5666,7 +6183,12 @@ document.addEventListener('keydown', function(e) {
         dirtreeAddItem, dirtreeAddChild, dirtreeToggle, dirtreeUpdateName, dirtreeNameKeydown, dirtreeDelete,
         dirtreeDragStart, dirtreeDragOver, dirtreeDragLeave, dirtreeDrop,
         dirtreeToMarkdown, dirtreeFromMarkdown, dirtreeToggleMarkdown,
-        dirtreeToAsciiTree, dirtreeCopyTree
+        dirtreeToAsciiTree, dirtreeCopyTree,
+        sqleGetToolId, sqleGetData, sqleSaveData, sqleInit, sqleOnInput,
+        sqleParse, sqleExtractClauses, sqleFindKeyword, sqleSplitByKeywords,
+        sqleParseSelect, sqleParseInsert, sqleParseUpdate, sqleParseDelete,
+        sqleParseCreate, sqleParseAlter, sqleParseDropTable,
+        sqleRender, sqleEscapeHtml, sqleToggleSampleMenu, sqleSample, sqleCopy, sqleClear
     ];
 
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
@@ -5680,6 +6202,7 @@ document.addEventListener('keydown', function(e) {
         'window.ASCII_HTML_ENTITIES = ' + JSON.stringify(ASCII_HTML_ENTITIES) + ';\n' +
         'window.ASCII_RANGES = ' + JSON.stringify(ASCII_RANGES) + ';\n' +
         'window.PWGEN_CHARSETS = ' + JSON.stringify(PWGEN_CHARSETS) + ';\n' +
+        'window.SQLE_SAMPLES = ' + JSON.stringify(SQLE_SAMPLES) + ';\n' +
         functionsToExport.map(fn => 'window.' + fn.name + ' = ' + fn.toString()).join(';\n') + ';\n' +
         '})();';
     const encoded = btoa(unescape(encodeURIComponent(code)));
@@ -5692,4 +6215,4 @@ document.addEventListener('keydown', function(e) {
     (document.body || document.head).appendChild(script);
 })();
 
-console.log('Developer Tools plugin loaded: 21 tools');
+console.log('Developer Tools plugin loaded: 22 tools');
