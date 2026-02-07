@@ -638,6 +638,49 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .nbc-info-item strong { color: var(--text-primary); }
 .nbc-copy-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); cursor: pointer; font-size: 10px; padding: 2px 8px; border-radius: 3px; margin-left: auto; }
 .nbc-copy-btn:hover { background: var(--table-hover); color: var(--text-primary); }
+
+/* Directory Structure Widget */
+.tool-content:has(.dirtree-widget) { display: flex; flex-direction: column; }
+.dirtree-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.dirtree-input-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; flex-shrink: 0; }
+.dirtree-input-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: var(--input-bg); color: var(--text-primary); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+.dirtree-input-row input:focus { outline: none; border-color: #3498db; }
+.dirtree-type-toggle { display: flex; gap: 0; }
+.dirtree-type-btn { padding: 6px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 13px; line-height: 1; }
+.dirtree-type-btn:first-child { border-radius: 4px 0 0 4px; }
+.dirtree-type-btn:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+.dirtree-type-btn.active { background: #3498db; border-color: #3498db; color: white; }
+.dirtree-add-btn { padding: 7px 14px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.dirtree-add-btn:hover { background: #219a52; }
+.dirtree-items { flex: 1; overflow-y: auto; min-height: 0; }
+.dirtree-item { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 4px; margin-bottom: 1px; transition: background 0.15s, opacity 0.15s, box-shadow 0.15s; }
+.dirtree-item:hover { background: var(--table-hover); }
+.dirtree-item.dragging { opacity: 0.5; box-shadow: 0 2px 8px var(--shadow-medium); }
+.dirtree-item.drag-over { border-top: 2px solid #3498db; margin-top: -2px; }
+.dirtree-drag { cursor: grab; color: var(--text-muted); font-size: 12px; padding: 2px; opacity: 0.4; transition: opacity 0.15s; }
+.dirtree-item:hover .dirtree-drag { opacity: 1; }
+.dirtree-drag:active { cursor: grabbing; }
+.dirtree-expand { cursor: pointer; font-size: 10px; color: var(--text-muted); width: 16px; text-align: center; transition: transform 0.15s; user-select: none; }
+.dirtree-expand.expanded { transform: rotate(90deg); }
+.dirtree-expand-spacer { width: 16px; flex-shrink: 0; }
+.dirtree-icon { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+.dirtree-name { flex: 1; font-size: 13px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; word-break: break-word; cursor: text; padding: 2px 4px; border-radius: 3px; min-height: 1.4em; }
+.dirtree-name:hover { background: rgba(0,0,0,0.05); }
+.dirtree-name:focus { outline: none; background: var(--input-bg); box-shadow: 0 0 0 2px #3498db; }
+.dirtree-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; }
+.dirtree-item:hover .dirtree-actions { opacity: 1; }
+.dirtree-action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 3px; transition: color 0.15s, background 0.15s; }
+.dirtree-action-btn:hover { background: rgba(0,0,0,0.1); color: var(--text-primary); }
+.dirtree-action-btn.delete:hover { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+.dirtree-children { margin-left: 20px; padding-left: 8px; border-left: 2px solid var(--border-light); }
+.dirtree-children.collapsed { display: none; }
+.dirtree-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-light); font-size: 11px; color: var(--text-muted); flex-shrink: 0; gap: 6px; }
+.dirtree-footer-buttons { display: flex; gap: 4px; }
+.dirtree-md-btn { background: none; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 2px 8px; border-radius: 3px; transition: all 0.15s; white-space: nowrap; }
+.dirtree-md-btn:hover { border-color: #3498db; color: #3498db; }
+.dirtree-md-btn.active { background: #3498db; border-color: #3498db; color: white; }
+.dirtree-markdown-editor { width: 100%; min-height: 150px; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; line-height: 1.6; background: var(--input-bg); color: var(--text-primary); resize: vertical; box-sizing: border-box; tab-size: 2; flex: 1; }
+.dirtree-markdown-editor:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
 `;
     document.head.appendChild(style);
 })();
@@ -650,7 +693,7 @@ PluginRegistry.registerToolbox({
     icon: '🛠️',
     color: '#3498db',
     version: '1.0.0',
-    tools: ['jwt-decoder', 'code-formatter', 'regex-tester', 'cron-expression', 'epoch-converter', 'base64-encoder', 'lorem-ipsum', 'ascii-codes', 'diff-viewer', 'sequence-diagram', 'http-request-builder', 'hash-generator', 'password-generator', 'case-converter', 'uuid-generator', 'url-parser', 'qr-code-generator', 'jsonpath-tester', 'number-base-converter'],
+    tools: ['jwt-decoder', 'code-formatter', 'regex-tester', 'cron-expression', 'epoch-converter', 'base64-encoder', 'lorem-ipsum', 'ascii-codes', 'diff-viewer', 'sequence-diagram', 'http-request-builder', 'hash-generator', 'password-generator', 'case-converter', 'uuid-generator', 'url-parser', 'qr-code-generator', 'jsonpath-tester', 'number-base-converter', 'directory-structure'],
     source: 'external'
 });
 
@@ -1556,7 +1599,43 @@ PluginRegistry.registerTool({
     defaultHeight: 440
 });
 
-console.log('Developer Tools plugin loaded: 20 tools registered');
+// Directory Structure
+PluginRegistry.registerTool({
+    id: 'directory-structure',
+    name: 'Directory Structure',
+    description: 'Create and visualize directory/file tree structures',
+    icon: '🗂️',
+    version: '1.0.0',
+    toolbox: 'developer-tools',
+    tags: ['directory', 'tree', 'folder', 'file', 'structure', 'project', 'ascii', 'layout'],
+    title: 'Directory Structure',
+    content: '<div class="dirtree-widget">' +
+        '<div class="dirtree-input-row">' +
+            '<input type="text" class="dirtree-input" placeholder="Add file or folder...">' +
+            '<div class="dirtree-type-toggle">' +
+                '<button class="dirtree-type-btn active" onclick="this.parentElement.querySelectorAll(\'.dirtree-type-btn\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')" data-type="file" title="File">📄</button>' +
+                '<button class="dirtree-type-btn" onclick="this.parentElement.querySelectorAll(\'.dirtree-type-btn\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')" data-type="folder" title="Folder">📁</button>' +
+            '</div>' +
+            '<button class="dirtree-add-btn" onclick="dirtreeAddItem(this)">Add</button>' +
+        '</div>' +
+        '<div class="dirtree-items"></div>' +
+        '<textarea class="dirtree-markdown-editor" style="display:none;"></textarea>' +
+        '<div class="dirtree-footer">' +
+            '<span class="dirtree-summary-text">No items yet</span>' +
+            '<div class="dirtree-footer-buttons">' +
+                '<button class="dirtree-md-btn" onclick="dirtreeCopyTree(this)" title="Copy as ASCII tree">📋 Copy Tree</button>' +
+                '<button class="dirtree-md-btn" onclick="dirtreeToggleMarkdown(this)" title="Edit as markdown">✎ Markdown</button>' +
+            '</div>' +
+        '</div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'dirtreeInit',
+    source: 'external',
+    defaultWidth: 380,
+    defaultHeight: 440
+});
+
+console.log('Developer Tools plugin loaded: 21 tools registered');
 
 // ==================== Diff Viewer Functions ====================
 function diffGetToolId(element) {
@@ -5083,6 +5162,451 @@ function jpPreset(btn, path) {
     jpQuery(pathInput);
 }
 
+// ==================== Directory Structure Functions ====================
+let dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
+
+// Core data
+function dirtreeGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function dirtreeGetData(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    return custom.dirtreeItems || [];
+}
+
+function dirtreeSaveData(toolId, items) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].dirtreeItems = items;
+    saveToolCustomizations(toolCustomizations);
+}
+
+// Path navigation (arbitrary depth)
+function dirtreeGetItemByPath(items, path) {
+    const parts = path.split('.').map(Number);
+    let current = items[parts[0]];
+    for (let i = 1; i < parts.length; i++) {
+        if (!current || !current.children) return null;
+        current = current.children[parts[i]];
+    }
+    return current;
+}
+
+function dirtreeSetItemByPath(items, path, value) {
+    const parts = path.split('.').map(Number);
+    if (parts.length === 1) {
+        if (value === null) items.splice(parts[0], 1);
+        else items[parts[0]] = value;
+        return;
+    }
+    let parent = items[parts[0]];
+    for (let i = 1; i < parts.length - 1; i++) {
+        if (!parent || !parent.children) return;
+        parent = parent.children[parts[i]];
+    }
+    if (!parent || !parent.children) return;
+    const lastIdx = parts[parts.length - 1];
+    if (value === null) parent.children.splice(lastIdx, 1);
+    else parent.children[lastIdx] = value;
+}
+
+function dirtreeGetParentArray(items, path) {
+    const parts = path.split('.').map(Number);
+    if (parts.length === 1) return items;
+    let parent = items[parts[0]];
+    for (let i = 1; i < parts.length - 1; i++) {
+        if (!parent || !parent.children) return null;
+        parent = parent.children[parts[i]];
+    }
+    return parent ? parent.children : null;
+}
+
+// Init & rendering
+function dirtreeInit() {
+    document.querySelectorAll('.dirtree-widget').forEach(widget => {
+        const toolId = dirtreeGetToolId(widget);
+        if (toolId) dirtreeRender(widget, toolId);
+    });
+}
+
+function dirtreeRender(widget, toolId) {
+    const items = dirtreeGetData(toolId);
+    const listEl = widget.querySelector('.dirtree-items');
+    const summaryEl = widget.querySelector('.dirtree-summary-text');
+    if (!listEl) return;
+
+    listEl.innerHTML = items.map((item, idx) => dirtreeRenderItem(item, idx, '')).join('');
+
+    let fileCount = 0, folderCount = 0;
+    const countItems = (arr) => {
+        arr.forEach(item => {
+            if (item.type === 'folder') { folderCount++; if (item.children) countItems(item.children); }
+            else fileCount++;
+        });
+    };
+    countItems(items);
+
+    if (summaryEl) {
+        if (fileCount + folderCount > 0) {
+            const parts = [];
+            if (fileCount > 0) parts.push(`${fileCount} file${fileCount !== 1 ? 's' : ''}`);
+            if (folderCount > 0) parts.push(`${folderCount} folder${folderCount !== 1 ? 's' : ''}`);
+            summaryEl.textContent = parts.join(', ');
+        } else {
+            summaryEl.textContent = 'No items yet';
+        }
+    }
+}
+
+function dirtreeRenderItem(item, idx, parentPath) {
+    const path = parentPath ? `${parentPath}.${idx}` : `${idx}`;
+    const isFolder = item.type === 'folder';
+    const isExpanded = item.expanded !== false;
+    const icon = isFolder ? (isExpanded ? '📂' : '📁') : '📄';
+
+    let expandHtml;
+    if (isFolder) {
+        expandHtml = `<span class="dirtree-expand${isExpanded ? ' expanded' : ''}" onclick="dirtreeToggle(this, '${path}')">▶</span>`;
+    } else {
+        expandHtml = '<span class="dirtree-expand-spacer"></span>';
+    }
+
+    let childrenHtml = '';
+    if (isFolder && item.children && item.children.length > 0) {
+        childrenHtml = `<div class="dirtree-children${isExpanded ? '' : ' collapsed'}">${
+            item.children.map((child, cIdx) => dirtreeRenderItem(child, cIdx, path)).join('')
+        }</div>`;
+    } else if (isFolder) {
+        childrenHtml = `<div class="dirtree-children${isExpanded ? '' : ' collapsed'}"></div>`;
+    }
+
+    const folderActions = isFolder
+        ? `<button class="dirtree-action-btn" onclick="dirtreeAddChild(this, '${path}', 'file')" title="Add file">+📄</button>` +
+          `<button class="dirtree-action-btn" onclick="dirtreeAddChild(this, '${path}', 'folder')" title="Add folder">+📁</button>`
+        : '';
+
+    return `<div class="dirtree-item-wrapper" data-path="${path}">` +
+        `<div class="dirtree-item" draggable="true" data-path="${path}" ` +
+            `ondragstart="dirtreeDragStart(event, '${path}')" ` +
+            `ondragover="dirtreeDragOver(event)" ` +
+            `ondragleave="dirtreeDragLeave(event)" ` +
+            `ondrop="dirtreeDrop(event, '${path}')">` +
+            `<span class="dirtree-drag">⋮⋮</span>` +
+            expandHtml +
+            `<span class="dirtree-icon">${icon}</span>` +
+            `<span class="dirtree-name" contenteditable="true" ` +
+                `onblur="dirtreeUpdateName(this, '${path}')" ` +
+                `onkeydown="dirtreeNameKeydown(event, this)">${escapeHtml(item.name)}</span>` +
+            `<span class="dirtree-actions">` +
+                folderActions +
+                `<button class="dirtree-action-btn delete" onclick="dirtreeDelete(this, '${path}')" title="Delete">×</button>` +
+            `</span>` +
+        `</div>` +
+        childrenHtml +
+    `</div>`;
+}
+
+// User actions
+function dirtreeAddItem(btn) {
+    const widget = btn.closest('.dirtree-widget');
+    const input = widget.querySelector('.dirtree-input');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId || !input.value.trim()) return;
+
+    const activeTypeBtn = widget.querySelector('.dirtree-type-btn.active');
+    const type = activeTypeBtn ? activeTypeBtn.getAttribute('data-type') : 'file';
+
+    const items = dirtreeGetData(toolId);
+    const newItem = { name: input.value.trim(), type: type, children: [] };
+    if (type === 'folder') newItem.expanded = true;
+    items.push(newItem);
+    dirtreeSaveData(toolId, items);
+
+    input.value = '';
+    dirtreeRender(widget, toolId);
+}
+
+function dirtreeAddChild(btn, path, type) {
+    const widget = btn.closest('.dirtree-widget');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId) return;
+
+    const items = dirtreeGetData(toolId);
+    const parent = dirtreeGetItemByPath(items, path);
+    if (!parent || parent.type !== 'folder') return;
+
+    if (!parent.children) parent.children = [];
+    const newItem = { name: type === 'folder' ? 'new-folder' : 'new-file', type: type, children: [] };
+    if (type === 'folder') newItem.expanded = true;
+    parent.children.push(newItem);
+    parent.expanded = true;
+    dirtreeSaveData(toolId, items);
+    dirtreeRender(widget, toolId);
+
+    // Auto-focus the new item's name
+    const newPath = `${path}.${parent.children.length - 1}`;
+    const newNameEl = widget.querySelector(`.dirtree-item[data-path="${newPath}"] .dirtree-name`);
+    if (newNameEl) {
+        newNameEl.focus();
+        const range = document.createRange();
+        range.selectNodeContents(newNameEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+function dirtreeToggle(el, path) {
+    const widget = el.closest('.dirtree-widget');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId) return;
+
+    const items = dirtreeGetData(toolId);
+    const item = dirtreeGetItemByPath(items, path);
+    if (!item || item.type !== 'folder') return;
+
+    item.expanded = !item.expanded;
+    dirtreeSaveData(toolId, items);
+    dirtreeRender(widget, toolId);
+}
+
+function dirtreeUpdateName(el, path) {
+    const widget = el.closest('.dirtree-widget');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId) return;
+
+    const items = dirtreeGetData(toolId);
+    const item = dirtreeGetItemByPath(items, path);
+    if (!item) return;
+
+    const newName = el.textContent.trim();
+    if (newName && newName !== item.name) {
+        item.name = newName;
+        dirtreeSaveData(toolId, items);
+    }
+}
+
+function dirtreeNameKeydown(e, el) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+    } else if (e.key === 'Escape') {
+        const widget = el.closest('.dirtree-widget');
+        const toolId = dirtreeGetToolId(widget);
+        if (!toolId) return;
+        const path = el.closest('.dirtree-item').getAttribute('data-path');
+        const items = dirtreeGetData(toolId);
+        const item = dirtreeGetItemByPath(items, path);
+        if (item) el.textContent = item.name;
+        el.blur();
+    }
+}
+
+function dirtreeDelete(btn, path) {
+    const widget = btn.closest('.dirtree-widget');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId) return;
+
+    const items = dirtreeGetData(toolId);
+    dirtreeSetItemByPath(items, path, null);
+    dirtreeSaveData(toolId, items);
+    dirtreeRender(widget, toolId);
+}
+
+// Drag & drop
+function dirtreeDragStart(e, path) {
+    const widget = e.target.closest('.dirtree-widget');
+    dirtreeDragState.dragging = path;
+    dirtreeDragState.toolId = dirtreeGetToolId(widget);
+    dirtreeDragState.parentPath = path.includes('.') ? path.substring(0, path.lastIndexOf('.')) : null;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function dirtreeDragOver(e) {
+    e.preventDefault();
+    const item = e.target.closest('.dirtree-item');
+    if (item && !item.classList.contains('dragging')) {
+        item.classList.add('drag-over');
+    }
+}
+
+function dirtreeDragLeave(e) {
+    const item = e.target.closest('.dirtree-item');
+    if (item) item.classList.remove('drag-over');
+}
+
+function dirtreeDrop(e, targetPath) {
+    e.preventDefault();
+    const targetItem = e.target.closest('.dirtree-item');
+    if (targetItem) targetItem.classList.remove('drag-over');
+
+    const sourcePath = dirtreeDragState.dragging;
+    const toolId = dirtreeDragState.toolId;
+
+    if (!sourcePath || !toolId || sourcePath === targetPath) {
+        dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
+        return;
+    }
+
+    // Only allow reordering within same level
+    const sourceParent = sourcePath.includes('.') ? sourcePath.substring(0, sourcePath.lastIndexOf('.')) : null;
+    const targetParent = targetPath.includes('.') ? targetPath.substring(0, targetPath.lastIndexOf('.')) : null;
+
+    if (sourceParent !== targetParent) {
+        dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
+        return;
+    }
+
+    const items = dirtreeGetData(toolId);
+    const sourceIdx = parseInt(sourcePath.split('.').pop());
+    const targetIdx = parseInt(targetPath.split('.').pop());
+
+    const arr = dirtreeGetParentArray(items, sourcePath);
+    if (!arr) {
+        dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
+        return;
+    }
+
+    const [moved] = arr.splice(sourceIdx, 1);
+    arr.splice(targetIdx, 0, moved);
+
+    dirtreeSaveData(toolId, items);
+
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .dirtree-widget`);
+    if (widget) dirtreeRender(widget, toolId);
+
+    dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
+}
+
+// Markdown
+function dirtreeToMarkdown(items, depth) {
+    depth = depth || 0;
+    let lines = [];
+    items.forEach(item => {
+        const indent = '  '.repeat(depth);
+        const suffix = item.type === 'folder' ? '/' : '';
+        lines.push(indent + item.name + suffix);
+        if (item.type === 'folder' && item.children && item.children.length > 0) {
+            lines = lines.concat(dirtreeToMarkdown(item.children, depth + 1));
+        }
+    });
+    return lines;
+}
+
+function dirtreeFromMarkdown(text) {
+    const lines = text.split('\n');
+    const root = [];
+    const stack = [{ children: root, depth: -1 }];
+
+    lines.forEach(line => {
+        if (!line.trim()) return;
+        const match = line.match(/^(\s*)(.*)/);
+        if (!match) return;
+        const depth = Math.floor(match[1].length / 2);
+        let name = match[2].trim();
+        if (!name) return;
+
+        const isFolder = name.endsWith('/');
+        if (isFolder) name = name.slice(0, -1);
+
+        const item = { name: name, type: isFolder ? 'folder' : 'file', children: [] };
+        if (isFolder) item.expanded = true;
+
+        // Pop stack to find parent at correct depth
+        while (stack.length > 1 && stack[stack.length - 1].depth >= depth) {
+            stack.pop();
+        }
+
+        stack[stack.length - 1].children.push(item);
+        if (isFolder) {
+            stack.push({ children: item.children, depth: depth });
+        }
+    });
+    return root;
+}
+
+function dirtreeToggleMarkdown(btn) {
+    const widget = btn.closest('.dirtree-widget');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId) return;
+
+    const listEl = widget.querySelector('.dirtree-items');
+    const editor = widget.querySelector('.dirtree-markdown-editor');
+    const inputRow = widget.querySelector('.dirtree-input-row');
+    const isEditing = editor.style.display !== 'none';
+
+    if (isEditing) {
+        const items = dirtreeFromMarkdown(editor.value);
+        dirtreeSaveData(toolId, items);
+        editor.style.display = 'none';
+        listEl.style.display = '';
+        if (inputRow) inputRow.style.display = '';
+        btn.classList.remove('active');
+        btn.textContent = '✎ Markdown';
+        dirtreeRender(widget, toolId);
+    } else {
+        const items = dirtreeGetData(toolId);
+        editor.value = dirtreeToMarkdown(items, 0).join('\n');
+        editor.style.display = '';
+        listEl.style.display = 'none';
+        if (inputRow) inputRow.style.display = 'none';
+        btn.classList.add('active');
+        btn.textContent = '✓ Apply';
+        editor.focus();
+    }
+}
+
+// ASCII tree
+function dirtreeToAsciiTree(items, prefix, isLast) {
+    prefix = prefix || '';
+    isLast = isLast || [];
+    let lines = [];
+    items.forEach((item, idx) => {
+        const last = idx === items.length - 1;
+        const connector = last ? '└── ' : '├── ';
+        const suffix = item.type === 'folder' ? '/' : '';
+        lines.push(prefix + connector + item.name + suffix);
+        if (item.type === 'folder' && item.children && item.children.length > 0) {
+            const childPrefix = prefix + (last ? '    ' : '│   ');
+            lines = lines.concat(dirtreeToAsciiTree(item.children, childPrefix));
+        }
+    });
+    return lines;
+}
+
+function dirtreeCopyTree(btn) {
+    const widget = btn.closest('.dirtree-widget');
+    const toolId = dirtreeGetToolId(widget);
+    if (!toolId) return;
+
+    const items = dirtreeGetData(toolId);
+    if (items.length === 0) return;
+
+    const tree = dirtreeToAsciiTree(items).join('\n');
+    navigator.clipboard.writeText(tree).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+    });
+}
+
+// Event listeners
+document.addEventListener('dragend', function(e) {
+    const item = e.target.closest('.dirtree-item');
+    if (item) item.classList.remove('dragging');
+    document.querySelectorAll('.dirtree-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.classList.contains('dirtree-input')) {
+        const widget = e.target.closest('.dirtree-widget');
+        const addBtn = widget.querySelector('.dirtree-add-btn');
+        if (addBtn) dirtreeAddItem(addBtn);
+    }
+});
+
 // Inject JavaScript functions into DOM for HTML export
 // The injected script only defines things if they don't already exist (for exported HTML)
 (function injectScriptsForExport() {
@@ -5135,7 +5659,14 @@ function jpPreset(btn, path) {
         jpGetToolId, jpGetData, jpSaveData, jpInit, jpSetupResizer,
         jpEvalPath, jpDescendants, jpFilterMatch, jpResolvePath, jpTokenize,
         jpQuery, jpExecute, jpEscapeHtml, jpLoadSample, jpPrettify,
-        jpCopyResult, jpClear, jpPreset
+        jpCopyResult, jpClear, jpPreset,
+        dirtreeGetToolId, dirtreeGetData, dirtreeSaveData,
+        dirtreeGetItemByPath, dirtreeSetItemByPath, dirtreeGetParentArray,
+        dirtreeInit, dirtreeRender, dirtreeRenderItem,
+        dirtreeAddItem, dirtreeAddChild, dirtreeToggle, dirtreeUpdateName, dirtreeNameKeydown, dirtreeDelete,
+        dirtreeDragStart, dirtreeDragOver, dirtreeDragLeave, dirtreeDrop,
+        dirtreeToMarkdown, dirtreeFromMarkdown, dirtreeToggleMarkdown,
+        dirtreeToAsciiTree, dirtreeCopyTree
     ];
 
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
@@ -5161,4 +5692,4 @@ function jpPreset(btn, path) {
     (document.body || document.head).appendChild(script);
 })();
 
-console.log('Developer Tools plugin loaded: 20 tools');
+console.log('Developer Tools plugin loaded: 21 tools');

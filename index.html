@@ -2615,6 +2615,86 @@ tr:hover {
 .ipinfo-class-b { background: #9b59b6; }
 .ipinfo-class-c { background: #27ae60; }
 
+/* YouTube Embed Widget */
+.ytembed-widget {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.ytembed-input-row {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.ytembed-input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    min-width: 0;
+}
+
+.ytembed-input:focus {
+    border-color: #3498db;
+}
+
+.ytembed-load-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    background: #e74c3c;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.ytembed-load-btn:hover {
+    background: #c0392b;
+}
+
+.ytembed-player {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ytembed-player iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 6px;
+    min-height: 180px;
+}
+
+.ytembed-placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+}
+
+.ytembed-error {
+    color: #e74c3c;
+    font-size: 12px;
+    text-align: center;
+    padding: 8px;
+}
+
 /* Calendar Widget Styles */
 .tool-content:has(.calendar-widget) {
     display: flex;
@@ -4798,6 +4878,21 @@ Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
 </div>
 </div>`,
         onInit: 'ipinfoInit'
+    },
+    'youtube-embed': {
+        id: 'youtube-embed',
+        name: 'YouTube Embed',
+        description: 'Embed YouTube videos by providing a URL',
+        icon: '▶️',
+        title: 'YouTube',
+        content: `<div class="ytembed-widget">
+<div class="ytembed-input-row">
+<input type="text" class="ytembed-input" placeholder="Paste YouTube URL..." spellcheck="false">
+<button class="ytembed-load-btn" onclick="ytembedLoad(this)">Load</button>
+</div>
+<div class="ytembed-player"></div>
+</div>`,
+        onInit: 'ytembedInit'
     }
 };
 
@@ -5075,7 +5170,7 @@ PluginRegistry.registerToolbox({
     description: 'General productivity tools',
     icon: '📋',
     color: '#9b59b6',
-    tools: ['simple-calculator', 'checklist', 'random-picker', 'calendar', 'stopwatch', 'dice-roller', 'ip-address-info']
+    tools: ['simple-calculator', 'checklist', 'random-picker', 'calendar', 'stopwatch', 'dice-roller', 'ip-address-info', 'youtube-embed']
 });
 
 PluginRegistry.registerToolbox({
@@ -5094,7 +5189,7 @@ PluginRegistry.registerToolbox({
 // ============================================================
 (function registerCoreTools() {
     // Tools to register (productivity + core only)
-    const coreToolIds = ['blank', 'simple-calculator', 'checklist', 'random-picker', 'calendar', 'stopwatch', 'dice-roller', 'ip-address-info'];
+    const coreToolIds = ['blank', 'simple-calculator', 'checklist', 'random-picker', 'calendar', 'stopwatch', 'dice-roller', 'ip-address-info', 'youtube-embed'];
 
     // Toolbox mappings
     const toolboxMap = {
@@ -5105,7 +5200,8 @@ PluginRegistry.registerToolbox({
         'calendar': 'productivity',
         'stopwatch': 'productivity',
         'dice-roller': 'productivity',
-        'ip-address-info': 'productivity'
+        'ip-address-info': 'productivity',
+        'youtube-embed': 'productivity'
     };
 
     // Tag mappings
@@ -5117,7 +5213,8 @@ PluginRegistry.registerToolbox({
         'calendar': ['date', 'events', 'schedule', 'ics'],
         'stopwatch': ['timer', 'time', 'lap', 'clock'],
         'dice-roller': ['dice', 'roll', 'board game', 'random', 'd6', 'game'],
-        'ip-address-info': ['ip', 'subnet', 'cidr', 'network', 'mask', 'address', 'ipv4', 'calculator']
+        'ip-address-info': ['ip', 'subnet', 'cidr', 'network', 'mask', 'address', 'ipv4', 'calculator'],
+        'youtube-embed': ['youtube', 'video', 'embed', 'watch', 'stream', 'media', 'player']
     };
 
     for (const id of coreToolIds) {
@@ -7289,6 +7386,111 @@ function ipinfoInit() {
                     `<tr><td>${cidr}</td><td>${mask}</td><td>${typeof addrs === 'number' ? addrs.toLocaleString() : addrs}</td></tr>`
                 ).join('') + '</table>';
         }
+    });
+}
+
+// ============================================================
+// YouTube Embed Widget
+// ============================================================
+
+function ytembedGetWidget(el) {
+    return el.closest('.ytembed-widget');
+}
+
+function ytembedGetToolId(el) {
+    const tool = el.closest('.tool');
+    return tool ? tool.dataset.tool : null;
+}
+
+function ytembedExtractId(url) {
+    url = url.trim();
+    // youtu.be/VIDEO_ID
+    let m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+    if (m) return { videoId: m[1], timestamp: ytembedParseTimestamp(url) };
+    // youtube.com/watch?v=VIDEO_ID
+    m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (m) return { videoId: m[1], timestamp: ytembedParseTimestamp(url) };
+    // youtube.com/embed/VIDEO_ID
+    m = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+    if (m) return { videoId: m[1], timestamp: ytembedParseTimestamp(url) };
+    // youtube.com/shorts/VIDEO_ID
+    m = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
+    if (m) return { videoId: m[1], timestamp: 0 };
+    // youtube.com/live/VIDEO_ID
+    m = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/);
+    if (m) return { videoId: m[1], timestamp: 0 };
+    // bare video ID (11 chars)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return { videoId: url, timestamp: 0 };
+    return null;
+}
+
+function ytembedParseTimestamp(url) {
+    // ?t=123 or &t=123 (seconds)
+    const m = url.match(/[?&]t=(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+}
+
+function ytembedLoad(btn) {
+    const widget = ytembedGetWidget(btn);
+    const input = widget.querySelector('.ytembed-input');
+    const player = widget.querySelector('.ytembed-player');
+    const url = input.value.trim();
+
+    if (!url) {
+        player.innerHTML = '<div class="ytembed-placeholder">Paste a YouTube URL above</div>';
+        ytembedSaveState(widget, '');
+        return;
+    }
+
+    const parsed = ytembedExtractId(url);
+    if (!parsed) {
+        player.innerHTML = '<div class="ytembed-error">Could not parse YouTube URL</div>';
+        return;
+    }
+
+    const src = 'https://www.youtube-nocookie.com/embed/' + parsed.videoId +
+        '?rel=0' + (parsed.timestamp ? '&start=' + parsed.timestamp : '');
+    player.innerHTML = '<iframe src="' + src + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    ytembedSaveState(widget, url);
+}
+
+function ytembedSaveState(widget, url) {
+    const toolId = ytembedGetToolId(widget);
+    if (!toolId) return;
+    const custom = toolCustomizations[toolId] || {};
+    custom.ytembedUrl = url;
+    toolCustomizations[toolId] = custom;
+    saveToolCustomizations(toolCustomizations);
+}
+
+function ytembedInit() {
+    document.querySelectorAll('.ytembed-widget').forEach(widget => {
+        const toolId = ytembedGetToolId(widget);
+        if (!toolId) return;
+        const custom = toolCustomizations[toolId] || {};
+        const savedUrl = custom.ytembedUrl || '';
+        const input = widget.querySelector('.ytembed-input');
+        const player = widget.querySelector('.ytembed-player');
+
+        if (savedUrl) {
+            input.value = savedUrl;
+            const parsed = ytembedExtractId(savedUrl);
+            if (parsed) {
+                const src = 'https://www.youtube-nocookie.com/embed/' + parsed.videoId +
+                    '?rel=0' + (parsed.timestamp ? '&start=' + parsed.timestamp : '');
+                player.innerHTML = '<iframe src="' + src + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+            }
+        } else {
+            player.innerHTML = '<div class="ytembed-placeholder">Paste a YouTube URL above</div>';
+        }
+
+        // Allow Enter key to load
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                ytembedLoad(widget.querySelector('.ytembed-load-btn'));
+            }
+        });
     });
 }
 
