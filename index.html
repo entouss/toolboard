@@ -14121,7 +14121,7 @@ function exportToolAsHtml(toolId) {
     // Check if this is an interactive tool that needs the full app
     const noteEl = document.querySelector(`[data-tool="${toolId}"]`);
     const contentEl = noteEl?.querySelector('.tool-content');
-    const isInteractiveTool = contentEl?.querySelector('.seq-widget, .diff-widget, .calendar-widget, .loan-calc-widget, .jwt-widget');
+    const isInteractiveTool = contentEl?.querySelector('.seq-widget, .diff-widget, .calendar-widget, .loan-calc-widget, .jwt-widget, .ftree-widget');
 
     if (isInteractiveTool) {
         // Use full-app export for interactive tools
@@ -14234,8 +14234,8 @@ function exportToolAsFullHtml(toolId, title) {
             [toolId]: {
                 x: 50,
                 y: 20,
-                w: pos.w || 500,
-                h: pos.h || 400,
+                width: pos.width || 500,
+                height: pos.height || 400,
                 z: 1
             }
         },
