@@ -182,6 +182,49 @@
 .ftree-form-actions button.danger { color: #e74c3c; border-color: #e74c3c; }
 .ftree-form-actions button.danger:hover { background: rgba(231, 76, 60, 0.1); }
 .ftree-form-empty { padding: 30px; text-align: center; color: var(--text-muted); font-style: italic; }
+
+/* Image Viewer Widget Styles */
+.tool-content:has(.imgv-widget) { display: flex; flex-direction: column; }
+.imgv-widget { padding: 0; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.imgv-input-row { display: flex; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
+.imgv-input-row input { flex: 1; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 3px; font-size: 11px; background: var(--input-bg); color: var(--text-primary); min-width: 0; }
+.imgv-input-row input:focus { outline: none; border-color: #3498db; }
+.imgv-input-row input::placeholder { color: var(--text-muted); }
+.imgv-input-row button { padding: 4px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 3px; flex-shrink: 0; }
+.imgv-input-row button:hover { background: var(--table-hover); }
+.imgv-display { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0; position: relative; }
+.imgv-display.dragover { outline: 2px dashed #3498db; outline-offset: -4px; }
+.imgv-display img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.imgv-display .imgv-placeholder { color: var(--text-muted); font-size: 11px; text-align: center; padding: 20px; line-height: 1.6; }
+.imgv-controls { max-height: 200px; overflow-y: auto; border-top: 1px solid var(--border-color); flex-shrink: 0; padding: 6px 8px; }
+.imgv-section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin: 4px 0 2px; }
+.imgv-section-label:first-child { margin-top: 0; }
+.imgv-slider-row { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
+.imgv-slider-row label { font-size: 10px; color: var(--text-secondary); width: 62px; flex-shrink: 0; }
+.imgv-slider-row input[type="range"] { flex: 1; min-width: 0; }
+.imgv-slider-row .imgv-val { font-size: 10px; font-family: monospace; color: var(--text-primary); width: 36px; text-align: right; flex-shrink: 0; }
+.imgv-flip-row { display: flex; gap: 4px; margin-top: 4px; align-items: center; }
+.imgv-flip-btn { padding: 2px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+.imgv-flip-btn:hover { background: var(--table-hover); }
+.imgv-flip-btn.active { background: #3498db; color: white; border-color: #3498db; }
+.imgv-reset-btn { margin-left: auto; padding: 2px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+.imgv-reset-btn:hover { background: var(--table-hover); }
+.imgv-trans-row { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
+.imgv-trans-row label { font-size: 10px; color: var(--text-secondary); width: 62px; flex-shrink: 0; }
+.imgv-trans-color { width: 24px; height: 20px; padding: 0; border: 1px solid var(--border-color); border-radius: 3px; cursor: pointer; flex-shrink: 0; }
+.imgv-pick-btn { padding: 2px 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+.imgv-pick-btn:hover { background: var(--table-hover); }
+.imgv-pick-btn.active { background: #e74c3c; color: white; border-color: #e74c3c; }
+.imgv-display.eyedropper { cursor: crosshair; }
+.imgv-display.eyedropper img { cursor: crosshair; }
+.imgv-widget.render-mode .imgv-input-row { display: none; }
+.imgv-widget.render-mode .imgv-controls { display: none; }
+.imgv-widget.render-mode .imgv-display { background-image: none; background: transparent; }
+.tool:has(.imgv-widget.render-mode) { background: transparent; box-shadow: none; }
+.imgv-mode-toggle { position: absolute; top: 6px; right: 6px; padding: 3px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; opacity: 0; transition: opacity 0.2s; z-index: 2; }
+.imgv-display:hover .imgv-mode-toggle { opacity: 1; }
+.imgv-widget.render-mode .imgv-mode-toggle { opacity: 0; }
+.imgv-widget.render-mode .imgv-display:hover .imgv-mode-toggle { opacity: 0.8; }
 `;
     document.head.appendChild(style);
 })();
@@ -2874,6 +2917,453 @@ function ftreeFormDelete(btn, personId) {
 }
 
 // =============================================
+// IMAGE VIEWER
+// =============================================
+
+var IMGV_DEFAULTS = {
+    brightness: 100, contrast: 100, saturate: 100, 'hue-rotate': 0,
+    blur: 0, grayscale: 0, sepia: 0, invert: 0, opacity: 100,
+    rotate: 0, scale: 100, flipH: false, flipV: false
+};
+
+function imgvGetWidget(el) {
+    return el.closest('.imgv-widget');
+}
+
+function imgvGetToolId(el) {
+    return el.closest('.tool').getAttribute('data-tool');
+}
+
+function imgvGetState(widget) {
+    var state = {};
+    widget.querySelectorAll('input[data-filter]').forEach(function(inp) {
+        state[inp.getAttribute('data-filter')] = parseFloat(inp.value);
+    });
+    widget.querySelectorAll('input[data-transform]').forEach(function(inp) {
+        state[inp.getAttribute('data-transform')] = parseFloat(inp.value);
+    });
+    state.flipH = widget.querySelector('.imgv-flip-btn[data-flip="H"]').classList.contains('active');
+    state.flipV = widget.querySelector('.imgv-flip-btn[data-flip="V"]').classList.contains('active');
+    return state;
+}
+
+function imgvBuildFilterString(state) {
+    var parts = [];
+    if (state.brightness !== 100) parts.push('brightness(' + (state.brightness / 100) + ')');
+    if (state.contrast !== 100) parts.push('contrast(' + (state.contrast / 100) + ')');
+    if (state.saturate !== 100) parts.push('saturate(' + (state.saturate / 100) + ')');
+    if (state['hue-rotate'] !== 0) parts.push('hue-rotate(' + state['hue-rotate'] + 'deg)');
+    if (state.blur !== 0) parts.push('blur(' + state.blur + 'px)');
+    if (state.grayscale !== 0) parts.push('grayscale(' + (state.grayscale / 100) + ')');
+    if (state.sepia !== 0) parts.push('sepia(' + (state.sepia / 100) + ')');
+    if (state.invert !== 0) parts.push('invert(' + (state.invert / 100) + ')');
+    if (state.opacity !== 100) parts.push('opacity(' + (state.opacity / 100) + ')');
+    return parts.length > 0 ? parts.join(' ') : 'none';
+}
+
+function imgvBuildTransformString(state) {
+    var parts = [];
+    if (state.rotate !== 0) parts.push('rotate(' + state.rotate + 'deg)');
+    var sx = (state.scale / 100) * (state.flipH ? -1 : 1);
+    var sy = (state.scale / 100) * (state.flipV ? -1 : 1);
+    if (sx !== 1 || sy !== 1) parts.push('scale(' + sx + ',' + sy + ')');
+    return parts.length > 0 ? parts.join(' ') : 'none';
+}
+
+function imgvApplyStyles(widget) {
+    var img = widget.querySelector('.imgv-display img');
+    if (!img) return;
+    var state = imgvGetState(widget);
+    img.style.filter = imgvBuildFilterString(state);
+    img.style.transform = imgvBuildTransformString(state);
+}
+
+function imgvUpdateValueDisplay(input) {
+    var row = input.closest('.imgv-slider-row');
+    if (!row) return;
+    var valSpan = row.querySelector('.imgv-val');
+    if (!valSpan) return;
+    var unit = input.getAttribute('data-unit') || '';
+    valSpan.textContent = input.value + unit;
+}
+
+function imgvSliderChange(input) {
+    imgvUpdateValueDisplay(input);
+    var widget = imgvGetWidget(input);
+    imgvApplyStyles(widget);
+    imgvSaveState(widget);
+}
+
+function imgvToggleFlip(btn) {
+    btn.classList.toggle('active');
+    var widget = imgvGetWidget(btn);
+    imgvApplyStyles(widget);
+    imgvSaveState(widget);
+}
+
+function imgvShowImage(widget, src) {
+    widget._imgvOrigSrc = src;
+    var display = widget.querySelector('.imgv-display');
+    var existing = display.querySelector('img');
+    if (!existing) {
+        var placeholder = display.querySelector('.imgv-placeholder');
+        if (placeholder) placeholder.remove();
+        existing = document.createElement('img');
+        display.appendChild(existing);
+    }
+    // Set aspect ratio on tool element for constrained SE resize
+    existing.onload = function() {
+        if (existing.naturalWidth && existing.naturalHeight) {
+            widget.closest('.tool').setAttribute('data-aspect-ratio',
+                (existing.naturalWidth / existing.naturalHeight).toFixed(6));
+        }
+    };
+    imgvProcessTransparency(widget);
+}
+
+function imgvLoad(btn) {
+    var widget = imgvGetWidget(btn);
+    var input = widget.querySelector('.imgv-input-row input');
+    var url = input.value.trim();
+    if (!url) return;
+    imgvShowImage(widget, url);
+    imgvSaveState(widget);
+}
+
+function imgvHandlePaste(widget, e) {
+    var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            e.preventDefault();
+            var file = items[i].getAsFile();
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                imgvShowImage(widget, ev.target.result);
+                widget.querySelector('.imgv-input-row input').value = '';
+                imgvSaveState(widget);
+            };
+            reader.readAsDataURL(file);
+            return;
+        }
+    }
+    // If no image in clipboard, check for pasted text (URL)
+    var text = (e.clipboardData || e.originalEvent.clipboardData).getData('text');
+    if (text && (text.match(/^https?:\/\/.+/i) || text.match(/^data:image\//i))) {
+        e.preventDefault();
+        widget.querySelector('.imgv-input-row input').value = text;
+        imgvShowImage(widget, text.trim());
+        imgvSaveState(widget);
+    }
+}
+
+function imgvHandleDrop(widget, e) {
+    e.preventDefault();
+    widget.querySelector('.imgv-display').classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.indexOf('image') !== -1) {
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            imgvShowImage(widget, ev.target.result);
+            widget.querySelector('.imgv-input-row input').value = '';
+            imgvSaveState(widget);
+        };
+        reader.readAsDataURL(files[0]);
+        return;
+    }
+    var url = e.dataTransfer.getData('text/plain');
+    if (url && url.match(/^https?:\/\/.+/i)) {
+        widget.querySelector('.imgv-input-row input').value = url;
+        imgvShowImage(widget, url.trim());
+        imgvSaveState(widget);
+    }
+}
+
+function imgvReset(btn) {
+    var widget = imgvGetWidget(btn);
+    widget.querySelectorAll('input[data-filter]').forEach(function(inp) {
+        inp.value = IMGV_DEFAULTS[inp.getAttribute('data-filter')];
+        imgvUpdateValueDisplay(inp);
+    });
+    widget.querySelectorAll('input[data-transform]').forEach(function(inp) {
+        inp.value = IMGV_DEFAULTS[inp.getAttribute('data-transform')];
+        imgvUpdateValueDisplay(inp);
+    });
+    widget.querySelector('.imgv-flip-btn[data-flip="H"]').classList.remove('active');
+    widget.querySelector('.imgv-flip-btn[data-flip="V"]').classList.remove('active');
+    // Reset color key
+    var transColor = widget.querySelector('.imgv-trans-color');
+    if (transColor) transColor.value = '#00ff00';
+    var transTol = widget.querySelector('input[data-trans="tolerance"]');
+    if (transTol) { transTol.value = 0; imgvUpdateValueDisplay(transTol); }
+    var pickBtn = widget.querySelector('.imgv-pick-btn');
+    if (pickBtn) pickBtn.classList.remove('active');
+    widget.querySelector('.imgv-display').classList.remove('eyedropper');
+    imgvProcessTransparency(widget);
+    imgvSaveState(widget);
+}
+
+function imgvProcessTransparency(widget) {
+    var img = widget.querySelector('.imgv-display img');
+    if (!img) return;
+    var origSrc = widget._imgvOrigSrc;
+    if (!origSrc) return;
+
+    var tolInput = widget.querySelector('input[data-trans="tolerance"]');
+    var tolerance = tolInput ? parseInt(tolInput.value) : 0;
+
+    if (tolerance === 0) {
+        img.src = origSrc;
+        imgvApplyStyles(widget);
+        return;
+    }
+
+    var colorInput = widget.querySelector('.imgv-trans-color');
+    var hex = colorInput ? colorInput.value : '#00ff00';
+    var r0 = parseInt(hex.substr(1, 2), 16);
+    var g0 = parseInt(hex.substr(3, 2), 16);
+    var b0 = parseInt(hex.substr(5, 2), 16);
+
+    var tempImg = new Image();
+    tempImg.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = tempImg.naturalWidth;
+        canvas.height = tempImg.naturalHeight;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(tempImg, 0, 0);
+        try {
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var d = imageData.data;
+            var tolSq = tolerance * tolerance;
+            for (var i = 0; i < d.length; i += 4) {
+                var dr = d[i] - r0;
+                var dg = d[i + 1] - g0;
+                var db = d[i + 2] - b0;
+                if (dr * dr + dg * dg + db * db <= tolSq) {
+                    d[i + 3] = 0;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            img.src = canvas.toDataURL('image/png');
+        } catch (ex) {
+            // Cross-origin image: fall back to original
+            img.src = origSrc;
+        }
+        imgvApplyStyles(widget);
+    };
+    tempImg.onerror = function() {
+        img.src = origSrc;
+        imgvApplyStyles(widget);
+    };
+    tempImg.src = origSrc;
+}
+
+function imgvTransColorChange(input) {
+    var widget = imgvGetWidget(input);
+    imgvProcessTransparency(widget);
+    imgvSaveState(widget);
+}
+
+function imgvTransToleranceChange(input) {
+    imgvUpdateValueDisplay(input);
+    var widget = imgvGetWidget(input);
+    clearTimeout(widget._imgvTransDebounce);
+    widget._imgvTransDebounce = setTimeout(function() {
+        imgvProcessTransparency(widget);
+        imgvSaveState(widget);
+    }, 150);
+}
+
+function imgvPickToggle(btn) {
+    var widget = imgvGetWidget(btn);
+    var display = widget.querySelector('.imgv-display');
+    var active = btn.classList.toggle('active');
+    display.classList.toggle('eyedropper', active);
+}
+
+function imgvDisplayClick(widget, e) {
+    var pickBtn = widget.querySelector('.imgv-pick-btn');
+    if (!pickBtn || !pickBtn.classList.contains('active')) return;
+
+    var img = widget.querySelector('.imgv-display img');
+    if (!img) return;
+
+    var origSrc = widget._imgvOrigSrc || img.src;
+    var rect = img.getBoundingClientRect();
+    var natW = img.naturalWidth;
+    var natH = img.naturalHeight;
+    var dispW = rect.width;
+    var dispH = rect.height;
+    var scale = Math.min(dispW / natW, dispH / natH);
+    var rendW = natW * scale;
+    var rendH = natH * scale;
+    var offX = (dispW - rendW) / 2;
+    var offY = (dispH - rendH) / 2;
+    var cx = e.clientX - rect.left - offX;
+    var cy = e.clientY - rect.top - offY;
+    if (cx < 0 || cy < 0 || cx >= rendW || cy >= rendH) return;
+    var px = Math.floor(cx / scale);
+    var py = Math.floor(cy / scale);
+
+    var tempImg = new Image();
+    tempImg.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = natW;
+        canvas.height = natH;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(tempImg, 0, 0);
+        try {
+            var p = ctx.getImageData(px, py, 1, 1).data;
+            var hex = '#' + ('000000' + ((p[0] << 16) | (p[1] << 8) | p[2]).toString(16)).slice(-6);
+            widget.querySelector('.imgv-trans-color').value = hex;
+            // Auto-set tolerance to 30 if still at 0
+            var tolInput = widget.querySelector('input[data-trans="tolerance"]');
+            if (tolInput && parseInt(tolInput.value) === 0) {
+                tolInput.value = 30;
+                imgvUpdateValueDisplay(tolInput);
+            }
+            imgvProcessTransparency(widget);
+            imgvSaveState(widget);
+        } catch (ex) { /* cross-origin */ }
+    };
+    tempImg.src = origSrc;
+
+    // Exit pick mode
+    pickBtn.classList.remove('active');
+    widget.querySelector('.imgv-display').classList.remove('eyedropper');
+}
+
+function imgvToggleMode(btn) {
+    var widget = imgvGetWidget(btn);
+    var toolEl = widget.closest('.tool');
+    var isRender = widget.classList.toggle('render-mode');
+    toolEl.classList.toggle('frameless', isRender);
+    btn.textContent = isRender ? 'Edit' : 'Render';
+    // Persist frameless in toolCustomizations so the framework restores it
+    var toolId = imgvGetToolId(widget);
+    var customizations = loadToolCustomizations();
+    customizations[toolId] = customizations[toolId] || {};
+    customizations[toolId].frameless = isRender;
+    customizations[toolId].imgvRenderMode = isRender;
+    saveToolCustomizations(customizations);
+}
+
+function imgvSaveState(widget) {
+    var toolId = imgvGetToolId(widget);
+    var customizations = loadToolCustomizations();
+    var state = imgvGetState(widget);
+    var inputUrl = widget.querySelector('.imgv-input-row input').value;
+    // Save original source, not the processed transparency version
+    var src = widget._imgvOrigSrc || '';
+    // Don't persist large data URLs (>500KB) to avoid bloating localStorage
+    if (src && src.indexOf('data:') === 0 && src.length > 500000) src = '';
+    var transColor = widget.querySelector('.imgv-trans-color');
+    var transTol = widget.querySelector('input[data-trans="tolerance"]');
+    customizations[toolId] = Object.assign(customizations[toolId] || {}, {
+        imgvUrl: src,
+        imgvInputUrl: inputUrl,
+        imgvFilters: {
+            brightness: state.brightness, contrast: state.contrast, saturate: state.saturate,
+            'hue-rotate': state['hue-rotate'], blur: state.blur, grayscale: state.grayscale,
+            sepia: state.sepia, invert: state.invert, opacity: state.opacity
+        },
+        imgvTransforms: {
+            rotate: state.rotate, scale: state.scale, flipH: state.flipH, flipV: state.flipV
+        },
+        imgvTransColor: transColor ? transColor.value : '#00ff00',
+        imgvTransTolerance: transTol ? parseInt(transTol.value) : 0
+    });
+    saveToolCustomizations(customizations);
+}
+
+function imgvInit() {
+    var toolEl = document.querySelector('.tool[data-tool] .imgv-widget');
+    if (!toolEl) return;
+    // Find all imgv-widgets that haven't been initialized
+    document.querySelectorAll('.imgv-widget').forEach(function(widget) {
+        if (widget._imgvInited) return;
+        widget._imgvInited = true;
+
+        var toolId = imgvGetToolId(widget);
+        var customizations = loadToolCustomizations();
+        var saved = customizations[toolId] || {};
+
+        // Restore filter sliders
+        if (saved.imgvFilters) {
+            widget.querySelectorAll('input[data-filter]').forEach(function(inp) {
+                var key = inp.getAttribute('data-filter');
+                if (saved.imgvFilters[key] !== undefined) inp.value = saved.imgvFilters[key];
+                imgvUpdateValueDisplay(inp);
+            });
+        } else {
+            widget.querySelectorAll('input[data-filter]').forEach(function(inp) {
+                imgvUpdateValueDisplay(inp);
+            });
+        }
+
+        // Restore transform sliders
+        if (saved.imgvTransforms) {
+            widget.querySelectorAll('input[data-transform]').forEach(function(inp) {
+                var key = inp.getAttribute('data-transform');
+                if (saved.imgvTransforms[key] !== undefined) inp.value = saved.imgvTransforms[key];
+                imgvUpdateValueDisplay(inp);
+            });
+            if (saved.imgvTransforms.flipH) widget.querySelector('.imgv-flip-btn[data-flip="H"]').classList.add('active');
+            if (saved.imgvTransforms.flipV) widget.querySelector('.imgv-flip-btn[data-flip="V"]').classList.add('active');
+        } else {
+            widget.querySelectorAll('input[data-transform]').forEach(function(inp) {
+                imgvUpdateValueDisplay(inp);
+            });
+        }
+
+        // Restore color key settings (before image, so processTransparency picks them up)
+        if (saved.imgvTransColor) {
+            var tc = widget.querySelector('.imgv-trans-color');
+            if (tc) tc.value = saved.imgvTransColor;
+        }
+        if (saved.imgvTransTolerance) {
+            var tt = widget.querySelector('input[data-trans="tolerance"]');
+            if (tt) { tt.value = saved.imgvTransTolerance; imgvUpdateValueDisplay(tt); }
+        }
+
+        // Restore image
+        if (saved.imgvInputUrl) widget.querySelector('.imgv-input-row input').value = saved.imgvInputUrl;
+        if (saved.imgvUrl) imgvShowImage(widget, saved.imgvUrl);
+
+        // Restore render mode
+        if (saved.imgvRenderMode) {
+            widget.classList.add('render-mode');
+            widget.closest('.tool').classList.add('frameless');
+            widget.querySelector('.imgv-mode-toggle').textContent = 'Edit';
+        }
+
+        // Enter key on URL input
+        widget.querySelector('.imgv-input-row input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                imgvLoad(widget.querySelector('.imgv-input-row button'));
+            }
+        });
+
+        // Paste handler on display area
+        var display = widget.querySelector('.imgv-display');
+        widget.addEventListener('paste', function(e) { imgvHandlePaste(widget, e); });
+
+        // Drag-drop handlers
+        display.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            display.classList.add('dragover');
+        });
+        display.addEventListener('dragleave', function(e) {
+            display.classList.remove('dragover');
+        });
+        display.addEventListener('drop', function(e) { imgvHandleDrop(widget, e); });
+
+        // Eyedropper click handler
+        display.addEventListener('click', function(e) { imgvDisplayClick(widget, e); });
+    });
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -2884,7 +3374,8 @@ function ftreeFormDelete(btn, personId) {
     var emoteFunctions = [emoteInit, emoteSelectTab, emoteRender, emoteSearch, emoteCopy];
     var drawFunctions = [drawGetState, drawInit, drawBeginStroke, drawMoveStroke, drawEndStroke, drawSetColor, drawSetSize, drawToggleEraser, drawClear, drawUndo, drawDownload, drawResizeCanvas, drawColorInput, drawSizeInput];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
-    var allFunctions = cpkFunctions.concat(emoteFunctions).concat(drawFunctions).concat(ftreeFunctions);
+    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick, imgvToggleMode, imgvSaveState, imgvInit];
+    var allFunctions = cpkFunctions.concat(emoteFunctions).concat(drawFunctions).concat(ftreeFunctions).concat(imgvFunctions);
 
     var code = '(function() {\n' +
         'if (typeof cpkInit !== "undefined") return;\n' +
@@ -2896,6 +3387,7 @@ function ftreeFormDelete(btn, personId) {
         'window.FTREE_H_GAP = ' + FTREE_H_GAP + ';\n' +
         'window.FTREE_V_GAP = ' + FTREE_V_GAP + ';\n' +
         'window.FTREE_SPOUSE_GAP = ' + FTREE_SPOUSE_GAP + ';\n' +
+        'window.IMGV_DEFAULTS = ' + JSON.stringify(IMGV_DEFAULTS) + ';\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
     var encoded = btoa(unescape(encodeURIComponent(code)));
@@ -2917,7 +3409,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDFA8',
     color: '#e74c3c',
     version: '1.0.0',
-    tools: ['color-picker', 'drawing-canvas', 'emoticon-picker', 'family-tree'],
+    tools: ['color-picker', 'drawing-canvas', 'emoticon-picker', 'family-tree', 'image-viewer'],
     source: 'external'
 });
 
@@ -3076,4 +3568,54 @@ PluginRegistry.registerTool({
     defaultHeight: 450
 });
 
-console.log('Creative Tools plugin loaded (4 tools)');
+// Image Viewer
+PluginRegistry.registerTool({
+    id: 'image-viewer',
+    name: 'Image Viewer',
+    description: 'Load images from URL, paste, or drag-drop with real-time CSS filter and transform editing',
+    icon: '\uD83D\uDDBC\uFE0F',
+    version: '1.0.0',
+    toolbox: 'creative-tools',
+    tags: ['image', 'photo', 'picture', 'filter', 'brightness', 'contrast', 'saturate', 'blur', 'rotate', 'flip', 'css', 'viewer'],
+    title: 'Image Viewer',
+    content: '<div class="imgv-widget">' +
+        '<div class="imgv-input-row">' +
+            '<input type="text" placeholder="Enter image URL..." spellcheck="false">' +
+            '<button onclick="imgvLoad(this)">Load</button>' +
+        '</div>' +
+        '<div class="imgv-display">' +
+            '<button class="imgv-mode-toggle" onclick="imgvToggleMode(this)">Render</button>' +
+            '<div class="imgv-placeholder">Paste, drag &amp; drop, or enter a URL above</div>' +
+        '</div>' +
+        '<div class="imgv-controls">' +
+            '<div class="imgv-section-label">Filters</div>' +
+            '<div class="imgv-slider-row"><label>Brightness</label><input type="range" min="0" max="300" value="100" data-filter="brightness" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
+            '<div class="imgv-slider-row"><label>Contrast</label><input type="range" min="0" max="300" value="100" data-filter="contrast" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
+            '<div class="imgv-slider-row"><label>Saturate</label><input type="range" min="0" max="300" value="100" data-filter="saturate" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
+            '<div class="imgv-slider-row"><label>Hue Rotate</label><input type="range" min="0" max="360" value="0" data-filter="hue-rotate" data-unit="\u00B0" oninput="imgvSliderChange(this)"><span class="imgv-val">0\u00B0</span></div>' +
+            '<div class="imgv-slider-row"><label>Blur</label><input type="range" min="0" max="20" step="0.5" value="0" data-filter="blur" data-unit="px" oninput="imgvSliderChange(this)"><span class="imgv-val">0px</span></div>' +
+            '<div class="imgv-slider-row"><label>Grayscale</label><input type="range" min="0" max="100" value="0" data-filter="grayscale" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">0%</span></div>' +
+            '<div class="imgv-slider-row"><label>Sepia</label><input type="range" min="0" max="100" value="0" data-filter="sepia" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">0%</span></div>' +
+            '<div class="imgv-slider-row"><label>Invert</label><input type="range" min="0" max="100" value="0" data-filter="invert" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">0%</span></div>' +
+            '<div class="imgv-slider-row"><label>Opacity</label><input type="range" min="0" max="100" value="100" data-filter="opacity" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
+            '<div class="imgv-section-label">Color Key</div>' +
+            '<div class="imgv-trans-row"><label>Color</label><input type="color" class="imgv-trans-color" value="#00ff00" onchange="imgvTransColorChange(this)"><button class="imgv-pick-btn" onclick="imgvPickToggle(this)" title="Pick color from image">Pick</button></div>' +
+            '<div class="imgv-slider-row"><label>Tolerance</label><input type="range" min="0" max="150" value="0" data-trans="tolerance" oninput="imgvTransToleranceChange(this)"><span class="imgv-val">0</span></div>' +
+            '<div class="imgv-section-label">Transform</div>' +
+            '<div class="imgv-slider-row"><label>Rotate</label><input type="range" min="0" max="360" value="0" data-transform="rotate" data-unit="\u00B0" oninput="imgvSliderChange(this)"><span class="imgv-val">0\u00B0</span></div>' +
+            '<div class="imgv-slider-row"><label>Scale</label><input type="range" min="10" max="300" value="100" data-transform="scale" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
+            '<div class="imgv-flip-row">' +
+                '<button class="imgv-flip-btn" data-flip="H" onclick="imgvToggleFlip(this)">Flip H</button>' +
+                '<button class="imgv-flip-btn" data-flip="V" onclick="imgvToggleFlip(this)">Flip V</button>' +
+                '<button class="imgv-reset-btn" onclick="imgvReset(this)">Reset</button>' +
+            '</div>' +
+        '</div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'imgvInit',
+    source: 'external',
+    defaultWidth: 420,
+    defaultHeight: 520
+});
+
+console.log('Creative Tools plugin loaded (5 tools)');

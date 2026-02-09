@@ -1012,8 +1012,32 @@ main#toolboard {
     left: -4px;
     width: 12px;
     height: 12px;
-    cursor: sw-resize;
+    cursor: grab;
     border-radius: 0 0 0 4px;
+}
+
+.resize-handle-sw:active {
+    cursor: grabbing;
+}
+
+.resize-handle-sw::after {
+    content: '\21BB';
+    position: absolute;
+    left: 0;
+    bottom: 1px;
+    width: 12px;
+    height: 12px;
+    font-size: 11px;
+    line-height: 12px;
+    text-align: center;
+    color: rgba(52, 152, 219, 0.7);
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+}
+
+.tool:hover .resize-handle-sw::after {
+    opacity: 1;
 }
 
 .resize-handle-se {
@@ -1187,6 +1211,13 @@ main#toolboard {
 }
 
 .tool.frameless:hover .tool-header {
+    opacity: 1;
+    max-height: 40px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.tool.frameless.minimized .tool-header {
     opacity: 1;
     max-height: 40px;
     padding-top: 6px;
@@ -3798,6 +3829,7 @@ let dragState = {
 // Resize state
 let resizeState = {
     isResizing: false,
+    isRotating: false,
     tool: null,
     handle: null,
     startX: 0,
@@ -3805,7 +3837,11 @@ let resizeState = {
     startWidth: 0,
     startHeight: 0,
     startLeft: 0,
-    startTop: 0
+    startTop: 0,
+    centerX: 0,
+    centerY: 0,
+    startAngle: 0,
+    startRotation: 0
 };
 
 // Dark mode setup
@@ -4349,6 +4385,7 @@ function setupResponsiveLayout() {
                     tool.style.zIndex = pos.z || 1;
                     if (pos.width) tool.style.width = pos.width + 'px';
                     if (pos.height) tool.style.height = pos.height + 'px';
+                    tool.style.transform = pos.rotation ? 'rotate(' + pos.rotation + 'deg)' : '';
                 }
             });
         }
@@ -5719,6 +5756,12 @@ function createTool(toolId) {
         }
     }
 
+    // Apply saved rotation
+    if (pos.rotation) {
+        tool.style.transform = 'rotate(' + pos.rotation + 'deg)';
+        tool.setAttribute('data-rotation', pos.rotation);
+    }
+
     // Apply tool-specific fonts
     const toolContent = tool.querySelector('.tool-content');
     if (toolContent) {
@@ -5869,14 +5912,15 @@ function setupDragging() {
         const tool = dragState.tool;
         const toolId = tool.getAttribute('data-tool');
 
-        // Save position (preserve existing width/height if set)
+        // Save position (preserve existing width/height/rotation if set)
         const existing = positions[toolId] || {};
         positions[toolId] = {
             x: tool.offsetLeft,
             y: tool.offsetTop,
             z: parseInt(tool.style.zIndex) || 1,
             width: existing.width || tool.offsetWidth,
-            height: existing.height || tool.offsetHeight
+            height: existing.height || tool.offsetHeight,
+            rotation: existing.rotation || 0
         };
         savePositions(positions);
 
@@ -5927,6 +5971,14 @@ function setupResizing() {
         e.stopPropagation();
 
         const handleType = handle.getAttribute('data-resize');
+        if (handleType === 'sw') {
+            // Double-click SW resets rotation to 0
+            tool.style.transform = '';
+            tool.removeAttribute('data-rotation');
+            const tid = tool.getAttribute('data-tool');
+            if (positions[tid]) { positions[tid].rotation = 0; savePositions(positions); }
+            return;
+        }
         autoResizeTool(tool, handleType);
     });
 
@@ -5953,10 +6005,33 @@ function setupResizing() {
         positions[toolId] = positions[toolId] || { x: 0, y: 0, z: 1 };
         positions[toolId].z = maxZ;
 
+        const handleDir = handle.getAttribute('data-resize');
+
+        if (handleDir === 'sw') {
+            // SW handle → rotation mode
+            const rect = tool.getBoundingClientRect();
+            resizeState.isRotating = true;
+            resizeState.isResizing = true; // keeps moveResize active
+            resizeState.tool = tool;
+            resizeState.handle = 'sw';
+            resizeState.centerX = rect.left + rect.width / 2;
+            resizeState.centerY = rect.top + rect.height / 2;
+            resizeState.startAngle = Math.atan2(
+                coords.clientY - resizeState.centerY,
+                coords.clientX - resizeState.centerX
+            );
+            resizeState.startRotation = parseFloat(tool.getAttribute('data-rotation')) || 0;
+            handle.classList.add('active');
+            tool.classList.add('resizing');
+            document.body.classList.add('is-resizing');
+            return;
+        }
+
         // Start resizing
         resizeState.isResizing = true;
+        resizeState.isRotating = false;
         resizeState.tool = tool;
-        resizeState.handle = handle.getAttribute('data-resize');
+        resizeState.handle = handleDir;
         resizeState.startX = coords.clientX;
         resizeState.startY = coords.clientY;
         resizeState.startWidth = tool.offsetWidth;
@@ -5978,6 +6053,28 @@ function setupResizing() {
         if (!resizeState.isResizing) return;
 
         const coords = getEventCoords(e);
+
+        // Rotation mode (SW handle)
+        if (resizeState.isRotating) {
+            const tool = resizeState.tool;
+            const currentAngle = Math.atan2(
+                coords.clientY - resizeState.centerY,
+                coords.clientX - resizeState.centerX
+            );
+            const deltaDeg = (currentAngle - resizeState.startAngle) * (180 / Math.PI);
+            let newRotation = resizeState.startRotation + deltaDeg;
+            // Snap to 15-degree increments within 5 degrees
+            const snapAngle = Math.round(newRotation / 15) * 15;
+            if (Math.abs(newRotation - snapAngle) < 5) {
+                newRotation = snapAngle;
+            }
+            // Normalize to 0-360
+            newRotation = ((newRotation % 360) + 360) % 360;
+            tool.style.transform = 'rotate(' + newRotation + 'deg)';
+            tool.setAttribute('data-rotation', newRotation);
+            return;
+        }
+
         const dx = coords.clientX - resizeState.startX;
         const dy = coords.clientY - resizeState.startY;
         const tool = resizeState.tool;
@@ -6013,6 +6110,20 @@ function setupResizing() {
             }
         }
 
+        // Aspect ratio constraint (e.g. image-viewer SE handle)
+        if (handle === 'se') {
+            const ar = parseFloat(tool.getAttribute('data-aspect-ratio'));
+            if (ar > 0) {
+                const dxNorm = (newWidth - resizeState.startWidth) / resizeState.startWidth;
+                const dyNorm = (newHeight - resizeState.startHeight) / resizeState.startHeight;
+                if (Math.abs(dxNorm) >= Math.abs(dyNorm)) {
+                    newHeight = Math.max(minHeight, newWidth / ar);
+                } else {
+                    newWidth = Math.max(minWidth, newHeight * ar);
+                }
+            }
+        }
+
         // Apply snapping for resize edges
         const snapped = getResizeSnapPosition(tool, newLeft, newTop, newWidth, newHeight, handle);
 
@@ -6035,22 +6146,33 @@ function setupResizing() {
         const tool = resizeState.tool;
         const toolId = tool.getAttribute('data-tool');
 
-        // Save position and dimensions
-        positions[toolId] = {
-            x: tool.offsetLeft,
-            y: tool.offsetTop,
-            z: parseInt(tool.style.zIndex) || 1,
-            width: tool.offsetWidth,
-            height: tool.offsetHeight
-        };
-        savePositions(positions);
+        if (resizeState.isRotating) {
+            // Save rotation
+            const existing = positions[toolId] || {};
+            existing.rotation = parseFloat(tool.getAttribute('data-rotation')) || 0;
+            positions[toolId] = existing;
+            savePositions(positions);
+        } else {
+            // Save position and dimensions
+            const rotation = (positions[toolId] && positions[toolId].rotation) || 0;
+            positions[toolId] = {
+                x: tool.offsetLeft,
+                y: tool.offsetTop,
+                z: parseInt(tool.style.zIndex) || 1,
+                width: tool.offsetWidth,
+                height: tool.offsetHeight,
+                rotation: rotation
+            };
+            savePositions(positions);
+        }
 
         // Clean up
         document.querySelectorAll('.resize-handle.active').forEach(h => h.classList.remove('active'));
         tool.classList.remove('resizing');
         document.body.classList.remove('is-resizing');
         resizeState.isResizing = false;
-        resizeState.tool= null;
+        resizeState.isRotating = false;
+        resizeState.tool = null;
         resizeState.handle = null;
 
         updateSnapGuides([]);
@@ -6110,7 +6232,8 @@ function autoFitToolContent(tool, skipAnimation = false) {
         y: existing.y,
         z: existing.z,
         width: newWidth,
-        height: newHeight
+        height: newHeight,
+        rotation: existing.rotation || 0
     };
     savePositions(positions);
 }
@@ -6185,7 +6308,8 @@ function autoResizeTool(tool, handleType) {
         y: existing.y,
         z: existing.z,
         width: autoWidth ? newWidth : (existing.width || tool.offsetWidth),
-        height: autoHeight ? newHeight : (existing.height || tool.offsetHeight)
+        height: autoHeight ? newHeight : (existing.height || tool.offsetHeight),
+        rotation: existing.rotation || 0
     };
     savePositions(positions);
 }
