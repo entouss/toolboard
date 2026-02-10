@@ -2959,6 +2959,15 @@ function imgvGetToolId(el) {
     return el.closest('.tool').getAttribute('data-tool');
 }
 
+function imgvFlash(widget, msg) {
+    var display = widget.querySelector('.imgv-display');
+    var el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:4px 12px;border-radius:4px;font-size:11px;z-index:10;white-space:nowrap;pointer-events:none;';
+    display.appendChild(el);
+    setTimeout(function() { el.remove(); }, 3000);
+}
+
 function imgvGetState(widget) {
     var state = {};
     widget.querySelectorAll('input[data-filter]').forEach(function(inp) {
@@ -3255,8 +3264,8 @@ function imgvProcessTransparency(widget) {
             ctx.putImageData(imageData, 0, 0);
             img.src = canvas.toDataURL('image/png');
         } catch (ex) {
-            // Cross-origin image: fall back to original
             img.src = origSrc;
+            imgvFlash(widget, 'Transparency requires a pasted image (remote URLs blocked by CORS)');
         }
         imgvApplyStyles(widget);
     };
@@ -3299,21 +3308,45 @@ function imgvDisplayClick(widget, e) {
     if (!img) return;
 
     var origSrc = widget._imgvOrigSrc || img.src;
-    var rect = img.getBoundingClientRect();
     var natW = img.naturalWidth;
     var natH = img.naturalHeight;
-    var dispW = rect.width;
-    var dispH = rect.height;
-    var scale = Math.min(dispW / natW, dispH / natH);
-    var rendW = natW * scale;
-    var rendH = natH * scale;
-    var offX = (dispW - rendW) / 2;
-    var offY = (dispH - rendH) / 2;
-    var cx = e.clientX - rect.left - offX;
-    var cy = e.clientY - rect.top - offY;
-    if (cx < 0 || cy < 0 || cx >= rendW || cy >= rendH) return;
-    var px = Math.floor(cx / scale);
-    var py = Math.floor(cy / scale);
+    var px, py;
+    var crop = widget._imgvCrop;
+    var hasCrop = crop && (crop.top > 0 || crop.right > 0 || crop.bottom > 0 || crop.left > 0);
+    if (hasCrop) {
+        // Use display bounds — img has absolute positioning + clip-path
+        var display = widget.querySelector('.imgv-display');
+        var dispRect = display.getBoundingClientRect();
+        var dispW = dispRect.width, dispH = dispRect.height;
+        var cropNatW = natW * (100 - crop.left - crop.right) / 100;
+        var cropNatH = natH * (100 - crop.top - crop.bottom) / 100;
+        var isRender = widget.classList.contains('render-mode');
+        var scale = isRender ? Math.max(dispW / cropNatW, dispH / cropNatH) : Math.min(dispW / cropNatW, dispH / cropNatH);
+        var cropDispW = cropNatW * scale;
+        var cropDispH = cropNatH * scale;
+        var padX = (dispW - cropDispW) / 2;
+        var padY = (dispH - cropDispH) / 2;
+        var cx = e.clientX - dispRect.left - padX;
+        var cy = e.clientY - dispRect.top - padY;
+        if (cx < 0 || cy < 0 || cx >= cropDispW || cy >= cropDispH) return;
+        px = Math.floor(cx / scale + natW * crop.left / 100);
+        py = Math.floor(cy / scale + natH * crop.top / 100);
+    } else {
+        // Normal object-fit: contain math
+        var rect = img.getBoundingClientRect();
+        var dispW = rect.width;
+        var dispH = rect.height;
+        var scale = Math.min(dispW / natW, dispH / natH);
+        var rendW = natW * scale;
+        var rendH = natH * scale;
+        var offX = (dispW - rendW) / 2;
+        var offY = (dispH - rendH) / 2;
+        var cx = e.clientX - rect.left - offX;
+        var cy = e.clientY - rect.top - offY;
+        if (cx < 0 || cy < 0 || cx >= rendW || cy >= rendH) return;
+        px = Math.floor(cx / scale);
+        py = Math.floor(cy / scale);
+    }
 
     var tempImg = new Image();
     tempImg.onload = function() {
@@ -3334,7 +3367,9 @@ function imgvDisplayClick(widget, e) {
             }
             imgvProcessTransparency(widget);
             imgvSaveState(widget);
-        } catch (ex) { /* cross-origin */ }
+        } catch (ex) {
+            imgvFlash(widget, 'Color pick requires a pasted image (remote URLs blocked by CORS)');
+        }
     };
     tempImg.src = origSrc;
 
@@ -3734,7 +3769,7 @@ function imgvInit() {
     var emoteFunctions = [emoteInit, emoteSelectTab, emoteRender, emoteSearch, emoteCopy];
     var drawFunctions = [drawGetState, drawInit, drawBeginStroke, drawMoveStroke, drawEndStroke, drawSetColor, drawSetSize, drawToggleEraser, drawClear, drawUndo, drawDownload, drawResizeCanvas, drawColorInput, drawSizeInput];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
-    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvApplyCropLayout, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick, imgvToggleMode, imgvCropStart, imgvCreateCropOverlay, imgvCropMouseDown, imgvCropMouseMove, imgvCropMouseUp, imgvCropUpdateRect, imgvCropApply, imgvCropCancel, imgvCropExit, imgvSaveState, imgvInit];
+    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvFlash, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvApplyCropLayout, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick, imgvToggleMode, imgvCropStart, imgvCreateCropOverlay, imgvCropMouseDown, imgvCropMouseMove, imgvCropMouseUp, imgvCropUpdateRect, imgvCropApply, imgvCropCancel, imgvCropExit, imgvSaveState, imgvInit];
     var allFunctions = cpkFunctions.concat(emoteFunctions).concat(drawFunctions).concat(ftreeFunctions).concat(imgvFunctions);
 
     var code = '(function() {\n' +

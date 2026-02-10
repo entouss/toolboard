@@ -322,6 +322,12 @@ header h1 {
     color: var(--text-muted);
 }
 
+.align-btn.active {
+    background: #3498db !important;
+    color: white !important;
+    border-color: #3498db !important;
+}
+
 .header-section-notes,
 .header-section-page {
     border-left: 1px solid rgba(255,255,255,0.15);
@@ -985,8 +991,8 @@ main#toolboard {
     box-shadow: 0 2px 10px var(--shadow-light);
     overflow: visible;
     transition: box-shadow 0.2s, background 0.3s;
-    min-width: 150px;
-    min-height: 100px;
+    min-width: 50px;
+    min-height: 36px;
     display: flex;
     flex-direction: column;
 }
@@ -1226,6 +1232,8 @@ main#toolboard {
 .tool.frameless {
     border-radius: 4px;
     overflow: hidden;
+    min-width: 10px;
+    min-height: 10px;
 }
 
 .tool.no-border {
@@ -1253,7 +1261,7 @@ main#toolboard {
     transition: opacity 0.2s, max-height 0.2s, padding 0.2s;
 }
 
-.tool.frameless:hover .tool-header {
+.tool.frameless:hover:not(.resizing):not(:has(.resize-handle:hover)) .tool-header {
     opacity: 1;
     max-height: 40px;
     padding-top: 6px;
@@ -1267,7 +1275,10 @@ main#toolboard {
     padding-bottom: 6px;
 }
 
-.tool.frameless .tool-content:has(.imgv-widget) {
+.tool.frameless .tool-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     padding: 0;
 }
 
@@ -1276,6 +1287,9 @@ main#toolboard {
     border-radius: 0;
     width: 100%;
 }
+
+.tool.frameless .markdown-content > :first-child { margin-top: 0 !important; }
+.tool.frameless .markdown-content > :last-child { margin-bottom: 0 !important; }
 
 .tool.frameless .markdown-content p:has(img) {
     margin: 0;
@@ -1524,6 +1538,22 @@ main#toolboard {
     background: #d35400;
 }
 
+.send-to-back-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #7f8c8d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.send-to-back-btn:hover {
+    background: #6c7a7a;
+}
+
 .delete-tool-btn {
     width: 100%;
     padding: 6px 12px;
@@ -1691,6 +1721,12 @@ main#toolboard {
 .editor-action-btn:hover {
     background: var(--bg-hover, var(--border-color));
     color: var(--text-primary);
+}
+
+.editor-action-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
 }
 
 .content-editor-find-replace {
@@ -2819,14 +2855,11 @@ tr:hover {
             </select>
             <input type="text" id="toolboardCustomFont" class="font-custom-input" placeholder="Or type any Google Font name..." spellcheck="false">
             <label>Font Size</label>
-            <select id="toolboardFontSize" class="font-select">
-                <option value="">Default</option>
-                <option value="11px">Small (11px)</option>
-                <option value="13px">Medium (13px)</option>
-                <option value="14px">Large (14px)</option>
-                <option value="16px">X-Large (16px)</option>
-                <option value="18px">XX-Large (18px)</option>
-            </select>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <input type="range" id="toolboardFontSize" min="8" max="120" value="12" style="flex:1;cursor:pointer;">
+                <span id="toolboardFontSizeLabel" style="font-size:11px;min-width:38px;text-align:right;">default</span>
+                <button id="toolboardFontSizeReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
+            </div>
         </div>
     </header>
 
@@ -2926,10 +2959,22 @@ tr:hover {
                         <label id="editorPlainTextToggle" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
                             <input type="checkbox" id="editorPlainTextCheckbox"> Plain text
                         </label>
-                        <div style="display:flex;gap:4px;">
-                            <button id="editorSortLinesBtn" class="editor-action-btn" title="Sort lines A-Z (Ctrl+Shift+S)">Sort</button>
-                            <button id="editorReverseSortBtn" class="editor-action-btn" title="Sort lines Z-A (Ctrl+Shift+R)">Reverse</button>
-                            <button id="editorUniqueLinesBtn" class="editor-action-btn" title="Remove duplicate lines (Ctrl+Shift+U)">Unique</button>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <button id="editorSortLinesBtn" class="editor-action-btn" title="Sort lines A-Z at render time">Sort</button>
+                            <button id="editorReverseSortBtn" class="editor-action-btn" title="Sort lines Z-A at render time">Reverse</button>
+                            <button id="editorReverseOrderBtn" class="editor-action-btn" title="Reverse line order at render time">Flip</button>
+                            <button id="editorShuffleBtn" class="editor-action-btn" title="Shuffle lines randomly at render time">Shuffle</button>
+                            <button id="editorUniqueLinesBtn" class="editor-action-btn" title="Remove duplicate lines at render time">Unique</button>
+                            <button id="editorTrimBtn" class="editor-action-btn" title="Trim whitespace per line at render time">Trim</button>
+                            <button id="editorStripEmptyBtn" class="editor-action-btn" title="Remove empty lines at render time">No blanks</button>
+                            <button id="editorNumberBtn" class="editor-action-btn" title="Number lines at render time">1. 2. 3.</button>
+                            <select id="editorCasingSelect" class="editor-action-btn" title="Apply text casing at render time" style="padding:1px 4px;">
+                                <option value="">Casing</option>
+                                <option value="upper">UPPER</option>
+                                <option value="lower">lower</option>
+                                <option value="title">Title Case</option>
+                                <option value="sentence">Sentence case</option>
+                            </select>
                         </div>
                     </div>
                     <div class="content-editor-find-replace" id="editorFindReplace" style="display:none;">
@@ -3078,15 +3123,24 @@ tr:hover {
             </select>
             <input type="text" id="toolSettingsCustomFont" class="font-custom-input" placeholder="Or type any Google Font name..." spellcheck="false">
             <label>Font Size</label>
-            <select id="toolSettingsFontSize" class="font-select">
-                <option value="">Use Board Default</option>
-                <option value="10px">X-Small (10px)</option>
-                <option value="11px">Small (11px)</option>
-                <option value="12px">Medium (12px)</option>
-                <option value="13px">Large (13px)</option>
-                <option value="14px">X-Large (14px)</option>
-                <option value="16px">XX-Large (16px)</option>
-            </select>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <input type="range" id="toolSettingsFontSize" min="8" max="120" value="12" style="flex:1;cursor:pointer;">
+                <span id="toolSettingsFontSizeLabel" style="font-size:11px;min-width:38px;text-align:right;">12px</span>
+                <button id="toolSettingsFontSizeReset" title="Reset to board default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
+            </div>
+            <label>Padding</label>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <input type="range" id="toolSettingsPadding" min="0" max="60" value="15" style="flex:1;cursor:pointer;">
+                <span id="toolSettingsPaddingLabel" style="font-size:11px;min-width:38px;text-align:right;">15px</span>
+                <button id="toolSettingsPaddingReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
+            </div>
+            <label>Text Align</label>
+            <div id="toolSettingsTextAlign" style="display:flex;gap:4px;">
+                <button data-align="" class="align-btn active" style="flex:1;padding:3px 0;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:11px;background:var(--bg-tertiary);color:var(--text-primary);">Auto</button>
+                <button data-align="left" class="align-btn" style="flex:1;padding:3px 0;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:11px;background:var(--bg-tertiary);color:var(--text-primary);">Left</button>
+                <button data-align="center" class="align-btn" style="flex:1;padding:3px 0;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:11px;background:var(--bg-tertiary);color:var(--text-primary);">Center</button>
+                <button data-align="right" class="align-btn" style="flex:1;padding:3px 0;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:11px;background:var(--bg-tertiary);color:var(--text-primary);">Right</button>
+            </div>
             <label style="display:flex;align-items:center;gap:6px;margin:4px 0 2px;cursor:pointer;font-size:12px;">
                 <input type="checkbox" id="toolSettingsFrameless"> Frameless mode
             </label>
@@ -3100,6 +3154,7 @@ tr:hover {
             <button class="duplicate-tool-btn" id="toolSettingsDuplicateBtn">Duplicate Tool</button>
             <button class="export-tool-btn" id="toolSettingsExportBtn">Export as HTML</button>
             <button class="export-png-btn" id="toolSettingsExportPngBtn">Export as PNG</button>
+            <button class="send-to-back-btn" id="toolSettingsSendToBackBtn">Send to Back</button>
             <button class="delete-tool-btn" id="toolSettingsDeleteBtn">Hide Tool</button>
         </div>
     </div>
@@ -4554,6 +4609,12 @@ function setupToolControls() {
     const settingsFontFamily = document.getElementById('toolSettingsFontFamily');
     const settingsCustomFont = document.getElementById('toolSettingsCustomFont');
     const settingsFontSize = document.getElementById('toolSettingsFontSize');
+    const settingsFontSizeLabel = document.getElementById('toolSettingsFontSizeLabel');
+    const settingsFontSizeReset = document.getElementById('toolSettingsFontSizeReset');
+    const settingsPadding = document.getElementById('toolSettingsPadding');
+    const settingsPaddingLabel = document.getElementById('toolSettingsPaddingLabel');
+    const settingsPaddingReset = document.getElementById('toolSettingsPaddingReset');
+    const settingsTextAlign = document.getElementById('toolSettingsTextAlign');
     const settingsFrameless = document.getElementById('toolSettingsFrameless');
     const settingsNoBorder = document.getElementById('toolSettingsNoBorder');
     const settingsNoShadow = document.getElementById('toolSettingsNoShadow');
@@ -4561,6 +4622,7 @@ function setupToolControls() {
     const settingsDuplicateBtn = document.getElementById('toolSettingsDuplicateBtn');
     const settingsExportBtn = document.getElementById('toolSettingsExportBtn');
     const settingsExportPngBtn = document.getElementById('toolSettingsExportPngBtn');
+    const settingsSendToBackBtn = document.getElementById('toolSettingsSendToBackBtn');
     const settingsDeleteBtn = document.getElementById('toolSettingsDeleteBtn');
     const settingsCloseBtn = settingsOverlay.querySelector('.tool-settings-close');
 
@@ -4739,7 +4801,27 @@ function setupToolControls() {
                 settingsFontFamily.value = custom.fontFamily || '';
                 settingsCustomFont.value = '';
             }
-            settingsFontSize.value = custom.fontSize || '';
+            if (custom.fontSize) {
+                settingsFontSize.value = parseInt(custom.fontSize);
+                settingsFontSizeLabel.textContent = custom.fontSize;
+            } else {
+                settingsFontSize.value = 12;
+                settingsFontSizeLabel.textContent = 'default';
+            }
+
+            if (custom.padding != null) {
+                settingsPadding.value = parseInt(custom.padding);
+                settingsPaddingLabel.textContent = custom.padding;
+            } else {
+                settingsPadding.value = 15;
+                settingsPaddingLabel.textContent = 'default';
+            }
+
+            // Update text align buttons
+            const currentAlign = custom.textAlign || '';
+            settingsTextAlign.querySelectorAll('.align-btn').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-align') === currentAlign);
+            });
 
             // Update checkboxes
             settingsFrameless.checked = !!custom.frameless;
@@ -4886,15 +4968,66 @@ function setupToolControls() {
         }, 400);
     });
 
-    // Font size change in modal
-    settingsFontSize.addEventListener('change', (e) => {
+    // Font size change in modal (slider)
+    settingsFontSize.addEventListener('input', (e) => {
+        const px = e.target.value + 'px';
+        settingsFontSizeLabel.textContent = px;
         if (currentSettingsToolId) {
             const toolId = currentSettingsToolId;
             toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].fontSize = e.target.value;
+            toolCustomizations[toolId].fontSize = px;
             saveToolCustomizations(toolCustomizations);
             applyToolFont(toolId);
         }
+    });
+    settingsFontSizeReset.addEventListener('click', () => {
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].fontSize = '';
+            saveToolCustomizations(toolCustomizations);
+            applyToolFont(toolId);
+            settingsFontSize.value = 12;
+            settingsFontSizeLabel.textContent = 'default';
+        }
+    });
+
+    // Padding slider in modal
+    settingsPadding.addEventListener('input', (e) => {
+        const px = e.target.value + 'px';
+        settingsPaddingLabel.textContent = px;
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            toolCustomizations[toolId].padding = px;
+            saveToolCustomizations(toolCustomizations);
+            applyToolPadding(toolId);
+        }
+    });
+    settingsPaddingReset.addEventListener('click', () => {
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+            delete toolCustomizations[toolId].padding;
+            saveToolCustomizations(toolCustomizations);
+            applyToolPadding(toolId);
+            settingsPadding.value = 15;
+            settingsPaddingLabel.textContent = 'default';
+        }
+    });
+
+    // Text align buttons in modal
+    settingsTextAlign.addEventListener('click', (e) => {
+        const btn = e.target.closest('.align-btn');
+        if (!btn || !currentSettingsToolId) return;
+        settingsTextAlign.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const toolId = currentSettingsToolId;
+        const align = btn.getAttribute('data-align');
+        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+        toolCustomizations[toolId].textAlign = align;
+        saveToolCustomizations(toolCustomizations);
+        applyToolTextAlign(toolId);
     });
 
     // Frameless mode toggle in modal
@@ -4968,6 +5101,29 @@ function setupToolControls() {
             const toolId = currentSettingsToolId;
             closeSettingsModal();
             exportToolAsPng(toolId);
+        }
+    });
+
+    // Send to back button in modal
+    settingsSendToBackBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+            if (tool) {
+                let lowestZ = Infinity;
+                document.querySelectorAll('.tool').forEach(t => {
+                    if (t === tool) return;
+                    const z = parseInt(t.style.zIndex) || 1;
+                    if (z < lowestZ) lowestZ = z;
+                });
+                const newZ = Math.max(1, lowestZ - 1);
+                tool.style.zIndex = newZ;
+                positions[toolId] = positions[toolId] || { x: tool.offsetLeft, y: tool.offsetTop, z: 1 };
+                positions[toolId].z = newZ;
+                savePositions(positions);
+            }
+            closeSettingsModal();
         }
     });
 
@@ -5083,6 +5239,39 @@ function initializeCalculators() {
 
 // Content Editor State
 let currentEditingTool = null;
+let editorTransforms = { sort: null, unique: false, casing: '', reverse: false, shuffle: false, trim: false, stripEmpty: false, number: false };
+
+function updateTransformBtnStates() {
+    const ids = {
+        editorSortLinesBtn: editorTransforms.sort === 'asc',
+        editorReverseSortBtn: editorTransforms.sort === 'desc',
+        editorReverseOrderBtn: editorTransforms.reverse,
+        editorShuffleBtn: editorTransforms.shuffle,
+        editorUniqueLinesBtn: editorTransforms.unique,
+        editorTrimBtn: editorTransforms.trim,
+        editorStripEmptyBtn: editorTransforms.stripEmpty,
+        editorNumberBtn: editorTransforms.number
+    };
+    for (const [id, active] of Object.entries(ids)) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('active', active);
+    }
+    const casSel = document.getElementById('editorCasingSelect');
+    if (casSel) casSel.value = editorTransforms.casing || '';
+}
+
+function getEditorTransforms() {
+    const t = {};
+    if (editorTransforms.sort) t.sort = editorTransforms.sort;
+    if (editorTransforms.unique) t.unique = true;
+    if (editorTransforms.reverse) t.reverse = true;
+    if (editorTransforms.shuffle) t.shuffle = true;
+    if (editorTransforms.trim) t.trim = true;
+    if (editorTransforms.stripEmpty) t.stripEmpty = true;
+    if (editorTransforms.number) t.number = true;
+    if (editorTransforms.casing) t.casing = editorTransforms.casing;
+    return Object.keys(t).length ? t : null;
+}
 
 function setupContentEditor() {
     const overlay = document.getElementById('contentEditorOverlay');
@@ -5101,7 +5290,7 @@ function setupContentEditor() {
     const plainTextCheckbox = document.getElementById('editorPlainTextCheckbox');
 
     function updateEditorPreview() {
-        preview.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked);
+        preview.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
         updateEditorStats();
     }
 
@@ -5319,72 +5508,81 @@ function setupContentEditor() {
         }
     });
 
-    // --- Sort & Unique Lines ---
+    // --- Render-time transforms ---
     const sortLinesBtn = document.getElementById('editorSortLinesBtn');
     const reverseSortBtn = document.getElementById('editorReverseSortBtn');
+    const reverseOrderBtn = document.getElementById('editorReverseOrderBtn');
+    const shuffleBtn = document.getElementById('editorShuffleBtn');
     const uniqueLinesBtn = document.getElementById('editorUniqueLinesBtn');
+    const trimBtn = document.getElementById('editorTrimBtn');
+    const stripEmptyBtn = document.getElementById('editorStripEmptyBtn');
+    const numberBtn = document.getElementById('editorNumberBtn');
+    const casingSelect = document.getElementById('editorCasingSelect');
 
-    function applyToLines(fn) {
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const hasSelection = start !== end;
+    sortLinesBtn.addEventListener('click', () => {
+        editorTransforms.sort = editorTransforms.sort === 'asc' ? null : 'asc';
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
 
-        if (hasSelection) {
-            // Expand selection to full lines
-            const val = textarea.value;
-            const lineStart = val.lastIndexOf('\n', start - 1) + 1;
-            let lineEnd = val.indexOf('\n', end);
-            if (lineEnd === -1) lineEnd = val.length;
+    reverseSortBtn.addEventListener('click', () => {
+        editorTransforms.sort = editorTransforms.sort === 'desc' ? null : 'desc';
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
 
-            const selectedText = val.substring(lineStart, lineEnd);
-            const lines = selectedText.split('\n');
-            const result = fn(lines);
-            const newText = val.substring(0, lineStart) + result.join('\n') + val.substring(lineEnd);
-            textarea.value = newText;
-            textarea.selectionStart = lineStart;
-            textarea.selectionEnd = lineStart + result.join('\n').length;
-        } else {
-            const lines = textarea.value.split('\n');
-            const result = fn(lines);
-            textarea.value = result.join('\n');
-        }
-        textarea.dispatchEvent(new Event('input'));
-    }
+    reverseOrderBtn.addEventListener('click', () => {
+        editorTransforms.reverse = !editorTransforms.reverse;
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
 
-    function sortLines() {
-        applyToLines(lines => [...lines].sort((a, b) => a.localeCompare(b)));
-    }
+    shuffleBtn.addEventListener('click', () => {
+        editorTransforms.shuffle = !editorTransforms.shuffle;
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
 
-    function reverseSortLines() {
-        applyToLines(lines => [...lines].sort((a, b) => b.localeCompare(a)));
-    }
+    uniqueLinesBtn.addEventListener('click', () => {
+        editorTransforms.unique = !editorTransforms.unique;
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
 
-    function uniqueLines() {
-        applyToLines(lines => {
-            const seen = new Set();
-            return lines.filter(line => {
-                if (seen.has(line)) return false;
-                seen.add(line);
-                return true;
-            });
-        });
-    }
+    trimBtn.addEventListener('click', () => {
+        editorTransforms.trim = !editorTransforms.trim;
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
 
-    sortLinesBtn.addEventListener('click', sortLines);
-    reverseSortBtn.addEventListener('click', reverseSortLines);
-    uniqueLinesBtn.addEventListener('click', uniqueLines);
+    stripEmptyBtn.addEventListener('click', () => {
+        editorTransforms.stripEmpty = !editorTransforms.stripEmpty;
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
+
+    numberBtn.addEventListener('click', () => {
+        editorTransforms.number = !editorTransforms.number;
+        updateTransformBtnStates();
+        updateEditorPreview();
+    });
+
+    casingSelect.addEventListener('change', () => {
+        editorTransforms.casing = casingSelect.value;
+        updateEditorPreview();
+    });
 
     textarea.addEventListener('keydown', (e) => {
         const mod = e.metaKey || e.ctrlKey;
         if (mod && e.shiftKey && e.key === 's') {
             e.preventDefault();
-            sortLines();
+            sortLinesBtn.click();
         } else if (mod && e.shiftKey && e.key === 'r') {
             e.preventDefault();
-            reverseSortLines();
+            reverseSortBtn.click();
         } else if (mod && e.shiftKey && e.key === 'u') {
             e.preventDefault();
-            uniqueLines();
+            uniqueLinesBtn.click();
         } else if (mod && e.key === 'f') {
             e.preventDefault();
             openFindReplace(false);
@@ -5418,13 +5616,22 @@ function setupContentEditor() {
             toolCustomizations[toolId] = toolCustomizations[toolId] || {};
             toolCustomizations[toolId].customContent = textarea.value;
             toolCustomizations[toolId].plainText = plainTextCheckbox.checked;
+            // Save render-time transforms
+            toolCustomizations[toolId].textSort = editorTransforms.sort || '';
+            toolCustomizations[toolId].textUnique = editorTransforms.unique || false;
+            toolCustomizations[toolId].textReverse = editorTransforms.reverse || false;
+            toolCustomizations[toolId].textShuffle = editorTransforms.shuffle || false;
+            toolCustomizations[toolId].textTrim = editorTransforms.trim || false;
+            toolCustomizations[toolId].textStripEmpty = editorTransforms.stripEmpty || false;
+            toolCustomizations[toolId].textNumber = editorTransforms.number || false;
+            toolCustomizations[toolId].textCasing = editorTransforms.casing || '';
             saveToolCustomizations(toolCustomizations);
 
             // Update the tool content
             const tool = document.querySelector(`[data-tool="${toolId}"]`);
             if (tool) {
                 const contentDiv = tool.querySelector('.tool-content');
-                contentDiv.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked);
+                contentDiv.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
 
                 // Auto-resize tool to fit new content
                 requestAnimationFrame(() => {
@@ -5442,8 +5649,18 @@ function setupContentEditor() {
             const toolId = currentEditingTool;
             if (toolCustomizations[toolId]) {
                 delete toolCustomizations[toolId].customContent;
+                delete toolCustomizations[toolId].textSort;
+                delete toolCustomizations[toolId].textUnique;
+                delete toolCustomizations[toolId].textReverse;
+                delete toolCustomizations[toolId].textShuffle;
+                delete toolCustomizations[toolId].textTrim;
+                delete toolCustomizations[toolId].textStripEmpty;
+                delete toolCustomizations[toolId].textNumber;
+                delete toolCustomizations[toolId].textCasing;
                 saveToolCustomizations(toolCustomizations);
             }
+            editorTransforms = { sort: null, unique: false, casing: '', reverse: false, shuffle: false, trim: false, stripEmpty: false, number: false };
+            updateTransformBtnStates();
 
             // Restore default content
             const tool = document.querySelector(`[data-tool="${toolId}"]`);
@@ -5682,6 +5899,10 @@ function openContentEditor(toolId) {
     const plainTextCheckbox = document.getElementById('editorPlainTextCheckbox');
     plainTextCheckbox.checked = !!custom.plainText;
 
+    // Load render-time transforms
+    editorTransforms = { sort: custom.textSort || null, unique: !!custom.textUnique, reverse: !!custom.textReverse, shuffle: !!custom.textShuffle, trim: !!custom.textTrim, stripEmpty: !!custom.textStripEmpty, number: !!custom.textNumber, casing: custom.textCasing || '' };
+    updateTransformBtnStates();
+
     // Load existing custom content or convert default to markdown hint
     if (custom.customContent) {
         textarea.value = custom.customContent;
@@ -5700,7 +5921,7 @@ function openContentEditor(toolId) {
     editor.style.left = '';
     editor.style.top = '';
 
-    preview.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked);
+    preview.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
     textarea.dispatchEvent(new Event('input'));
     overlay.classList.add('open');
 
@@ -5779,7 +6000,16 @@ function applyToolboardSettings() {
             fontCustomInput.value = '';
         }
     }
-    if (fontSizeSelect) fontSizeSelect.value = toolboardSettings.fontSize || '';
+    const fontSizeLabel = document.getElementById('toolboardFontSizeLabel');
+    if (fontSizeSelect) {
+        if (toolboardSettings.fontSize) {
+            fontSizeSelect.value = parseInt(toolboardSettings.fontSize);
+            if (fontSizeLabel) fontSizeLabel.textContent = toolboardSettings.fontSize;
+        } else {
+            fontSizeSelect.value = 12;
+            if (fontSizeLabel) fontSizeLabel.textContent = 'default';
+        }
+    }
 
     // Apply board-level fonts to toolboard
     if (toolboardSettings.fontFamily) {
@@ -5833,6 +6063,7 @@ function applyToolFont(toolId) {
     const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
     if (!tool) return;
     const custom = toolCustomizations[toolId] || {};
+    if (custom.customFontName) loadGoogleFont(custom.customFontName);
     const content = tool.querySelector('.tool-content');
     if (content) {
         if (custom.fontFamily) {
@@ -5845,6 +6076,26 @@ function applyToolFont(toolId) {
         } else {
             content.style.fontSize = '';
         }
+    }
+}
+
+function applyToolPadding(toolId) {
+    const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+    if (!tool) return;
+    const custom = toolCustomizations[toolId] || {};
+    const content = tool.querySelector('.tool-content');
+    if (content) {
+        content.style.padding = custom.padding || '';
+    }
+}
+
+function applyToolTextAlign(toolId) {
+    const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+    if (!tool) return;
+    const custom = toolCustomizations[toolId] || {};
+    const content = tool.querySelector('.tool-content');
+    if (content) {
+        content.style.textAlign = custom.textAlign || '';
     }
 }
 
@@ -5927,16 +6178,24 @@ function setupToolboardSettings() {
         }, 400);
     });
 
-    // Font size select
-    fontSizeSelect.addEventListener('change', (e) => {
-        toolboardSettings.fontSize = e.target.value;
-        if (e.target.value) {
-            toolboard.style.fontSize = e.target.value;
-        } else {
-            toolboard.style.fontSize = '';
-        }
+    // Font size slider
+    const fontSizeLabel = document.getElementById('toolboardFontSizeLabel');
+    const fontSizeReset = document.getElementById('toolboardFontSizeReset');
+    fontSizeSelect.addEventListener('input', (e) => {
+        const px = e.target.value + 'px';
+        if (fontSizeLabel) fontSizeLabel.textContent = px;
+        toolboardSettings.fontSize = px;
+        toolboard.style.fontSize = px;
         saveToolboardSettings(toolboardSettings);
-        applyAllToolFonts(); // Re-apply tool overrides
+        applyAllToolFonts();
+    });
+    if (fontSizeReset) fontSizeReset.addEventListener('click', () => {
+        toolboardSettings.fontSize = '';
+        toolboard.style.fontSize = '';
+        fontSizeSelect.value = 12;
+        if (fontSizeLabel) fontSizeLabel.textContent = 'default';
+        saveToolboardSettings(toolboardSettings);
+        applyAllToolFonts();
     });
 
     // Close when clicking outside
@@ -6042,7 +6301,7 @@ function createTool(toolId) {
             </div>
         </div>
         <div class="tool-content">
-            ${custom.customContent ? renderToolContent(custom.customContent, custom.plainText) : content.html}
+            ${custom.customContent ? renderToolContent(custom.customContent, custom.plainText, getTextTransforms(custom)) : content.html}
         </div>
         <div class="resize-handle resize-handle-n" data-resize="n"></div>
         <div class="resize-handle resize-handle-s" data-resize="s"></div>
@@ -6116,6 +6375,7 @@ function createTool(toolId) {
     }
 
     // Apply tool-specific fonts
+    if (custom.customFontName) loadGoogleFont(custom.customFontName);
     const toolContent = tool.querySelector('.tool-content');
     if (toolContent) {
         if (custom.fontFamily) {
@@ -6124,16 +6384,87 @@ function createTool(toolId) {
         if (custom.fontSize) {
             toolContent.style.fontSize = custom.fontSize;
         }
+        if (custom.padding) {
+            toolContent.style.padding = custom.padding;
+        }
+        if (custom.textAlign) {
+            toolContent.style.textAlign = custom.textAlign;
+        }
     }
 
     return tool;
 }
 
-function renderToolContent(text, plainText) {
+function applyTextTransforms(text, transforms) {
+    if (!transforms) return text;
+    // Line-level transforms: trim, strip empty, unique first (before reordering)
+    if (transforms.trim) {
+        text = text.split('\n').map(l => l.trim()).join('\n');
+    }
+    if (transforms.stripEmpty) {
+        text = text.split('\n').filter(l => l.trim().length > 0).join('\n');
+    }
+    if (transforms.unique) {
+        const seen = new Set();
+        text = text.split('\n').filter(line => {
+            if (seen.has(line)) return false;
+            seen.add(line);
+            return true;
+        }).join('\n');
+    }
+    // Ordering transforms
+    if (transforms.sort === 'asc') {
+        text = text.split('\n').sort((a, b) => a.localeCompare(b)).join('\n');
+    } else if (transforms.sort === 'desc') {
+        text = text.split('\n').sort((a, b) => b.localeCompare(a)).join('\n');
+    }
+    if (transforms.reverse) {
+        text = text.split('\n').reverse().join('\n');
+    }
+    if (transforms.shuffle) {
+        const lines = text.split('\n');
+        for (let i = lines.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [lines[i], lines[j]] = [lines[j], lines[i]];
+        }
+        text = lines.join('\n');
+    }
+    // Numbering (after reorder so numbers match final order)
+    if (transforms.number) {
+        text = text.split('\n').map((l, i) => (i + 1) + '. ' + l).join('\n');
+    }
+    // Casing (last, applies to final text)
+    if (transforms.casing) {
+        switch (transforms.casing) {
+            case 'upper': text = text.toUpperCase(); break;
+            case 'lower': text = text.toLowerCase(); break;
+            case 'title': text = text.replace(/\S+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase()); break;
+            case 'sentence': text = text.replace(/(^\s*|[.!?]\s+)(\w)/gm, (m, pre, ch) => pre + ch.toUpperCase()).replace(/(^\w)/gm, (m, ch) => ch.toUpperCase()); break;
+        }
+    }
+    return text;
+}
+
+function renderToolContent(text, plainText, transforms) {
+    text = applyTextTransforms(text, transforms);
     if (plainText) {
         return `<pre style="white-space:pre-wrap;word-wrap:break-word;margin:0;font-family:inherit;font-size:inherit;">${escapeHtml(text)}</pre>`;
     }
     return `<div class="markdown-content">${parseMarkdown(text)}</div>`;
+}
+
+function getTextTransforms(custom) {
+    if (!custom) return null;
+    const t = {};
+    if (custom.textSort) t.sort = custom.textSort;
+    if (custom.textUnique) t.unique = true;
+    if (custom.textReverse) t.reverse = true;
+    if (custom.textShuffle) t.shuffle = true;
+    if (custom.textTrim) t.trim = true;
+    if (custom.textStripEmpty) t.stripEmpty = true;
+    if (custom.textNumber) t.number = true;
+    if (custom.textCasing) t.casing = custom.textCasing;
+    return Object.keys(t).length ? t : null;
 }
 
 // Get content for each tool
@@ -6156,7 +6487,7 @@ function getToolContent(toolId) {
 
         return {
             title: custom.title || 'New Tool',
-            html: custom.customContent ? renderToolContent(custom.customContent, custom.plainText) : '<p>Click the settings gear and "Edit Content" to add content to this tool.</p>'
+            html: custom.customContent != null ? renderToolContent(custom.customContent, custom.plainText, getTextTransforms(custom)) : '<p>Click the settings gear and "Edit Content" to add content to this tool.</p>'
         };
     }
     return null;
@@ -6242,16 +6573,18 @@ function setupDragging() {
         let newX = Math.max(0, dragState.offsetX + dx);
         let newY = Math.max(0, dragState.offsetY + dy);
 
-        // Get snap positions
-        const snapped = getSnapPosition(dragState.tool, newX, newY);
-        newX = snapped.x;
-        newY = snapped.y;
+        // Get snap positions (shift disables snapping)
+        if (!e.shiftKey) {
+            const snapped = getSnapPosition(dragState.tool, newX, newY);
+            newX = snapped.x;
+            newY = snapped.y;
+            updateSnapGuides(snapped.guides);
+        } else {
+            updateSnapGuides([]);
+        }
 
         dragState.tool.style.left = newX + 'px';
         dragState.tool.style.top = newY + 'px';
-
-        // Show/hide snap guides
-        updateSnapGuides(snapped.guides);
     }
 
     // Mouse/touch move updates position with snapping
@@ -6416,10 +6749,12 @@ function setupResizing() {
             );
             const deltaDeg = (currentAngle - resizeState.startAngle) * (180 / Math.PI);
             let newRotation = resizeState.startRotation + deltaDeg;
-            // Snap to 15-degree increments within 5 degrees
-            const snapAngle = Math.round(newRotation / 15) * 15;
-            if (Math.abs(newRotation - snapAngle) < 5) {
-                newRotation = snapAngle;
+            // Snap to 15-degree increments within 5 degrees (shift disables)
+            if (!e.shiftKey) {
+                const snapAngle = Math.round(newRotation / 15) * 15;
+                if (Math.abs(newRotation - snapAngle) < 5) {
+                    newRotation = snapAngle;
+                }
             }
             // Normalize to 0-360
             newRotation = ((newRotation % 360) + 360) % 360;
@@ -6438,8 +6773,9 @@ function setupResizing() {
         let newLeft = resizeState.startLeft;
         let newTop = resizeState.startTop;
 
-        const minWidth = 150;
-        const minHeight = 100;
+        const isFrameless = tool.classList.contains('frameless');
+        const minWidth = isFrameless ? 10 : 50;
+        const minHeight = isFrameless ? 10 : 36;
 
         // Handle resize based on which handle is being dragged
         if (handle.includes('e')) {
@@ -6477,15 +6813,22 @@ function setupResizing() {
             }
         }
 
-        // Apply snapping for resize edges
-        const snapped = getResizeSnapPosition(tool, newLeft, newTop, newWidth, newHeight, handle);
+        // Apply snapping for resize edges (shift disables snapping)
+        if (!e.shiftKey) {
+            const snapped = getResizeSnapPosition(tool, newLeft, newTop, newWidth, newHeight, handle);
+            newWidth = snapped.width;
+            newHeight = snapped.height;
+            newLeft = snapped.left;
+            newTop = snapped.top;
+            updateSnapGuides(snapped.guides);
+        } else {
+            updateSnapGuides([]);
+        }
 
-        tool.style.width = snapped.width + 'px';
-        tool.style.height = snapped.height + 'px';
-        tool.style.left = snapped.left + 'px';
-        tool.style.top = snapped.top + 'px';
-
-        updateSnapGuides(snapped.guides);
+        tool.style.width = newWidth + 'px';
+        tool.style.height = newHeight + 'px';
+        tool.style.left = newLeft + 'px';
+        tool.style.top = newTop + 'px';
     }
 
     // Mouse/touch move updates size
@@ -6558,8 +6901,8 @@ function autoFitToolContent(tool, skipAnimation = false) {
 
     // Measure natural dimensions with reasonable bounds
     const isFrameless = tool.classList.contains('frameless');
-    const newWidth = Math.max(200, Math.min(600, content.scrollWidth + (isFrameless ? 0 : 30)));
-    const newHeight = Math.max(120, Math.min(500, content.scrollHeight + (isFrameless ? 0 : header.offsetHeight + 20)));
+    const newWidth = Math.max(isFrameless ? 50 : 200, Math.min(600, content.scrollWidth + (isFrameless ? 0 : 30)));
+    const newHeight = Math.max(isFrameless ? 10 : 120, Math.min(500, content.scrollHeight + (isFrameless ? 0 : header.offsetHeight + 20)));
 
     // Restore overflow
     content.style.overflow = '';
@@ -7250,7 +7593,9 @@ function instantiateBoardTemplate(boardId) {
             customContent: toolConfig.customContent || template.defaultContent || (isHtml ? '' : template.content),
             color: toolConfig.color || null,
             fontFamily: toolConfig.fontFamily || '',
-            fontSize: toolConfig.fontSize || ''
+            fontSize: toolConfig.fontSize || '',
+            padding: toolConfig.padding || '',
+            textAlign: toolConfig.textAlign || ''
         };
     });
 
