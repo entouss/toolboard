@@ -1,5 +1,5 @@
 // Productivity Tools Toolbox Plugin
-// Contains the Pomodoro Timer and Analog Clock Reader
+// Contains the Pomodoro Timer, Unit Converter, and other productivity tools
 
 // Inject CSS styles for productivity tools
 (function() {
@@ -35,26 +35,6 @@
 .pomo-settings label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 3px; text-align: left; }
 .pomo-settings input { width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: var(--input-bg); color: var(--text-primary); margin-bottom: 8px; box-sizing: border-box; }
 .pomo-settings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-
-/* Analog Clock Widget Styles */
-.clock-widget { background: var(--bg-tertiary); padding: 15px; border-radius: 6px; text-align: center; }
-.clock-face-container { width: 200px; height: 200px; margin: 0 auto 8px; }
-.clock-svg { width: 100%; height: 100%; display: block; }
-.clock-face { fill: var(--bg-primary); stroke: var(--text-muted); stroke-width: 2; }
-.clock-number { font-size: 14px; font-weight: 600; fill: var(--text-primary); font-family: system-ui, -apple-system, sans-serif; }
-.clock-hand-hr { stroke: var(--text-primary); stroke-width: 4.5; stroke-linecap: round; }
-.clock-hand-min { stroke: var(--text-secondary); stroke-width: 2.5; stroke-linecap: round; }
-.clock-hand-grab { stroke: transparent; stroke-width: 22; stroke-linecap: round; cursor: grab; pointer-events: stroke; }
-.clock-hand-grab:active { cursor: grabbing; }
-.clock-center-dot { fill: var(--text-primary); }
-.clock-digital { font-size: 28px; font-weight: 700; font-family: monospace; color: var(--text-primary); margin-bottom: 8px; line-height: 1.2; }
-.clock-controls { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-.clock-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); margin: 8px 0 6px; letter-spacing: 1px; }
-.clock-target { font-size: 14px; font-weight: 600; color: var(--text-primary); padding: 8px; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 8px; }
-.clock-feedback { font-size: 13px; font-weight: 600; margin-top: 6px; min-height: 18px; }
-.clock-score { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-.clock-answer-input { padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 16px; font-family: monospace; width: 80px; text-align: center; background: var(--input-bg); color: var(--text-primary); margin-bottom: 6px; }
-.clock-mode-select { padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
 
 /* Unit Converter Widget Styles */
 .tool-content:has(.uc-widget) { display: flex; flex-direction: column; padding: 0; }
@@ -1475,246 +1455,6 @@ function updatePomodoroDisplay() {
         if (st.completedCount === 0) icons = '\u2014';
         countEl.innerHTML = '<span class="pomo-count-icons">' + icons + '</span><br>Completed: ' + st.completedCount;
     }
-}
-
-// =============================================
-// ANALOG CLOCK READER
-// =============================================
-
-// Pre-build SVG tick marks and numbers for the clock face
-var clockFaceSvg = '';
-(function() {
-    var i, angle, isHour, len, w, r1, r2, rad, x1, y1, x2, y2;
-    for (i = 0; i < 60; i++) {
-        angle = i * 6;
-        isHour = i % 5 === 0;
-        len = isHour ? 8 : 4;
-        w = isHour ? 2 : 1;
-        r1 = 88;
-        r2 = r1 - len;
-        rad = angle * Math.PI / 180;
-        x1 = 100 + r1 * Math.sin(rad);
-        y1 = 100 - r1 * Math.cos(rad);
-        x2 = 100 + r2 * Math.sin(rad);
-        y2 = 100 - r2 * Math.cos(rad);
-        clockFaceSvg += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="var(--text-muted)" stroke-width="' + w + '" stroke-linecap="round"/>';
-    }
-    for (i = 1; i <= 12; i++) {
-        rad = i * 30 * Math.PI / 180;
-        x1 = 100 + 72 * Math.sin(rad);
-        y1 = 100 - 72 * Math.cos(rad) + 1;
-        clockFaceSvg += '<text x="' + x1.toFixed(1) + '" y="' + y1.toFixed(1) + '" text-anchor="middle" dominant-baseline="central" class="clock-number">' + i + '</text>';
-    }
-})();
-
-var clockState = {
-    hour: 12,
-    minute: 0,
-    dragging: null,
-    challengeMode: null,
-    targetHour: 0,
-    targetMinute: 0,
-    score: 0,
-    total: 0
-};
-
-function initClock() {
-    // Clean up any previous document-level listeners
-    document.removeEventListener('mousemove', clockDrag);
-    document.removeEventListener('touchmove', clockDrag);
-    document.removeEventListener('mouseup', clockEndDrag);
-    document.removeEventListener('touchend', clockEndDrag);
-
-    var minGrab = document.getElementById('clockMinGrab');
-    var hrGrab = document.getElementById('clockHrGrab');
-
-    if (minGrab) {
-        minGrab.addEventListener('mousedown', function(e) { e.preventDefault(); clockState.dragging = 'minute'; });
-        minGrab.addEventListener('touchstart', function(e) { e.preventDefault(); clockState.dragging = 'minute'; }, {passive: false});
-    }
-    if (hrGrab) {
-        hrGrab.addEventListener('mousedown', function(e) { e.preventDefault(); clockState.dragging = 'hour'; });
-        hrGrab.addEventListener('touchstart', function(e) { e.preventDefault(); clockState.dragging = 'hour'; }, {passive: false});
-    }
-
-    document.addEventListener('mousemove', clockDrag);
-    document.addEventListener('touchmove', clockDrag, {passive: false});
-    document.addEventListener('mouseup', clockEndDrag);
-    document.addEventListener('touchend', clockEndDrag);
-
-    clockState.hour = 12;
-    clockState.minute = 0;
-    clockState.challengeMode = null;
-    clockState.score = 0;
-    clockState.total = 0;
-    clockRender();
-}
-
-function clockDrag(e) {
-    if (!clockState.dragging) return;
-    if (clockState.challengeMode === 'read') { clockState.dragging = null; return; }
-    e.preventDefault();
-    var svg = document.getElementById('clockSvg');
-    if (!svg) return;
-    var rect = svg.getBoundingClientRect();
-    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    var svgX = (clientX - rect.left) / rect.width * 200;
-    var svgY = (clientY - rect.top) / rect.height * 200;
-    var dx = svgX - 100;
-    var dy = -(svgY - 100);
-    var angle = Math.atan2(dx, dy) * 180 / Math.PI;
-    if (angle < 0) angle += 360;
-
-    if (clockState.dragging === 'minute') {
-        clockState.minute = Math.round(angle / 6) % 60;
-    } else if (clockState.dragging === 'hour') {
-        var h = Math.round(angle / 30);
-        if (h === 0) h = 12;
-        clockState.hour = h;
-    }
-    clockRender();
-}
-
-function clockEndDrag() {
-    clockState.dragging = null;
-}
-
-function clockRender() {
-    var st = clockState;
-    var minAngle = st.minute * 6;
-    var hrAngle = (st.hour % 12) * 30 + st.minute * 0.5;
-
-    var minHand = document.getElementById('clockMinHand');
-    var hrHand = document.getElementById('clockHrHand');
-    var minGrab = document.getElementById('clockMinGrab');
-    var hrGrab = document.getElementById('clockHrGrab');
-
-    var minTrans = 'rotate(' + minAngle + ', 100, 100)';
-    var hrTrans = 'rotate(' + hrAngle + ', 100, 100)';
-    if (minHand) minHand.setAttribute('transform', minTrans);
-    if (hrHand) hrHand.setAttribute('transform', hrTrans);
-    if (minGrab) minGrab.setAttribute('transform', minTrans);
-    if (hrGrab) hrGrab.setAttribute('transform', hrTrans);
-
-    var digitalEl = document.getElementById('clockDigital');
-    if (digitalEl) {
-        if (st.challengeMode === 'read') {
-            digitalEl.textContent = '??:??';
-        } else {
-            digitalEl.textContent = st.hour + ':' + (st.minute < 10 ? '0' : '') + st.minute;
-        }
-    }
-}
-
-function clockSetNow() {
-    var now = new Date();
-    var h = now.getHours();
-    clockState.hour = h === 0 ? 12 : (h > 12 ? h - 12 : h);
-    clockState.minute = now.getMinutes();
-    clockState.challengeMode = null;
-    clockClearChallenge();
-    clockRender();
-}
-
-function clockRandomize() {
-    clockState.hour = Math.floor(Math.random() * 12) + 1;
-    clockState.minute = Math.floor(Math.random() * 12) * 5;
-    clockState.challengeMode = null;
-    clockClearChallenge();
-    clockRender();
-}
-
-function clockClearChallenge() {
-    var targetEl = document.getElementById('clockTarget');
-    var feedbackEl = document.getElementById('clockFeedback');
-    var checkBtn = document.getElementById('clockCheckBtn');
-    var answerWrap = document.getElementById('clockAnswerWrap');
-    if (targetEl) targetEl.style.display = 'none';
-    if (feedbackEl) feedbackEl.textContent = '';
-    if (checkBtn) checkBtn.style.display = 'none';
-    if (answerWrap) answerWrap.style.display = 'none';
-}
-
-function clockNewChallenge() {
-    var st = clockState;
-    var modeEl = document.getElementById('clockChallengeMode');
-    var mode = modeEl ? modeEl.value : 'set';
-
-    st.targetHour = Math.floor(Math.random() * 12) + 1;
-    st.targetMinute = Math.floor(Math.random() * 12) * 5;
-    st.challengeMode = mode;
-
-    var targetEl = document.getElementById('clockTarget');
-    var feedbackEl = document.getElementById('clockFeedback');
-    var checkBtn = document.getElementById('clockCheckBtn');
-    var answerWrap = document.getElementById('clockAnswerWrap');
-
-    if (mode === 'set') {
-        if (targetEl) {
-            targetEl.style.display = 'block';
-            targetEl.textContent = 'Set the clock to ' + st.targetHour + ':' + (st.targetMinute < 10 ? '0' : '') + st.targetMinute;
-        }
-        st.hour = 12;
-        st.minute = 0;
-        if (answerWrap) answerWrap.style.display = 'none';
-    } else {
-        st.hour = st.targetHour;
-        st.minute = st.targetMinute;
-        if (targetEl) {
-            targetEl.style.display = 'block';
-            targetEl.textContent = 'What time does the clock show?';
-        }
-        if (answerWrap) {
-            answerWrap.style.display = 'block';
-            var input = document.getElementById('clockAnswerInput');
-            if (input) { input.value = ''; input.focus(); }
-        }
-    }
-
-    if (checkBtn) checkBtn.style.display = '';
-    if (feedbackEl) feedbackEl.textContent = '';
-    clockRender();
-}
-
-function clockCheckAnswer() {
-    var st = clockState;
-    var correct = false;
-
-    if (st.challengeMode === 'set') {
-        correct = (st.hour === st.targetHour && st.minute === st.targetMinute);
-    } else if (st.challengeMode === 'read') {
-        var input = document.getElementById('clockAnswerInput');
-        if (input) {
-            var val = input.value.trim();
-            var parts = val.split(':');
-            if (parts.length === 2) {
-                var ih = parseInt(parts[0], 10);
-                var im = parseInt(parts[1], 10);
-                correct = (ih === st.targetHour && im === st.targetMinute);
-            }
-        }
-    }
-
-    st.total++;
-    if (correct) st.score++;
-
-    var feedbackEl = document.getElementById('clockFeedback');
-    var answer = st.targetHour + ':' + (st.targetMinute < 10 ? '0' : '') + st.targetMinute;
-    if (feedbackEl) {
-        if (correct) {
-            feedbackEl.innerHTML = '<span style="color:#27ae60;">\u2713 Correct!</span>';
-        } else {
-            feedbackEl.innerHTML = '<span style="color:#e74c3c;">\u2717 The answer is ' + answer + '</span>';
-        }
-    }
-
-    // Reveal the time
-    st.challengeMode = null;
-    clockRender();
-
-    var scoreEl = document.getElementById('clockScore');
-    if (scoreEl) scoreEl.textContent = 'Score: ' + st.score + ' / ' + st.total;
 }
 
 // =============================================
@@ -3833,7 +3573,6 @@ function ytembedInit() {
     if (document.getElementById('productivity-tools-scripts')) return;
 
     var pomoFunctions = [initPomodoro, getModeLabel, getModeClass, getDurationForMode, playPomodoroBeep, advancePomodoroMode, togglePomodoro, resetPomodoro, skipPomodoro, togglePomodoroSettings, applyPomodoroSettings, updatePomodoroDisplay];
-    var clockFunctions = [initClock, clockDrag, clockEndDrag, clockRender, clockSetNow, clockRandomize, clockClearChallenge, clockNewChallenge, clockCheckAnswer];
     var ucFunctions = [ucGetToolId, ucGetData, ucSaveData, ucInit, ucRenderCategories, ucRenderSelects, ucSetCategory, ucOnInput, ucOnUnitChange, ucSwap, ucConvertTemp, ucFormatNumber, ucConvert];
     var pbsFunctions = [pbsSpeedLabel, pbsToFraction, pbsFmtDuration, pbsGetTotalSeconds, pbsGetSpeed, pbsCalc, pbsSetSpeed, pbsRangeChanged, pbsInit];
     var calendarFunctions = [calendarGetToolId, calendarGetData, calendarSaveData, calendarInit, calendarFetchICS, calendarRefreshSubscriptions, calendarRender, calendarRenderMonth, calendarGetEventsForDate, calendarCountByType, calendarCountTotal, calendarSaveViewState, calendarPrevYear, calendarNextYear, calendarSetView, calendarPrevMonth, calendarNextMonth, calendarGoToMonth, calendarGoToToday, calendarRenderMonthView, calendarShowDayEvents, calendarOpenManage, calendarCloseManage, calendarSelectColor, calendarRenderManageList, calendarAddCalendar, calendarAddEvent, calendarAddEventFromDay, calendarDeleteEvent, calendarRemoveCalendar, calendarHandleFileImport, calendarImportFromUrl, calendarImportICS, parseICSContent, parseICSDate, expandRRULE];
@@ -3841,14 +3580,12 @@ function ytembedInit() {
     var diceFunctions = [diceGetWidget, diceGetToolId, diceRenderFace, diceChangeCount, diceRoll, diceAddHistory, diceRollerInit];
     var swFunctions = [swGetWidget, swGetToolId, swGetState, swFormatTime, swUpdateDisplay, swTick, swToggle, swLap, swReset, swRenderLaps, stopwatchInit];
     var ytFunctions = [ytembedGetWidget, ytembedGetToolId, ytembedExtractId, ytembedParseTimestamp, ytembedLoad, ytembedSaveState, ytembedInit];
-    var allFunctions = pomoFunctions.concat(clockFunctions).concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions);
+    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initPomodoro !== "undefined") return;\n' +
         'window.pomodoroState = ' + JSON.stringify(pomodoroState) + ';\n' +
         'window.POMO_RING_CIRCUMFERENCE = ' + POMO_RING_CIRCUMFERENCE + ';\n' +
-        'window.clockState = ' + JSON.stringify(clockState) + ';\n' +
-        'window.clockFaceSvg = ' + JSON.stringify(clockFaceSvg) + ';\n' +
         'window.UC_UNITS = ' + JSON.stringify(UC_UNITS) + ';\n' +
         'window.PBS_FRACTIONS = ' + JSON.stringify(PBS_FRACTIONS) + ';\n' +
         'window.PBS_PRESETS = ' + JSON.stringify(PBS_PRESETS) + ';\n' +
@@ -3880,7 +3617,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['analog-clock', 'calendar', 'dice-roller', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'youtube-embed'],
+    tools: ['calendar', 'dice-roller', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'youtube-embed'],
     source: 'external'
 });
 
@@ -3923,50 +3660,6 @@ PluginRegistry.registerTool({
     onInit: 'initPomodoro',
     defaultWidth: 320,
     defaultHeight: 420,
-    source: 'external'
-});
-
-// Analog Clock Reader
-PluginRegistry.registerTool({
-    id: 'analog-clock',
-    name: 'Analog Clock',
-    description: 'Interactive analog clock for telling time practice',
-    icon: '\uD83D\uDD70',
-    version: '1.0.0',
-    toolbox: 'productivity',
-    tags: ['clock', 'time', 'analog', 'practice', 'learn', 'education'],
-    title: 'Analog Clock',
-    content: '<div class="clock-widget">' +
-        '<div class="clock-face-container">' +
-            '<svg id="clockSvg" class="clock-svg" viewBox="0 0 200 200">' +
-                '<circle class="clock-face" cx="100" cy="100" r="92"/>' +
-                clockFaceSvg +
-                '<line id="clockHrHand" class="clock-hand-hr" x1="100" y1="100" x2="100" y2="42"/>' +
-                '<line id="clockMinHand" class="clock-hand-min" x1="100" y1="100" x2="100" y2="22"/>' +
-                '<line id="clockHrGrab" class="clock-hand-grab" x1="100" y1="100" x2="100" y2="42"/>' +
-                '<line id="clockMinGrab" class="clock-hand-grab" x1="100" y1="100" x2="100" y2="22"/>' +
-                '<circle class="clock-center-dot" cx="100" cy="100" r="4"/>' +
-            '</svg>' +
-        '</div>' +
-        '<div id="clockDigital" class="clock-digital">12:00</div>' +
-        '<div class="clock-controls">' +
-            '<button class="pomo-btn" onclick="clockSetNow()">Now</button>' +
-            '<button class="pomo-btn" onclick="clockRandomize()">Random</button>' +
-        '</div>' +
-        '<div class="clock-section-title">PRACTICE</div>' +
-        '<div id="clockTarget" class="clock-target" style="display:none"></div>' +
-        '<div id="clockAnswerWrap" style="display:none;margin-bottom:6px;"><input type="text" id="clockAnswerInput" class="clock-answer-input" placeholder="H:MM" onkeydown="if(event.key===\'Enter\')clockCheckAnswer()"></div>' +
-        '<div class="clock-controls">' +
-            '<select id="clockChallengeMode" class="clock-mode-select"><option value="set">Set the Clock</option><option value="read">Read the Clock</option></select>' +
-            '<button class="pomo-btn primary paused" onclick="clockNewChallenge()">New Challenge</button>' +
-            '<button id="clockCheckBtn" class="pomo-btn" onclick="clockCheckAnswer()" style="display:none">Check</button>' +
-        '</div>' +
-        '<div id="clockFeedback" class="clock-feedback"></div>' +
-        '<div id="clockScore" class="clock-score"></div>' +
-    '</div>',
-    onInit: 'initClock',
-    defaultWidth: 340,
-    defaultHeight: 500,
     source: 'external'
 });
 
@@ -4212,4 +3905,4 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Productivity Tools plugin loaded (15 tools)');
+console.log('Productivity Tools plugin loaded (8 tools)');

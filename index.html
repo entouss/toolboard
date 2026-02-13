@@ -6,6 +6,7 @@
     <title>Toolboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow&family=Bebas+Neue&family=Caveat&family=Crimson+Text&family=DM+Sans&family=Dancing+Script&family=EB+Garamond&family=Fira+Code&family=IBM+Plex+Mono&family=Indie+Flower&family=Inter&family=JetBrains+Mono&family=Josefin+Sans&family=Lato&family=Libre+Baskerville&family=Lora&family=Merriweather&family=Montserrat&family=Nunito&family=Open+Sans&family=Oswald&family=Pacifico&family=Patrick+Hand&family=Permanent+Marker&family=Playfair+Display&family=Poppins&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Mono&family=Rubik&family=Source+Code+Pro&family=Source+Sans+Pro&family=Space+Mono&family=Work+Sans&display=swap" rel="stylesheet">
@@ -3835,7 +3836,7 @@ PluginRegistry.registerToolbox({
     description: 'Basic toolboard tools',
     icon: '📝',
     color: '#7f8c8d',
-    tools: ['blank']
+    tools: ['blank', 'image-viewer']
 });
 
 // ============================================================
@@ -5632,11 +5633,6 @@ function setupContentEditor() {
             if (tool) {
                 const contentDiv = tool.querySelector('.tool-content');
                 contentDiv.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
-
-                // Auto-resize tool to fit new content
-                requestAnimationFrame(() => {
-                    autoFitToolContent(tool, false);
-                });
             }
         }
         overlay.classList.remove('open');
@@ -7642,6 +7638,7 @@ const OFFICIAL_PLUGINS = [
         { icon: '💰', name: 'Finance Tools', desc: 'Investment, Tax, Loan calculators', url: 'plugins/toolboxes/finance-tools.js' },
         { icon: '📋', name: 'Productivity Tools', desc: 'Pomodoro Timer, Dice Roller, and core productivity tools', url: 'plugins/toolboxes/productivity-tools.js' },
         { icon: '🎨', name: 'Creative Tools', desc: 'Color Picker and Emoticon Picker', url: 'plugins/toolboxes/creative-tools.js' },
+        { icon: '🎓', name: 'Educational Tools', desc: 'Analog Clock and Money Counter for learning', url: 'plugins/toolboxes/educational-tools.js' },
     ]},
     { category: 'Board Templates', items: [
         { icon: '📖', name: 'Git Cheat Sheet', desc: 'Quick-reference cards for everyday git commands', url: 'plugins/boards/git-cheat-sheet.js' },

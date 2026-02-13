@@ -250,6 +250,12 @@
 .imgv-widget.crop-mode .imgv-mode-toggle { display: none; }
 .imgv-widget.crop-mode .imgv-controls { pointer-events: none; opacity: 0.5; }
 .imgv-widget.crop-mode .imgv-input-row { pointer-events: none; opacity: 0.5; }
+.imgv-meme-text { position: absolute; left: 0; right: 0; text-align: center; padding: 8px 10px; font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; font-size: 32px; text-transform: uppercase; color: white; -webkit-text-stroke: 2px black; text-shadow: 2px 2px 0 black, -2px -2px 0 black, 2px -2px 0 black, -2px 2px 0 black; line-height: 1.1; word-wrap: break-word; pointer-events: none; z-index: 1; user-select: none; }
+.imgv-meme-top { top: 0; }
+.imgv-meme-bottom { bottom: 0; }
+.imgv-meme-row { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
+.imgv-meme-row label { font-size: 10px; width: 62px; min-width: 62px; color: var(--text-muted); }
+.imgv-meme-input { flex: 1; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 3px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); }
 `;
     document.head.appendChild(style);
 })();
@@ -3217,6 +3223,11 @@ function imgvReset(btn) {
     if (pickBtn) pickBtn.classList.remove('active');
     widget.querySelector('.imgv-display').classList.remove('eyedropper');
     widget._imgvCrop = null;
+    // Reset meme text
+    widget.querySelectorAll('.imgv-meme-input').forEach(function(inp) { inp.value = ''; });
+    widget.querySelectorAll('.imgv-meme-text').forEach(function(el) { el.textContent = ''; el.style.fontSize = ''; });
+    var memeSizeSlider = widget.querySelector('input[data-meme-size]');
+    if (memeSizeSlider) { memeSizeSlider.value = 32; var span = memeSizeSlider.parentElement.querySelector('.imgv-val'); if (span) span.textContent = '32px'; }
     imgvProcessTransparency(widget);
     imgvSaveState(widget);
 }
@@ -3624,6 +3635,42 @@ function imgvCropExit(widget) {
     if (widget._imgvCropBar) widget._imgvCropBar.style.display = 'none';
 }
 
+function imgvMemeChange(input) {
+    var widget = imgvGetWidget(input);
+    var which = input.getAttribute('data-meme');
+    var overlay = widget.querySelector('.imgv-meme-' + which);
+    if (overlay) overlay.textContent = input.value;
+    imgvSaveState(widget);
+}
+
+function imgvMemeSizeChange(input) {
+    var widget = imgvGetWidget(input);
+    var size = input.value + 'px';
+    widget.querySelectorAll('.imgv-meme-text').forEach(function(el) {
+        el.style.fontSize = size;
+    });
+    var span = input.parentElement.querySelector('.imgv-val');
+    if (span) span.textContent = size;
+    imgvSaveState(widget);
+}
+
+function imgvMemeApply(widget) {
+    var topInput = widget.querySelector('.imgv-meme-input[data-meme="top"]');
+    var bottomInput = widget.querySelector('.imgv-meme-input[data-meme="bottom"]');
+    var sizeInput = widget.querySelector('input[data-meme-size]');
+    var topOverlay = widget.querySelector('.imgv-meme-top');
+    var bottomOverlay = widget.querySelector('.imgv-meme-bottom');
+    if (topOverlay && topInput) topOverlay.textContent = topInput.value;
+    if (bottomOverlay && bottomInput) bottomOverlay.textContent = bottomInput.value;
+    if (sizeInput) {
+        var size = sizeInput.value + 'px';
+        if (topOverlay) topOverlay.style.fontSize = size;
+        if (bottomOverlay) bottomOverlay.style.fontSize = size;
+        var span = sizeInput.parentElement.querySelector('.imgv-val');
+        if (span) span.textContent = size;
+    }
+}
+
 function imgvSaveState(widget) {
     var toolId = imgvGetToolId(widget);
     if (!toolId) return;
@@ -3634,7 +3681,7 @@ function imgvSaveState(widget) {
     var orig = widget._imgvOrigSrc || '';
     // For URL-loaded images, store just the URL; for pasted/dropped, store data URL (capped at 500KB)
     var src = '';
-    if (inputUrl && inputUrl.match(/^https?:\/\//i)) {
+    if (inputUrl && inputUrl.match(/^(https?:\/\/|file:\/\/\/|\/)/i)) {
         src = inputUrl;
     } else if (orig && orig.indexOf('blob:') !== 0) {
         src = orig;
@@ -3658,7 +3705,10 @@ function imgvSaveState(widget) {
         },
         imgvTransColor: transColor ? transColor.value : '#00ff00',
         imgvTransTolerance: transTol ? parseInt(transTol.value) : 0,
-        imgvCrop: widget._imgvCrop || null
+        imgvCrop: widget._imgvCrop || null,
+        imgvMemeTop: widget.querySelector('.imgv-meme-input[data-meme="top"]')?.value || '',
+        imgvMemeBottom: widget.querySelector('.imgv-meme-input[data-meme="bottom"]')?.value || '',
+        imgvMemeFontSize: parseInt(widget.querySelector('input[data-meme-size]')?.value) || 32
     });
     saveToolCustomizations(customizations);
 }
@@ -3724,6 +3774,17 @@ function imgvInit() {
             imgvApplyStyles(widget);
         }
 
+        // Restore meme text
+        if (saved.imgvMemeTop || saved.imgvMemeBottom || saved.imgvMemeFontSize) {
+            var memeTopInput = widget.querySelector('.imgv-meme-input[data-meme="top"]');
+            var memeBottomInput = widget.querySelector('.imgv-meme-input[data-meme="bottom"]');
+            var memeSizeInput = widget.querySelector('input[data-meme-size]');
+            if (memeTopInput) memeTopInput.value = saved.imgvMemeTop || '';
+            if (memeBottomInput) memeBottomInput.value = saved.imgvMemeBottom || '';
+            if (memeSizeInput) memeSizeInput.value = saved.imgvMemeFontSize || 32;
+            imgvMemeApply(widget);
+        }
+
         // Restore render mode
         if (saved.imgvRenderMode) {
             widget.classList.add('render-mode');
@@ -3769,7 +3830,7 @@ function imgvInit() {
     var emoteFunctions = [emoteInit, emoteSelectTab, emoteRender, emoteSearch, emoteCopy];
     var drawFunctions = [drawGetState, drawInit, drawBeginStroke, drawMoveStroke, drawEndStroke, drawSetColor, drawSetSize, drawToggleEraser, drawClear, drawUndo, drawDownload, drawResizeCanvas, drawColorInput, drawSizeInput];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
-    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvFlash, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvApplyCropLayout, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick, imgvToggleMode, imgvCropStart, imgvCreateCropOverlay, imgvCropMouseDown, imgvCropMouseMove, imgvCropMouseUp, imgvCropUpdateRect, imgvCropApply, imgvCropCancel, imgvCropExit, imgvSaveState, imgvInit];
+    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvFlash, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvApplyCropLayout, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick, imgvToggleMode, imgvCropStart, imgvCreateCropOverlay, imgvCropMouseDown, imgvCropMouseMove, imgvCropMouseUp, imgvCropUpdateRect, imgvCropApply, imgvCropCancel, imgvCropExit, imgvMemeChange, imgvMemeSizeChange, imgvMemeApply, imgvSaveState, imgvInit];
     var allFunctions = cpkFunctions.concat(emoteFunctions).concat(drawFunctions).concat(ftreeFunctions).concat(imgvFunctions);
 
     var code = '(function() {\n' +
@@ -3804,7 +3865,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDFA8',
     color: '#e74c3c',
     version: '1.0.0',
-    tools: ['color-picker', 'drawing-canvas', 'emoticon-picker', 'family-tree', 'image-viewer'],
+    tools: ['color-picker', 'drawing-canvas', 'emoticon-picker', 'family-tree'],
     source: 'external'
 });
 
@@ -3970,7 +4031,7 @@ PluginRegistry.registerTool({
     description: 'Load images from URL, paste, or drag-drop with real-time CSS filter and transform editing',
     icon: '\uD83D\uDDBC\uFE0F',
     version: '1.0.0',
-    toolbox: 'creative-tools',
+    toolbox: 'core',
     tags: ['image', 'photo', 'picture', 'filter', 'brightness', 'contrast', 'saturate', 'blur', 'rotate', 'flip', 'css', 'viewer'],
     title: 'Image Viewer',
     content: '<div class="imgv-widget">' +
@@ -3980,6 +4041,8 @@ PluginRegistry.registerTool({
         '</div>' +
         '<div class="imgv-display">' +
             '<button class="imgv-mode-toggle" onclick="imgvToggleMode(this)">Render</button>' +
+            '<div class="imgv-meme-text imgv-meme-top"></div>' +
+            '<div class="imgv-meme-text imgv-meme-bottom"></div>' +
             '<div class="imgv-placeholder">Paste, drag &amp; drop, or enter a URL above</div>' +
         '</div>' +
         '<div class="imgv-controls">' +
@@ -4008,6 +4071,10 @@ PluginRegistry.registerTool({
             '<div class="imgv-flip-row">' +
                 '<button class="imgv-flip-btn" onclick="imgvCropStart(this)">Crop</button>' +
             '</div>' +
+            '<div class="imgv-section-label">Meme Text</div>' +
+            '<div class="imgv-meme-row"><label>Top Text</label><input type="text" class="imgv-meme-input" data-meme="top" placeholder="Top text..." oninput="imgvMemeChange(this)"></div>' +
+            '<div class="imgv-meme-row"><label>Bottom Text</label><input type="text" class="imgv-meme-input" data-meme="bottom" placeholder="Bottom text..." oninput="imgvMemeChange(this)"></div>' +
+            '<div class="imgv-slider-row"><label>Font Size</label><input type="range" min="12" max="72" value="32" data-meme-size="1" oninput="imgvMemeSizeChange(this)"><span class="imgv-val">32px</span></div>' +
         '</div>' +
     '</div>',
     contentType: 'html',
@@ -4017,4 +4084,4 @@ PluginRegistry.registerTool({
     defaultHeight: 520
 });
 
-console.log('Creative Tools plugin loaded (5 tools)');
+console.log('Creative Tools plugin loaded (5 tools: 4 creative + image-viewer registered to core)');

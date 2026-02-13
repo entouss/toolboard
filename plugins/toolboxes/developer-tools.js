@@ -174,6 +174,45 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .fmt-status.error { color: #e74c3c; }
 .fmt-status.success { color: #27ae60; }
 
+/* HTML-Markdown Converter Widget Styles */
+.tool-content:has(.hmc-widget) { display: flex; flex-direction: column; padding: 0; }
+.hmc-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.hmc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+.hmc-direction-toggle { display: flex; gap: 0; }
+.hmc-direction-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; margin-left: -1px; }
+.hmc-direction-btn:first-child { border-radius: 4px 0 0 4px; margin-left: 0; }
+.hmc-direction-btn:last-child { border-radius: 0 4px 4px 0; }
+.hmc-direction-btn.active { background: #3498db; color: white; border-color: #3498db; z-index: 1; }
+.hmc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.hmc-action-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.hmc-action-btn:hover { background: var(--table-hover); }
+.hmc-container { flex: 1; display: flex; gap: 10px; min-height: 0; }
+.hmc-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.hmc-pane label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+.hmc-pane textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.4; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
+.hmc-pane textarea:focus { outline: none; border-color: #3498db; }
+.hmc-pane textarea::placeholder { color: var(--text-muted); }
+.hmc-pane textarea.hmc-output { background: var(--bg-tertiary); }
+.hmc-preview-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.hmc-preview-pane label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+.hmc-preview { flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary); font-size: 13px; line-height: 1.5; overflow: auto; min-height: 100px; }
+.hmc-preview h1, .hmc-preview h2, .hmc-preview h3 { margin: 0.5em 0 0.3em; }
+.hmc-preview p { margin: 0.4em 0; }
+.hmc-preview code { background: var(--bg-secondary); padding: 2px 4px; border-radius: 3px; font-size: 12px; }
+.hmc-preview pre { background: var(--bg-secondary); padding: 8px; border-radius: 4px; overflow-x: auto; }
+.hmc-preview pre code { background: none; padding: 0; }
+.hmc-preview ul, .hmc-preview ol { padding-left: 1.5em; margin: 0.4em 0; }
+.hmc-preview blockquote { border-left: 3px solid var(--border-color); margin: 0.4em 0; padding-left: 10px; color: var(--text-secondary); }
+.hmc-preview a { color: #3498db; }
+.hmc-preview table { border-collapse: collapse; width: 100%; margin: 0.4em 0; }
+.hmc-preview th, .hmc-preview td { border: 1px solid var(--border-color); padding: 4px 8px; text-align: left; font-size: 12px; }
+.hmc-preview img { max-width: 100%; }
+.hmc-resizer { width: 6px; background: var(--border-color); cursor: col-resize; border-radius: 3px; flex-shrink: 0; }
+.hmc-resizer:hover { background: #3498db; }
+.hmc-status { margin-top: 8px; font-size: 11px; color: var(--text-muted); min-height: 16px; }
+.hmc-status.error { color: #e74c3c; }
+.hmc-status.success { color: #27ae60; }
+
 /* Cron Expression Widget Styles */
 .tool-content:has(.cron-widget) { display: flex; flex-direction: column; padding: 0; }
 .cron-widget { padding: 12px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 12px; }
@@ -889,7 +928,7 @@ PluginRegistry.registerToolbox({
     icon: '🛠️',
     color: '#3498db',
     version: '1.0.0',
-    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'hash-generator', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sequence-diagram', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
+    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'hash-generator', 'html-markdown-converter', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sequence-diagram', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
     source: 'external'
 });
 
@@ -961,6 +1000,53 @@ PluginRegistry.registerTool({
 </div>`,
     contentType: 'html',
     onInit: 'fmtInit',
+    source: 'external'
+});
+
+// HTML-Markdown Converter
+PluginRegistry.registerTool({
+    id: 'html-markdown-converter',
+    name: 'HTML ↔ MD Converter',
+    description: 'Convert between HTML and Markdown using Turndown and Marked',
+    icon: '🔄',
+    version: '1.0.0',
+    toolbox: 'developer-tools',
+    tags: ['html', 'markdown', 'convert', 'turndown', 'marked'],
+    title: 'HTML ↔ MD Converter',
+    defaultWidth: 750,
+    defaultHeight: 400,
+    content: `<div class="hmc-widget">
+<div class="hmc-toolbar">
+<div class="hmc-direction-toggle">
+<button class="hmc-direction-btn active" onclick="hmcSetDirection(this, 'html2md')">HTML → MD</button>
+<button class="hmc-direction-btn" onclick="hmcSetDirection(this, 'md2html')">MD → HTML</button>
+</div>
+<div class="hmc-actions">
+<button class="hmc-action-btn" onclick="hmcConvert(this)">Convert</button>
+<button class="hmc-action-btn" onclick="hmcCopy(this)">Copy</button>
+<button class="hmc-action-btn" onclick="hmcSwap(this)">Swap</button>
+</div>
+</div>
+<div class="hmc-container">
+<div class="hmc-pane">
+<label class="hmc-input-label">Input (HTML)</label>
+<textarea class="hmc-input" placeholder="Paste your HTML here..." oninput="hmcOnInput(this)"></textarea>
+</div>
+<div class="hmc-resizer"></div>
+<div class="hmc-pane">
+<label class="hmc-output-label">Output (Markdown)</label>
+<textarea class="hmc-output" readonly placeholder="Converted output will appear here..."></textarea>
+</div>
+<div class="hmc-resizer"></div>
+<div class="hmc-preview-pane">
+<label class="hmc-preview-label">Preview</label>
+<div class="hmc-preview"></div>
+</div>
+</div>
+<div class="hmc-status"></div>
+</div>`,
+    contentType: 'html',
+    onInit: 'hmcInit',
     source: 'external'
 });
 
@@ -1900,7 +1986,7 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Developer Tools plugin loaded: 23 tools registered');
+console.log('Developer Tools plugin loaded: 24 tools registered');
 
 // ==================== Diff Viewer Functions ====================
 function diffGetToolId(element) {
@@ -6484,6 +6570,125 @@ function ipinfoInit() {
         }
     });
 }
+// ==================== HTML-Markdown Converter Functions ====================
+var hmcAutoConvertTimer = null;
+function hmcGetToolId(element) { return element.closest('.hmc-widget')?.closest('.tool')?.getAttribute('data-tool'); }
+function hmcGetData(toolId) { const customizations = loadToolCustomizations(); return (customizations[toolId]?.hmcData) || { input: '', output: '', direction: 'html2md' }; }
+function hmcSaveData(toolId, data) { const customizations = loadToolCustomizations(); if (!customizations[toolId]) customizations[toolId] = {}; customizations[toolId].hmcData = data; saveToolCustomizations(customizations); }
+function hmcInit() {
+    document.querySelectorAll('.hmc-widget').forEach(widget => {
+        const toolId = hmcGetToolId(widget);
+        if (!toolId) return;
+        const data = hmcGetData(toolId), input = widget.querySelector('.hmc-input'), output = widget.querySelector('.hmc-output');
+        if (input && data.input) input.value = data.input;
+        if (output && data.output) output.value = data.output;
+        const dir = data.direction || 'html2md';
+        widget.querySelectorAll('.hmc-direction-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('onclick').includes(dir)));
+        hmcUpdateLabels(widget, dir);
+        hmcSetupResizer(widget);
+        if (data.input && data.input.trim()) hmcDoConvert(widget);
+    });
+}
+function hmcSetupResizer(widget) {
+    const container = widget.querySelector('.hmc-container'), resizers = container.querySelectorAll('.hmc-resizer');
+    const panes = [container.querySelector('.hmc-pane:first-child'), container.querySelector('.hmc-pane:last-of-type'), container.querySelector('.hmc-preview-pane')];
+    let activeResizer = null;
+    resizers.forEach((resizer, idx) => {
+        resizer.addEventListener('mousedown', () => { activeResizer = idx; document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; });
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (activeResizer === null) return;
+        const rect = container.getBoundingClientRect(), x = e.clientX - rect.left, total = rect.width - 12;
+        if (activeResizer === 0) {
+            const rightEdge = panes[2].style.flex ? total - parseInt(panes[2].style.flex.split(' ')[2]) : total * 2 / 3;
+            const leftW = Math.max(80, Math.min(x, rightEdge - 80));
+            panes[0].style.flex = `0 0 ${leftW}px`;
+            panes[1].style.flex = `0 0 ${rightEdge - leftW}px`;
+        } else {
+            const leftEdge = panes[0].style.flex ? parseInt(panes[0].style.flex.split(' ')[2]) : total / 3;
+            const midW = Math.max(80, Math.min(x - leftEdge - 6, total - leftEdge - 80));
+            panes[1].style.flex = `0 0 ${midW}px`;
+            panes[2].style.flex = `0 0 ${total - leftEdge - midW}px`;
+        }
+    });
+    document.addEventListener('mouseup', () => { if (activeResizer !== null) { activeResizer = null; document.body.style.cursor = ''; document.body.style.userSelect = ''; } });
+}
+function hmcGetDirection(widget) { const activeBtn = widget.querySelector('.hmc-direction-btn.active'); return activeBtn && activeBtn.getAttribute('onclick').includes('md2html') ? 'md2html' : 'html2md'; }
+function hmcSetDirection(btn, dir) {
+    const widget = btn.closest('.hmc-widget');
+    widget.querySelectorAll('.hmc-direction-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    hmcUpdateLabels(widget, dir);
+    const toolId = hmcGetToolId(widget);
+    if (toolId) { const data = hmcGetData(toolId); data.direction = dir; data.output = ''; hmcSaveData(toolId, data); }
+    widget.querySelector('.hmc-output').value = '';
+    widget.querySelector('.hmc-preview').innerHTML = '';
+    hmcUpdateStatus(widget, '');
+    const input = widget.querySelector('.hmc-input');
+    if (input.value.trim()) hmcDoConvert(widget);
+}
+function hmcUpdateLabels(widget, dir) {
+    const inputLabel = widget.querySelector('.hmc-input-label'), outputLabel = widget.querySelector('.hmc-output-label'), previewLabel = widget.querySelector('.hmc-preview-label');
+    const inputTA = widget.querySelector('.hmc-input');
+    if (dir === 'html2md') {
+        inputLabel.textContent = 'Input (HTML)';
+        outputLabel.textContent = 'Output (Markdown)';
+        previewLabel.textContent = 'Preview (Input HTML)';
+        inputTA.placeholder = 'Paste your HTML here...';
+    } else {
+        inputLabel.textContent = 'Input (Markdown)';
+        outputLabel.textContent = 'Output (HTML)';
+        previewLabel.textContent = 'Preview (Output HTML)';
+        inputTA.placeholder = 'Type your Markdown here...';
+    }
+}
+function hmcOnInput(textarea) {
+    const widget = textarea.closest('.hmc-widget'), toolId = hmcGetToolId(widget);
+    if (toolId) { const data = hmcGetData(toolId); data.input = textarea.value; hmcSaveData(toolId, data); }
+    hmcAutoConvert(widget);
+}
+function hmcAutoConvert(widget) {
+    if (hmcAutoConvertTimer) clearTimeout(hmcAutoConvertTimer);
+    hmcAutoConvertTimer = setTimeout(() => { hmcDoConvert(widget); }, 300);
+}
+function hmcConvert(btn) { hmcDoConvert(btn.closest('.hmc-widget')); }
+function hmcDoConvert(widget) {
+    const dir = hmcGetDirection(widget), input = widget.querySelector('.hmc-input').value, preview = widget.querySelector('.hmc-preview');
+    if (!input.trim()) { widget.querySelector('.hmc-output').value = ''; preview.innerHTML = ''; hmcUpdateStatus(widget, ''); return; }
+    try {
+        let result;
+        if (dir === 'html2md') {
+            if (typeof TurndownService === 'undefined') { hmcUpdateStatus(widget, 'Turndown.js not loaded — cannot convert HTML to Markdown', 'error'); return; }
+            const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+            result = td.turndown(input);
+            widget.querySelector('.hmc-output').value = result;
+            preview.innerHTML = input;
+        } else {
+            if (typeof marked === 'undefined') { hmcUpdateStatus(widget, 'marked.js not loaded — cannot convert Markdown to HTML', 'error'); return; }
+            result = marked.parse(input, { breaks: true });
+            widget.querySelector('.hmc-output').value = result;
+            preview.innerHTML = result;
+        }
+        hmcUpdateStatus(widget, dir === 'html2md' ? 'Converted HTML → Markdown' : 'Converted Markdown → HTML', 'success');
+        const toolId = hmcGetToolId(widget);
+        if (toolId) { const data = hmcGetData(toolId); data.output = result; hmcSaveData(toolId, data); }
+    } catch (e) { hmcUpdateStatus(widget, 'Error: ' + e.message, 'error'); }
+}
+function hmcCopy(btn) { const widget = btn.closest('.hmc-widget'), output = widget.querySelector('.hmc-output').value; if (!output) { hmcUpdateStatus(widget, 'Nothing to copy', 'error'); return; } navigator.clipboard.writeText(output).then(() => { const orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = orig, 1500); }); }
+function hmcSwap(btn) {
+    const widget = btn.closest('.hmc-widget'), input = widget.querySelector('.hmc-input'), output = widget.querySelector('.hmc-output');
+    const outputVal = output.value;
+    if (!outputVal) { hmcUpdateStatus(widget, 'Nothing to swap', 'error'); return; }
+    input.value = outputVal;
+    output.value = '';
+    widget.querySelector('.hmc-preview').innerHTML = '';
+    const toolId = hmcGetToolId(widget);
+    if (toolId) { const data = hmcGetData(toolId); data.input = outputVal; data.output = ''; hmcSaveData(toolId, data); }
+    hmcUpdateStatus(widget, 'Output moved to input', 'success');
+    hmcDoConvert(widget);
+}
+function hmcUpdateStatus(widget, message, type) { const status = widget.querySelector('.hmc-status'); status.textContent = message; status.className = 'hmc-status' + (type ? ' ' + type : ''); }
+
 // The injected script only defines things if they don't already exist (for exported HTML)
 (function injectScriptsForExport() {
     if (document.getElementById('developer-tools-scripts')) return;
@@ -6549,13 +6754,17 @@ function ipinfoInit() {
         sqleParseCreate, sqleParseAlter, sqleParseDropTable,
         sqleRender, sqleEscapeHtml, sqleToggleSampleMenu, sqleSample, sqleCopy, sqleClear,
         ipinfoGetWidget, ipinfoParse, ipinfoToNum, ipinfoFromNum, ipinfoMaskToPrefix,
-        ipinfoToBinary, ipinfoFormatHosts, ipinfoCalc, ipinfoToggleRef, ipinfoInit
+        ipinfoToBinary, ipinfoFormatHosts, ipinfoCalc, ipinfoToggleRef, ipinfoInit,
+        hmcGetToolId, hmcGetData, hmcSaveData, hmcInit, hmcSetupResizer, hmcGetDirection,
+        hmcSetDirection, hmcUpdateLabels, hmcOnInput, hmcAutoConvert, hmcConvert,
+        hmcDoConvert, hmcCopy, hmcSwap, hmcUpdateStatus
     ];
 
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
     const code = '(function() {\n' +
         'if (typeof diffGetToolId !== "undefined") return;\n' +
         'var epochIntervalId = null;\n' +
+        'var hmcAutoConvertTimer = null;\n' +
         'window.LOREM_WORDS = ' + JSON.stringify(LOREM_WORDS) + ';\n' +
         'window.LOREM_FIRST_SENTENCE = ' + JSON.stringify(LOREM_FIRST_SENTENCE) + ';\n' +
         'window.ASCII_CONTROL_NAMES = ' + JSON.stringify(ASCII_CONTROL_NAMES) + ';\n' +
@@ -6576,4 +6785,4 @@ function ipinfoInit() {
     (document.body || document.head).appendChild(script);
 })();
 
-console.log('Developer Tools plugin loaded: 23 tools');
+console.log('Developer Tools plugin loaded: 24 tools');
