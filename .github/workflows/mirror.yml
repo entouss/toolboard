@@ -1,18 +1,29 @@
 name: Mirror to Subdomain Repo
 
-on: [push]
+on:
+  push:
+    branches:
+      - main  # Change this to 'master' if your default branch is master
 
 jobs:
-  git-mirror:
+  google-mirror:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: yesolution/mirror-action@master
-        with:
-          # This is the URL of your SECOND (mirror) repository
-          target_repo_url:
-            https://github.com/entouss/toolboard-mirror.git
-          # This uses the secret you created in Step 2
-          github_token: ${{ secrets.MIRROR_TOKEN }}
+
+      - name: Push to Mirror
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          # Configure Git
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          # Add the mirror as a remote using the token for authentication
+          git remote add mirror https://x-access-token:${MIRROR_TOKEN}@github.com/entouss/toolboard-mirror.git
+          
+          # Force push the current branch to the mirror's main branch
+          git push --force mirror main
