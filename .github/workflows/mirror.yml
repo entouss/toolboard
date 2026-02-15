@@ -18,12 +18,11 @@ jobs:
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
-          # Configure Git
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
           
-          # Add the mirror as a remote using the token for authentication
-          git remote add mirror https://x-access-token:${MIRROR_TOKEN}@github.com/entouss/toolboard-mirror.git
+          # We use the token in the remote URL directly
+          git remote add mirror "https://entouss:${MIRROR_TOKEN}@github.com/entouss/toolboard-mirror.git"
           
-          # Force push the current branch to the mirror's main branch
+          # This pushes your local 'main' branch to the mirror's 'main' branch
           git push --force mirror main
