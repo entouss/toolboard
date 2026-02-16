@@ -57,64 +57,6 @@ body.dark-mode .diff-line.addition .diff-gutter { background: rgba(39, 174, 96, 
 body.dark-mode .diff-line.deletion { background: rgba(231, 76, 60, 0.2); }
 body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 0.35); }
 
-/* Sequence Diagram Widget Styles */
-.tool-content:has(.seq-widget) { display: flex; flex-direction: column; }
-.seq-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
-.seq-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
-.seq-mode-toggle { display: flex; gap: 4px; }
-.seq-mode-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
-.seq-mode-btn:first-child { border-radius: 4px 0 0 4px; }
-.seq-mode-btn:last-child { border-radius: 0 4px 4px 0; }
-.seq-mode-btn.active { background: #3498db; color: white; border-color: #3498db; }
-.seq-help-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; }
-.seq-help-btn:hover { background: var(--table-hover); }
-.seq-split-container { flex: 1; display: none; gap: 10px; min-height: 0; }
-.seq-split-container.active { display: flex; }
-.seq-split-container .seq-edit-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.seq-split-container .seq-edit-pane textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.5; }
-.seq-split-container .seq-edit-pane textarea:focus { outline: none; border-color: #3498db; }
-.seq-split-container .seq-view-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); overflow: auto; }
-.seq-split-resizer { width: 6px; background: var(--border-color); cursor: col-resize; border-radius: 3px; flex-shrink: 0; }
-.seq-split-resizer:hover { background: #3498db; }
-.seq-edit-container { flex: 1; display: none; flex-direction: column; min-height: 0; }
-.seq-edit-container.active { display: flex; }
-.seq-edit-container textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.5; }
-.seq-edit-container textarea:focus { outline: none; border-color: #3498db; }
-.seq-edit-container textarea::placeholder { color: var(--text-muted); }
-.seq-view-container { flex: 1; min-height: 0; display: none; flex-direction: column; overflow: auto; }
-.seq-view-container.active { display: flex; }
-.seq-diagram { flex: 1; min-height: 200px; display: flex; justify-content: center; padding: 10px; }
-.seq-diagram svg { max-width: 100%; height: auto; }
-.seq-participant-box { fill: var(--bg-tertiary); stroke: var(--border-color); stroke-width: 2; }
-.seq-participant-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 600; fill: var(--text-primary); text-anchor: middle; dominant-baseline: middle; }
-.seq-lifeline { stroke: var(--border-color); stroke-width: 1; stroke-dasharray: 5, 5; }
-.seq-arrow { stroke: var(--text-primary); stroke-width: 1.5; fill: none; }
-.seq-arrow-head { fill: var(--text-primary); stroke: none; }
-.seq-arrow.dashed { stroke-dasharray: 5, 3; }
-.seq-arrow-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: var(--text-primary); dominant-baseline: middle; }
-.seq-arrow-number { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10px; font-weight: 700; fill: white; }
-.seq-arrow-number-bg { fill: #3498db; }
-.seq-arrow.dashed + .seq-arrow-number-bg, .seq-dashed-number-bg { fill: #9b59b6; }
-.seq-self-arrow { stroke: var(--text-primary); stroke-width: 1.5; fill: none; }
-.seq-note-box { fill: #ffffcc; stroke: #cccc00; stroke-width: 1; }
-.seq-note-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10px; fill: #333; }
-body.dark-mode .seq-note-box { fill: #4a4a2a; stroke: #8a8a3a; }
-body.dark-mode .seq-note-text { fill: #e4e4e7; }
-.seq-error-message { padding: 20px; text-align: center; color: var(--text-muted); font-style: italic; }
-.seq-help-text { font-size: 10px; color: var(--text-muted); padding: 8px 0; border-top: 1px solid var(--border-light); margin-top: 8px; flex-shrink: 0; }
-.seq-help-text code { background: var(--code-bg); padding: 1px 4px; border-radius: 3px; font-family: monospace; }
-.seq-help-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--overlay-bg); z-index: 10015; justify-content: center; align-items: center; }
-.seq-help-modal.open { display: flex; }
-.seq-help-content { background: var(--bg-secondary); border-radius: 8px; padding: 20px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
-.seq-help-content h3 { margin-bottom: 12px; color: var(--text-heading); }
-.seq-help-content pre { background: var(--code-bg); padding: 12px; border-radius: 4px; font-size: 11px; overflow-x: auto; margin: 10px 0; }
-.seq-help-content p { margin: 8px 0; font-size: 12px; color: var(--text-secondary); }
-.seq-help-close { float: right; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; }
-.seq-help-close:hover { color: var(--text-heading); }
-body.dark-mode .seq-participant-box { fill: var(--bg-tertiary); stroke: var(--border-color); }
-body.dark-mode .seq-arrow-number-bg { fill: #2980b9; }
-body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
-
 /* JWT Decoder Widget */
 .tool-content:has(.jwt-widget) { display: flex; flex-direction: column; }
 .jwt-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 10px; }
@@ -928,7 +870,7 @@ PluginRegistry.registerToolbox({
     icon: '🛠️',
     color: '#3498db',
     version: '1.0.0',
-    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'hash-generator', 'html-markdown-converter', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sequence-diagram', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
+    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'hash-generator', 'html-markdown-converter', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
     source: 'external'
 });
 
@@ -1365,55 +1307,6 @@ PluginRegistry.registerTool({
 </div>`,
     contentType: 'html',
     onInit: 'asciiInit',
-    source: 'external'
-});
-
-// Sequence Diagram
-PluginRegistry.registerTool({
-    id: 'sequence-diagram',
-    name: 'Sequence Diagram',
-    description: 'Create sequence diagrams from simple text notation',
-    icon: '📊',
-    version: '1.0.0',
-    toolbox: 'developer-tools',
-    tags: ['diagram', 'uml', 'sequence'],
-    title: 'Sequence Diagram',
-    content: `<div class="seq-widget">
-<div class="seq-toolbar">
-<div class="seq-mode-toggle">
-<button class="seq-mode-btn" onclick="seqSetMode(this, 'edit')">Edit</button>
-<button class="seq-mode-btn active" onclick="seqSetMode(this, 'split')">Split</button>
-<button class="seq-mode-btn" onclick="seqSetMode(this, 'view')">View</button>
-</div>
-<button class="seq-help-btn" onclick="seqShowHelp(this)">? Syntax Help</button>
-</div>
-<div class="seq-edit-container">
-<textarea placeholder="Enter sequence diagram notation..." oninput="seqOnInput(this)"></textarea>
-</div>
-<div class="seq-split-container active">
-<div class="seq-edit-pane">
-<textarea placeholder="Enter sequence diagram notation...
-
-Example:
-Alice -> Bob: Hello
-Bob --> Alice: Hi there!
-Bob -> Charlie: Forward
-Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
-</div>
-<div class="seq-split-resizer"></div>
-<div class="seq-view-pane">
-<div class="seq-diagram"></div>
-</div>
-</div>
-<div class="seq-view-container">
-<div class="seq-diagram"></div>
-</div>
-<div class="seq-help-text">
-<code>A -> B: msg</code> | <code>Note over A: text</code> | Colors: <code>[red]</code> or <code>[line:red, text:blue]</code>
-</div>
-</div>`,
-    contentType: 'html',
-    onInit: 'seqInit',
     source: 'external'
 });
 
@@ -1986,7 +1879,7 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Developer Tools plugin loaded: 24 tools registered');
+console.log('Developer Tools plugin loaded: 22 tools registered');
 
 // ==================== Diff Viewer Functions ====================
 function diffGetToolId(element) {
@@ -2200,181 +2093,6 @@ function diffUpdateStats(widget, toolId) {
     let additions = 0, deletions = 0;
     diff.forEach(item => { if (item.type === 'addition') additions++; if (item.type === 'deletion') deletions++; });
     statsEl.innerHTML = `<span class="diff-stats-additions">+${additions} addition${additions !== 1 ? 's' : ''}</span><span class="diff-stats-deletions">-${deletions} deletion${deletions !== 1 ? 's' : ''}</span>`;
-}
-
-// ==================== Sequence Diagram Functions ====================
-function seqGetToolId(element) { return element.closest('.tool')?.dataset.tool || null; }
-function seqGetData(toolId) {
-    const customizations = loadToolCustomizations();
-    return (customizations[toolId]?.seqData) || { text: '', mode: 'split' };
-}
-function seqSaveData(toolId, data) {
-    const customizations = loadToolCustomizations();
-    if (!customizations[toolId]) customizations[toolId] = {};
-    customizations[toolId].seqData = data;
-    saveToolCustomizations(customizations);
-}
-function seqInit() {
-    document.querySelectorAll('.seq-widget').forEach(widget => {
-        const toolId = seqGetToolId(widget);
-        if (!toolId) return;
-        const data = seqGetData(toolId);
-        widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
-        widget.querySelectorAll('.seq-mode-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode));
-        seqUpdateContainers(widget, data.mode, toolId);
-    });
-}
-function seqUpdateContainers(widget, mode, toolId) {
-    const editContainer = widget.querySelector('.seq-edit-container');
-    const splitContainer = widget.querySelector('.seq-split-container');
-    const viewContainer = widget.querySelector('.seq-view-container');
-    editContainer.classList.remove('active');
-    splitContainer.classList.remove('active');
-    viewContainer.classList.remove('active');
-    if (mode === 'edit') editContainer.classList.add('active');
-    else if (mode === 'split') { splitContainer.classList.add('active'); seqRenderDiagram(widget, toolId, '.seq-split-container .seq-diagram'); }
-    else if (mode === 'view') { viewContainer.classList.add('active'); seqRenderDiagram(widget, toolId, '.seq-view-container .seq-diagram'); }
-}
-function seqOnInput(textarea) {
-    const widget = textarea.closest('.seq-widget');
-    const toolId = seqGetToolId(textarea);
-    if (!toolId) return;
-    const data = seqGetData(toolId);
-    data.text = textarea.value;
-    seqSaveData(toolId, data);
-    widget.querySelectorAll('textarea').forEach(ta => { if (ta !== textarea) ta.value = textarea.value; });
-    if (data.mode === 'split') seqRenderDiagram(widget, toolId, '.seq-split-container .seq-diagram');
-}
-function seqSetMode(btn, mode) {
-    const widget = btn.closest('.seq-widget');
-    const toolId = seqGetToolId(widget);
-    if (!toolId) return;
-    const data = seqGetData(toolId);
-    data.mode = mode;
-    seqSaveData(toolId, data);
-    widget.querySelectorAll('.seq-mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === mode));
-    widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
-    seqUpdateContainers(widget, mode, toolId);
-}
-function seqShowHelp(btn) {
-    let modal = document.querySelector('.seq-help-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.className = 'seq-help-modal';
-        modal.innerHTML = `<div class="seq-help-content"><span class="seq-help-close" onclick="this.closest('.seq-help-modal').classList.remove('open')">&times;</span><h3>Sequence Diagram Syntax</h3><p><strong>Messages:</strong></p><pre>Participant1 -> Participant2: Message text</pre><p><code>-></code> Solid arrow (request/call)</p><p><code>--></code> Dashed arrow (response/return)</p><p><strong>Self-messages:</strong></p><pre>Alice -> Alice: Think about it</pre><p><strong>Notes:</strong></p><pre>Note left of Actor: Text
-Note right of Actor: Text
-Note over Actor: Text
-Note over Actor1, Actor2: Text</pre><p><strong>Colors:</strong></p><p>Add <code>[color]</code> at end of line:</p><pre>A -> B: Request [red]
-A -> B: Request [line:red, text:blue]
-Note over A: Info [#90EE90]
-Note over A: Info [bg:pink, text:black]</pre><p>Message options: <code>line</code>, <code>text</code>, <code>number</code></p><p>Note options: <code>bg</code>, <code>text</code>, <code>border</code></p><p><strong>Example:</strong></p><pre>Client -> Server: HTTP Request [green]
-Note right of Server: Validate [#ffe0b0]
-Server -> Database: Query [blue]
-Database --> Server: Results [purple]
-Server --> Client: HTTP Response [green]</pre><p>Participants are automatically detected. Each arrow is numbered sequentially.</p></div>`;
-        document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
-    }
-    modal.classList.add('open');
-}
-function seqParseColors(text) {
-    const colorMatch = text.match(/\s*\[([^\]]+)\]\s*$/);
-    if (!colorMatch) return { text: text.trim(), colors: {} };
-    const cleanText = text.substring(0, text.lastIndexOf('[')).trim();
-    const colorStr = colorMatch[1].trim();
-    const colors = {};
-    if (colorStr.includes(':')) {
-        colorStr.split(',').forEach(part => { const [key, value] = part.split(':').map(s => s.trim()); if (key && value) colors[key] = value; });
-    } else { colors.primary = colorStr; }
-    return { text: cleanText, colors };
-}
-function seqParseText(text) {
-    const lines = text.split('\n').filter(line => line.trim());
-    const participants = [], items = [], participantSet = new Set();
-    let messageCount = 0;
-    lines.forEach(line => {
-        const noteMatch = line.match(/^\s*note\s+(left\s+of|right\s+of|over)\s+([^:]+?)\s*:\s*(.*)$/i);
-        if (noteMatch) {
-            const position = noteMatch[1].toLowerCase().replace(/\s+/g, '');
-            const actors = noteMatch[2].trim().split(',').map(a => a.trim()).filter(a => a);
-            const { text: noteText, colors } = seqParseColors(noteMatch[3].trim());
-            actors.forEach(actor => { if (!participantSet.has(actor)) { participantSet.add(actor); participants.push(actor); } });
-            items.push({ type: 'note', position, actors, text: noteText, colors: { bg: colors.bg || colors.primary || null, text: colors.text || null, border: colors.border || colors.line || null } });
-            return;
-        }
-        const match = line.match(/^\s*([^-]+?)\s*(-->|->)\s*([^:]+?)\s*:\s*(.*)$/);
-        if (match) {
-            const from = match[1].trim(), arrowType = match[2], to = match[3].trim();
-            const { text: message, colors } = seqParseColors(match[4].trim());
-            if (!participantSet.has(from)) { participantSet.add(from); participants.push(from); }
-            if (!participantSet.has(to)) { participantSet.add(to); participants.push(to); }
-            messageCount++;
-            items.push({ type: 'message', from, to, message, dashed: arrowType === '-->', number: messageCount, colors: { line: colors.line || colors.primary || null, text: colors.text || null, number: colors.number || colors.bg || null } });
-        }
-    });
-    return { participants, items };
-}
-function seqRenderDiagram(widget, toolId, containerSelector) {
-    const data = seqGetData(toolId);
-    const container = widget.querySelector(containerSelector || '.seq-diagram');
-    if (!container) return;
-    if (!data.text.trim()) { container.innerHTML = '<div class="seq-error-message">Enter sequence diagram notation to see the diagram</div>'; return; }
-    const { participants, items } = seqParseText(data.text);
-    if (participants.length === 0) { container.innerHTML = '<div class="seq-error-message">No valid entries found. Use syntax: Actor -> Actor: Message</div>'; return; }
-    const boxWidth = 100, boxHeight = 36, boxPadding = 40, itemSpacing = 50, topMargin = 20, bottomMargin = 50, numberRadius = 10, noteWidth = 120, noteHeight = 30, notePadding = 8;
-    const totalWidth = participants.length * (boxWidth + boxPadding) - boxPadding + 40;
-    const totalHeight = topMargin + boxHeight + (items.length * itemSpacing) + boxHeight + bottomMargin;
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}">`;
-    const participantX = {};
-    participants.forEach((p, i) => { participantX[p] = 20 + i * (boxWidth + boxPadding) + boxWidth / 2; });
-    participants.forEach(p => { const x = participantX[p], y1 = topMargin + boxHeight, y2 = totalHeight - bottomMargin - boxHeight; svg += `<line class="seq-lifeline" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" />`; });
-    participants.forEach(p => { const x = participantX[p] - boxWidth / 2, y = topMargin; svg += `<rect class="seq-participant-box" x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" /><text class="seq-participant-text" x="${participantX[p]}" y="${y + boxHeight / 2}">${escapeHtml(p)}</text>`; });
-    participants.forEach(p => { const x = participantX[p] - boxWidth / 2, y = totalHeight - bottomMargin - boxHeight; svg += `<rect class="seq-participant-box" x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" /><text class="seq-participant-text" x="${participantX[p]}" y="${y + boxHeight / 2}">${escapeHtml(p)}</text>`; });
-    items.forEach((item, i) => {
-        const y = topMargin + boxHeight + (i + 1) * itemSpacing - itemSpacing / 2;
-        if (item.type === 'note') {
-            const actorX = participantX[item.actors[0]] || 0;
-            const noteColors = item.colors || {};
-            let boxStyle = '', textStyle = '';
-            if (noteColors.bg) boxStyle += `fill:${noteColors.bg};`;
-            if (noteColors.border) boxStyle += `stroke:${noteColors.border};`;
-            if (noteColors.text) textStyle += `fill:${noteColors.text};`;
-            let noteX, textAnchor = 'start';
-            if (item.position === 'leftof') noteX = actorX - boxWidth / 2 - noteWidth - 10;
-            else if (item.position === 'rightof') noteX = actorX + boxWidth / 2 + 10;
-            else if (item.position === 'over') {
-                if (item.actors.length > 1) { const actor2X = participantX[item.actors[1]] || actorX, minX = Math.min(actorX, actor2X), maxX = Math.max(actorX, actor2X); noteX = minX - noteWidth / 2; const spanWidth = maxX - minX + noteWidth; svg += `<rect class="seq-note-box" x="${noteX}" y="${y - noteHeight / 2}" width="${spanWidth}" height="${noteHeight}" rx="2"${boxStyle ? ` style="${boxStyle}"` : ''} /><text class="seq-note-text" x="${(minX + maxX) / 2}" y="${y}" text-anchor="middle" dominant-baseline="middle"${textStyle ? ` style="${textStyle}"` : ''}>${escapeHtml(item.text)}</text>`; return; }
-                noteX = actorX - noteWidth / 2; textAnchor = 'middle';
-            }
-            svg += `<rect class="seq-note-box" x="${noteX}" y="${y - noteHeight / 2}" width="${noteWidth}" height="${noteHeight}" rx="2"${boxStyle ? ` style="${boxStyle}"` : ''} />`;
-            const textX = item.position === 'over' ? actorX : noteX + notePadding;
-            svg += `<text class="seq-note-text" x="${textX}" y="${y}" text-anchor="${textAnchor}" dominant-baseline="middle"${textStyle ? ` style="${textStyle}"` : ''}>${escapeHtml(item.text)}</text>`;
-        } else if (item.type === 'message') {
-            const fromX = participantX[item.from], toX = participantX[item.to], dashedClass = item.dashed ? ' dashed' : '';
-            const msgColors = item.colors || {};
-            let lineStyle = '', headStyle = '', labelStyle = '', numBgStyle = '';
-            if (msgColors.line) { lineStyle = `stroke:${msgColors.line};`; headStyle = `fill:${msgColors.line};`; }
-            if (msgColors.text) labelStyle = `fill:${msgColors.text};`;
-            if (msgColors.number) numBgStyle = `fill:${msgColors.number};`;
-            if (item.from === item.to) {
-                const loopWidth = 30, loopHeight = 20;
-                svg += `<path class="seq-self-arrow${dashedClass}" d="M ${fromX} ${y} L ${fromX + loopWidth} ${y} L ${fromX + loopWidth} ${y + loopHeight} L ${fromX + 8} ${y + loopHeight}"${lineStyle ? ` style="${lineStyle}"` : ''} />`;
-                svg += `<polygon class="seq-arrow-head" points="${fromX + 8},${y + loopHeight - 4} ${fromX + 8},${y + loopHeight + 4} ${fromX},${y + loopHeight}"${headStyle ? ` style="${headStyle}"` : ''} />`;
-                svg += `<text class="seq-arrow-label" x="${fromX + loopWidth + 5}" y="${y + loopHeight / 2}"${labelStyle ? ` style="${labelStyle}"` : ''}>${escapeHtml(item.message)}</text>`;
-                const numBgClass = item.dashed ? 'seq-dashed-number-bg' : 'seq-arrow-number-bg';
-                svg += `<circle class="${numBgClass}" cx="${fromX + loopWidth}" cy="${y}" r="${numberRadius}"${numBgStyle ? ` style="${numBgStyle}"` : ''} /><text class="seq-arrow-number" x="${fromX + loopWidth}" y="${y}" text-anchor="middle" dominant-baseline="middle">${item.number}</text>`;
-            } else {
-                const direction = toX > fromX ? 1 : -1, arrowLength = 8;
-                svg += `<line class="seq-arrow${dashedClass}" x1="${fromX}" y1="${y}" x2="${toX - direction * arrowLength}" y2="${y}"${lineStyle ? ` style="${lineStyle}"` : ''} />`;
-                svg += `<polygon class="seq-arrow-head" points="${toX},${y} ${toX - direction * arrowLength},${y - 4} ${toX - direction * arrowLength},${y + 4}"${headStyle ? ` style="${headStyle}"` : ''} />`;
-                svg += `<text class="seq-arrow-label" x="${(fromX + toX) / 2}" y="${y - 8}" text-anchor="middle"${labelStyle ? ` style="${labelStyle}"` : ''}>${escapeHtml(item.message)}</text>`;
-                const numX = fromX + direction * 15, numBgClass = item.dashed ? 'seq-dashed-number-bg' : 'seq-arrow-number-bg';
-                svg += `<circle class="${numBgClass}" cx="${numX}" cy="${y}" r="${numberRadius}"${numBgStyle ? ` style="${numBgStyle}"` : ''} /><text class="seq-arrow-number" x="${numX}" y="${y}" text-anchor="middle" dominant-baseline="middle">${item.number}</text>`;
-            }
-        }
-    });
-    svg += '</svg>';
-    container.innerHTML = svg;
 }
 
 // ==================== JWT Decoder Functions ====================
@@ -6698,8 +6416,6 @@ function hmcUpdateStatus(widget, message, type) { const status = widget.querySel
         diffGetToolId, diffGetData, diffSaveData, diffInit, diffOnInput, diffSetMode, diffSetView,
         diffToggleWhitespace, diffSyncScroll, computeDiff, buildLCSMatrix, backtrackDiff,
         diffRenderOutput, renderSplitView, renderUnifiedView, renderDiffLine, renderUnifiedLine, diffUpdateStats,
-        seqGetToolId, seqGetData, seqSaveData, seqInit, seqUpdateContainers, seqOnInput, seqSetMode,
-        seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram,
         jwtGetToolId, jwtInit, jwtDecode, jwtBase64Decode, jwtSyntaxHighlight, jwtRenderClaims,
         jwtCopyPart, jwtLoadSample, jwtClear,
         epochInit, epochUpdateNow, epochUpdateReference, epochCopyNow, epochUseNow,
@@ -6785,4 +6501,4 @@ function hmcUpdateStatus(widget, message, type) { const status = widget.querySel
     (document.body || document.head).appendChild(script);
 })();
 
-console.log('Developer Tools plugin loaded: 24 tools');
+console.log('Developer Tools plugin loaded: 22 tools');

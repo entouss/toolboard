@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toolboard</title>
+    <link rel="canonical" href="https://toolboard.me" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.js"></script>
@@ -4104,6 +4105,15 @@ async function init() {
     displayVersion();
     updateStorageIndicator();
     setupHeaderCollapse();
+
+    // URL hash-based board switching: #BoardName opens that board
+    if (window.location.hash) {
+        switchToBoardByHash();
+    } else {
+        const board = boards.find(b => b.id === currentBoardId);
+        if (board) history.replaceState(null, '', '#' + encodeURIComponent(board.name));
+    }
+    window.addEventListener('hashchange', switchToBoardByHash);
 }
 
 // Display Toolboard version based on file modification date
@@ -7634,11 +7644,13 @@ function setupPluginSettings() {
 const OFFICIAL_PLUGINS = [
     { category: 'Toolboxes', items: [
         { icon: '📝', name: 'Core Tools', desc: 'Checklist with sub-items, drag reorder, and markdown editing', url: 'plugins/toolboxes/core-tools.js' },
-        { icon: '🛠️', name: 'Developer Tools', desc: 'JWT, Regex, Code Formatter, Cron, Epoch, Diff, Sequence Diagram', url: 'plugins/toolboxes/developer-tools.js' },
+        { icon: '🛠️', name: 'Developer Tools', desc: 'JWT, Regex, Code Formatter, Cron, Epoch, Diff, and more', url: 'plugins/toolboxes/developer-tools.js' },
         { icon: '💰', name: 'Finance Tools', desc: 'Investment, Tax, Loan calculators', url: 'plugins/toolboxes/finance-tools.js' },
         { icon: '📋', name: 'Productivity Tools', desc: 'Pomodoro Timer, Dice Roller, and core productivity tools', url: 'plugins/toolboxes/productivity-tools.js' },
         { icon: '🎨', name: 'Creative Tools', desc: 'Color Picker and Emoticon Picker', url: 'plugins/toolboxes/creative-tools.js' },
+        { icon: '📐', name: 'Diagram Tools', desc: 'Sequence Diagram, Mermaid Diagram, Family Tree, and Diagram editor', url: 'plugins/toolboxes/diagram-tools.js' },
         { icon: '🎓', name: 'Educational Tools', desc: 'Analog Clock and Money Counter for learning', url: 'plugins/toolboxes/educational-tools.js' },
+        { icon: '♞', name: 'Game Tools', desc: 'Chess and Sudoku puzzle with difficulty levels', url: 'plugins/toolboxes/game-tools.js' },
     ]},
     { category: 'Board Templates', items: [
         { icon: '📖', name: 'Git Cheat Sheet', desc: 'Quick-reference cards for everyday git commands', url: 'plugins/boards/git-cheat-sheet.js' },
@@ -9269,10 +9281,26 @@ function switchToBoard(boardId) {
     toolboardSettings = loadToolboardSettings();
     maxZ = Math.max(...Object.values(positions).map(p => p.z || 1), 1);
 
+    // Update URL hash to board name
+    const board = boards.find(b => b.id === boardId);
+    if (board) {
+        const hash = encodeURIComponent(board.name);
+        history.replaceState(null, '', '#' + hash);
+    }
+
     // Update UI
     updateBoardSelectorLabel();
     applyToolboardSettings();
     renderToolboard();
+}
+
+function switchToBoardByHash() {
+    const hash = decodeURIComponent(window.location.hash.slice(1)).trim();
+    if (!hash) return;
+    const board = boards.find(b => b.name.toLowerCase() === hash.toLowerCase());
+    if (board && board.id !== currentBoardId) {
+        switchToBoard(board.id);
+    }
 }
 
 function deleteCurrentBoard() {

@@ -1251,6 +1251,66 @@
     padding: 8px;
 }
 
+/* Kanban Board Widget Styles */
+.tool-content:has(.kb-widget) { display: flex; flex-direction: column; padding: 0; }
+.kb-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; font-size: 12px; }
+.kb-toolbar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; flex-wrap: wrap; }
+.kb-toolbar input { flex: 1; min-width: 80px; padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; background: var(--input-bg); color: var(--text-primary); }
+.kb-toolbar input:focus { outline: none; border-color: #3498db; }
+.kb-toolbar button { padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; white-space: nowrap; }
+.kb-toolbar button:hover { background: var(--table-hover); border-color: #3498db; }
+.kb-board { display: flex; flex: 1; overflow-x: auto; overflow-y: hidden; gap: 8px; padding: 8px; min-height: 0; }
+.kb-column { min-width: 200px; width: 200px; max-width: 280px; flex-shrink: 0; background: var(--bg-tertiary); border-radius: 6px; display: flex; flex-direction: column; max-height: 100%; border: 2px solid transparent; transition: border-color 0.15s; }
+.kb-column.kb-col-drag-over { border-color: #3498db; }
+.kb-col-header { display: flex; align-items: center; gap: 6px; padding: 8px 10px; flex-shrink: 0; cursor: grab; }
+.kb-col-header:active { cursor: grabbing; }
+.kb-col-title { font-weight: 600; font-size: 12px; color: var(--text-heading); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-col-title-input { flex: 1; min-width: 0; padding: 2px 4px; border: 1px solid #3498db; border-radius: 3px; font-size: 12px; font-weight: 600; background: var(--input-bg); color: var(--text-primary); outline: none; }
+.kb-col-count { font-size: 10px; color: var(--text-muted); background: var(--bg-secondary); border-radius: 10px; padding: 1px 7px; flex-shrink: 0; }
+.kb-col-menu { opacity: 0; font-size: 14px; cursor: pointer; color: var(--text-muted); padding: 0 2px; flex-shrink: 0; transition: opacity 0.15s; }
+.kb-col-header:hover .kb-col-menu { opacity: 1; }
+.kb-col-menu:hover { color: var(--text-primary); }
+.kb-col-body { flex: 1; overflow-y: auto; padding: 0 6px 6px; display: flex; flex-direction: column; gap: 4px; min-height: 40px; }
+.kb-card { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 10px; cursor: grab; transition: box-shadow 0.15s, opacity 0.15s, border-color 0.15s; position: relative; }
+.kb-card:hover { box-shadow: 0 1px 4px var(--shadow-light); }
+.kb-card:active { cursor: grabbing; }
+.kb-card.kb-card-dragging { opacity: 0.4; }
+.kb-card.kb-card-drag-over { border-color: #3498db; border-style: dashed; }
+.kb-card-title { font-size: 12px; color: var(--text-primary); word-break: break-word; line-height: 1.4; }
+.kb-card-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; word-break: break-word; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.kb-card-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+.kb-card-tag { font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: white; }
+.kb-card-actions { position: absolute; top: 4px; right: 4px; display: none; gap: 2px; }
+.kb-card:hover .kb-card-actions { display: flex; }
+.kb-card-action { width: 20px; height: 20px; border: none; background: var(--bg-tertiary); color: var(--text-muted); border-radius: 3px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+.kb-card-action:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.kb-add-card { padding: 6px 8px; font-size: 11px; color: var(--text-muted); cursor: pointer; border-radius: 4px; flex-shrink: 0; text-align: center; }
+.kb-add-card:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.kb-add-form { padding: 6px; flex-shrink: 0; }
+.kb-add-form textarea { width: 100%; padding: 6px 8px; border: 1px solid #3498db; border-radius: 4px; font-size: 12px; font-family: inherit; background: var(--input-bg); color: var(--text-primary); resize: none; outline: none; box-sizing: border-box; }
+.kb-add-form-btns { display: flex; gap: 4px; margin-top: 4px; }
+.kb-add-form-btns button { padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 3px; font-size: 11px; cursor: pointer; }
+.kb-add-form-btns .kb-add-confirm { background: #3498db; color: white; border-color: #3498db; }
+.kb-add-form-btns .kb-add-confirm:hover { background: #2980b9; }
+.kb-add-form-btns .kb-add-cancel { background: var(--bg-tertiary); color: var(--text-primary); }
+.kb-add-form-btns .kb-add-cancel:hover { background: var(--table-hover); }
+.kb-empty { display: flex; align-items: center; justify-content: center; flex: 1; color: var(--text-muted); font-style: italic; font-size: 12px; padding: 20px; text-align: center; }
+.kb-edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: 6px; }
+.kb-edit-modal { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; width: 90%; max-width: 340px; max-height: 90%; overflow-y: auto; box-shadow: 0 4px 20px var(--shadow-medium); }
+.kb-edit-modal label { display: block; font-size: 11px; font-weight: 600; color: var(--text-heading); margin-bottom: 3px; margin-top: 10px; }
+.kb-edit-modal label:first-child { margin-top: 0; }
+.kb-edit-modal input, .kb-edit-modal textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: inherit; background: var(--input-bg); color: var(--text-primary); box-sizing: border-box; }
+.kb-edit-modal input:focus, .kb-edit-modal textarea:focus { outline: none; border-color: #3498db; }
+.kb-edit-modal textarea { resize: vertical; min-height: 60px; }
+.kb-edit-btns { display: flex; gap: 6px; margin-top: 12px; justify-content: flex-end; }
+.kb-edit-btns button { padding: 6px 14px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; cursor: pointer; }
+.kb-edit-btns .kb-save-btn { background: #3498db; color: white; border-color: #3498db; }
+.kb-edit-btns .kb-save-btn:hover { background: #2980b9; }
+.kb-edit-btns .kb-del-btn { background: #e74c3c; color: white; border-color: #e74c3c; }
+.kb-edit-btns .kb-del-btn:hover { background: #c0392b; }
+.kb-edit-btns .kb-cancel-btn { background: var(--bg-tertiary); color: var(--text-primary); }
+.kb-col-drop-placeholder { min-width: 200px; width: 200px; flex-shrink: 0; border: 2px dashed var(--border-color); border-radius: 6px; background: transparent; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -3566,6 +3626,394 @@ function ytembedInit() {
 }
 
 // =============================================
+// KANBAN BOARD
+// =============================================
+
+const KB_TAG_COLORS = ['#3498db', '#e74c3c', '#27ae60', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#2c3e50'];
+
+let kbDragState = { type: null, colIdx: null, cardIdx: null, sourceColIdx: null, toolId: null };
+
+function kbGetToolId(el) {
+    const tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function kbGetData(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    return custom.kanbanColumns || [
+        { title: 'To Do', cards: [] },
+        { title: 'In Progress', cards: [] },
+        { title: 'Done', cards: [] }
+    ];
+}
+
+function kbSaveData(toolId, columns) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].kanbanColumns = columns;
+    saveToolCustomizations(toolCustomizations);
+}
+
+function kbRender(widget, toolId) {
+    const columns = kbGetData(toolId);
+    const board = widget.querySelector('.kb-board');
+    if (!board) return;
+
+    board.innerHTML = columns.map((col, ci) =>
+        '<div class="kb-column" data-col="' + ci + '" draggable="true" ondragstart="kbColDragStart(event,' + ci + ')" ondragover="kbColDragOver(event,' + ci + ')" ondragleave="kbColDragLeave(event)" ondrop="kbColDrop(event,' + ci + ')">' +
+            '<div class="kb-col-header">' +
+                '<span class="kb-col-title" ondblclick="kbEditColTitle(this,' + ci + ')">' + kbEsc(col.title) + '</span>' +
+                '<span class="kb-col-count">' + col.cards.length + '</span>' +
+                '<span class="kb-col-menu" onclick="kbColMenu(this,' + ci + ')">&#8230;</span>' +
+            '</div>' +
+            '<div class="kb-col-body" data-col="' + ci + '" ondragover="kbCardDragOver(event)" ondragleave="kbCardDragLeave(event)" ondrop="kbCardDrop(event,' + ci + ')">' +
+                col.cards.map((card, cdi) =>
+                    '<div class="kb-card" data-card="' + cdi + '" draggable="true" ondragstart="kbCardDragStart(event,' + ci + ',' + cdi + ')" ondblclick="kbEditCard(this,' + ci + ',' + cdi + ')">' +
+                        '<div class="kb-card-actions">' +
+                            '<button class="kb-card-action" onclick="kbEditCard(this,' + ci + ',' + cdi + ')" title="Edit">&#9998;</button>' +
+                        '</div>' +
+                        '<div class="kb-card-title">' + kbEsc(card.title) + '</div>' +
+                        (card.desc ? '<div class="kb-card-desc">' + kbEsc(card.desc) + '</div>' : '') +
+                        (card.tags && card.tags.length ? '<div class="kb-card-tags">' + card.tags.map(t =>
+                            '<span class="kb-card-tag" style="background:' + kbTagColor(t) + '">' + kbEsc(t) + '</span>'
+                        ).join('') + '</div>' : '') +
+                    '</div>'
+                ).join('') +
+            '</div>' +
+            '<div class="kb-add-card" onclick="kbShowAddForm(this,' + ci + ')">+ Add card</div>' +
+        '</div>'
+    ).join('');
+
+    if (columns.length === 0) {
+        board.innerHTML = '<div class="kb-empty">No columns yet. Add one above.</div>';
+    }
+}
+
+function kbEsc(str) {
+    if (typeof escapeHtml === 'function') return escapeHtml(str);
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+function kbTagColor(tag) {
+    let h = 0;
+    for (let i = 0; i < tag.length; i++) h = ((h << 5) - h + tag.charCodeAt(i)) | 0;
+    return KB_TAG_COLORS[Math.abs(h) % KB_TAG_COLORS.length];
+}
+
+function kbAddColumn(btn) {
+    const widget = btn.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const input = widget.querySelector('.kb-toolbar input');
+    const name = (input.value || '').trim();
+    if (!name) return;
+    const columns = kbGetData(toolId);
+    columns.push({ title: name, cards: [] });
+    kbSaveData(toolId, columns);
+    input.value = '';
+    kbRender(widget, toolId);
+}
+
+function kbShowAddForm(addBtn, colIdx) {
+    const widget = addBtn.closest('.kb-widget');
+    const col = addBtn.closest('.kb-column');
+    addBtn.style.display = 'none';
+    const form = document.createElement('div');
+    form.className = 'kb-add-form';
+    form.innerHTML =
+        '<textarea rows="2" placeholder="Card title..." onkeydown="kbAddFormKey(event,this,' + colIdx + ')"></textarea>' +
+        '<div class="kb-add-form-btns">' +
+            '<button class="kb-add-confirm" onclick="kbAddCard(this,' + colIdx + ')">Add</button>' +
+            '<button class="kb-add-cancel" onclick="kbCancelAdd(this,' + colIdx + ')">Cancel</button>' +
+        '</div>';
+    col.appendChild(form);
+    form.querySelector('textarea').focus();
+}
+
+function kbAddFormKey(e, ta, colIdx) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        kbAddCard(ta, colIdx);
+    }
+    if (e.key === 'Escape') {
+        kbCancelAdd(ta, colIdx);
+    }
+}
+
+function kbAddCard(el, colIdx) {
+    const widget = el.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const form = el.closest('.kb-add-form');
+    const title = (form.querySelector('textarea').value || '').trim();
+    if (!title) return;
+    const columns = kbGetData(toolId);
+    if (!columns[colIdx]) return;
+    columns[colIdx].cards.push({ title: title, desc: '', tags: [] });
+    kbSaveData(toolId, columns);
+    kbRender(widget, toolId);
+}
+
+function kbCancelAdd(el, colIdx) {
+    const widget = el.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    const col = el.closest('.kb-column');
+    const form = col.querySelector('.kb-add-form');
+    if (form) form.remove();
+    const addBtn = col.querySelector('.kb-add-card');
+    if (addBtn) addBtn.style.display = '';
+    // if no add button, re-render
+    if (!addBtn) kbRender(widget, toolId);
+}
+
+function kbEditColTitle(span, colIdx) {
+    const widget = span.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const columns = kbGetData(toolId);
+    const current = columns[colIdx].title;
+    const input = document.createElement('input');
+    input.className = 'kb-col-title-input';
+    input.value = current;
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+    const save = () => {
+        const val = (input.value || '').trim();
+        if (val && val !== current) {
+            columns[colIdx].title = val;
+            kbSaveData(toolId, columns);
+        }
+        kbRender(widget, toolId);
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { input.value = current; input.blur(); }
+    });
+}
+
+function kbColMenu(menuEl, colIdx) {
+    const widget = menuEl.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const columns = kbGetData(toolId);
+    const action = prompt('Column: "' + columns[colIdx].title + '"\nType "delete" to remove this column, or "clear" to remove all its cards.');
+    if (!action) return;
+    const cmd = action.trim().toLowerCase();
+    if (cmd === 'delete') {
+        columns.splice(colIdx, 1);
+        kbSaveData(toolId, columns);
+        kbRender(widget, toolId);
+    } else if (cmd === 'clear') {
+        columns[colIdx].cards = [];
+        kbSaveData(toolId, columns);
+        kbRender(widget, toolId);
+    }
+}
+
+function kbEditCard(el, colIdx, cardIdx) {
+    const widget = el.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const columns = kbGetData(toolId);
+    const card = columns[colIdx] && columns[colIdx].cards[cardIdx];
+    if (!card) return;
+
+    // Remove any existing overlay
+    const existing = widget.querySelector('.kb-edit-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'kb-edit-overlay';
+    overlay.innerHTML =
+        '<div class="kb-edit-modal" onclick="event.stopPropagation()">' +
+            '<label>Title</label>' +
+            '<input class="kb-edit-title" value="' + kbEsc(card.title).replace(/"/g, '&quot;') + '">' +
+            '<label>Description</label>' +
+            '<textarea class="kb-edit-desc" rows="3">' + kbEsc(card.desc || '') + '</textarea>' +
+            '<label>Tags (comma separated)</label>' +
+            '<input class="kb-edit-tags" value="' + kbEsc((card.tags || []).join(', ')).replace(/"/g, '&quot;') + '">' +
+            '<div class="kb-edit-btns">' +
+                '<button class="kb-del-btn" onclick="kbDeleteCard(this,' + colIdx + ',' + cardIdx + ')">Delete</button>' +
+                '<button class="kb-cancel-btn" onclick="this.closest(\'.kb-edit-overlay\').remove()">Cancel</button>' +
+                '<button class="kb-save-btn" onclick="kbSaveCard(this,' + colIdx + ',' + cardIdx + ')">Save</button>' +
+            '</div>' +
+        '</div>';
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    widget.style.position = 'relative';
+    widget.appendChild(overlay);
+    overlay.querySelector('.kb-edit-title').focus();
+
+    // Enter to save on title input
+    overlay.querySelector('.kb-edit-title').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); kbSaveCard(overlay.querySelector('.kb-save-btn'), colIdx, cardIdx); }
+    });
+}
+
+function kbSaveCard(btn, colIdx, cardIdx) {
+    const widget = btn.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const overlay = btn.closest('.kb-edit-overlay');
+    const columns = kbGetData(toolId);
+    if (!columns[colIdx] || !columns[colIdx].cards[cardIdx]) return;
+    const title = (overlay.querySelector('.kb-edit-title').value || '').trim();
+    if (!title) return;
+    columns[colIdx].cards[cardIdx].title = title;
+    columns[colIdx].cards[cardIdx].desc = (overlay.querySelector('.kb-edit-desc').value || '').trim();
+    const tagsStr = (overlay.querySelector('.kb-edit-tags').value || '').trim();
+    columns[colIdx].cards[cardIdx].tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+    kbSaveData(toolId, columns);
+    overlay.remove();
+    kbRender(widget, toolId);
+}
+
+function kbDeleteCard(btn, colIdx, cardIdx) {
+    const widget = btn.closest('.kb-widget');
+    const toolId = kbGetToolId(widget);
+    if (!toolId) return;
+    const columns = kbGetData(toolId);
+    if (!columns[colIdx]) return;
+    columns[colIdx].cards.splice(cardIdx, 1);
+    kbSaveData(toolId, columns);
+    const overlay = widget.querySelector('.kb-edit-overlay');
+    if (overlay) overlay.remove();
+    kbRender(widget, toolId);
+}
+
+// --- Card drag and drop ---
+function kbCardDragStart(e, colIdx, cardIdx) {
+    kbDragState = { type: 'card', colIdx: colIdx, cardIdx: cardIdx, sourceColIdx: colIdx, toolId: kbGetToolId(e.target.closest('.kb-widget')) };
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
+    e.target.classList.add('kb-card-dragging');
+    // Prevent column drag from firing
+    e.stopPropagation();
+}
+
+function kbCardDragOver(e) {
+    if (kbDragState.type !== 'card') return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const card = e.target.closest('.kb-card');
+    const body = e.target.closest('.kb-col-body');
+    if (body) {
+        body.querySelectorAll('.kb-card.kb-card-drag-over').forEach(c => c.classList.remove('kb-card-drag-over'));
+    }
+    if (card && !card.classList.contains('kb-card-dragging')) {
+        card.classList.add('kb-card-drag-over');
+    }
+}
+
+function kbCardDragLeave(e) {
+    const card = e.target.closest('.kb-card');
+    if (card) card.classList.remove('kb-card-drag-over');
+}
+
+function kbCardDrop(e, targetColIdx) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (kbDragState.type !== 'card') return;
+
+    const { colIdx: srcCol, cardIdx: srcCard, toolId } = kbDragState;
+    if (!toolId) return;
+
+    const columns = kbGetData(toolId);
+    if (!columns[srcCol] || !columns[srcCol].cards[srcCard]) return;
+
+    // Determine target card index
+    let targetCard = columns[targetColIdx] ? columns[targetColIdx].cards.length : 0;
+    const overCard = e.target.closest('.kb-card');
+    if (overCard) {
+        targetCard = parseInt(overCard.getAttribute('data-card'));
+    }
+
+    // Move the card
+    const [moved] = columns[srcCol].cards.splice(srcCard, 1);
+    // Adjust target index if same column and after source
+    if (srcCol === targetColIdx && targetCard > srcCard) targetCard--;
+    columns[targetColIdx].cards.splice(targetCard, 0, moved);
+
+    kbSaveData(toolId, columns);
+    const widget = document.querySelector('.tool[data-tool="' + toolId + '"] .kb-widget');
+    if (widget) kbRender(widget, toolId);
+    kbDragState = { type: null, colIdx: null, cardIdx: null, sourceColIdx: null, toolId: null };
+}
+
+// --- Column drag and drop ---
+function kbColDragStart(e, colIdx) {
+    if (kbDragState.type === 'card') return; // card drag takes priority
+    const toolId = kbGetToolId(e.target.closest('.kb-widget'));
+    kbDragState = { type: 'column', colIdx: colIdx, cardIdx: null, sourceColIdx: null, toolId: toolId };
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
+}
+
+function kbColDragOver(e, colIdx) {
+    if (kbDragState.type !== 'column') return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const col = e.target.closest('.kb-column');
+    if (col && parseInt(col.getAttribute('data-col')) !== kbDragState.colIdx) {
+        col.classList.add('kb-col-drag-over');
+    }
+}
+
+function kbColDragLeave(e) {
+    const col = e.target.closest('.kb-column');
+    if (col) col.classList.remove('kb-col-drag-over');
+}
+
+function kbColDrop(e, targetColIdx) {
+    e.preventDefault();
+    if (kbDragState.type !== 'column') return;
+
+    const { colIdx: srcCol, toolId } = kbDragState;
+    if (!toolId || srcCol === targetColIdx) {
+        kbDragState = { type: null, colIdx: null, cardIdx: null, sourceColIdx: null, toolId: null };
+        return;
+    }
+
+    const columns = kbGetData(toolId);
+    const [moved] = columns.splice(srcCol, 1);
+    columns.splice(targetColIdx > srcCol ? targetColIdx : targetColIdx, 0, moved);
+
+    kbSaveData(toolId, columns);
+    const widget = document.querySelector('.tool[data-tool="' + toolId + '"] .kb-widget');
+    if (widget) kbRender(widget, toolId);
+    kbDragState = { type: null, colIdx: null, cardIdx: null, sourceColIdx: null, toolId: null };
+}
+
+// Global dragend cleanup for kanban
+document.addEventListener('dragend', () => {
+    document.querySelectorAll('.kb-card-dragging').forEach(el => el.classList.remove('kb-card-dragging'));
+    document.querySelectorAll('.kb-card-drag-over').forEach(el => el.classList.remove('kb-card-drag-over'));
+    document.querySelectorAll('.kb-col-drag-over').forEach(el => el.classList.remove('kb-col-drag-over'));
+    kbDragState = { type: null, colIdx: null, cardIdx: null, sourceColIdx: null, toolId: null };
+});
+
+function kbInit() {
+    document.querySelectorAll('.kb-widget').forEach(widget => {
+        const toolId = kbGetToolId(widget);
+        if (!toolId) return;
+        kbRender(widget, toolId);
+
+        // Enter key on column name input
+        const input = widget.querySelector('.kb-toolbar input');
+        if (input) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    kbAddColumn(widget.querySelector('.kb-toolbar button'));
+                }
+            });
+        }
+    });
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -3580,7 +4028,8 @@ function ytembedInit() {
     var diceFunctions = [diceGetWidget, diceGetToolId, diceRenderFace, diceChangeCount, diceRoll, diceAddHistory, diceRollerInit];
     var swFunctions = [swGetWidget, swGetToolId, swGetState, swFormatTime, swUpdateDisplay, swTick, swToggle, swLap, swReset, swRenderLaps, stopwatchInit];
     var ytFunctions = [ytembedGetWidget, ytembedGetToolId, ytembedExtractId, ytembedParseTimestamp, ytembedLoad, ytembedSaveState, ytembedInit];
-    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions);
+    var kbFunctions = [kbGetToolId, kbGetData, kbSaveData, kbRender, kbEsc, kbTagColor, kbAddColumn, kbShowAddForm, kbAddFormKey, kbAddCard, kbCancelAdd, kbEditColTitle, kbColMenu, kbEditCard, kbSaveCard, kbDeleteCard, kbCardDragStart, kbCardDragOver, kbCardDragLeave, kbCardDrop, kbColDragStart, kbColDragOver, kbColDragLeave, kbColDrop, kbInit];
+    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initPomodoro !== "undefined") return;\n' +
@@ -3595,6 +4044,8 @@ function ytembedInit() {
         'window.PICKER_COLORS = ' + JSON.stringify(PICKER_COLORS) + ';\n' +
         'window.dicePipLayouts = ' + JSON.stringify(dicePipLayouts) + ';\n' +
         'window.swInstances = new Map();\n' +
+        'window.KB_TAG_COLORS = ' + JSON.stringify(KB_TAG_COLORS) + ';\n' +
+        'window.kbDragState = { type: null, colIdx: null, cardIdx: null, sourceColIdx: null, toolId: null };\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -3617,7 +4068,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['calendar', 'dice-roller', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'youtube-embed'],
+    tools: ['calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'youtube-embed'],
     source: 'external'
 });
 
@@ -3905,4 +4356,27 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Productivity Tools plugin loaded (8 tools)');
+// Kanban Board
+PluginRegistry.registerTool({
+    id: 'kanban-board',
+    name: 'Kanban Board',
+    description: 'Drag-and-drop kanban board with customizable columns and cards',
+    icon: '\uD83D\uDCCB',
+    version: '1.0.0',
+    toolbox: 'productivity',
+    tags: ['kanban', 'board', 'task', 'project', 'workflow', 'todo', 'agile', 'cards', 'columns'],
+    title: 'Kanban Board',
+    content: '<div class="kb-widget">' +
+        '<div class="kb-toolbar">' +
+            '<input type="text" placeholder="New column name...">' +
+            '<button onclick="kbAddColumn(this)">+ Column</button>' +
+        '</div>' +
+        '<div class="kb-board"></div>' +
+    '</div>',
+    onInit: 'kbInit',
+    defaultWidth: 700,
+    defaultHeight: 450,
+    source: 'external'
+});
+
+console.log('Productivity Tools plugin loaded (9 tools)');
