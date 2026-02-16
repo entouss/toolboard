@@ -1,0 +1,1 @@
+Read prompt from /.claude/user-prompt.

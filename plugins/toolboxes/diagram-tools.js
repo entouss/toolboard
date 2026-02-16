@@ -197,6 +197,16 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .dgm-actions button:hover { background: var(--bg-primary); }
 .dgm-actions .dgm-spacer { flex: 1; }
 .dgm-zoom-label { font-size: 10px; color: var(--text-muted); min-width: 36px; text-align: center; }
+.dgm-autofit-btn { padding: 3px 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 3px; }
+.dgm-autofit-btn:hover { background: var(--bg-primary); }
+.dgm-autofit-btn.active { background: #3498db; color: white; border-color: #3498db; }
+.dgm-autofit-btn.active:hover { background: #2980b9; }
+.dgm-widget.dgm-focus > .dgm-toolbar,
+.dgm-widget.dgm-focus > .dgm-tabs,
+.dgm-widget.dgm-focus > .dgm-actions { display: none; }
+.dgm-focus-toggle { position: absolute; top: 6px; right: 6px; z-index: 5; width: 24px; height: 24px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-muted); cursor: pointer; display: none; align-items: center; justify-content: center; opacity: 0.6; transition: opacity 0.15s; }
+.dgm-focus-toggle:hover { opacity: 1; color: var(--text-primary); }
+.dgm-widget.dgm-focus .dgm-focus-toggle { display: flex; }
 .dgm-text-overlay { position: absolute; border: 2px solid #3498db; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; padding: 2px 4px; resize: none; z-index: 10; outline: none; font-family: sans-serif; box-sizing: border-box; min-width: 60px; min-height: 28px; }
 .dgm-context-menu { position: absolute; z-index: 20; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 160px; font-size: 12px; }
 .dgm-context-menu .dgm-ctx-item { display: flex; align-items: center; justify-content: space-between; padding: 5px 12px; cursor: pointer; color: var(--text-primary); white-space: nowrap; }
@@ -2704,6 +2714,15 @@ function dgmHitTest(state, wx, wy) {
             if (dgmPointInEllipse(wx, wy, sh)) return sh;
         } else if (sh.type === 'diamond') {
             if (dgmPointInDiamond(wx, wy, sh)) return sh;
+        } else if (sh.type === 'callout') {
+            if (dgmPointInRect(wx, wy, sh)) return sh;
+            var p = dgmUnrotatePoint(wx, wy, sh);
+            var ptr = dgmCalloutPtr(sh);
+            var ax = ptr.b1x, ay = ptr.b1y, bx = ptr.b2x, by = ptr.b2y, tcx = ptr.tipX, tcy = ptr.tipY;
+            var d1 = (p.x - bx) * (ay - by) - (ax - bx) * (p.y - by);
+            var d2 = (p.x - tcx) * (by - tcy) - (bx - tcx) * (p.y - tcy);
+            var d3 = (p.x - ax) * (tcy - ay) - (tcx - ax) * (p.y - ay);
+            if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) return sh;
         } else {
             if (dgmPointInRect(wx, wy, sh)) return sh;
         }
@@ -2810,6 +2829,52 @@ function dgmGetPorts(shape) {
     return ports;
 }
 
+function dgmCalloutPtr(shape) {
+    var w = Math.abs(shape.w), h = Math.abs(shape.h);
+    var cx = shape.x + w / 2, cy = shape.y + h / 2;
+    var pox = shape.ptrOffX || 0, poy = shape.ptrOffY || 0;
+    var tipX = cx + pox, tipY = cy + poy;
+    var baseHW = Math.min(w, h) * 0.12;
+    var hw = w / 2, hh = h / 2;
+    var adx = Math.abs(pox), ady = Math.abs(poy);
+    var edge;
+    if (adx < 0.01 && ady < 0.01) {
+        edge = 'bottom';
+    } else if (ady * hw >= adx * hh) {
+        edge = poy >= 0 ? 'bottom' : 'top';
+    } else {
+        edge = pox >= 0 ? 'right' : 'left';
+    }
+    var ix, iy, b1x, b1y, b2x, b2y;
+    if (edge === 'bottom' || edge === 'top') {
+        iy = edge === 'bottom' ? shape.y + h : shape.y;
+        ix = ady > 0.01 ? cx + pox * (hh / ady) : cx;
+        ix = Math.max(shape.x + baseHW, Math.min(shape.x + w - baseHW, ix));
+        b1x = ix - baseHW; b1y = iy;
+        b2x = ix + baseHW; b2y = iy;
+    } else {
+        ix = edge === 'right' ? shape.x + w : shape.x;
+        iy = adx > 0.01 ? cy + poy * (hw / adx) : cy;
+        iy = Math.max(shape.y + baseHW, Math.min(shape.y + h - baseHW, iy));
+        b1x = ix; b1y = iy - baseHW;
+        b2x = ix; b2y = iy + baseHW;
+    }
+    return { tipX: tipX, tipY: tipY, b1x: b1x, b1y: b1y, b2x: b2x, b2y: b2y, edge: edge };
+}
+
+function dgmHitCalloutHandle(state, wx, wy) {
+    if (state.selectedIds.length !== 1) return false;
+    var sh = null;
+    for (var i = 0; i < state.shapes.length; i++) {
+        if (state.shapes[i].id === state.selectedIds[0]) { sh = state.shapes[i]; break; }
+    }
+    if (!sh || sh.type !== 'callout') return false;
+    var p = dgmUnrotatePoint(wx, wy, sh);
+    var cx = sh.x + sh.w / 2, cy = sh.y + sh.h / 2;
+    var tipX = cx + (sh.ptrOffX || 0), tipY = cy + (sh.ptrOffY || 0);
+    return Math.hypot(p.x - tipX, p.y - tipY) <= 8 / state.zoom;
+}
+
 function dgmFindSnapPort(state, wx, wy, excludeId) {
     var threshold = 15 / state.zoom;
     var best = null, bestDist = threshold;
@@ -2831,6 +2896,25 @@ function dgmFindSnapPort(state, wx, wy, excludeId) {
 function dgmResolveConnections(state) {
     for (var i = 0; i < state.shapes.length; i++) {
         var sh = state.shapes[i];
+        if (sh.type === 'callout' && sh.ptrConn) {
+            var target = null;
+            for (var j = 0; j < state.shapes.length; j++) {
+                if (state.shapes[j].id === sh.ptrConn.shapeId) { target = state.shapes[j]; break; }
+            }
+            if (target) {
+                var ports = dgmGetPorts(target);
+                for (var j = 0; j < ports.length; j++) {
+                    if (ports[j].id === sh.ptrConn.port) {
+                        var cx = sh.x + sh.w / 2, cy = sh.y + sh.h / 2;
+                        var p = dgmUnrotatePoint(ports[j].x, ports[j].y, sh);
+                        sh.ptrOffX = p.x - cx;
+                        sh.ptrOffY = p.y - cy;
+                        break;
+                    }
+                }
+            } else { sh.ptrConn = null; }
+            continue;
+        }
         if (sh.type !== 'line' && sh.type !== 'arrow') continue;
         if (sh.startConn) {
             var target = null;
@@ -2871,6 +2955,7 @@ function dgmMouseDown(toolId, e) {
     dgmFinishTextEdit(toolId);
 
     if (e.button === 2 || e.button === 1) {
+        s.autoFit = false;
         s.dragging = true;
         s.dragType = 'pan';
         s.dragStartX = e.clientX;
@@ -2884,6 +2969,12 @@ function dgmMouseDown(toolId, e) {
     var w = dgmScreenToWorld(s, sx, sy);
 
     if (s.tool === 'select') {
+        if (dgmHitCalloutHandle(s, w.x, w.y) && s.selectedIds.length === 1) {
+            dgmPushUndo(s);
+            s.dragging = true;
+            s.dragType = 'callout-ptr';
+            return;
+        }
         if (dgmHitRotHandle(s, w.x, w.y) && s.selectedIds.length === 1) {
             var rsh = null;
             for (var i = 0; i < s.shapes.length; i++) {
@@ -3108,6 +3199,20 @@ function dgmMouseMove(toolId, e) {
             sh.textOffX = s._origTextOff.x + dx;
             sh.textOffY = s._origTextOff.y + dy;
         }
+    } else if (s.dragType === 'callout-ptr') {
+        var sh = null;
+        for (var i = 0; i < s.shapes.length; i++) {
+            if (s.shapes[i].id === s.selectedIds[0]) { sh = s.shapes[i]; break; }
+        }
+        if (sh) {
+            var snap = dgmFindSnapPort(s, w.x, w.y, sh.id);
+            s._snapPort = snap;
+            var tx = snap ? snap.x : w.x;
+            var ty = snap ? snap.y : w.y;
+            var p = dgmUnrotatePoint(tx, ty, sh);
+            sh.ptrOffX = p.x - (sh.x + sh.w / 2);
+            sh.ptrOffY = p.y - (sh.y + sh.h / 2);
+        }
     }
     dgmDraw(toolId);
 }
@@ -3204,6 +3309,17 @@ function dgmMouseUp(toolId, e) {
                 }
             }
         }
+    } else if (s.dragType === 'callout-ptr') {
+        var sh = null;
+        if (s.selectedIds.length === 1) {
+            for (var i = 0; i < s.shapes.length; i++) {
+                if (s.shapes[i].id === s.selectedIds[0]) { sh = s.shapes[i]; break; }
+            }
+        }
+        if (sh) {
+            sh.ptrConn = s._snapPort ? { shapeId: s._snapPort.shapeId, port: s._snapPort.port } : null;
+        }
+        s._snapPort = null;
     }
 
     s.dragging = false;
@@ -3220,6 +3336,7 @@ function dgmWheel(toolId, e) {
     var s = dgmState[toolId];
     if (!s || !s.canvas) return;
     e.preventDefault();
+    s.autoFit = false;
     var rect = s.canvas.getBoundingClientRect();
     var mx = e.clientX - rect.left, my = e.clientY - rect.top;
     var oldZoom = s.zoom;
@@ -3269,6 +3386,10 @@ function dgmHover(toolId, e) {
     var rect = s.canvas.getBoundingClientRect();
     var sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     var w = dgmScreenToWorld(s, sx, sy);
+    if (dgmHitCalloutHandle(s, w.x, w.y)) {
+        s.canvas.style.cursor = 'crosshair';
+        return;
+    }
     if (dgmHitRotHandle(s, w.x, w.y)) {
         s.canvas.style.cursor = 'grab';
         return;
@@ -3427,12 +3548,15 @@ function dgmAddShape(btn, type) {
         else if (type === 'stack') { defW = 120; defH = 120; }
         else if (type === 'gear') { defW = 100; defH = 100; }
         else if (type === 'brain') { defW = 100; defH = 110; }
+        else if (type === 'laptop') { defW = 140; defH = 100; }
+        else if (type === 'callout') { defW = 140; defH = 80; }
         newShape = {
             id: s.nextId++, type: type,
             x: wc.x - defW / 2, y: wc.y - defH / 2, w: defW, h: defH, text: '',
             fill: s.fill, stroke: s.stroke, strokeWidth: s.strokeWidth, lineDash: s.lineDash,
             textColor: s.textColor, textSize: s.textSize, textAlign: s.textAlign, textVAlign: s.textVAlign, textRotation: s.textRotation
         };
+        if (type === 'callout') { newShape.ptrOffX = 0; newShape.ptrOffY = Math.round(defH * 0.85); }
     }
     s.shapes.push(newShape);
     s.selectedIds = [newShape.id];
@@ -3659,6 +3783,71 @@ function dgmUndo(btn) {
     s.selectedIds = [];
     dgmSaveData(toolId);
     dgmDraw(toolId);
+}
+
+function dgmFitView(toolId) {
+    var s = dgmState[toolId];
+    if (!s || !s.canvas || s.shapes.length === 0) return;
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (var i = 0; i < s.shapes.length; i++) {
+        var sh = s.shapes[i];
+        if (sh.type === 'line' || sh.type === 'arrow') {
+            minX = Math.min(minX, sh.x1, sh.x2);
+            minY = Math.min(minY, sh.y1, sh.y2);
+            maxX = Math.max(maxX, sh.x1, sh.x2);
+            maxY = Math.max(maxY, sh.y1, sh.y2);
+            if (sh.bendPoints) {
+                for (var b = 0; b < sh.bendPoints.length; b++) {
+                    minX = Math.min(minX, sh.bendPoints[b].x);
+                    minY = Math.min(minY, sh.bendPoints[b].y);
+                    maxX = Math.max(maxX, sh.bendPoints[b].x);
+                    maxY = Math.max(maxY, sh.bendPoints[b].y);
+                }
+            }
+        } else {
+            minX = Math.min(minX, sh.x);
+            minY = Math.min(minY, sh.y);
+            maxX = Math.max(maxX, sh.x + sh.w);
+            maxY = Math.max(maxY, sh.y + sh.h);
+            if (sh.type === 'callout') {
+                var cx = sh.x + sh.w / 2, cy = sh.y + sh.h / 2;
+                var tipX = cx + (sh.ptrOffX || 0), tipY = cy + (sh.ptrOffY || 0);
+                minX = Math.min(minX, tipX);
+                minY = Math.min(minY, tipY);
+                maxX = Math.max(maxX, tipX);
+                maxY = Math.max(maxY, tipY);
+            }
+        }
+    }
+    var margin = 30;
+    var cw = s.canvas.width, ch = s.canvas.height;
+    var contentW = maxX - minX, contentH = maxY - minY;
+    if (contentW < 1) contentW = 1;
+    if (contentH < 1) contentH = 1;
+    var zoom = Math.min((cw - margin * 2) / contentW, (ch - margin * 2) / contentH);
+    s.zoom = Math.max(0.1, Math.min(5, zoom));
+    var centerX = (minX + maxX) / 2;
+    var centerY = (minY + maxY) / 2;
+    s.viewX = cw / 2 - centerX * s.zoom;
+    s.viewY = ch / 2 - centerY * s.zoom;
+}
+
+function dgmToggleAutoFit(btn) {
+    var toolId = dgmGetToolId(btn);
+    var s = dgmGetState(toolId);
+    s.autoFit = !s.autoFit;
+    if (s.autoFit) dgmFitView(toolId);
+    dgmDraw(toolId);
+}
+
+function dgmToggleFocus(btn) {
+    var widget = btn.closest('.dgm-widget');
+    widget.classList.toggle('dgm-focus');
+    var toolId = dgmGetToolId(btn);
+    var s = dgmGetState(toolId);
+    if (s && s.canvas) {
+        setTimeout(function() { dgmDraw(toolId); }, 0);
+    }
 }
 
 function dgmExportPNG(btn) {
@@ -3940,6 +4129,7 @@ function dgmSyncToolbar(toolId) {
 function dgmDraw(toolId) {
     var s = dgmState[toolId];
     if (!s || !s.canvas || !s.ctx) return;
+    if (s.autoFit) dgmFitView(toolId);
     dgmResolveConnections(s);
     var W = s.canvas.width, H = s.canvas.height;
     var ctx = s.ctx;
@@ -3954,7 +4144,7 @@ function dgmDraw(toolId) {
         dgmDrawShape(ctx, s.shapes[i], s);
     }
     // Draw connection ports when in line/arrow mode or dragging lines
-    if (s.tool === 'line' || s.tool === 'arrow' || s.dragType === 'draw-line' || s.dragType === 'line-handle') {
+    if (s.tool === 'line' || s.tool === 'arrow' || s.dragType === 'draw-line' || s.dragType === 'line-handle' || s.dragType === 'callout-ptr') {
         dgmDrawPorts(ctx, s);
     }
     if (s.ghostShape) dgmDrawGhost(ctx, s);
@@ -3982,9 +4172,11 @@ function dgmDraw(toolId) {
         ctx.restore();
     }
     ctx.restore();
-    // Update zoom label
+    // Update zoom label and autofit button
     var label = s.widget && s.widget.querySelector('.dgm-zoom-label');
     if (label) label.textContent = Math.round(s.zoom * 100) + '%';
+    var afBtn = s.widget && s.widget.querySelector('.dgm-autofit-btn');
+    if (afBtn) { if (s.autoFit) afBtn.classList.add('active'); else afBtn.classList.remove('active'); }
     dgmSyncToolbar(toolId);
 }
 
@@ -4425,6 +4617,102 @@ function dgmDrawShape(ctx, shape, state) {
         ctx.fill();
         ctx.fillStyle = _fill;
         ctx.lineWidth = shape.strokeWidth || 2;
+    } else if (shape.type === 'callout') {
+        var x = shape.x, y = shape.y, w = Math.abs(shape.w), h = Math.abs(shape.h);
+        var cx = x + w / 2, cy = y + h / 2;
+        var pox = shape.ptrOffX || 0, poy = shape.ptrOffY || 0;
+        var tipX = cx + pox, tipY = cy + poy;
+        var tipInside = tipX >= x && tipX <= x + w && tipY >= y && tipY <= y + h;
+        if (tipInside) {
+            ctx.beginPath();
+            ctx.rect(x, y, w, h);
+            if (_fill !== 'transparent') { ctx.fillStyle = _fill; ctx.fill(); }
+            ctx.strokeStyle = _stroke;
+            ctx.stroke();
+        } else {
+            var ptr = dgmCalloutPtr(shape);
+            ctx.beginPath();
+            if (ptr.edge === 'top') {
+                ctx.moveTo(x, y + h);
+                ctx.lineTo(x, y);
+                ctx.lineTo(ptr.b1x, ptr.b1y);
+                ctx.lineTo(ptr.tipX, ptr.tipY);
+                ctx.lineTo(ptr.b2x, ptr.b2y);
+                ctx.lineTo(x + w, y);
+                ctx.lineTo(x + w, y + h);
+            } else if (ptr.edge === 'right') {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w, y);
+                ctx.lineTo(ptr.b1x, ptr.b1y);
+                ctx.lineTo(ptr.tipX, ptr.tipY);
+                ctx.lineTo(ptr.b2x, ptr.b2y);
+                ctx.lineTo(x + w, y + h);
+                ctx.lineTo(x, y + h);
+            } else if (ptr.edge === 'bottom') {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w, y);
+                ctx.lineTo(x + w, y + h);
+                ctx.lineTo(ptr.b2x, ptr.b2y);
+                ctx.lineTo(ptr.tipX, ptr.tipY);
+                ctx.lineTo(ptr.b1x, ptr.b1y);
+                ctx.lineTo(x, y + h);
+            } else {
+                ctx.moveTo(x + w, y);
+                ctx.lineTo(x + w, y + h);
+                ctx.lineTo(x, y + h);
+                ctx.lineTo(ptr.b2x, ptr.b2y);
+                ctx.lineTo(ptr.tipX, ptr.tipY);
+                ctx.lineTo(ptr.b1x, ptr.b1y);
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            if (_fill !== 'transparent') { ctx.fillStyle = _fill; ctx.fill(); }
+            ctx.strokeStyle = _stroke;
+            ctx.stroke();
+        }
+    } else if (shape.type === 'laptop') {
+        var x = shape.x, y = shape.y, w = Math.abs(shape.w), h = Math.abs(shape.h);
+        var screenH = h * 0.9;
+        var baseH = h - screenH;
+        var inset = w * 0.04;
+        var bezel = Math.min(w, screenH) * 0.05;
+        var r = Math.min(w, h) * 0.03;
+        // Screen lid (slightly narrower, rounded top corners)
+        var sx = x + inset, sw = w - inset * 2;
+        ctx.beginPath();
+        ctx.moveTo(sx + r, y);
+        ctx.lineTo(sx + sw - r, y);
+        ctx.arcTo(sx + sw, y, sx + sw, y + r, r);
+        ctx.lineTo(sx + sw, y + screenH);
+        ctx.lineTo(sx, y + screenH);
+        ctx.lineTo(sx, y + r);
+        ctx.arcTo(sx, y, sx + r, y, r);
+        ctx.closePath();
+        if (_fill !== 'transparent') { ctx.fillStyle = _fill; ctx.fill(); }
+        ctx.strokeStyle = _stroke;
+        ctx.stroke();
+        // Inner display area
+        ctx.beginPath();
+        ctx.rect(sx + bezel, y + bezel, sw - bezel * 2, screenH - bezel * 1.5);
+        ctx.strokeStyle = _stroke;
+        ctx.stroke();
+        // Keyboard base (full width, rounded bottom corners)
+        ctx.beginPath();
+        ctx.moveTo(x, y + screenH);
+        ctx.lineTo(x + w, y + screenH);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+        ctx.lineTo(x + r, y + h);
+        ctx.arcTo(x, y + h, x, y + h - r, r);
+        ctx.closePath();
+        if (_fill !== 'transparent') { ctx.fillStyle = _fill; ctx.fill(); }
+        ctx.strokeStyle = _stroke;
+        ctx.stroke();
+        // Touchpad
+        var tpW = w * 0.2, tpH = baseH * 0.35;
+        var tpX = x + (w - tpW) / 2, tpY = y + screenH + (baseH - tpH) / 2;
+        ctx.strokeStyle = _stroke;
+        ctx.strokeRect(tpX, tpY, tpW, tpH);
     } else if (shape.type === 'line' || shape.type === 'arrow') {
         var cpts = dgmGetCurvePoints(shape);
         var hasBends = shape.bendPoints && shape.bendPoints.length > 0;
@@ -4714,6 +5002,33 @@ function dgmDrawSelection(ctx, shape, state) {
             ctx.strokeStyle = '#3498db';
             ctx.lineWidth = 1 / state.zoom;
             ctx.stroke();
+            // Callout pointer handle — diamond at tip
+            if (shape.type === 'callout') {
+                var ccx = shape.x + shape.w / 2, ccy = shape.y + shape.h / 2;
+                var ptx = ccx + (shape.ptrOffX || 0), pty = ccy + (shape.ptrOffY || 0);
+                var pr = 6 / state.zoom;
+                // Dashed line from rect edge to handle
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 1 / state.zoom;
+                ctx.setLineDash([4 / state.zoom, 3 / state.zoom]);
+                ctx.beginPath();
+                ctx.moveTo(ccx, ccy);
+                ctx.lineTo(ptx, pty);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                // Diamond handle
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#e67e22';
+                ctx.lineWidth = 1.5 / state.zoom;
+                ctx.beginPath();
+                ctx.moveTo(ptx, pty - pr);
+                ctx.lineTo(ptx + pr, pty);
+                ctx.lineTo(ptx, pty + pr);
+                ctx.lineTo(ptx - pr, pty);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
         }
     }
     ctx.restore();
@@ -5134,7 +5449,7 @@ function dgmInit() {
     var seqFunctions = [seqGetToolId, seqGetData, seqSaveData, seqInit, seqUpdateContainers, seqOnInput, seqSetMode, seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
     var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
-    var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
+    var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmCalloutPtr, dgmHitCalloutHandle, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmFitView, dgmToggleAutoFit, dgmToggleFocus, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
 
     var allFunctions = seqFunctions.concat(ftreeFunctions).concat(mermDiagFunctions).concat(dgmFunctions);
 
@@ -5311,7 +5626,9 @@ PluginRegistry.registerTool({
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'robot\')" title="Add Robot"><svg width="20" height="20" viewBox="0 0 16 16"><line x1="8" y1="1" x2="8" y2="3" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="1" r="1" fill="currentColor"/><rect x="3" y="3" width="10" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="7" r="1" fill="currentColor"/><circle cx="10" cy="7" r="1" fill="currentColor"/><line x1="5.5" y1="10" x2="10.5" y2="10" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="5.5" width="1.5" height="3" rx="0.5" fill="none" stroke="currentColor" stroke-width="1"/><rect x="13.5" y="5.5" width="1.5" height="3" rx="0.5" fill="none" stroke="currentColor" stroke-width="1"/></svg></button>' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'clock\')" title="Add Clock"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="8" y1="8" x2="5" y2="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="8" x2="11" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><circle cx="8" cy="8" r="0.8" fill="currentColor"/></svg></button>' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'gear\')" title="Add Gear"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M7,1.2 L9,1.2 L9.3,2.8 L10.8,3.4 L12.1,2.3 L13.1,3.3 L12,4.6 L12.6,6.1 L14.2,6.4 L14.2,8.4 L12.6,8.7 L12,10.2 L13.1,11.5 L12.1,12.5 L10.8,11.4 L9.3,12 L9,13.6 L7,13.6 L6.7,12 L5.2,11.4 L3.9,12.5 L2.9,11.5 L4,10.2 L3.4,8.7 L1.8,8.4 L1.8,6.4 L3.4,6.1 L4,4.6 L2.9,3.3 L3.9,2.3 L5.2,3.4 L6.7,2.8 Z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>' +
-            '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'brain\')" title="Add Brain"><svg width="18" height="18" viewBox="40 68 280 224"><path d="M 174 76 L 190 77 L 204 80 L 216 82 L 228 84 L 240 90 L 250 96 L 260 106 L 270 114 L 280 124 L 288 136 L 294 148 L 298 160 L 304 172 L 308 184 L 308 196 L 304 208 L 296 218 L 288 226 L 278 234 L 268 240 L 258 248 L 248 254 L 238 257 L 233 257 L 232 262 L 234 270 L 236 276 L 232 282 L 224 284 L 216 282 L 208 276 L 200 264 L 192 254 L 186 248 L 176 250 L 164 254 L 152 255 L 140 252 L 130 246 L 122 240 L 116 234 L 113 228 L 104 226 L 92 222 L 80 216 L 70 208 L 62 200 L 56 190 L 52 180 L 50 170 L 50 160 L 54 150 L 58 142 L 64 136 L 72 130 L 80 124 L 88 118 L 98 112 L 108 106 L 118 100 L 130 94 L 140 88 L 150 84 L 162 80 Z" fill="none" stroke="currentColor" stroke-width="20" stroke-linejoin="bevel"/></svg></button>' +
+            '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'brain\')" title="Add Brain"><svg width="18" height="16" viewBox="0 0 18 16"><path d="M 8.7 0.5 L 9.8 0.6 L 10.8 0.8 L 11.6 1 L 12.5 1.1 L 13.3 1.5 L 14 1.9 L 14.7 2.6 L 15.4 3.2 L 16.1 3.9 L 16.7 4.8 L 17 5.7 L 17.4 6.6 L 17.8 7.5 L 18.1 8.5 L 18.1 9.4 L 17.8 10.3 L 17.2 11.1 L 16.7 11.7 L 16 12.3 L 15.3 12.8 L 14.6 13.4 L 13.9 13.9 L 13.2 14.1 L 12.8 14.1 L 12.8 14.5 L 12.9 15.1 L 13 15.5 L 12.8 16 L 12.2 16.1 L 11.6 16 L 11.1 15.5 L 10.5 14.6 L 10 13.8 L 9.5 13.4 L 8.8 13.6 L 8 13.9 L 7.2 14 L 6.3 13.7 L 5.6 13.3 L 5 12.8 L 4.6 12.3 L 4.4 11.9 L 3.8 11.7 L 2.9 11.4 L 2.1 10.9 L 1.4 10.3 L 0.8 9.6 L 0.4 8.9 L 0.1 8 L 0 7.2 L 0 6.5 L 0.3 5.8 L 0.6 5.2 L 1 4.7 L 1.5 4.2 L 2.1 3.8 L 2.7 3.3 L 3.4 2.8 L 4.1 2.3 L 4.8 1.9 L 5.6 1.4 L 6.3 0.9 L 7 0.6 L 7.8 0.3 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="bevel"/></svg></button>' +
+            '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'laptop\')" title="Add Laptop"><svg width="18" height="14" viewBox="0 0 18 14"><rect x="2.5" y="0.5" width="13" height="9.5" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="1.8" width="10" height="6.8" fill="none" stroke="currentColor" stroke-width="0.7"/><path d="M0.5,10 L17.5,10 L17.5,12.5 Q17.5,13.5 16.5,13.5 L1.5,13.5 Q0.5,13.5 0.5,12.5 Z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button>' +
+            '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'callout\')" title="Add Callout"><svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="1" width="16" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><polygon points="5,11 9,11 6,17" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'text\')" title="Add Text"><svg width="14" height="14" viewBox="0 0 14 14"><line x1="3" y1="2.5" x2="11" y2="2.5" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="2.5" x2="7" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5"/></svg></button>' +
             '<div class="dgm-tool-sep"></div>' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'line\')" title="Add Line"><svg width="14" height="14" viewBox="0 0 14 14"><line x1="2" y1="12" x2="12" y2="2" stroke="currentColor" stroke-width="1.5"/></svg></button>' +
@@ -5377,8 +5694,11 @@ PluginRegistry.registerTool({
             '<button onclick="dgmSendToBack(this)" title="Send to back">\u25BC</button>' +
             '<span class="dgm-spacer"></span>' +
             '<span class="dgm-zoom-label">100%</span>' +
+            '<button class="dgm-autofit-btn" onclick="dgmToggleAutoFit(this)" title="Auto fit — diagram scales with window">Auto Fit</button>' +
             '<button onclick="dgmExportPNG(this)">Export PNG</button>' +
+            '<button onclick="dgmToggleFocus(this)" title="Focus mode — hide toolbars"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1,4 L1,1 L4,1 M8,1 L11,1 L11,4 M11,8 L11,11 L8,11 M4,11 L1,11 L1,8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
         '</div>' +
+        '<button class="dgm-focus-toggle" onclick="dgmToggleFocus(this)" title="Exit focus mode"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M5,1 L1,1 L1,5 M9,1 L13,1 L13,5 M13,9 L13,13 L9,13 M1,9 L1,13 L5,13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="4" y1="4" x2="10" y2="10" stroke="currentColor" stroke-width="1.3"/><line x1="10" y1="4" x2="4" y2="10" stroke="currentColor" stroke-width="1.3"/></svg></button>' +
     '</div>',
     contentType: 'html',
     onInit: 'dgmInit',
