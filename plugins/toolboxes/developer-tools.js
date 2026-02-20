@@ -7174,7 +7174,7 @@ async function certParseJks(buffer, password) {
     if (buffer.byteLength >= dataEnd + 20) {
         var storedHash = new Uint8Array(buffer, dataEnd, 20);
         var magicStr = 'Mighty Aphrodite';
-        var verifyBytes = new Uint8Array(password.length * 2 + magicStr.length + dataEnd - 12);
+        var verifyBytes = new Uint8Array(password.length * 2 + magicStr.length + dataEnd);
         var vi = 0;
         for (var pi = 0; pi < password.length; pi++) {
             var pc = password.charCodeAt(pi);
@@ -7184,7 +7184,7 @@ async function certParseJks(buffer, password) {
         for (var mi = 0; mi < magicStr.length; mi++) {
             verifyBytes[vi++] = magicStr.charCodeAt(mi);
         }
-        var storeData = new Uint8Array(buffer, 12, dataEnd - 12);
+        var storeData = new Uint8Array(buffer, 0, dataEnd);
         verifyBytes.set(storeData, vi);
         vi += storeData.length;
         var expectedBuf = await crypto.subtle.digest('SHA-1', verifyBytes.subarray(0, vi));
@@ -7280,7 +7280,7 @@ async function certBuildJks(certs, keyDer, password) {
 async function certJksComputeHash(buf, dataEnd, password) {
     var magic = 'Mighty Aphrodite';
     // Password as UTF-16BE
-    var pwBytes = new Uint8Array(password.length * 2 + magic.length + dataEnd - 12);
+    var pwBytes = new Uint8Array(password.length * 2 + magic.length + dataEnd);
     var idx = 0;
     for (var i = 0; i < password.length; i++) {
         var code = password.charCodeAt(i);
@@ -7290,8 +7290,8 @@ async function certJksComputeHash(buf, dataEnd, password) {
     for (var m = 0; m < magic.length; m++) {
         pwBytes[idx++] = magic.charCodeAt(m);
     }
-    // Copy the store data (after header is at offset 12 to dataEnd)
-    for (var d = 12; d < dataEnd; d++) {
+    // Copy the full store data (magic + version + entries)
+    for (var d = 0; d < dataEnd; d++) {
         pwBytes[idx++] = buf[d];
     }
     var hashBuf = await crypto.subtle.digest('SHA-1', pwBytes.subarray(0, idx));

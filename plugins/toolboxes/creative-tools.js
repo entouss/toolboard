@@ -642,7 +642,11 @@ const EMOTE_DATA = {
         ['\uD83E\uDD9C','bison'],['\uD83D\uDC02','ox'],['\uD83D\uDC04','cow2'],['\uD83D\uDC0E','racehorse'],['\uD83D\uDC16','pig2'],['\uD83D\uDC0F','ram'],['\uD83D\uDC11','sheep'],['\uD83E\uDD99','llama'],
         ['\uD83D\uDC10','goat'],['\uD83E\uDD8C','deer'],['\uD83D\uDC15','dog2'],['\uD83D\uDC29','poodle'],['\uD83D\uDC08','cat2'],['\uD83D\uDC13','rooster'],['\uD83E\uDD83','turkey'],['\uD83E\uDD86','dodo'],
         ['\uD83E\uDD9A','peacock'],['\uD83E\uDD9C','parrot'],['\uD83E\uDD9A','swan'],['\uD83E\uDDA9','flamingo'],['\uD83D\uDC07','rabbit2'],['\uD83D\uDC01','mouse2'],['\uD83D\uDC00','rat'],
-        ['\uD83D\uDC3F\uFE0F','chipmunk'],['\uD83E\uDD94','hedgehog']
+        ['\uD83D\uDC3F\uFE0F','chipmunk'],['\uD83E\uDD94','hedgehog'],['\uD83E\uDDA5','sloth'],['\uD83E\uDDA6','otter'],['\uD83E\uDDA8','skunk'],['\uD83E\uDDA1','badger'],['\uD83E\uDDAB','beaver'],
+        ['\uD83E\uDDA3','mammoth'],['\uD83E\uDDA4','dodo'],['\uD83E\uDEB6','feather'],['\uD83D\uDC3E','paw prints'],
+        ['\uD83E\uDDAD','seal'],['\uD83E\uDEBC','jellyfish'],['\uD83E\uDD9E','lobster'],
+        ['\uD83E\uDD9F','mosquito'],['\uD83E\uDEB3','cockroach'],['\uD83E\uDEB2','beetle'],['\uD83E\uDD97','cricket'],['\uD83D\uDD77\uFE0F','spider'],['\uD83D\uDD78\uFE0F','spider web'],
+        ['\uD83E\uDDA0','microbe virus bacteria'],['\uD83D\uDC09','dragon'],['\uD83D\uDC32','dragon face']
     ],
     'Food': [
         ['\uD83C\uDF4E','apple'],['\uD83C\uDF50','pear'],['\uD83C\uDF4A','orange tangerine'],['\uD83C\uDF4B','lemon'],['\uD83C\uDF4C','banana'],['\uD83C\uDF49','watermelon'],['\uD83C\uDF47','grapes'],
@@ -657,7 +661,12 @@ const EMOTE_DATA = {
         ['\uD83E\uDDC1','cupcake'],['\uD83C\uDF70','cake'],['\uD83C\uDF82','birthday cake'],['\uD83C\uDF6E','custard'],['\uD83C\uDF6D','lollipop'],['\uD83C\uDF6C','candy'],['\uD83C\uDF6B','chocolate'],
         ['\uD83C\uDF7F','popcorn'],['\uD83C\uDF69','donut'],['\uD83C\uDF6A','cookie'],['\uD83E\uDD5B','milk'],['\u2615','coffee'],['\uD83C\uDF75','tea'],['\uD83E\uDDC3','juice box'],
         ['\uD83E\uDD64','cup straw'],['\uD83E\uDDCB','boba bubble tea'],['\uD83C\uDF7A','beer'],['\uD83C\uDF7B','beers cheers'],['\uD83E\uDD42','champagne'],['\uD83C\uDF77','wine'],
-        ['\uD83C\uDF78','cocktail martini'],['\uD83C\uDF79','tropical drink'],['\uD83E\uDDCA','ice']
+        ['\uD83C\uDF78','cocktail martini'],['\uD83C\uDF79','tropical drink'],['\uD83E\uDDCA','ice'],
+        ['\uD83E\uDD67','pie'],['\uD83C\uDF6F','honey pot'],['\uD83E\uDD5C','peanuts'],['\uD83C\uDF30','chestnut'],['\uD83E\uDED8','beans'],
+        ['\uD83E\uDD62','chopsticks'],['\uD83C\uDF7D\uFE0F','plate fork knife'],['\uD83E\uDD44','spoon'],['\uD83D\uDD2A','knife'],['\uD83C\uDFFA','amphora jar'],
+        ['\uD83C\uDF76','sake'],['\uD83E\uDED6','teapot'],['\uD83E\uDD43','whiskey tumbler'],['\uD83C\uDF7E','champagne bottle'],
+        ['\uD83E\uDD6B','canned food'],['\uD83E\uDED5','fondue'],['\uD83E\uDED3','flatbread'],['\uD83E\uDD59','falafel wrap'],['\uD83E\uDDC6','butter'],
+        ['\uD83C\uDF67','shaved ice'],['\uD83C\uDF66','soft ice cream'],['\uD83C\uDF68','ice cream sundae'],['\uD83E\uDD6F','bagel'],['\uD83E\uDDC7','waffle']
     ],
     'Travel': [
         ['\uD83D\uDE97','car'],['\uD83D\uDE95','taxi'],['\uD83D\uDE8C','bus'],['\uD83D\uDE8E','trolley'],['\uD83D\uDE90','minibus'],['\uD83D\uDE91','ambulance'],['\uD83D\uDE92','fire engine'],
@@ -682,7 +691,16 @@ const EMOTE_DATA = {
         ['\uD83D\uDCB0','money bag'],['\uD83D\uDCB5','dollar'],['\uD83D\uDCB4','yen'],['\uD83D\uDCB6','euro'],['\uD83D\uDCB7','pound'],['\uD83E\uDE99','coin'],['\uD83D\uDCB3','credit card'],
         ['\uD83C\uDF81','gift present'],['\uD83C\uDF88','balloon'],['\uD83C\uDF89','party popper'],['\uD83C\uDF8A','confetti'],['\uD83C\uDFC6','trophy'],['\uD83E\uDD47','gold medal'],
         ['\uD83E\uDD48','silver medal'],['\uD83E\uDD49','bronze medal'],['\u26BD','soccer'],['\uD83C\uDFC0','basketball'],['\uD83C\uDFC8','football'],['\u26BE','baseball'],
-        ['\uD83C\uDFBE','tennis'],['\uD83C\uDFAE','game controller'],['\uD83C\uDFB2','dice'],['\uD83C\uDFAF','bullseye dart'],['\uD83E\uDDE9','puzzle piece'],['\u265F\uFE0F','chess']
+        ['\uD83C\uDFBE','tennis'],['\uD83C\uDFAE','game controller'],['\uD83C\uDFB2','dice'],['\uD83C\uDFAF','bullseye dart'],['\uD83E\uDDE9','puzzle piece'],['\u265F\uFE0F','chess'],
+        ['\uD83D\uDCF2','mobile arrow phone'],['\uD83D\uDD0B','battery'],['\uD83D\uDD0C','electric plug'],['\uD83E\uDE9F','wifi wireless'],
+        ['\uD83D\uDCE7','email envelope'],['\uD83D\uDCE8','incoming envelope'],['\uD83D\uDCE9','envelope arrow'],
+        ['\uD83D\uDCDA','books stack'],['\uD83D\uDCD6','open book'],['\uD83D\uDCD3','notebook'],['\uD83D\uDCD5','closed book'],
+        ['\uD83D\uDD70\uFE0F','mantel clock'],['\u23F0','alarm clock'],['\u23F1\uFE0F','stopwatch timer'],['\u23F3','hourglass flowing'],
+        ['\uD83E\uDDF3','suitcase luggage'],['\uD83E\uDDF0','toolbox'],['\uD83E\uDDEE','abacus'],['\uD83E\uDDED','compass'],
+        ['\uD83C\uDFA8','art palette paint'],['\uD83C\uDFAC','clapper board film'],['\uD83C\uDFAD','theater masks drama'],
+        ['\uD83D\uDECE\uFE0F','bed sleep'],['\uD83E\uDE91','chair seat'],['\uD83D\uDEBF','shower'],['\uD83E\uDEA5','toothbrush'],
+        ['\uD83E\uDD7D','goggles'],['\uD83D\uDC53','glasses spectacles'],['\uD83E\uDDE2','billed cap hat'],['\uD83C\uDFA9','top hat'],
+        ['\u2602\uFE0F','umbrella'],['\uD83D\uDC5F','shoe sneaker'],['\uD83D\uDC5E','shoe flat'],['\uD83D\uDC62','boot woman']
     ],
     'Symbols': [
         ['\u2705','check mark'],['\u274C','cross mark'],['\u2753','question'],['\u2757','exclamation'],['\u203C\uFE0F','double exclamation'],['\u2049\uFE0F','exclamation question'],
@@ -699,6 +717,35 @@ const EMOTE_DATA = {
         ['\u2199\uFE0F','lower left'],['\u2196\uFE0F','upper left'],['\u2195\uFE0F','up down'],['\u2194\uFE0F','left right'],['\uD83D\uDD04','counterclockwise'],['\uD83D\uDD03','clockwise'],
         ['\u2139\uFE0F','info'],['\uD83C\uDD97','ok button'],['\uD83C\uDD95','new button'],['\uD83C\uDD93','free button'],['\uD83D\uDD1D','top'],['\uD83D\uDD1C','soon'],
         ['\u267E\uFE0F','infinity'],['\uD83D\uDCB2','dollar sign'],['\u00A9\uFE0F','copyright'],['\u00AE\uFE0F','registered'],['\u2122\uFE0F','trademark']
+    ],
+    'People': [
+        ['👶','baby'],['🧒','child'],['👦','boy'],['👧','girl'],['👨','man'],['👩','woman'],['🧑','person'],['👴','old man'],['👵','old woman'],
+        ['👮','police officer'],['🕵️','detective'],['💂','guard'],['🥷','ninja'],['👷','construction worker'],['🫅','person crown'],['🤴','prince'],['👸','princess'],
+        ['👳','person turban'],['👲','person cap'],['🧕','person headscarf'],['🤵','person tuxedo'],['👰','person veil'],['🤰','pregnant'],
+        ['🧑‍🍳','chef cook'],['🧑‍🎓','student graduate'],['🧑‍🏫','teacher'],['🧑‍⚖️','judge'],['🧑‍🌾','farmer'],['🧑‍🔧','mechanic'],['🧑‍🔬','scientist'],['🧑‍💻','technologist programmer'],
+        ['🧑‍🎤','singer'],['🧑‍🎨','artist'],['🧑‍✈️','pilot'],['🧑‍🚀','astronaut'],['🧑‍🚒','firefighter'],['🧑‍⚕️','health worker doctor nurse'],
+        ['🏃','running'],['💃','dancing woman'],['🕺','dancing man'],['🧗','climbing'],['🏄','surfing'],['🏊','swimming'],['🚴','biking cycling'],['🧘','meditating yoga'],
+        ['🧙','mage wizard'],['🧚','fairy'],['🧛','vampire'],['🧜','merperson'],['🧝','elf'],['🧞','genie'],['🧟','zombie'],['🦸','superhero'],['🦹','supervillain'],
+        ['👁️','eye'],['👀','eyes looking'],['👅','tongue'],['👄','mouth lips'],['🫦','biting lip'],['🧠','brain'],['🫀','anatomical heart'],['🫁','lungs'],['🦴','bone'],['🦷','tooth']
+    ],
+    'Nature': [
+        ['🌸','cherry blossom'],['🌹','rose'],['🌺','hibiscus'],['🌻','sunflower'],['🌼','blossom'],['🌷','tulip'],['🌱','seedling'],['🪴','potted plant'],
+        ['🌲','evergreen tree'],['🌳','deciduous tree'],['🌴','palm tree'],['🌵','cactus'],['🍀','four leaf clover luck'],['🍁','maple leaf'],['🍂','fallen leaf'],['🍃','leaf wind'],
+        ['🪵','wood log'],['🪨','rock'],['🪸','coral'],['🍄','mushroom'],['🌾','rice sheaf'],['💐','bouquet flowers'],['🪻','hyacinth'],['🪷','lotus'],
+        ['☀️','sun'],['🌤️','sun small cloud'],['⛅','sun behind cloud'],['🌥️','sun large cloud'],['🌦️','sun rain cloud'],['🌧️','rain cloud'],['⛈️','thunderstorm'],
+        ['🌩️','lightning cloud'],['🌪️','tornado'],['🌫️','fog'],['🌬️','wind face'],['❄️','snowflake'],['☃️','snowman'],['⛄','snowman no snow'],['🌈','rainbow'],
+        ['🌊','ocean wave'],['💧','droplet water'],['💨','wind dash'],['🔥','fire flame'],['⭐','star'],['🌟','glowing star'],['✨','sparkles'],
+        ['☄️','comet'],['🌍','earth globe'],['🌙','crescent moon'],['🌝','full moon face'],['🌞','sun face'],['🪐','ringed planet saturn']
+    ],
+    'Flags': [
+        ['🏁','checkered flag'],['🚩','triangular flag'],['🎌','crossed flags'],['🏴','black flag'],['🏳️','white flag'],['🏳️‍🌈','rainbow pride flag'],['🏳️‍⚧️','transgender flag'],['🏴‍☠️','pirate flag'],
+        ['🇺🇸','us usa america'],['🇬🇧','uk britain england'],['🇫🇷','france french'],['🇩🇪','germany german'],['🇮🇹','italy italian'],['🇪🇸','spain spanish'],['🇵🇹','portugal'],
+        ['🇨🇦','canada canadian'],['🇲🇽','mexico mexican'],['🇧🇷','brazil brazilian'],['🇦🇷','argentina'],['🇨🇴','colombia'],
+        ['🇯🇵','japan japanese'],['🇰🇷','south korea korean'],['🇨🇳','china chinese'],['🇮🇳','india indian'],['🇦🇺','australia australian'],['🇳🇿','new zealand'],
+        ['🇷🇺','russia russian'],['🇺🇦','ukraine ukrainian'],['🇵🇱','poland polish'],['🇳🇱','netherlands dutch'],['🇸🇪','sweden swedish'],['🇳🇴','norway norwegian'],
+        ['🇩🇰','denmark danish'],['🇫🇮','finland finnish'],['🇨🇭','switzerland swiss'],['🇦🇹','austria'],['🇧🇪','belgium'],['🇮🇪','ireland irish'],
+        ['🇹🇷','turkey turkish'],['🇸🇦','saudi arabia'],['🇦🇪','uae emirates'],['🇮🇱','israel'],['🇪🇬','egypt'],['🇿🇦','south africa'],['🇳🇬','nigeria'],['🇰🇪','kenya'],
+        ['🇹🇭','thailand thai'],['🇻🇳','vietnam'],['🇮🇩','indonesia'],['🇵🇭','philippines'],['🇸🇬','singapore'],['🇲🇾','malaysia'],['🇹🇼','taiwan']
     ],
     'Kaomoji': [
         ['(\u256F\u00B0\u25A1\u00B0)\u256F\uFE35 \u253B\u2501\u253B','table flip angry'],['\u252C\u2500\u252C\u30CE( \u00BA _ \u00BA\u30CE)','table unflip calm'],['\u00AF\\_(\u30C4)_/\u00AF','shrug whatever'],
