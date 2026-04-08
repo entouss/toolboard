@@ -66,14 +66,36 @@ body.dark-mode .seq-arrow-number-bg { fill: #2980b9; }
 body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 
 /* Mermaid Diagram Widget Styles */
-.mermaid-diag-widget { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+.mermaid-diag-widget { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; position: relative; }
 .mermaid-diag-toolbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
 .mermaid-diag-toolbar select, .mermaid-diag-toolbar button { font-size: 12px; }
+.mermaid-diag-mode-btns { display: flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+.mermaid-diag-mode-btns button { border: none; border-radius: 0; background: var(--bg-primary); color: var(--text-muted); padding: 3px 8px; cursor: pointer; font-size: 11px; border-right: 1px solid var(--border-color); }
+.mermaid-diag-mode-btns button:last-child { border-right: none; }
+.mermaid-diag-mode-btns button.active { background: var(--accent-color, #3498db); color: #fff; }
+.mermaid-diag-mode-btns button:hover:not(.active) { background: var(--bg-secondary, #f0f0f0); }
+.mermaid-diag-export-btns { display: flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+.mermaid-diag-export-btns button { border: none; border-radius: 0; background: var(--bg-primary); color: var(--text-muted); padding: 3px 8px; cursor: pointer; font-size: 11px; border-right: 1px solid var(--border-color); }
+.mermaid-diag-export-btns button:last-child { border-right: none; }
+.mermaid-diag-export-btns button:hover { background: var(--bg-secondary, #f0f0f0); }
 .mermaid-diag-body { display: flex; flex: 1; min-height: 0; }
 .mermaid-diag-editor { width: 50%; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
 .mermaid-diag-editor textarea { flex: 1; resize: none; border: none; padding: 8px; font-family: monospace; font-size: 12px; line-height: 1.5; background: var(--bg-primary); color: var(--text-primary); outline: none; min-height: 0; }
-.mermaid-diag-preview { width: 50%; overflow: auto; padding: 8px; background: #fff; display: flex; align-items: flex-start; justify-content: center; }
+.mermaid-diag-preview { width: 50%; overflow: auto; padding: 8px; background: var(--bg-secondary); display: flex; align-items: flex-start; justify-content: center; }
 .mermaid-diag-preview svg { max-width: 100%; height: auto; }
+/* Mode: edit — full-width editor, no preview */
+.mermaid-diag-body.mode-edit .mermaid-diag-editor { width: 100%; border-right: none; }
+.mermaid-diag-body.mode-edit .mermaid-diag-preview { display: none; }
+/* Mode: render — full-width preview, no editor */
+.mermaid-diag-body.mode-render .mermaid-diag-editor { display: none; }
+.mermaid-diag-body.mode-render .mermaid-diag-preview { width: 100%; }
+/* Render mode: hide toolbar and status bar */
+.mermaid-diag-widget:has(.mermaid-diag-body.mode-render) .mermaid-diag-toolbar { display: none; }
+.mermaid-diag-widget:has(.mermaid-diag-body.mode-render) .mermaid-diag-status { display: none; }
+/* Hover overlay — visible only in render mode on widget hover */
+.mermaid-diag-hover-controls { position: absolute; top: 8px; right: 8px; z-index: 10; display: flex; align-items: center; gap: 5px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 6px; opacity: 0; pointer-events: none; transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.mermaid-diag-hover-controls select { font-size: 11px; }
+.mermaid-diag-widget:has(.mermaid-diag-body.mode-render):hover .mermaid-diag-hover-controls { opacity: 1; pointer-events: auto; }
 .mermaid-diag-error { color: #e74c3c; font-size: 11px; font-family: monospace; white-space: pre-wrap; padding: 8px; }
 .mermaid-diag-status { font-size: 11px; color: var(--text-muted); padding: 3px 8px; border-top: 1px solid var(--border-color); }
 
@@ -2199,17 +2221,18 @@ function mermDiagLoadLib(callback) {
     document.head.appendChild(script);
 }
 
-function mermDiagSaveData(toolId, code) {
+function mermDiagSaveData(toolId, code, mode) {
     var customizations = loadToolCustomizations();
     if (!customizations[toolId]) customizations[toolId] = {};
     customizations[toolId].mermaidCode = code;
+    if (mode !== undefined) customizations[toolId].mermaidMode = mode;
     saveToolCustomizations(customizations);
 }
 
 function mermDiagLoadData(toolId) {
     var customizations = loadToolCustomizations();
-    var saved = customizations[toolId] && customizations[toolId].mermaidCode;
-    return saved || '';
+    var entry = customizations[toolId] || {};
+    return { code: entry.mermaidCode || '', mode: entry.mermaidMode || 'preview' };
 }
 
 function mermDiagRender(widget) {
@@ -2220,7 +2243,14 @@ function mermDiagRender(widget) {
 
     var code = textarea.value.trim();
     var toolId = mermDiagGetToolId(widget);
+    var body = widget.querySelector('.mermaid-diag-body');
+    var currentMode = (body && body.className.match(/mode-(\w+)/) || [])[1] || 'preview';
     if (toolId) mermDiagSaveData(toolId, textarea.value);
+
+    if (currentMode === 'edit') {
+        if (statusEl) statusEl.textContent = '';
+        return;
+    }
 
     if (!code) {
         preview.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">Enter Mermaid syntax on the left</span>';
@@ -2229,6 +2259,8 @@ function mermDiagRender(widget) {
     }
 
     mermDiagLoadLib(function() {
+        var isDark = document.body.classList.contains('dark-mode');
+        window.mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
         mermaidDiagRenderCounter++;
         var id = 'mermaid-diag-svg-' + mermaidDiagRenderCounter;
         try {
@@ -2256,6 +2288,24 @@ function mermDiagOnInput(textarea) {
     widget._mermDebounce = setTimeout(function() {
         mermDiagRender(widget);
     }, 500);
+}
+
+function mermDiagSetMode(btn, mode) {
+    var widget = mermDiagGetWidget(btn);
+    if (!widget) return;
+    var body = widget.querySelector('.mermaid-diag-body');
+    if (!body) return;
+    body.className = 'mermaid-diag-body mode-' + mode;
+    widget.querySelectorAll('.mermaid-diag-mode-btns button').forEach(function(b) {
+        var m = (b.getAttribute('onclick') || '').match(/'(\w+)'\)/);
+        b.classList.toggle('active', !!(m && m[1] === mode));
+    });
+    var toolId = mermDiagGetToolId(widget);
+    if (toolId) {
+        var textarea = widget.querySelector('.mermaid-diag-editor textarea');
+        mermDiagSaveData(toolId, textarea ? textarea.value : '', mode);
+    }
+    if (mode !== 'edit') mermDiagRender(widget);
 }
 
 function mermDiagInsertTemplate(sel) {
@@ -2340,14 +2390,31 @@ function mermDiagInit() {
         if (!textarea) return;
 
         var saved = mermDiagLoadData(toolId);
-        if (saved) {
-            textarea.value = saved;
+        if (saved.code) {
+            textarea.value = saved.code;
         } else {
             textarea.value = 'flowchart TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[Do something]\n    B -->|No| D[Do something else]\n    C --> E[End]\n    D --> E';
         }
 
+        var mode = saved.mode || 'preview';
+        var body = widget.querySelector('.mermaid-diag-body');
+        if (body) body.className = 'mermaid-diag-body mode-' + mode;
+        widget.querySelectorAll('.mermaid-diag-mode-btns button').forEach(function(b) {
+            var m = (b.getAttribute('onclick') || '').match(/'(\w+)'\)/);
+            b.classList.toggle('active', !!(m && m[1] === mode));
+        });
+
         mermDiagRender(widget);
     });
+
+    if (!mermDiagInit._themeObserver) {
+        mermDiagInit._themeObserver = new MutationObserver(function() {
+            document.querySelectorAll('.mermaid-diag-widget').forEach(function(w) {
+                mermDiagRender(w);
+            });
+        });
+        mermDiagInit._themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
 }
 
 // ============================================================
@@ -5485,7 +5552,7 @@ function dgmInit() {
 
     var seqFunctions = [seqGetToolId, seqGetData, seqSaveData, seqInit, seqUpdateContainers, seqOnInput, seqSetMode, seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
-    var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
+    var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagSetMode, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
     var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmCalloutPtr, dgmHitCalloutHandle, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmWrapLines, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmFitView, dgmToggleAutoFit, dgmToggleFocus, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
 
     var allFunctions = seqFunctions.concat(ftreeFunctions).concat(mermDiagFunctions).concat(dgmFunctions);
@@ -5621,16 +5688,45 @@ PluginRegistry.registerTool({
                 '<option value="gitgraph">Git Graph</option>' +
             '</select>' +
             '<span style="flex:1;"></span>' +
-            '<button class="pomo-btn" onclick="mermDiagExportSvg(this)" title="Export as SVG">SVG</button>' +
-            '<button class="pomo-btn" onclick="mermDiagExportPng(this)" title="Export as PNG">PNG</button>' +
+            '<div class="mermaid-diag-mode-btns">' +
+                '<button onclick="mermDiagSetMode(this,\'edit\')" title="Edit mode">Edit</button>' +
+                '<button class="active" onclick="mermDiagSetMode(this,\'preview\')" title="Preview mode">Preview</button>' +
+                '<button onclick="mermDiagSetMode(this,\'render\')" title="Render mode">Render</button>' +
+            '</div>' +
+            '<div class="mermaid-diag-export-btns">' +
+                '<button onclick="mermDiagExportSvg(this)" title="Export as SVG">SVG</button>' +
+                '<button onclick="mermDiagExportPng(this)" title="Export as PNG">PNG</button>' +
+            '</div>' +
         '</div>' +
-        '<div class="mermaid-diag-body">' +
+        '<div class="mermaid-diag-body mode-preview">' +
             '<div class="mermaid-diag-editor">' +
                 '<textarea spellcheck="false" oninput="mermDiagOnInput(this)" placeholder="Enter Mermaid syntax..."></textarea>' +
             '</div>' +
             '<div class="mermaid-diag-preview"></div>' +
         '</div>' +
         '<div class="mermaid-diag-status"></div>' +
+        '<div class="mermaid-diag-hover-controls">' +
+            '<select onchange="mermDiagInsertTemplate(this)">' +
+                '<option value="">Template...</option>' +
+                '<option value="flowchart">Flowchart</option>' +
+                '<option value="sequence">Sequence</option>' +
+                '<option value="classDiagram">Class</option>' +
+                '<option value="stateDiagram">State</option>' +
+                '<option value="erDiagram">ER</option>' +
+                '<option value="gantt">Gantt</option>' +
+                '<option value="pie">Pie</option>' +
+                '<option value="gitgraph">Git Graph</option>' +
+            '</select>' +
+            '<div class="mermaid-diag-mode-btns">' +
+                '<button onclick="mermDiagSetMode(this,\'edit\')" title="Edit mode">Edit</button>' +
+                '<button onclick="mermDiagSetMode(this,\'preview\')" title="Preview mode">Preview</button>' +
+                '<button class="active" onclick="mermDiagSetMode(this,\'render\')" title="Render mode">Render</button>' +
+            '</div>' +
+            '<div class="mermaid-diag-export-btns">' +
+                '<button onclick="mermDiagExportSvg(this)" title="Export as SVG">SVG</button>' +
+                '<button onclick="mermDiagExportPng(this)" title="Export as PNG">PNG</button>' +
+            '</div>' +
+        '</div>' +
     '</div>',
     onInit: 'mermDiagInit',
     defaultWidth: 600,
