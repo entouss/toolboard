@@ -277,6 +277,21 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.calendar-legend-item:hover {
+    opacity: 0.75;
+}
+
+.calendar-legend-item.hidden-cal .calendar-legend-dot {
+    opacity: 0.25;
+}
+
+.calendar-legend-item.hidden-cal span {
+    opacity: 0.35;
+    text-decoration: line-through;
 }
 
 .calendar-legend-dot {
@@ -2277,6 +2292,32 @@ async function calendarRefreshSubscriptions(widget, toolId) {
     }
 }
 
+function calendarBuildLegendHtml(data, counts, toolId) {
+    let html = '';
+    data.calendars.forEach(cal => {
+        const count = counts[cal.id] || 0;
+        const hiddenClass = cal.hidden ? ' hidden-cal' : '';
+        html += `<div class="calendar-legend-item${hiddenClass}" onclick="calendarToggleCalendar('${cal.id}', '${toolId}')">
+            <span class="calendar-legend-dot" style="background:${cal.color}"></span>
+            <span>${cal.name}</span>
+            <span class="calendar-legend-count">${count}</span>
+        </div>`;
+    });
+    return html;
+}
+
+function calendarToggleCalendar(calId, toolId) {
+    const data = calendarGetData(toolId);
+    const cal = data.calendars.find(c => c.id === calId);
+    if (!cal) return;
+    cal.hidden = !cal.hidden;
+    calendarSaveData(toolId, data);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
+    if (!widget) return;
+    const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
+    calendarRender(widget, toolId, year);
+}
+
 function calendarRender(widget, toolId, year) {
     const data = calendarGetData(toolId);
     const grid = widget.querySelector('.calendar-year-grid');
@@ -2300,16 +2341,7 @@ function calendarRender(widget, toolId, year) {
 
     // Render legend with event counts
     const counts = calendarCountByType(data, year);
-    let legendHtml = '';
-    data.calendars.forEach(cal => {
-        const count = counts[cal.id] || 0;
-        legendHtml += `<div class="calendar-legend-item">
-            <span class="calendar-legend-dot" style="background:${cal.color}"></span>
-            <span>${cal.name}</span>
-            <span class="calendar-legend-count">${count}</span>
-        </div>`;
-    });
-    legend.innerHTML = legendHtml;
+    legend.innerHTML = calendarBuildLegendHtml(data, counts, toolId);
 }
 
 function calendarRenderMonth(year, month, data) {
@@ -2370,8 +2402,9 @@ function calendarRenderMonth(year, month, data) {
 }
 
 function calendarGetEventsForDate(data, dateStr) {
+    const hiddenIds = new Set(data.calendars.filter(c => c.hidden).map(c => c.id));
     return data.events.filter(event => {
-        // Check if date falls within event range or matches single day
+        if (hiddenIds.has(event.calendarId)) return false;
         const startDate = event.startDate.split('T')[0];
         const endDate = event.endDate ? event.endDate.split('T')[0] : startDate;
         return dateStr >= startDate && dateStr <= endDate;
@@ -2482,16 +2515,7 @@ function calendarSetView(btn, view) {
         const legend = widget.querySelector('.calendar-legend');
         if (legend) {
             const counts = calendarCountByType(data, year);
-            let legendHtml = '';
-            data.calendars.forEach(cal => {
-                const count = counts[cal.id] || 0;
-                legendHtml += `<div class="calendar-legend-item">
-                    <span class="calendar-legend-dot" style="background:${cal.color}"></span>
-                    <span>${cal.name}</span>
-                    <span class="calendar-legend-count">${count}</span>
-                </div>`;
-            });
-            legend.innerHTML = legendHtml;
+            legend.innerHTML = calendarBuildLegendHtml(data, counts, toolId);
         }
     }
 }
@@ -2639,16 +2663,7 @@ function calendarRenderMonthView(widget, toolId) {
     const legend = widget.querySelector('.calendar-legend');
     if (legend) {
         const counts = calendarCountByType(data, year, month);
-        let legendHtml = '';
-        data.calendars.forEach(cal => {
-            const count = counts[cal.id] || 0;
-            legendHtml += `<div class="calendar-legend-item">
-                <span class="calendar-legend-dot" style="background:${cal.color}"></span>
-                <span>${cal.name}</span>
-                <span class="calendar-legend-count">${count}</span>
-            </div>`;
-        });
-        legend.innerHTML = legendHtml;
+        legend.innerHTML = calendarBuildLegendHtml(data, counts, toolId);
     }
 }
 
@@ -4665,7 +4680,7 @@ function wcInit() {
     var pomoFunctions = [initPomodoro, getModeLabel, getModeClass, getDurationForMode, playPomodoroBeep, advancePomodoroMode, togglePomodoro, resetPomodoro, skipPomodoro, togglePomodoroSettings, applyPomodoroSettings, updatePomodoroDisplay];
     var ucFunctions = [ucGetToolId, ucGetData, ucSaveData, ucInit, ucRenderCategories, ucRenderSelects, ucSetCategory, ucOnInput, ucOnUnitChange, ucSwap, ucConvertTemp, ucFormatNumber, ucConvert];
     var pbsFunctions = [pbsSpeedLabel, pbsToFraction, pbsFmtDuration, pbsGetTotalSeconds, pbsGetSpeed, pbsCalc, pbsSetSpeed, pbsRangeChanged, pbsInit];
-    var calendarFunctions = [calendarGetToolId, calendarGetData, calendarSaveData, calendarInit, calendarFetchICS, calendarRefreshSubscriptions, calendarRender, calendarRenderMonth, calendarGetEventsForDate, calendarCountByType, calendarCountTotal, calendarSaveViewState, calendarPrevYear, calendarNextYear, calendarSetView, calendarPrevMonth, calendarNextMonth, calendarGoToMonth, calendarGoToToday, calendarRenderMonthView, calendarShowDayEvents, calendarOpenManage, calendarCloseManage, calendarSelectColor, calendarRenderManageList, calendarAddCalendar, calendarAddEvent, calendarAddEventFromDay, calendarDeleteEvent, calendarRemoveCalendar, calendarHandleFileImport, calendarImportFromUrl, calendarImportICS, parseICSContent, parseICSDate, expandRRULE];
+    var calendarFunctions = [calendarGetToolId, calendarGetData, calendarSaveData, calendarInit, calendarFetchICS, calendarRefreshSubscriptions, calendarBuildLegendHtml, calendarToggleCalendar, calendarRender, calendarRenderMonth, calendarGetEventsForDate, calendarCountByType, calendarCountTotal, calendarSaveViewState, calendarPrevYear, calendarNextYear, calendarSetView, calendarPrevMonth, calendarNextMonth, calendarGoToMonth, calendarGoToToday, calendarRenderMonthView, calendarShowDayEvents, calendarOpenManage, calendarCloseManage, calendarSelectColor, calendarRenderManageList, calendarAddCalendar, calendarAddEvent, calendarAddEventFromDay, calendarDeleteEvent, calendarRemoveCalendar, calendarHandleFileImport, calendarImportFromUrl, calendarImportICS, parseICSContent, parseICSDate, expandRRULE];
     var pickerFunctions = [pickerGetToolId, pickerGetData, pickerSaveData, pickerInit, pickerRender, pickerAddItem, pickerRemoveItem, pickerSpin, pickerDrawWheel];
     var diceFunctions = [diceGetWidget, diceGetToolId, diceRenderFace, diceChangeCount, diceRoll, diceAddHistory, diceRollerInit];
     var swFunctions = [swGetWidget, swGetToolId, swGetState, swFormatTime, swUpdateDisplay, swTick, swToggle, swLap, swReset, swRenderLaps, stopwatchInit];
