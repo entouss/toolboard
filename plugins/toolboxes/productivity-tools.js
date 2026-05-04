@@ -522,29 +522,71 @@
 
 .calendar-list-item {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px;
+    flex-direction: column;
+    gap: 0;
+    padding: 6px 8px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     margin-bottom: 8px;
 }
 
+.cal-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cal-order-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 1px 3px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.cal-order-btn:hover:not(:disabled) { color: var(--text-heading); }
+.cal-order-btn:disabled { opacity: 0.25; cursor: default; }
+
 .calendar-list-color {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
-.calendar-list-name {
-    flex: 1;
-    font-weight: 500;
+.calendar-list-color.cal-color-btn {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    transition: box-shadow 0.15s;
 }
+
+.calendar-list-color.cal-color-btn:hover {
+    box-shadow: 0 0 0 2px var(--text-muted);
+}
+
+.cal-name-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-heading);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.cal-name-input:hover { border-color: var(--border-color); }
+.cal-name-input:focus { border-color: var(--border-color); background: rgba(0,0,0,0.12); outline: none; }
 
 .calendar-list-count {
     color: var(--text-muted);
     font-size: 11px;
+    flex-shrink: 0;
 }
 
 .calendar-list-remove {
@@ -554,12 +596,49 @@
     cursor: pointer;
     font-size: 16px;
     padding: 2px 6px;
+    flex-shrink: 0;
 }
 
 .calendar-list-remove:hover {
     background: rgba(231, 76, 60, 0.1);
     border-radius: 4px;
 }
+
+.cal-url-row { padding-top: 5px; }
+
+.cal-url-input {
+    width: 100%;
+    background: rgba(0,0,0,0.12);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.cal-url-input:focus { outline: none; color: var(--text-primary); }
+
+.cal-color-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 7px;
+    padding-bottom: 2px;
+}
+
+.cal-color-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+    transition: transform 0.1s;
+}
+
+.cal-color-swatch:hover { transform: scale(1.2); }
+.cal-color-swatch.selected { border-color: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.35); }
 
 .calendar-add-form {
     border-top: 1px solid var(--border-light);
@@ -2855,15 +2934,30 @@ function calendarRenderManageList(data) {
         eventSelect.disabled = true;
     } else {
         const counts = calendarCountTotal(data);
+        const last = data.calendars.length - 1;
 
-        list.innerHTML = data.calendars.map(cal => `
-            <div class="calendar-list-item">
-                <span class="calendar-list-color" style="background:${cal.color}"></span>
-                <span class="calendar-list-name">${cal.name}</span>
-                <span class="calendar-list-count">${counts[cal.id] || 0} days</span>
-                <button class="calendar-list-remove" onclick="calendarRemoveCalendar('${cal.id}')">&times;</button>
-            </div>
-        `).join('');
+        list.innerHTML = data.calendars.map((cal, idx) => {
+            const subUrl = (data.subscriptions || []).find(s => s.calendarId === cal.id)?.url || '';
+            const safeName = cal.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+            const safeUrl = subUrl.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+            const swatches = CALENDAR_COLORS.map(c =>
+                `<span class="cal-color-swatch${c === cal.color ? ' selected' : ''}" style="background:${c}" data-color="${c}" onclick="calendarApplyColor('${cal.id}','${c}')"></span>`
+            ).join('');
+            return `<div class="calendar-list-item" data-cal-id="${cal.id}">
+                <div class="cal-edit-row">
+                    <button class="cal-order-btn" onclick="calendarMoveCalendar('${cal.id}',-1)" ${idx === 0 ? 'disabled' : ''} title="Move up">↑</button>
+                    <button class="cal-order-btn" onclick="calendarMoveCalendar('${cal.id}',1)" ${idx === last ? 'disabled' : ''} title="Move down">↓</button>
+                    <span class="calendar-list-color cal-color-btn" style="background:${cal.color}" onclick="calendarPickColor('${cal.id}')" title="Change color"></span>
+                    <input class="cal-name-input" type="text" value="${safeName}" onchange="calendarSaveName('${cal.id}',this.value)" placeholder="Calendar name">
+                    <span class="calendar-list-count">${counts[cal.id] || 0} days</span>
+                    <button class="calendar-list-remove" onclick="calendarRemoveCalendar('${cal.id}')">&times;</button>
+                </div>
+                <div class="cal-url-row">
+                    <input class="cal-url-input" type="text" value="${safeUrl}" onchange="calendarSaveUrl('${cal.id}',this.value)" placeholder="iCal subscription URL (optional)">
+                </div>
+                <div class="cal-color-strip" id="cal-color-strip-${cal.id}" style="display:none;">${swatches}</div>
+            </div>`;
+        }).join('');
 
         const calendarOptions = data.calendars.map(cal =>
             `<option value="${cal.id}">${cal.name}</option>`
@@ -2872,6 +2966,86 @@ function calendarRenderManageList(data) {
         eventSelect.innerHTML = calendarOptions;
         importSelect.disabled = false;
         eventSelect.disabled = false;
+    }
+}
+
+function calendarSaveName(calId, name) {
+    name = name.trim();
+    if (!name) return;
+    const modal = document.getElementById('calendarManageModal');
+    const toolId = modal.dataset.toolId;
+    const data = calendarGetData(toolId);
+    const cal = data.calendars.find(c => c.id === calId);
+    if (!cal || cal.name === name) return;
+    cal.name = name;
+    calendarSaveData(toolId, data);
+    const opts = data.calendars.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    const importSelect = document.getElementById('calendarImportSelect');
+    const eventSelect = document.getElementById('calendarEventCalendar');
+    if (importSelect) importSelect.innerHTML = opts;
+    if (eventSelect) eventSelect.innerHTML = opts;
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
+    if (widget) {
+        const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
+        calendarRender(widget, toolId, year);
+    }
+}
+
+function calendarPickColor(calId) {
+    const strip = document.getElementById('cal-color-strip-' + calId);
+    if (!strip) return;
+    const isOpen = strip.style.display !== 'none';
+    document.querySelectorAll('.cal-color-strip').forEach(s => { s.style.display = 'none'; });
+    if (!isOpen) strip.style.display = 'flex';
+}
+
+function calendarApplyColor(calId, color) {
+    const modal = document.getElementById('calendarManageModal');
+    const toolId = modal.dataset.toolId;
+    const data = calendarGetData(toolId);
+    const cal = data.calendars.find(c => c.id === calId);
+    if (!cal) return;
+    cal.color = color;
+    calendarSaveData(toolId, data);
+    calendarRenderManageList(data);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
+    if (widget) {
+        const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
+        calendarRender(widget, toolId, year);
+    }
+}
+
+function calendarSaveUrl(calId, url) {
+    url = url.trim();
+    const modal = document.getElementById('calendarManageModal');
+    const toolId = modal.dataset.toolId;
+    const data = calendarGetData(toolId);
+    if (!data.subscriptions) data.subscriptions = [];
+    const existing = data.subscriptions.find(s => s.calendarId === calId);
+    if (url) {
+        if (existing) { existing.url = url; } else { data.subscriptions.push({ url, calendarId: calId }); }
+    } else if (existing) {
+        data.subscriptions = data.subscriptions.filter(s => s.calendarId !== calId);
+    }
+    calendarSaveData(toolId, data);
+}
+
+function calendarMoveCalendar(calId, direction) {
+    const modal = document.getElementById('calendarManageModal');
+    const toolId = modal.dataset.toolId;
+    const data = calendarGetData(toolId);
+    const idx = data.calendars.findIndex(c => c.id === calId);
+    if (idx < 0) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= data.calendars.length) return;
+    const [cal] = data.calendars.splice(idx, 1);
+    data.calendars.splice(newIdx, 0, cal);
+    calendarSaveData(toolId, data);
+    calendarRenderManageList(data);
+    const widget = document.querySelector(`.tool[data-tool="${toolId}"] .calendar-widget`);
+    if (widget) {
+        const year = parseInt(widget.querySelector('.calendar-year-display')?.textContent) || new Date().getFullYear();
+        calendarRender(widget, toolId, year);
     }
 }
 
@@ -4680,7 +4854,7 @@ function wcInit() {
     var pomoFunctions = [initPomodoro, getModeLabel, getModeClass, getDurationForMode, playPomodoroBeep, advancePomodoroMode, togglePomodoro, resetPomodoro, skipPomodoro, togglePomodoroSettings, applyPomodoroSettings, updatePomodoroDisplay];
     var ucFunctions = [ucGetToolId, ucGetData, ucSaveData, ucInit, ucRenderCategories, ucRenderSelects, ucSetCategory, ucOnInput, ucOnUnitChange, ucSwap, ucConvertTemp, ucFormatNumber, ucConvert];
     var pbsFunctions = [pbsSpeedLabel, pbsToFraction, pbsFmtDuration, pbsGetTotalSeconds, pbsGetSpeed, pbsCalc, pbsSetSpeed, pbsRangeChanged, pbsInit];
-    var calendarFunctions = [calendarGetToolId, calendarGetData, calendarSaveData, calendarInit, calendarFetchICS, calendarRefreshSubscriptions, calendarBuildLegendHtml, calendarToggleCalendar, calendarRender, calendarRenderMonth, calendarGetEventsForDate, calendarCountByType, calendarCountTotal, calendarSaveViewState, calendarPrevYear, calendarNextYear, calendarSetView, calendarPrevMonth, calendarNextMonth, calendarGoToMonth, calendarGoToToday, calendarRenderMonthView, calendarShowDayEvents, calendarOpenManage, calendarCloseManage, calendarSelectColor, calendarRenderManageList, calendarAddCalendar, calendarAddEvent, calendarAddEventFromDay, calendarDeleteEvent, calendarRemoveCalendar, calendarHandleFileImport, calendarImportFromUrl, calendarImportICS, parseICSContent, parseICSDate, expandRRULE];
+    var calendarFunctions = [calendarGetToolId, calendarGetData, calendarSaveData, calendarInit, calendarFetchICS, calendarRefreshSubscriptions, calendarBuildLegendHtml, calendarToggleCalendar, calendarRender, calendarRenderMonth, calendarGetEventsForDate, calendarCountByType, calendarCountTotal, calendarSaveViewState, calendarPrevYear, calendarNextYear, calendarSetView, calendarPrevMonth, calendarNextMonth, calendarGoToMonth, calendarGoToToday, calendarRenderMonthView, calendarShowDayEvents, calendarOpenManage, calendarCloseManage, calendarSelectColor, calendarRenderManageList, calendarSaveName, calendarPickColor, calendarApplyColor, calendarSaveUrl, calendarMoveCalendar, calendarAddCalendar, calendarAddEvent, calendarAddEventFromDay, calendarDeleteEvent, calendarRemoveCalendar, calendarHandleFileImport, calendarImportFromUrl, calendarImportICS, parseICSContent, parseICSDate, expandRRULE];
     var pickerFunctions = [pickerGetToolId, pickerGetData, pickerSaveData, pickerInit, pickerRender, pickerAddItem, pickerRemoveItem, pickerSpin, pickerDrawWheel];
     var diceFunctions = [diceGetWidget, diceGetToolId, diceRenderFace, diceChangeCount, diceRoll, diceAddHistory, diceRollerInit];
     var swFunctions = [swGetWidget, swGetToolId, swGetState, swFormatTime, swUpdateDisplay, swTick, swToggle, swLap, swReset, swRenderLaps, stopwatchInit];

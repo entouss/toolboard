@@ -6994,13 +6994,9 @@ function autoResizeTool(tool, handleType) {
     const currentWidth = tool.style.width;
     const currentHeight = tool.style.height;
 
-    // Temporarily remove constraints to measure natural size
+    // Temporarily remove width constraint to measure natural width
     if (autoWidth) {
         tool.style.width = 'auto';
-        content.style.overflow = 'visible';
-    }
-    if (autoHeight) {
-        tool.style.height = 'auto';
         content.style.overflow = 'visible';
     }
 
@@ -7011,13 +7007,19 @@ function autoResizeTool(tool, handleType) {
     let newWidth = tool.offsetWidth;
     let newHeight = tool.offsetHeight;
 
-    // Add some padding for comfortable viewing
     if (autoWidth) {
         newWidth = Math.max(150, Math.min(800, content.scrollWidth + 30));
     }
     if (autoHeight) {
         const isFrameless = tool.classList.contains('frameless');
-        newHeight = Math.max(100, Math.min(600, content.scrollHeight + (isFrameless ? 0 : header.offsetHeight + 10)));
+        // Measure the first child directly — it's a block element whose height is never
+        // distorted by the flex-stretch on tool-content. Fall back to scrollHeight for
+        // frameless / unknown layouts.
+        const innerEl = content.firstElementChild;
+        const naturalH = innerEl
+            ? innerEl.offsetHeight + (isFrameless ? 0 : 30)
+            : content.scrollHeight;
+        newHeight = Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8)));
     }
 
     // Restore overflow

@@ -207,6 +207,24 @@ function calculateGrowth() {
             '<div class="calc-card"><div class="calc-card-label">Growth Multiple</div><div class="calc-card-value large">' + (totalContrib > 0 ? (fv / totalContrib).toFixed(1) : '0.0') + 'x</div></div>' +
         '</div>' +
         (timeline ? '<div class="calc-section-title">GROWTH TIMELINE</div>' + timeline : '');
+
+    requestAnimationFrame(function() {
+        var tool = resultsEl.closest('.tool');
+        if (!tool) return;
+        var header = tool.querySelector('.tool-header');
+        var inner = tool.querySelector('.calc-widget');
+        if (!header || !inner) return;
+        // Measure the calc-widget's natural height (not flex-stretched) and size the tool to fit.
+        // tool-content has 15px padding top + bottom = 30px; add 8px breathing room.
+        var newHeight = Math.max(200, Math.min(750, inner.offsetHeight + header.offsetHeight + 38));
+        tool.style.height = newHeight + 'px';
+        var toolId = tool.getAttribute('data-tool');
+        if (typeof positions !== 'undefined' && toolId) {
+            if (!positions[toolId]) positions[toolId] = { x: tool.offsetLeft, y: tool.offsetTop, z: 1 };
+            positions[toolId].height = newHeight;
+            if (typeof savePositions === 'function') savePositions(positions);
+        }
+    });
 }
 
 // Inject JavaScript functions into DOM for HTML export using base64 encoding
