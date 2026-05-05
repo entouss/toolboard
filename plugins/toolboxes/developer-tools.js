@@ -503,7 +503,9 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .http-send-btn:hover { background: #2980b9; }
 .http-send-btn.cancel { background: #e74c3c; }
 .http-send-btn.cancel:hover { background: #c0392b; }
-.http-cors-notice { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+.http-cors-notice { font-size: 10px; color: var(--text-muted); flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.http-proxy-label { display: flex; align-items: center; gap: 3px; cursor: pointer; color: var(--text-secondary); white-space: nowrap; margin-left: auto; }
+.http-proxy-label input { cursor: pointer; margin: 0; }
 .http-req-tabs { display: flex; gap: 2px; flex-shrink: 0; }
 .http-tab { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 11px; border-radius: 4px 4px 0 0; border-bottom: none; }
 .http-tab:hover { background: var(--table-hover); }
@@ -1319,7 +1321,9 @@ Hide Whitespace
 </div>`,
     contentType: 'html',
     onInit: 'diffInit',
-    source: 'external'
+    source: 'external',
+    defaultWidth: 1400,
+    defaultHeight: 900
 });
 
 // Lorem Ipsum Generator
@@ -1766,7 +1770,7 @@ PluginRegistry.registerTool({
 <input type="text" class="http-url-input" placeholder="https://api.example.com/endpoint" onkeydown="if(event.key==='Enter')httpSend(this)">
 <button class="http-send-btn" onclick="httpSend(this)">Send</button>
 </div>
-<div class="http-cors-notice">ℹ Requests are sent from the browser and may be blocked by CORS policies.</div>
+<div class="http-cors-notice">ℹ Requests run in the browser and may be blocked by CORS. <label class="http-proxy-label"><input type="checkbox" class="http-proxy-toggle" onchange="httpProxyToggled(this)"> Use CORS proxy</label></div>
 <div class="http-req-tabs">
 <button class="http-tab active" onclick="httpReqTab(this,'params')">Params</button>
 <button class="http-tab" onclick="httpReqTab(this,'headers')">Headers</button>
@@ -4581,7 +4585,8 @@ function httpGetState(widget) {
             method: 'GET', url: '', params: [], headers: [],
             bodyType: 'none', body: '', authType: 'none',
             authToken: '', authUser: '', authPass: '',
-            response: null, history: [], abortController: null
+            response: null, history: [], abortController: null,
+            useProxy: false
         });
     }
     return _httpState.get(widget);
@@ -4603,6 +4608,11 @@ function httpInit() {
         if (methodSelect) methodSelect.style.color = _httpMethodColors[st.method] || '#27ae60';
         httpUpdateBodyTabVisibility(widget);
     });
+}
+
+function httpProxyToggled(checkbox) {
+    const widget = httpGetWidget(checkbox);
+    httpGetState(widget).useProxy = checkbox.checked;
 }
 
 function httpMethodChanged(select) {
@@ -4761,6 +4771,8 @@ async function httpSend(el) {
     if (!url) return;
     if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
     st.url = url; st.method = widget.querySelector('.http-method-select').value;
+    const CORS_PROXY = 'https://ics-proxy-esjyexqdtq-ue.a.run.app';
+    const fetchUrl = st.useProxy ? CORS_PROXY + '?url=' + encodeURIComponent(url) : url;
     const fetchHeaders = new Headers();
     widget.querySelectorAll('.http-kv-rows[data-type="headers"] .http-kv-row').forEach(row => {
         const inputs = row.querySelectorAll('input');
@@ -4784,7 +4796,7 @@ async function httpSend(el) {
     httpShowLoading(widget);
     const startTime = performance.now();
     try {
-        const resp = await fetch(url, { method: st.method, headers: fetchHeaders, body: fetchBody, signal: st.abortController.signal });
+        const resp = await fetch(fetchUrl, { method: st.method, headers: fetchHeaders, body: fetchBody, signal: st.abortController.signal });
         const elapsed = Math.round(performance.now() - startTime);
         const text = await resp.text(); const size = new Blob([text]).size;
         const respHeaders = []; resp.headers.forEach((val, key) => { respHeaders.push({ key, val }); });
@@ -4795,7 +4807,7 @@ async function httpSend(el) {
         if (err.name !== 'AbortError') {
             let errMsg = err.message || String(err);
             if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('TypeError'))
-                errMsg += '\n\nThis is likely a CORS error. The server may not allow requests from this origin.\nTry using a CORS proxy or testing against an API that supports CORS.';
+                errMsg += '\n\nThis is likely a CORS error. Enable "Use CORS proxy" above to route the request through the toolboard proxy.';
             st.response = { status: 0, statusText: 'Error', time: elapsed, size: 0, body: errMsg, headers: [], error: true };
             httpAddToHistory(widget, st.method, url, 'ERR'); httpRenderResponse(widget);
         }
@@ -7841,7 +7853,7 @@ async function certCopyBase64(btn, fmt) {
         httpBodyTypeChanged, httpBodyChanged, httpAuthTypeChanged, httpAuthFieldChanged,
         httpEsc, httpFormatBytes, httpSend, httpShowLoading, httpHideLoading,
         httpRenderResponse, httpShowFullResponse, httpCopyResponse, httpAddToHistory,
-        httpRenderHistory, httpToggleHistory, httpLoadFromHistory,
+        httpRenderHistory, httpToggleHistory, httpLoadFromHistory, httpProxyToggled,
         jpGetToolId, jpGetData, jpSaveData, jpInit, jpSetupResizer,
         jpEvalPath, jpDescendants, jpFilterMatch, jpResolvePath, jpTokenize,
         jpQuery, jpExecute, jpEscapeHtml, jpLoadSample, jpPrettify,

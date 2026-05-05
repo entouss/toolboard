@@ -228,6 +228,38 @@
     border-color: #3498db;
     color: white;
 }
+
+.tool-content:has(.calc-container) {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.calc-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 8px;
+    background: #2c3e50;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.calc-container input {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.calc-btn-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
 `;
     document.head.appendChild(style);
 })();
@@ -794,9 +826,9 @@ PluginRegistry.registerTool({
     toolbox: 'core',
     tags: ['math', 'arithmetic', 'numbers'],
     title: 'Calculator',
-    content: '<div style="background:#2c3e50;padding:15px;border-radius:8px;max-width:240px;">' +
-        '<input type="text" id="calcDisplay" value="0" readonly style="width:100%;padding:12px;font-size:24px;text-align:right;border:none;border-radius:4px;margin-bottom:10px;background:#ecf0f1;font-family:monospace;">' +
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">' +
+    content: '<div class="calc-container">' +
+        '<input type="text" id="calcDisplay" value="0" readonly style="padding:12px;font-size:24px;text-align:right;border:none;border-radius:4px;background:#ecf0f1;font-family:monospace;">' +
+        '<div class="calc-btn-grid">' +
         '<button onclick="calcClear()" style="grid-column:span 2;padding:15px;font-size:16px;border:none;border-radius:4px;background:#e74c3c;color:white;cursor:pointer;">C</button>' +
         '<button onclick="calcBackspace()" style="padding:15px;font-size:16px;border:none;border-radius:4px;background:#95a5a6;color:white;cursor:pointer;">\u232B</button>' +
         '<button onclick="calcOp(\'/\')" style="padding:15px;font-size:16px;border:none;border-radius:4px;background:#3498db;color:white;cursor:pointer;">\u00F7</button>' +
@@ -819,7 +851,7 @@ PluginRegistry.registerTool({
     '</div>',
     onInit: 'calcInit',
     defaultWidth: 270,
-    defaultHeight: 350,
+    defaultHeight: 430,
     source: 'external'
 });
 
