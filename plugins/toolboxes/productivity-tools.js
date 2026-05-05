@@ -3478,20 +3478,28 @@ function expandRRULE(event) {
 
     if (!parts.FREQ) return events;
 
-    const startDate = new Date(event.startDate);
-    const endDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+    // Date-only strings (YYYY-MM-DD) must be parsed as LOCAL midnight, not UTC midnight.
+    // new Date("YYYY-MM-DD") parses as UTC, which in negative-offset zones becomes the previous day.
+    const parseICSDateLocal = s => {
+        if (s.includes('T')) return new Date(s);
+        const [y, m, d] = s.split('-');
+        return new Date(+y, +m - 1, +d);
+    };
+
+    const startDate = parseICSDateLocal(event.startDate);
+    const endDate = event.endDate ? parseICSDateLocal(event.endDate) : new Date(startDate);
     const duration = endDate - startDate;
 
     const maxCount = parts.COUNT ? parseInt(parts.COUNT) : 500;
     const interval = parts.INTERVAL ? parseInt(parts.INTERVAL) : 1;
 
-    // Fix UNTIL: preserve Z suffix so UTC datetimes parse correctly
+    // Fix UNTIL: preserve Z for UTC datetimes; parse date-only as local midnight
     let until = null;
     if (parts.UNTIL) {
         const u = parts.UNTIL;
         until = u.endsWith('Z')
             ? new Date(u.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/, '$1-$2-$3T$4:$5:$6Z'))
-            : new Date(parseICSDate(u));
+            : parseICSDateLocal(parseICSDate(u));
     }
     if (!until) {
         until = new Date(startDate);
