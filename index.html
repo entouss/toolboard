@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.js"></script>
+    <script src="plugins/emoji-data.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow&family=Bebas+Neue&family=Caveat&family=Crimson+Text&family=DM+Sans&family=Dancing+Script&family=EB+Garamond&family=Fira+Code&family=IBM+Plex+Mono&family=Indie+Flower&family=Inter&family=JetBrains+Mono&family=Josefin+Sans&family=Lato&family=Libre+Baskerville&family=Lora&family=Merriweather&family=Montserrat&family=Nunito&family=Open+Sans&family=Oswald&family=Pacifico&family=Patrick+Hand&family=Permanent+Marker&family=Playfair+Display&family=Poppins&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Mono&family=Rubik&family=Source+Code+Pro&family=Source+Sans+Pro&family=Space+Mono&family=Work+Sans&display=swap" rel="stylesheet">
@@ -567,7 +568,7 @@ header h1 {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    width: 400px;
+    width: 580px;
     max-width: 90%;
     max-height: 80vh;
     display: flex;
@@ -582,6 +583,7 @@ header h1 {
     justify-content: space-between;
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .board-manager-title {
@@ -607,97 +609,186 @@ header h1 {
     color: var(--text-primary);
 }
 
+.board-manager-search-wrap {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.board-manager-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.board-manager-search:focus {
+    border-color: var(--accent, #3498db);
+}
+
 .board-manager-list {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 0;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    align-content: start;
 }
 
-.board-manager-item {
+.board-manager-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 32px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.board-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    min-height: 110px;
+    user-select: none;
+}
+
+.board-card:hover {
+    border-color: var(--accent, #3498db);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.board-card:focus {
+    outline: none;
+    border-color: var(--accent, #3498db);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
+.board-card.active {
+    border-color: var(--accent, #3498db);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+}
+
+.board-card-color-strip {
+    width: 100%;
+    height: 6px;
+    flex-shrink: 0;
+}
+
+.board-card-emoji {
+    font-size: 1.8rem;
+    line-height: 1;
+    margin: 14px 0 8px;
+    min-height: 34px;
     display: flex;
     align-items: center;
-    padding: 10px 20px;
-    cursor: pointer;
-    gap: 8px;
-    transition: background 0.1s;
-    position: relative;
+    justify-content: center;
 }
 
-.board-manager-item:hover {
-    background: var(--bg-tertiary);
+.board-card-emoji-placeholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--border-color);
 }
 
-.board-manager-item.active {
-    border-left: 3px solid var(--accent, #3498db);
-    padding-left: 17px;
-}
-
-.board-manager-item-name {
-    flex: 1;
-    font-size: 0.95rem;
+.board-card-name {
+    font-size: 0.82rem;
+    font-weight: 500;
     color: var(--text-primary);
+    padding: 0 10px 12px;
+    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-.board-manager-item.active .board-manager-item-name {
-    font-weight: 600;
+.board-card.active .board-card-name {
+    font-weight: 700;
 }
 
-.board-manager-actions {
+.board-card-actions {
+    position: absolute;
+    top: 10px;
+    right: 4px;
     display: flex;
-    gap: 4px;
+    gap: 2px;
     opacity: 0;
     transition: opacity 0.15s;
 }
 
-.board-manager-item:hover .board-manager-actions {
+.board-card:hover .board-card-actions,
+.board-card:focus .board-card-actions {
     opacity: 1;
 }
 
-.board-manager-actions button {
-    background: none;
+.board-card-actions button {
+    background: rgba(0, 0, 0, 0.45);
     border: none;
-    color: var(--text-muted);
+    color: white;
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 4px;
-    font-size: 14px;
-    line-height: 1;
-    transition: background 0.15s, color 0.15s;
+    font-size: 12px;
+    line-height: 1.5;
+    transition: background 0.15s;
 }
 
-.board-manager-actions button:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+.board-card-actions button:hover {
+    background: rgba(0, 0, 0, 0.7);
 }
 
-.board-manager-actions button.board-manager-delete-btn:hover {
-    background: rgba(231, 76, 60, 0.15);
-    color: #e74c3c;
+.board-card-actions button.board-manager-delete-btn:hover {
+    background: rgba(231, 76, 60, 0.85);
 }
 
-.board-manager-rename-input {
+.board-card-rename-wrap {
     flex: 1;
-    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    padding: 6px 8px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.board-card-rename-wrap input {
+    width: 100%;
+    padding: 4px 6px;
     border: 2px solid #3498db;
     border-radius: 4px;
-    font-size: 0.95rem;
+    font-size: 0.82rem;
     background: var(--bg-primary);
     color: var(--text-primary);
     outline: none;
     font-family: inherit;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .board-manager-confirm-row {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 16px;
     gap: 8px;
     background: rgba(231, 76, 60, 0.08);
-    border-left: 3px solid #e74c3c;
-    padding-left: 17px;
+    border: 2px solid #e74c3c;
+    border-radius: 10px;
 }
 
 .board-manager-confirm-row span {
@@ -736,6 +827,7 @@ header h1 {
 .board-manager-footer {
     padding: 12px 20px;
     border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .board-manager-new-btn {
@@ -757,9 +849,9 @@ header h1 {
 }
 
 .board-manager-new-input-row {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
-    padding: 10px 20px;
     gap: 8px;
 }
 
@@ -776,7 +868,7 @@ header h1 {
 }
 
 @media (hover: none) {
-    .board-manager-actions {
+    .board-card-actions {
         opacity: 1;
     }
 }
@@ -2648,7 +2740,13 @@ tr:hover {
         max-height: 90vh;
     }
 
-    .board-manager-actions {
+    .board-manager-list {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .board-card-actions {
         opacity: 1;
     }
 
@@ -2806,6 +2904,7 @@ tr:hover {
             <label>Favicon</label>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
                 <input type="text" id="toolboardFaviconInput" placeholder="Enter an emoji..." style="flex:1;" maxlength="2">
+                <button id="toolboardFaviconPick" title="Pick from Emoji Tool" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:13px;padding:1px 5px;">🎭</button>
                 <button id="toolboardFaviconReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
             </div>
             <label style="display:flex;align-items:center;gap:6px;">Board Font <a href="https://fonts.google.com" target="_blank" rel="noopener" style="font-size:10px;color:#3498db;text-decoration:none;" title="Browse Google Fonts">Browse fonts ↗</a></label>
@@ -2875,6 +2974,9 @@ tr:hover {
             <div class="board-manager-header">
                 <span class="board-manager-title">Boards</span>
                 <button class="board-manager-close" title="Close">&times;</button>
+            </div>
+            <div class="board-manager-search-wrap">
+                <input id="boardManagerSearch" class="board-manager-search" type="search" placeholder="Search boards…" autocomplete="off" spellcheck="false">
             </div>
             <div id="boardManagerList" class="board-manager-list"></div>
             <div class="board-manager-footer">
@@ -2966,6 +3068,7 @@ tr:hover {
                             <input type="checkbox" id="editorPlainTextCheckbox"> Plain text
                         </label>
                         <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <button id="editorEmojiBtn" class="editor-action-btn" title="Insert emoji">🙂</button>
                             <button id="editorSortLinesBtn" class="editor-action-btn" title="Sort lines A-Z at render time">Sort</button>
                             <button id="editorReverseSortBtn" class="editor-action-btn" title="Sort lines Z-A at render time">Reverse</button>
                             <button id="editorReverseOrderBtn" class="editor-action-btn" title="Reverse line order at render time">Flip</button>
@@ -4646,7 +4749,7 @@ function setupToolControls() {
     // Populate color picker
     settingsColorPicker.innerHTML = HEADER_COLORS.map(c =>
         `<div class="color-swatch" style="background: ${c}" data-color="${c}"></div>`
-    ).join('');
+    ).join('') + '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
 
     // Populate background color picker
     settingsBgColorPicker.innerHTML =
@@ -4657,7 +4760,8 @@ function setupToolControls() {
         ).join('') +
         '<div class="color-swatch" style="background: #fff" data-color="#ffffff"></div>' +
         '<div class="color-swatch" style="background: #1a1a2e" data-color="#1a1a2e"></div>' +
-        '<div class="color-swatch" style="background: #000" data-color="#000000"></div>';
+        '<div class="color-swatch" style="background: #000" data-color="#000000"></div>' +
+        '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
 
     // Populate font color picker
     settingsFontColorPicker.innerHTML =
@@ -4671,7 +4775,7 @@ function setupToolControls() {
         '<div class="color-swatch" style="background: #000" data-color="#000000"></div>' +
         HEADER_COLORS.map(c =>
             `<div class="color-swatch" style="background: ${c}" data-color="${c}"></div>`
-        ).join('');
+        ).join('') + '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
 
     // Minimize button
     toolboard.addEventListener('click', (e) => {
@@ -4867,67 +4971,108 @@ function setupToolControls() {
 
     // Color swatch click in modal
     settingsColorPicker.addEventListener('click', (e) => {
-        if (e.target.classList.contains('color-swatch') && currentSettingsToolId) {
+        if (!e.target.classList.contains('color-swatch') || !currentSettingsToolId) return;
+        e.stopPropagation();
+        const toolId = currentSettingsToolId;
+        const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+        const header = tool.querySelector('.tool-header');
+
+        if (e.target.classList.contains('swatch-custom')) {
             e.stopPropagation();
-            const toolId = currentSettingsToolId;
-            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-            const color = e.target.getAttribute('data-color');
-            const header = tool.querySelector('.tool-header');
-
-            // Update UI
-            header.style.background = color;
-            settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-            e.target.classList.add('selected');
-
-            // Save
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].color = color;
-            saveToolCustomizations(toolCustomizations);
+            const originalColor = (toolCustomizations[toolId] || {}).color || '';
+            window._toolLink = {
+                type: 'color',
+                label: 'Tool Header Color',
+                preview: (hex) => { header.style.background = hex; },
+                commit: (hex) => {
+                    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+                    toolCustomizations[toolId].color = hex;
+                    saveToolCustomizations(toolCustomizations);
+                    settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                },
+                revert: () => { header.style.background = originalColor; },
+            };
+            openToolPickerPopup(e.target, 'color');
+            return;
         }
+
+        const color = e.target.getAttribute('data-color');
+        header.style.background = color;
+        settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        e.target.classList.add('selected');
+        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+        toolCustomizations[toolId].color = color;
+        saveToolCustomizations(toolCustomizations);
     });
 
     // Background color swatch click in modal
     settingsBgColorPicker.addEventListener('click', (e) => {
-        if (e.target.classList.contains('color-swatch') && currentSettingsToolId) {
+        if (!e.target.classList.contains('color-swatch') || !currentSettingsToolId) return;
+        e.stopPropagation();
+        const toolId = currentSettingsToolId;
+        const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+
+        if (e.target.classList.contains('swatch-custom')) {
             e.stopPropagation();
-            const toolId = currentSettingsToolId;
-            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-            const color = e.target.getAttribute('data-color');
-
-            // Update UI
-            if (color === '') {
-                tool.style.background = '';
-            } else {
-                tool.style.background = color;
-            }
-            settingsBgColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-            e.target.classList.add('selected');
-
-            // Save
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].bgColor = color;
-            saveToolCustomizations(toolCustomizations);
+            const originalBg = (toolCustomizations[toolId] || {}).bgColor || '';
+            window._toolLink = {
+                type: 'color',
+                label: 'Tool Background',
+                preview: (hex) => { tool.style.background = hex; },
+                commit: (hex) => {
+                    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+                    toolCustomizations[toolId].bgColor = hex;
+                    saveToolCustomizations(toolCustomizations);
+                    settingsBgColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                },
+                revert: () => { tool.style.background = originalBg || ''; },
+            };
+            openToolPickerPopup(e.target, 'color');
+            return;
         }
+
+        const color = e.target.getAttribute('data-color');
+        tool.style.background = color || '';
+        settingsBgColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        e.target.classList.add('selected');
+        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+        toolCustomizations[toolId].bgColor = color;
+        saveToolCustomizations(toolCustomizations);
     });
 
     // Font color swatch click in modal
     settingsFontColorPicker.addEventListener('click', (e) => {
-        if (e.target.classList.contains('color-swatch') && currentSettingsToolId) {
+        if (!e.target.classList.contains('color-swatch') || !currentSettingsToolId) return;
+        e.stopPropagation();
+        const toolId = currentSettingsToolId;
+        const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+
+        if (e.target.classList.contains('swatch-custom')) {
             e.stopPropagation();
-            const toolId = currentSettingsToolId;
-            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-            const color = e.target.getAttribute('data-color');
-
-            // Update UI
-            tool.style.color = color || '';
-            settingsFontColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-            e.target.classList.add('selected');
-
-            // Save
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].fontColor = color;
-            saveToolCustomizations(toolCustomizations);
+            const originalFont = (toolCustomizations[toolId] || {}).fontColor || '';
+            window._toolLink = {
+                type: 'color',
+                label: 'Tool Font Color',
+                preview: (hex) => { tool.style.color = hex; },
+                commit: (hex) => {
+                    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+                    toolCustomizations[toolId].fontColor = hex;
+                    saveToolCustomizations(toolCustomizations);
+                    settingsFontColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                },
+                revert: () => { tool.style.color = originalFont || ''; },
+            };
+            openToolPickerPopup(e.target, 'color');
+            return;
         }
+
+        const color = e.target.getAttribute('data-color');
+        tool.style.color = color || '';
+        settingsFontColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        e.target.classList.add('selected');
+        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+        toolCustomizations[toolId].fontColor = color;
+        saveToolCustomizations(toolCustomizations);
     });
 
     // Title input change in modal
@@ -5525,6 +5670,31 @@ function setupContentEditor() {
         }
     });
 
+    // --- Emoji insert ---
+    const emojiBtn = document.getElementById('editorEmojiBtn');
+    if (emojiBtn) {
+        emojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const savedStart = textarea.selectionStart;
+            const savedEnd = textarea.selectionEnd;
+            window._toolLink = {
+                type: 'emoji',
+                label: 'Note',
+                apply: (emoji) => {
+                    const before = textarea.value.substring(0, savedStart);
+                    const after = textarea.value.substring(savedEnd);
+                    textarea.value = before + emoji + after;
+                    window._toolLink = null;
+                    closeToolPickerPopup();
+                    textarea.focus();
+                    textarea.setSelectionRange(savedStart + emoji.length, savedStart + emoji.length);
+                    textarea.dispatchEvent(new Event('input'));
+                },
+            };
+            openToolPickerPopup(emojiBtn, 'emoji');
+        });
+    }
+
     // --- Render-time transforms ---
     const sortLinesBtn = document.getElementById('editorSortLinesBtn');
     const reverseSortBtn = document.getElementById('editorReverseSortBtn');
@@ -6011,7 +6181,7 @@ function applyToolboardSettings() {
     // Populate color picker
     colorPicker.innerHTML = DASHBOARD_COLORS.map(c =>
         `<div class="color-swatch${toolboardSettings.color === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`
-    ).join('');
+    ).join('') + '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
 
     // Apply font settings
     const fontCustomInput = document.getElementById('toolboardCustomFont');
@@ -6155,14 +6325,31 @@ function setupToolboardSettings() {
 
     // Color picker
     colorPicker.addEventListener('click', (e) => {
-        if (e.target.classList.contains('color-swatch')) {
-            const color = e.target.getAttribute('data-color');
-            toolboardSettings.color = color;
-            header.style.background = color;
-            colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-            e.target.classList.add('selected');
-            saveToolboardSettings(toolboardSettings);
+        if (!e.target.classList.contains('color-swatch')) return;
+        if (e.target.classList.contains('swatch-custom')) {
+            e.stopPropagation();
+            const originalColor = toolboardSettings.color;
+            window._toolLink = {
+                type: 'color',
+                label: 'Board Header Color',
+                preview: (hex) => { header.style.background = hex; },
+                commit: (hex) => {
+                    toolboardSettings.color = hex;
+                    header.style.background = hex;
+                    saveToolboardSettings(toolboardSettings);
+                    colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                },
+                revert: () => { header.style.background = originalColor; },
+            };
+            openToolPickerPopup(e.target, 'color');
+            return;
         }
+        const color = e.target.getAttribute('data-color');
+        toolboardSettings.color = color;
+        header.style.background = color;
+        colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        e.target.classList.add('selected');
+        saveToolboardSettings(toolboardSettings);
     });
 
     // Font family select
@@ -6245,10 +6432,25 @@ function setupToolboardSettings() {
         faviconLink.setAttribute('href', applyToolboardSettings._defaultFavicon);
         updateBoardSelectorLabel();
     });
+    const faviconPick = document.getElementById('toolboardFaviconPick');
+    if (faviconPick) faviconPick.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window._toolLink = {
+            type: 'emoji',
+            label: 'Board Icon',
+            apply: (emoji) => {
+                faviconInput.value = emoji;
+                faviconInput.dispatchEvent(new Event('input'));
+                window._toolLink = null;
+                closeToolPickerPopup();
+            },
+        };
+        openToolPickerPopup(faviconPick, 'emoji');
+    });
 
     // Close when clicking outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.toolboard-settings') && !e.target.closest('#toolboardSettingsBtn')) {
+        if (!e.target.closest('.toolboard-settings') && !e.target.closest('#toolboardSettingsBtn') && !e.target.closest('#toolPickerPopup')) {
             settingsPanel.classList.remove('open');
         }
     });
@@ -9090,6 +9292,17 @@ function getBoardFavicon(boardId) {
     return '';
 }
 
+function getBoardColor(boardId) {
+    try {
+        const stored = localStorage.getItem(`finance_${boardId}_toolboardSettings`);
+        if (stored) {
+            const settings = JSON.parse(stored);
+            return settings.color || '#2c3e50';
+        }
+    } catch (e) {}
+    return '#2c3e50';
+}
+
 function updateBoardSelectorLabel() {
     const trigger = document.getElementById('boardSelectorTrigger');
     if (!trigger) return;
@@ -9108,36 +9321,67 @@ function updateDeleteBoardButton() {
 
 function openBoardManager() {
     const overlay = document.getElementById('boardManagerOverlay');
+    const search = document.getElementById('boardManagerSearch');
+    if (search) search.value = '';
     renderBoardList();
     overlay.classList.add('open');
+    if (search) setTimeout(() => search.focus(), 50);
 }
 
 function closeBoardManager() {
     document.getElementById('boardManagerOverlay').classList.remove('open');
 }
 
-function renderBoardList() {
+function renderBoardList(filter) {
     const list = document.getElementById('boardManagerList');
     list.innerHTML = '';
 
-    boards.forEach(board => {
-        const row = document.createElement('div');
-        row.className = 'board-manager-item' + (board.id === currentBoardId ? ' active' : '');
-        row.dataset.boardId = board.id;
+    const q = (filter || '').toLowerCase().trim();
+    const filtered = q ? boards.filter(b => b.name.toLowerCase().includes(q)) : boards;
+
+    if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'board-manager-empty';
+        empty.textContent = 'No boards match your search.';
+        list.appendChild(empty);
+        return;
+    }
+
+    filtered.forEach(board => {
+        const card = document.createElement('div');
+        card.className = 'board-card' + (board.id === currentBoardId ? ' active' : '');
+        card.dataset.boardId = board.id;
+        card.setAttribute('tabindex', '0');
 
         const favicon = getBoardFavicon(board.id);
+        const color = getBoardColor(board.id);
 
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'board-manager-item-name';
-        nameSpan.textContent = (favicon ? favicon + ' ' : '') + board.name;
+        const colorStrip = document.createElement('div');
+        colorStrip.className = 'board-card-color-strip';
+        colorStrip.style.background = color;
+
+        const emojiEl = document.createElement('div');
+        emojiEl.className = 'board-card-emoji';
+        if (favicon) {
+            emojiEl.textContent = favicon;
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'board-card-emoji-placeholder';
+            emojiEl.appendChild(placeholder);
+        }
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'board-card-name';
+        nameEl.textContent = board.name;
+        nameEl.title = board.name;
 
         const actions = document.createElement('div');
-        actions.className = 'board-manager-actions';
+        actions.className = 'board-card-actions';
 
         const renameBtn = document.createElement('button');
         renameBtn.title = 'Rename';
         renameBtn.textContent = '\u270E';
-        renameBtn.onclick = (e) => { e.stopPropagation(); startInlineRename(row, board); };
+        renameBtn.onclick = (e) => { e.stopPropagation(); startInlineRename(card, board); };
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'board-manager-delete-btn';
@@ -9145,43 +9389,48 @@ function renderBoardList() {
         deleteBtn.textContent = '\u00D7';
         deleteBtn.disabled = boards.length <= 1;
         if (boards.length <= 1) deleteBtn.style.opacity = '0.3';
-        deleteBtn.onclick = (e) => { e.stopPropagation(); showDeleteConfirmation(row, board); };
+        deleteBtn.onclick = (e) => { e.stopPropagation(); showDeleteConfirmation(card, board); };
 
         actions.appendChild(renameBtn);
         actions.appendChild(deleteBtn);
 
-        row.appendChild(nameSpan);
-        row.appendChild(actions);
+        card.appendChild(colorStrip);
+        card.appendChild(emojiEl);
+        card.appendChild(nameEl);
+        card.appendChild(actions);
 
-        // Click row to switch board
-        row.onclick = () => {
-            if (board.id !== currentBoardId) {
-                switchToBoard(board.id);
-            }
+        card.onclick = () => {
+            if (board.id !== currentBoardId) switchToBoard(board.id);
             closeBoardManager();
         };
 
-        // Double-click name to rename
-        nameSpan.ondblclick = (e) => { e.stopPropagation(); startInlineRename(row, board); };
+        card.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+        };
 
-        list.appendChild(row);
+        nameEl.ondblclick = (e) => { e.stopPropagation(); startInlineRename(card, board); };
+
+        list.appendChild(card);
     });
 }
 
-function startInlineRename(row, board) {
-    const nameSpan = row.querySelector('.board-manager-item-name');
-    const actions = row.querySelector('.board-manager-actions');
-    if (!nameSpan) return;
+function startInlineRename(card, board) {
+    const nameEl = card.querySelector('.board-card-name');
+    const emojiEl = card.querySelector('.board-card-emoji');
+    const actionsEl = card.querySelector('.board-card-actions');
+    if (!nameEl) return;
 
-    // Hide name and actions, show input
-    nameSpan.style.display = 'none';
-    if (actions) actions.style.display = 'none';
+    nameEl.style.display = 'none';
+    if (actionsEl) actionsEl.style.display = 'none';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'board-card-rename-wrap';
 
     const input = document.createElement('input');
-    input.className = 'board-manager-rename-input';
     input.type = 'text';
     input.value = board.name;
-    row.insertBefore(input, actions);
+    wrap.appendChild(input);
+    card.appendChild(wrap);
     input.focus();
     input.select();
 
@@ -9190,7 +9439,6 @@ function startInlineRename(row, board) {
         if (newName && newName !== board.name) {
             board.name = newName;
             saveBoards(boards);
-            // If this is the current board, update settings too
             if (board.id === currentBoardId) {
                 toolboardSettings.title = newName;
                 localStorage.setItem(boardKey('toolboardSettings'), JSON.stringify(toolboardSettings));
@@ -9203,18 +9451,17 @@ function startInlineRename(row, board) {
         cleanup();
     };
 
-    const cancel = () => { cleanup(); };
-
     const cleanup = () => {
-        if (input.parentNode) input.remove();
-        nameSpan.style.display = '';
-        nameSpan.textContent = board.name;
-        if (actions) actions.style.display = '';
+        if (wrap.parentNode) wrap.remove();
+        nameEl.style.display = '';
+        nameEl.textContent = board.name;
+        nameEl.title = board.name;
+        if (actionsEl) actionsEl.style.display = '';
     };
 
     input.onkeydown = (e) => {
         if (e.key === 'Enter') { e.preventDefault(); commit(); }
-        if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+        if (e.key === 'Escape') { e.preventDefault(); cleanup(); }
     };
     input.onblur = commit;
 }
@@ -9382,10 +9629,45 @@ function setupBoardManager() {
     const overlay = document.getElementById('boardManagerOverlay');
     const closeBtn = overlay.querySelector('.board-manager-close');
     const newBtn = document.getElementById('boardManagerNewBtn');
+    const searchInput = document.getElementById('boardManagerSearch');
+    const list = document.getElementById('boardManagerList');
 
     trigger.onclick = openBoardManager;
     closeBtn.onclick = closeBoardManager;
     newBtn.onclick = createNewBoardInline;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => renderBoardList(searchInput.value));
+
+        // Arrow down from search focuses first card
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const first = list.querySelector('.board-card');
+                if (first) first.focus();
+            } else if (e.key === 'Escape' && searchInput.value) {
+                e.stopPropagation();
+                searchInput.value = '';
+                renderBoardList('');
+            }
+        });
+    }
+
+    // Arrow key navigation between cards
+    list.addEventListener('keydown', (e) => {
+        if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
+        e.preventDefault();
+        const cards = [...list.querySelectorAll('.board-card')];
+        const idx = cards.indexOf(document.activeElement);
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            const next = cards[idx + 1] || (idx === -1 ? cards[0] : null);
+            if (next) next.focus();
+        } else {
+            const prev = cards[idx - 1];
+            if (prev) prev.focus();
+            else if (searchInput) searchInput.focus();
+        }
+    });
 
     // Close on backdrop click
     overlay.onclick = (e) => {
@@ -9402,6 +9684,98 @@ function setupBoardManager() {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', init);
+
+// =============================================
+// TOOL PICKER POPUP
+// =============================================
+
+const _CPK_POPUP_HTML =
+    '<div class="cpk-canvas-row"><div class="cpk-wheel-wrap"><canvas class="cpk-wheel-canvas" width="180" height="180"></canvas><div class="cpk-wheel-cursor"></div></div><div class="cpk-sv-wrap"><canvas class="cpk-sv-canvas"></canvas><div class="cpk-sv-cursor"></div></div></div>' +
+    '<div class="cpk-alpha-row"><span class="cpk-alpha-label">A</span><div class="cpk-alpha-track"><div class="cpk-alpha-checker"></div><div class="cpk-alpha-gradient"></div><div class="cpk-alpha-thumb"></div></div><input type="text" class="cpk-alpha-input" value="100%" oninput="cpkAlphaTyped(this)"></div>' +
+    '<div class="cpk-preview-row"><div class="cpk-swatch"><div class="cpk-swatch-checker"></div><div class="cpk-swatch-color"></div></div><div class="cpk-values"><div class="cpk-val-row"><span class="cpk-val-label">HEX</span><input class="cpk-val-input cpk-hex-input" spellcheck="false" oninput="cpkHexTyped(this)"><button class="cpk-copy-btn" onclick="cpkCopyVal(this)">Copy</button></div><div class="cpk-val-row"><span class="cpk-val-label">RGBA</span><input class="cpk-val-input cpk-rgba-input" spellcheck="false" oninput="cpkRgbaTyped(this)"><button class="cpk-copy-btn" onclick="cpkCopyVal(this)">Copy</button></div><div class="cpk-val-row"><span class="cpk-val-label">HSLA</span><input class="cpk-val-input cpk-hsla-input" spellcheck="false" oninput="cpkHslaTyped(this)"><button class="cpk-copy-btn" onclick="cpkCopyVal(this)">Copy</button></div></div></div>' +
+    '<div class="cpk-saved-row"><span class="cpk-saved-label">Saved:</span><button class="cpk-save-btn" onclick="cpkSaveColor(this)" title="Save current color">+</button></div>' +
+    '<div class="cpk-link-row"><span class="cpk-link-label"></span><button class="cpk-confirm-btn" onclick="cpkConfirmLink(this)">Confirm</button><button class="cpk-revert-btn" onclick="cpkRevertLink(this)">Revert</button><button class="cpk-link-x" onclick="cpkRevertLink(this)" title="Cancel">✕</button></div>';
+
+const _EMOTE_POPUP_HTML =
+    '<div class="emote-link-banner"><span class="emote-link-text"></span><button class="emote-link-cancel" onclick="emoteUpdateLinkBanner(true); closeToolPickerPopup();" title="Cancel">✕</button></div>' +
+    '<div class="emote-search"><input type="text" placeholder="Search emojis..." oninput="emoteSearch(this)"></div>' +
+    '<div class="emote-tabs-wrap">' +
+        '<button class="emote-tabs-arrow emote-tabs-prev" hidden>‹</button>' +
+        '<div class="emote-tabs"></div>' +
+        '<button class="emote-tabs-arrow emote-tabs-next" hidden>›</button>' +
+    '</div>' +
+    '<div class="emote-grid-wrap" style="flex:1;min-height:0;overflow-y:auto;"><div class="emote-grid"></div></div>' +
+    '<div class="emote-status"></div>';
+
+let _toolPickerOutsideHandler = null;
+
+function openToolPickerPopup(triggerEl, type) {
+    const popup = document.getElementById('toolPickerPopup');
+    const inner = document.getElementById('toolPickerPopupInner');
+
+    if (type === 'emoji') {
+        inner.innerHTML = '<div class="emote-widget" style="display:flex;flex-direction:column;height:520px;padding:8px;gap:6px;box-sizing:border-box;">' + _EMOTE_POPUP_HTML + '</div>';
+        popup.style.width = '480px';
+        if (typeof emoteInit === 'function') emoteInit();
+        if (typeof emoteUpdateLinkBanner === 'function') emoteUpdateLinkBanner();
+    } else if (type === 'color') {
+        inner.innerHTML = '<div class="cpk-widget" style="padding:10px;">' + _CPK_POPUP_HTML + '</div>';
+        popup.style.width = '340px';
+        const widget = inner.querySelector('.cpk-widget');
+        if (typeof cpkInitWidget === 'function') cpkInitWidget(widget);
+        if (typeof cpkUpdateLinkBanner === 'function') cpkUpdateLinkBanner();
+    }
+
+    // Position near trigger
+    const rect = triggerEl.getBoundingClientRect();
+    const popW = parseInt(popup.style.width) || 360;
+    let left = rect.left;
+    let top = rect.bottom + 6;
+    if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+    if (top + 540 > window.innerHeight - 8) top = Math.max(8, rect.top - 540 - 6);
+    popup.style.left = Math.max(8, left) + 'px';
+    popup.style.top = Math.max(8, top) + 'px';
+    popup.style.display = 'block';
+
+    if (type === 'emoji') {
+        setTimeout(() => inner.querySelector('.emote-search input')?.focus(), 50);
+    }
+
+    if (_toolPickerOutsideHandler) document.removeEventListener('click', _toolPickerOutsideHandler);
+    _toolPickerOutsideHandler = (e) => {
+        if (!popup.contains(e.target) && e.target !== triggerEl) {
+            if (window._toolLink?.type === 'color' && window._toolLink.revert) window._toolLink.revert();
+            window._toolLink = null;
+            closeToolPickerPopup();
+        }
+    };
+    setTimeout(() => document.addEventListener('click', _toolPickerOutsideHandler), 0);
+}
+
+function closeToolPickerPopup() {
+    const popup = document.getElementById('toolPickerPopup');
+    if (popup) popup.style.display = 'none';
+    if (_toolPickerOutsideHandler) {
+        document.removeEventListener('click', _toolPickerOutsideHandler);
+        _toolPickerOutsideHandler = null;
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const popup = document.getElementById('toolPickerPopup');
+        if (popup && popup.style.display !== 'none') {
+            if (window._toolLink?.type === 'color' && window._toolLink.revert) window._toolLink.revert();
+            window._toolLink = null;
+            closeToolPickerPopup();
+        }
+    }
+});
     </script>
+
+    <!-- Tool picker popup -->
+    <div id="toolPickerPopup" style="display:none; position:fixed; z-index:25000; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.28); overflow:hidden;">
+        <div id="toolPickerPopupInner"></div>
+    </div>
 </body>
 </html>
