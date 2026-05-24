@@ -7197,9 +7197,13 @@ function autoResizeTool(tool, handleType) {
     // Store current dimensions
     const currentWidth = tool.style.width;
     const currentHeight = tool.style.height;
+    const currentOffsetWidth = tool.offsetWidth;
 
-    // Temporarily remove width constraint to measure natural width
-    if (autoWidth) {
+    const cropRatio = parseFloat(tool.getAttribute('data-crop-aspect-ratio'));
+    const hasCropRatio = cropRatio && !isNaN(cropRatio);
+
+    // Temporarily remove width constraint to measure natural width (skip for crop-ratio tools)
+    if (autoWidth && !hasCropRatio) {
         tool.style.width = 'auto';
         content.style.overflow = 'visible';
     }
@@ -7208,26 +7212,41 @@ function autoResizeTool(tool, handleType) {
     tool.offsetHeight;
 
     // Measure natural dimensions
-    let newWidth = tool.offsetWidth;
+    let newWidth = hasCropRatio ? currentOffsetWidth : tool.offsetWidth;
     let newHeight = tool.offsetHeight;
 
     if (autoWidth) {
-        newWidth = Math.max(150, Math.min(800, content.scrollWidth + 30));
+        if (hasCropRatio) {
+            // For cropped image viewer: keep current width (height will be derived from ratio)
+            newWidth = tool.offsetWidth;
+        } else {
+            newWidth = Math.max(150, Math.min(800, content.scrollWidth + 30));
+        }
     }
     if (autoHeight) {
-        const isFrameless = tool.classList.contains('frameless');
-        // Measure the first child directly — it's a block element whose height is never
-        // distorted by the flex-stretch on tool-content. Fall back to scrollHeight for
-        // frameless / unknown layouts.
-        const innerEl = content.firstElementChild;
-        const naturalH = innerEl
-            ? innerEl.offsetHeight + (isFrameless ? 0 : 30)
-            : content.scrollHeight;
-        newHeight = Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8)));
+        if (hasCropRatio) {
+            // Compute height from crop aspect ratio + any non-display chrome (header, controls)
+            const isFrameless = tool.classList.contains('frameless');
+            const headerH = (!isFrameless && header) ? header.offsetHeight : 0;
+            const controlsEl = content.querySelector('.imgv-controls');
+            const controlsH = controlsEl ? controlsEl.offsetHeight : 0;
+            const targetW = autoWidth ? newWidth : tool.offsetWidth;
+            newHeight = Math.round(Math.max(100, Math.min(1200, targetW / cropRatio + headerH + controlsH)));
+        } else {
+            const isFrameless = tool.classList.contains('frameless');
+            // Measure the first child directly — it's a block element whose height is never
+            // distorted by the flex-stretch on tool-content. Fall back to scrollHeight for
+            // frameless / unknown layouts.
+            const innerEl = content.firstElementChild;
+            const naturalH = innerEl
+                ? innerEl.offsetHeight + (isFrameless ? 0 : 30)
+                : content.scrollHeight;
+            newHeight = Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8)));
+        }
     }
 
-    // Restore overflow
-    content.style.overflow = '';
+    // Restore overflow (only needed if we temporarily set it to visible)
+    if (!hasCropRatio) content.style.overflow = '';
 
     // Apply new dimensions with animation
     tool.style.transition = 'width 0.2s ease, height 0.2s ease';
@@ -8331,6 +8350,8 @@ function openFeatureSelectModal() {
     populateToolboxFilter();
     populateFeatureList();
     modal.classList.add('open');
+    const searchInput = document.getElementById('featureSearchInput');
+    if (searchInput) setTimeout(() => searchInput.focus(), 50);
 }
 
 function createNoteWithTemplate(templateId) {

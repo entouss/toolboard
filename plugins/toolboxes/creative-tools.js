@@ -729,6 +729,25 @@ function emoteInit() {
             tabs.addEventListener('scroll', updateArrows);
             requestAnimationFrame(updateArrows);
         }
+
+        // Two-finger horizontal swipe over the grid switches categories
+        const gridWrap = widget.querySelector('.emote-grid-wrap');
+        let swipeAccum = 0;
+        let swipeTimer = null;
+        gridWrap.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; // vertical dominates — normal scroll
+            e.preventDefault();
+            clearTimeout(swipeTimer);
+            swipeTimer = setTimeout(() => { swipeAccum = 0; }, 200);
+            swipeAccum += e.deltaX;
+            if (Math.abs(swipeAccum) < 60) return;
+            const dir = swipeAccum > 0 ? 1 : -1;
+            swipeAccum = 0;
+            const allTabs = [...widget.querySelectorAll('.emote-tab')];
+            const activeIdx = allTabs.findIndex(t => t.classList.contains('active'));
+            const nextIdx = activeIdx + dir;
+            if (nextIdx >= 0 && nextIdx < allTabs.length) allTabs[nextIdx].click();
+        }, { passive: false });
     });
 }
 
@@ -1219,11 +1238,12 @@ function imgvApplyStyles(widget) {
         img.style.transformOrigin = '';
         img.style.clipPath = '';
         img.style.transform = imgvBuildTransformString(state);
-        // Restore original image aspect ratio
+        // Restore original image aspect ratio and clear crop ratio
         var toolEl = widget.closest('.tool');
         if (toolEl && img.naturalWidth && img.naturalHeight) {
             toolEl.setAttribute('data-aspect-ratio', (img.naturalWidth / img.naturalHeight).toFixed(6));
         }
+        if (toolEl) toolEl.removeAttribute('data-crop-aspect-ratio');
     }
 }
 
@@ -1239,9 +1259,11 @@ function imgvApplyCropLayout(widget, img, crop, state) {
     if (cropNatW <= 0 || cropNatH <= 0) return;
     var isRender = widget.classList.contains('render-mode');
     var toolEl = widget.closest('.tool');
+    var cropRatio = (cropNatW / cropNatH).toFixed(6);
+    if (toolEl) toolEl.setAttribute('data-crop-aspect-ratio', cropRatio);
     if (isRender) {
         // Render mode: tool is frameless, display fills tool — set aspect ratio to crop ratio
-        if (toolEl) toolEl.setAttribute('data-aspect-ratio', (cropNatW / cropNatH).toFixed(6));
+        if (toolEl) toolEl.setAttribute('data-aspect-ratio', cropRatio);
         // Use cover-fit so crop fills display completely (clip-path trims any excess)
         var scale = Math.max(dispW / cropNatW, dispH / cropNatH);
     } else {

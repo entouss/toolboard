@@ -1646,6 +1646,28 @@
 .wc-remove { width: 20px; height: 20px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 14px; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; line-height: 1; }
 .wc-remove:hover { background: var(--bg-tertiary); color: #e74c3c; }
 
+/* Ambient Sound Generator Widget Styles */
+.tool-content:has(.bnoise-widget) { display: flex; flex-direction: column; }
+.bnoise-widget { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; box-sizing: border-box; }
+.bnoise-type-row { display: flex; gap: 5px; }
+.bnoise-type-btn { flex: 1; padding: 5px 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 11px; font-weight: 600; border-radius: 20px; transition: all 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bnoise-type-btn:hover { background: var(--table-hover); color: var(--text-primary); }
+.bnoise-type-btn.active { background: #8e44ad; color: #fff; border-color: #8e44ad; }
+.bnoise-canvas { display: block; width: 100%; height: 76px; border-radius: 6px; background: #0d0517; }
+.bnoise-controls { display: flex; align-items: center; gap: 10px; }
+.bnoise-play-btn { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #8e44ad; background: #8e44ad; color: #fff; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.15s, transform 0.1s; line-height: 1; padding: 0; }
+.bnoise-play-btn:hover { background: #7d3c98; transform: scale(1.05); }
+.bnoise-play-btn.playing { background: #2c3e50; border-color: #2c3e50; }
+.bnoise-play-btn.playing:hover { background: #1a252f; }
+.bnoise-vol-col { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.bnoise-vol-label { font-size: 10px; font-weight: 600; color: var(--text-secondary); display: flex; justify-content: space-between; }
+.bnoise-vol-slider { width: 100%; accent-color: #8e44ad; cursor: pointer; }
+.bnoise-timer-row { display: flex; align-items: center; gap: 8px; }
+.bnoise-timer-label { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
+.bnoise-timer-select { flex: 1; padding: 5px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 11px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
+.bnoise-status { font-size: 11px; color: var(--text-muted); text-align: center; min-height: 16px; }
+.bnoise-status.playing { color: #8e44ad; font-weight: 600; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -4980,6 +5002,488 @@ function wcInit() {
 }
 
 // =============================================
+// BROWN NOISE GENERATOR
+// =============================================
+
+var bnoiseState = {};
+
+var BNOISE_LABELS = {
+    brown: 'Brown noise', pink: 'Pink noise', white: 'White noise',
+    waves: 'Ocean waves', wind: 'Wind', rain: 'Rain', fire: 'Fire crackling'
+};
+
+var BNOISE_COLORS = {
+    brown: { bg1: '#1a0a24', bg2: '#0d0517', wave: '#c39bd3', glow: '#8e44ad' },
+    pink:  { bg1: '#1f0a14', bg2: '#12000a', wave: '#f1948a', glow: '#c0392b' },
+    white: { bg1: '#0d1117', bg2: '#06090d', wave: '#d5d8dc', glow: '#808b96' },
+    waves: { bg1: '#071526', bg2: '#030c17', wave: '#5dade2', glow: '#1a6fa0' },
+    wind:  { bg1: '#071a07', bg2: '#030f03', wave: '#7dcea0', glow: '#1e8449' },
+    rain:  { bg1: '#070f1a', bg2: '#030810', wave: '#85c1e9', glow: '#2980b9' },
+    fire:  { bg1: '#1a0800', bg2: '#0f0400', wave: '#f39c12', glow: '#e74c3c' }
+};
+
+function bnoiseGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function bnoiseGetWidget(el) {
+    return el.closest('.bnoise-widget');
+}
+
+function bnoiseInit() {
+    document.querySelectorAll('.bnoise-widget').forEach(function(widget) {
+        var toolId = bnoiseGetToolId(widget);
+        if (!toolId) return;
+        if (!bnoiseState[toolId]) {
+            bnoiseState[toolId] = {
+                playing: false,
+                type: 'brown',
+                volume: 0.6,
+                timerMinutes: 0,
+                timerHandle: null,
+                audioCtx: null,
+                gainNode: null,
+                analyser: null,
+                source: null,
+                lfoNodes: [],
+                schedulerActive: false,
+                schedulerHandle: null,
+                rafId: null
+            };
+        }
+        var canvas = widget.querySelector('.bnoise-canvas');
+        if (canvas) bnoiseDrawIdle(canvas, 'brown');
+    });
+}
+
+// ---- Buffer helpers ----
+
+function bnoiseBuildBrownBuffer(audioCtx, seconds) {
+    var sampleRate = audioCtx.sampleRate;
+    var bufferSize = Math.floor(sampleRate * seconds);
+    var buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+    var data = buffer.getChannelData(0);
+    var lastOut = 0;
+    for (var i = 0; i < bufferSize; i++) {
+        var w = Math.random() * 2 - 1;
+        data[i] = (lastOut + 0.02 * w) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5;
+    }
+    return buffer;
+}
+
+function bnoiseBuildWhiteBuffer(audioCtx, seconds) {
+    var sampleRate = audioCtx.sampleRate;
+    var bufferSize = Math.floor(sampleRate * seconds);
+    var buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.5;
+    }
+    return buffer;
+}
+
+function bnoiseBuildBuffer(audioCtx, type) {
+    var sampleRate = audioCtx.sampleRate;
+    var i;
+    if (type === 'brown') {
+        return bnoiseBuildBrownBuffer(audioCtx, 10);
+    } else if (type === 'pink') {
+        var bufferSize = sampleRate * 10;
+        var buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        var data = buffer.getChannelData(0);
+        var b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (i = 0; i < bufferSize; i++) {
+            var pw = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + pw * 0.0555179;
+            b1 = 0.99332 * b1 + pw * 0.0750759;
+            b2 = 0.96900 * b2 + pw * 0.1538520;
+            b3 = 0.86650 * b3 + pw * 0.3104856;
+            b4 = 0.55000 * b4 + pw * 0.5329522;
+            b5 = -0.7616 * b5 - pw * 0.0168980;
+            data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + pw * 0.5362) * 0.11;
+            b6 = pw * 0.115926;
+        }
+        return buffer;
+    } else if (type === 'waves') {
+        // 30s brown noise with 3 overlapping sine LFOs baked in — long enough to avoid audible loop
+        var wBufSize = Math.floor(sampleRate * 30);
+        var wBuf = audioCtx.createBuffer(1, wBufSize, sampleRate);
+        var wData = wBuf.getChannelData(0);
+        var wLastOut = 0;
+        for (i = 0; i < wBufSize; i++) {
+            var ww = Math.random() * 2 - 1;
+            wData[i] = (wLastOut + 0.02 * ww) / 1.02;
+            wLastOut = wData[i];
+            wData[i] *= 3.5;
+            var t = i / sampleRate;
+            var lfo = Math.sin(2 * Math.PI * 0.08 * t) +
+                      Math.sin(2 * Math.PI * 0.13 * t + 1.5) * 0.6 +
+                      Math.sin(2 * Math.PI * 0.19 * t + 3.2) * 0.3;
+            wData[i] *= Math.max(0.05, (lfo / 1.9 + 1.0) * 0.5);
+        }
+        return wBuf;
+    } else {
+        return bnoiseBuildWhiteBuffer(audioCtx, 10);
+    }
+}
+
+// ---- Type-specific setup ----
+
+function bnoiseSetupWind(st) {
+    var windBuf = bnoiseBuildWhiteBuffer(st.audioCtx, 10);
+    st.source = st.audioCtx.createBufferSource();
+    st.source.buffer = windBuf;
+    st.source.loop = true;
+
+    var filter = st.audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 0.8;
+
+    // Intermediate gain so LFO doesn't override user's volume control
+    var windGain = st.audioCtx.createGain();
+    windGain.gain.value = 0.7;
+
+    // LFO1: filter frequency sweep (gusts)
+    var lfo1 = st.audioCtx.createOscillator();
+    lfo1.type = 'sine';
+    lfo1.frequency.value = 0.07;
+    var lfo1Gain = st.audioCtx.createGain();
+    lfo1Gain.gain.value = 200; // ±200 Hz sweep
+    lfo1.connect(lfo1Gain);
+    lfo1Gain.connect(filter.frequency);
+
+    // LFO2: amplitude breathing
+    var lfo2 = st.audioCtx.createOscillator();
+    lfo2.type = 'sine';
+    lfo2.frequency.value = 0.13;
+    var lfo2Gain = st.audioCtx.createGain();
+    lfo2Gain.gain.value = 0.3;
+    lfo2.connect(lfo2Gain);
+    lfo2Gain.connect(windGain.gain);
+
+    lfo1.start();
+    lfo2.start();
+    st.lfoNodes = [lfo1, lfo2];
+
+    st.source.connect(filter);
+    filter.connect(windGain);
+    windGain.connect(st.gainNode);
+    st.source.start();
+}
+
+function bnoiseSetupRain(st) {
+    // Base: high-pass white noise (rain hiss)
+    var hissBuf = bnoiseBuildWhiteBuffer(st.audioCtx, 10);
+    st.source = st.audioCtx.createBufferSource();
+    st.source.buffer = hissBuf;
+    st.source.loop = true;
+    var hpFilter = st.audioCtx.createBiquadFilter();
+    hpFilter.type = 'highpass';
+    hpFilter.frequency.value = 1200;
+    hpFilter.Q.value = 0.5;
+    var hissGain = st.audioCtx.createGain();
+    hissGain.gain.value = 0.15;
+    st.source.connect(hpFilter);
+    hpFilter.connect(hissGain);
+    hissGain.connect(st.gainNode);
+    st.source.start();
+
+    // Individual raindrop bursts via chained setTimeout
+    st.schedulerActive = true;
+    bnoiseScheduleRainDrop(st);
+}
+
+function bnoiseScheduleRainDrop(st) {
+    if (!st.schedulerActive || !st.audioCtx) return;
+    var sampleRate = st.audioCtx.sampleRate;
+    var dropLen = Math.floor(sampleRate * (0.008 + Math.random() * 0.035));
+    var dropBuf = st.audioCtx.createBuffer(1, dropLen, sampleRate);
+    var dropData = dropBuf.getChannelData(0);
+    var decay = 25 + Math.random() * 80;
+    for (var i = 0; i < dropLen; i++) {
+        dropData[i] = (Math.random() * 2 - 1) * Math.exp(-i / decay);
+    }
+    var dropGain = st.audioCtx.createGain();
+    dropGain.gain.value = 0.3 + Math.random() * 0.7;
+    var dropSrc = st.audioCtx.createBufferSource();
+    dropSrc.buffer = dropBuf;
+    dropSrc.connect(dropGain);
+    dropGain.connect(st.gainNode);
+    dropSrc.start(st.audioCtx.currentTime);
+    st.schedulerHandle = setTimeout(function() { bnoiseScheduleRainDrop(st); }, 12 + Math.random() * 55);
+}
+
+function bnoiseSetupFire(st) {
+    // Base: low-pass brown noise (fire roar)
+    var fireBuf = bnoiseBuildBrownBuffer(st.audioCtx, 10);
+    st.source = st.audioCtx.createBufferSource();
+    st.source.buffer = fireBuf;
+    st.source.loop = true;
+    var lpFilter = st.audioCtx.createBiquadFilter();
+    lpFilter.type = 'lowpass';
+    lpFilter.frequency.value = 800;
+    lpFilter.Q.value = 0.5;
+    var baseGain = st.audioCtx.createGain();
+    baseGain.gain.value = 0.5;
+    st.source.connect(lpFilter);
+    lpFilter.connect(baseGain);
+    baseGain.connect(st.gainNode);
+    st.source.start();
+
+    // Random crackles via chained setTimeout
+    st.schedulerActive = true;
+    bnoiseScheduleFireCrackle(st);
+}
+
+function bnoiseScheduleFireCrackle(st) {
+    if (!st.schedulerActive || !st.audioCtx) return;
+    var sampleRate = st.audioCtx.sampleRate;
+    var crackleLen = Math.floor(sampleRate * (0.004 + Math.random() * 0.022));
+    var crackleBuf = st.audioCtx.createBuffer(1, crackleLen, sampleRate);
+    var crackleData = crackleBuf.getChannelData(0);
+    var decay = 40 + Math.random() * 180;
+    for (var i = 0; i < crackleLen; i++) {
+        crackleData[i] = (Math.random() * 2 - 1) * Math.exp(-i / decay);
+    }
+    var crackleGain = st.audioCtx.createGain();
+    crackleGain.gain.value = 0.25 + Math.random() * 0.75;
+    var crackleSrc = st.audioCtx.createBufferSource();
+    crackleSrc.buffer = crackleBuf;
+    crackleSrc.connect(crackleGain);
+    crackleGain.connect(st.gainNode);
+    crackleSrc.start(st.audioCtx.currentTime);
+    st.schedulerHandle = setTimeout(function() { bnoiseScheduleFireCrackle(st); }, 55 + Math.random() * 340);
+}
+
+// ---- Core start / stop ----
+
+function bnoiseStart(toolId) {
+    var st = bnoiseState[toolId];
+    if (!st) return;
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    st.audioCtx = new AudioCtx();
+    st.gainNode = st.audioCtx.createGain();
+    st.gainNode.gain.value = st.volume;
+    st.analyser = st.audioCtx.createAnalyser();
+    st.analyser.fftSize = 256;
+    st.analyser.smoothingTimeConstant = 0.85;
+    st.lfoNodes = [];
+    st.schedulerActive = false;
+
+    if (st.type === 'wind') {
+        bnoiseSetupWind(st);
+    } else if (st.type === 'rain') {
+        bnoiseSetupRain(st);
+    } else if (st.type === 'fire') {
+        bnoiseSetupFire(st);
+    } else {
+        // brown, pink, white, waves — pre-filled looping buffer
+        var buffer = bnoiseBuildBuffer(st.audioCtx, st.type);
+        st.source = st.audioCtx.createBufferSource();
+        st.source.buffer = buffer;
+        st.source.loop = true;
+        st.source.connect(st.gainNode);
+        st.source.start();
+    }
+
+    st.gainNode.connect(st.analyser);
+    st.analyser.connect(st.audioCtx.destination);
+    st.playing = true;
+
+    var widget = document.querySelector('.tool[data-tool="' + toolId + '"] .bnoise-widget');
+    if (widget) {
+        var canvas = widget.querySelector('.bnoise-canvas');
+        if (canvas) bnoiseDrawFrame(toolId, canvas);
+    }
+}
+
+function bnoiseStop(toolId) {
+    var st = bnoiseState[toolId];
+    if (!st) return;
+
+    // Kill scheduler chain first — flag checked by any pending callback
+    st.schedulerActive = false;
+    if (st.schedulerHandle) { clearTimeout(st.schedulerHandle); st.schedulerHandle = null; }
+
+    if (st.rafId) { cancelAnimationFrame(st.rafId); st.rafId = null; }
+    if (st.lfoNodes) {
+        st.lfoNodes.forEach(function(n) { try { n.stop(); } catch(e) {} });
+        st.lfoNodes = [];
+    }
+    if (st.source) { try { st.source.stop(); } catch(e) {} st.source = null; }
+    if (st.timerHandle) { clearTimeout(st.timerHandle); st.timerHandle = null; }
+    if (st.audioCtx) { try { st.audioCtx.close(); } catch(e) {} st.audioCtx = null; }
+    st.playing = false;
+
+    var widget = document.querySelector('.tool[data-tool="' + toolId + '"] .bnoise-widget');
+    if (widget) {
+        var canvas = widget.querySelector('.bnoise-canvas');
+        if (canvas) bnoiseDrawIdle(canvas, st.type);
+        var playBtn = widget.querySelector('.bnoise-play-btn');
+        if (playBtn) { playBtn.textContent = '▶'; playBtn.classList.remove('playing'); }
+        var status = widget.querySelector('.bnoise-status');
+        if (status) { status.textContent = 'Stopped'; status.classList.remove('playing'); }
+        var timerSel = widget.querySelector('.bnoise-timer-select');
+        if (timerSel) timerSel.value = '0';
+    }
+}
+
+// ---- Canvas drawing ----
+
+function bnoiseDrawIdle(canvas, type) {
+    var colors = BNOISE_COLORS[type] || BNOISE_COLORS.brown;
+    var ctx = canvas.getContext('2d');
+    var w = canvas.offsetWidth || canvas.clientWidth || 280;
+    var h = canvas.offsetHeight || canvas.clientHeight || 76;
+    canvas.width = w;
+    canvas.height = h;
+    var grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, colors.bg1);
+    grad.addColorStop(1, colors.bg2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = colors.wave;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+}
+
+function bnoiseDrawFrame(toolId, canvas) {
+    var st = bnoiseState[toolId];
+    if (!st || !st.playing || !st.analyser) return;
+
+    var colors = BNOISE_COLORS[st.type] || BNOISE_COLORS.brown;
+    var bufferLen = st.analyser.frequencyBinCount;
+    var timeData = new Uint8Array(bufferLen);
+    st.analyser.getByteTimeDomainData(timeData);
+
+    var ctx = canvas.getContext('2d');
+    var w = canvas.offsetWidth || canvas.clientWidth || 280;
+    var h = canvas.offsetHeight || canvas.clientHeight || 76;
+    if (canvas.width !== w) canvas.width = w;
+    if (canvas.height !== h) canvas.height = h;
+
+    var grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, colors.bg1);
+    grad.addColorStop(1, colors.bg2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = colors.wave;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = colors.glow;
+    ctx.beginPath();
+    var sliceWidth = w / bufferLen;
+    var x = 0;
+    for (var i = 0; i < bufferLen; i++) {
+        var v = timeData[i] / 128.0;
+        var y = (v * h) / 2;
+        if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
+        x += sliceWidth;
+    }
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    st.rafId = requestAnimationFrame(function() { bnoiseDrawFrame(toolId, canvas); });
+}
+
+// ---- UI handlers ----
+
+function bnoiseToggle(btn) {
+    var widget = bnoiseGetWidget(btn);
+    var toolId = bnoiseGetToolId(widget);
+    if (!toolId) return;
+    var st = bnoiseState[toolId];
+    if (!st) return;
+
+    if (st.playing) {
+        bnoiseStop(toolId);
+    } else {
+        bnoiseStart(toolId);
+        btn.textContent = '⏹';
+        btn.classList.add('playing');
+        var status = widget.querySelector('.bnoise-status');
+        if (status) {
+            status.textContent = (BNOISE_LABELS[st.type] || st.type) + ' playing…';
+            status.classList.add('playing');
+        }
+        var timerSel = widget.querySelector('.bnoise-timer-select');
+        if (timerSel && parseInt(timerSel.value, 10) > 0) {
+            bnoiseSetTimer(timerSel);
+        }
+    }
+}
+
+function bnoiseSetVolume(slider) {
+    var widget = bnoiseGetWidget(slider);
+    var toolId = bnoiseGetToolId(widget);
+    if (!toolId) return;
+    var st = bnoiseState[toolId];
+    if (!st) return;
+    var vol = parseFloat(slider.value);
+    st.volume = vol;
+    if (st.gainNode) st.gainNode.gain.value = vol;
+    var label = widget.querySelector('.bnoise-vol-pct');
+    if (label) label.textContent = Math.round(vol * 100) + '%';
+}
+
+function bnoiseSetType(btn, type) {
+    var widget = bnoiseGetWidget(btn);
+    var toolId = bnoiseGetToolId(widget);
+    if (!toolId) return;
+    var st = bnoiseState[toolId];
+    if (!st) return;
+
+    widget.querySelectorAll('.bnoise-type-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var wasPlaying = st.playing;
+    if (wasPlaying) bnoiseStop(toolId);
+    st.type = type;
+
+    // Update idle canvas to new type's colors even while stopped
+    var canvas = widget.querySelector('.bnoise-canvas');
+    if (canvas && !wasPlaying) bnoiseDrawIdle(canvas, type);
+
+    if (wasPlaying) {
+        bnoiseStart(toolId);
+        var playBtn = widget.querySelector('.bnoise-play-btn');
+        if (playBtn) { playBtn.textContent = '⏹'; playBtn.classList.add('playing'); }
+        var status = widget.querySelector('.bnoise-status');
+        if (status) {
+            status.textContent = (BNOISE_LABELS[type] || type) + ' playing…';
+            status.classList.add('playing');
+        }
+    }
+}
+
+function bnoiseSetTimer(select) {
+    var widget = bnoiseGetWidget(select);
+    var toolId = bnoiseGetToolId(widget);
+    if (!toolId) return;
+    var st = bnoiseState[toolId];
+    if (!st) return;
+    if (st.timerHandle) { clearTimeout(st.timerHandle); st.timerHandle = null; }
+    var minutes = parseInt(select.value, 10);
+    st.timerMinutes = minutes;
+    if (minutes > 0 && st.playing) {
+        st.timerHandle = setTimeout(function() { bnoiseStop(toolId); }, minutes * 60 * 1000);
+    }
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -4997,7 +5501,8 @@ function wcInit() {
     var kbFunctions = [kbGetToolId, kbGetData, kbSaveData, kbRender, kbEsc, kbTagColor, kbAddColumn, kbShowAddForm, kbAddFormKey, kbAddCard, kbCancelAdd, kbEditColTitle, kbColMenu, kbEditCard, kbSaveCard, kbDeleteCard, kbCardDragStart, kbCardDragOver, kbCardDragLeave, kbCardDrop, kbColDragStart, kbColDragOver, kbColDragLeave, kbColDrop, kbInit];
     var breathingFunctions = [breathingGetWidget, breathingGetToolId, breathingGetState, breathingInit, breathingToggle, breathingReset, breathingTick, breathingAdvancePhase, breathingUpdateDisplay, breathingSetPreset, breathingApplySettings, breathingToggleSettings];
     var wcFunctions = [wcBuildSearchIndex, wcGetWidget, wcGetToolId, wcGetState, wcFormatTime, wcRender, wcTick, wcAddZone, wcRemoveZone, wcSaveState, wcInit];
-    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions);
+    var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
+    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initPomodoro !== "undefined") return;\n' +
@@ -5021,6 +5526,9 @@ function wcInit() {
         'window.wcInstances = new Map();\n' +
         'window.wcSearchIndex = null;\n' +
         'window.WC_DEFAULT_ZONES = ' + JSON.stringify(WC_DEFAULT_ZONES) + ';\n' +
+        'window.bnoiseState = {};\n' +
+        'window.BNOISE_LABELS = ' + JSON.stringify(BNOISE_LABELS) + ';\n' +
+        'window.BNOISE_COLORS = ' + JSON.stringify(BNOISE_COLORS) + ';\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -5043,7 +5551,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['breathing-exercise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
+    tools: ['breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
     source: 'external'
 });
 
@@ -5428,4 +5936,52 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Productivity Tools plugin loaded (11 tools)');
+// Brown Noise Generator
+PluginRegistry.registerTool({
+    id: 'brown-noise',
+    name: 'Brown Noise',
+    description: 'Ambient noise generator for focus and relaxation — brown, pink, and white noise with visualizer and auto-stop timer',
+    icon: '🎵',
+    version: '1.0.0',
+    toolbox: 'productivity',
+    tags: ['noise', 'brown', 'pink', 'white', 'focus', 'relax', 'sleep', 'ambient', 'audio', 'sound'],
+    title: 'Brown Noise',
+    content: '<div class="bnoise-widget">' +
+        '<div class="bnoise-type-row">' +
+            '<button class="bnoise-type-btn active" onclick="bnoiseSetType(this,\'brown\')">🟤 Brown</button>' +
+            '<button class="bnoise-type-btn" onclick="bnoiseSetType(this,\'pink\')">🌸 Pink</button>' +
+            '<button class="bnoise-type-btn" onclick="bnoiseSetType(this,\'white\')">⬜ White</button>' +
+        '</div>' +
+        '<div class="bnoise-type-row">' +
+            '<button class="bnoise-type-btn" onclick="bnoiseSetType(this,\'waves\')">🌊 Waves</button>' +
+            '<button class="bnoise-type-btn" onclick="bnoiseSetType(this,\'wind\')">💨 Wind</button>' +
+            '<button class="bnoise-type-btn" onclick="bnoiseSetType(this,\'rain\')">🌧 Rain</button>' +
+            '<button class="bnoise-type-btn" onclick="bnoiseSetType(this,\'fire\')">🔥 Fire</button>' +
+        '</div>' +
+        '<canvas class="bnoise-canvas"></canvas>' +
+        '<div class="bnoise-controls">' +
+            '<button class="bnoise-play-btn" onclick="bnoiseToggle(this)" title="Play / Stop">▶</button>' +
+            '<div class="bnoise-vol-col">' +
+                '<div class="bnoise-vol-label"><span>Volume</span><span class="bnoise-vol-pct">60%</span></div>' +
+                '<input type="range" class="bnoise-vol-slider" min="0" max="1" step="0.01" value="0.6" oninput="bnoiseSetVolume(this)">' +
+            '</div>' +
+        '</div>' +
+        '<div class="bnoise-timer-row">' +
+            '<span class="bnoise-timer-label">Auto-stop:</span>' +
+            '<select class="bnoise-timer-select" onchange="bnoiseSetTimer(this)">' +
+                '<option value="0">Off</option>' +
+                '<option value="5">5 minutes</option>' +
+                '<option value="15">15 minutes</option>' +
+                '<option value="30">30 minutes</option>' +
+                '<option value="60">60 minutes</option>' +
+            '</select>' +
+        '</div>' +
+        '<div class="bnoise-status">Ready</div>' +
+    '</div>',
+    onInit: 'bnoiseInit',
+    defaultWidth: 320,
+    defaultHeight: 330,
+    source: 'external'
+});
+
+console.log('Productivity Tools plugin loaded (12 tools)');

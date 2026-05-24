@@ -99,13 +99,13 @@
 .sdt-widget { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .sdt-formula { text-align: center; font-size: 12px; color: var(--text-muted); background: var(--bg-tertiary); padding: 8px; border-radius: 6px; font-family: monospace; line-height: 1.6; }
 .sdt-formula strong { color: var(--text-primary); }
-.sdt-fields { display: flex; flex-direction: column; gap: 8px; }
-.sdt-field { display: flex; align-items: center; gap: 8px; }
-.sdt-field-label { width: 70px; font-size: 13px; font-weight: 600; color: var(--text-primary); flex-shrink: 0; }
-.sdt-field-input { flex: 1; padding: 7px 10px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 15px; font-family: monospace; background: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.sdt-fields { display: grid; grid-template-columns: 70px 1fr 90px; gap: 8px 8px; align-items: center; }
+.sdt-field { display: contents; }
+.sdt-field-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.sdt-field-input { padding: 7px 10px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 15px; font-family: monospace; background: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; width: 100%; box-sizing: border-box; }
 .sdt-field-input:focus { border-color: #3498db; }
 .sdt-field-input.sdt-result { border-color: #27ae60; background: rgba(39,174,96,0.08); font-weight: 700; }
-.sdt-field-unit { padding: 5px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
+.sdt-field-unit { padding: 5px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; width: 100%; box-sizing: border-box; }
 .sdt-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 .sdt-solve-btn { flex: 1; }
 .sdt-solve-btn.active { background: #3498db; color: white; border-color: #3498db; }
@@ -1548,8 +1548,8 @@ PluginRegistry.registerTool({
         '</div>' +
     '</div>',
     onInit: 'sdtInit',
-    defaultWidth: 380,
-    defaultHeight: 420,
+    defaultWidth: 660,
+    defaultHeight: 460,
     source: 'external'
 });
 
