@@ -127,6 +127,49 @@
 .ptable-cat-actinide { background: #e599f7; }
 .ptable-cat-unknown { background: #adb5bd; }
 
+/* Multiplication Table Widget Styles */
+.tool-content:has(.mult-widget) { display: flex; flex-direction: column; overflow: hidden; }
+.mult-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; font-family: system-ui, -apple-system, sans-serif; }
+.mult-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+.mult-tab { padding: 7px 14px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+.mult-tab:hover { color: var(--text-primary); }
+.mult-tab.active { color: #e67e22; border-bottom-color: #e67e22; }
+.mult-grid-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.mult-toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; flex-shrink: 0; flex-wrap: wrap; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); }
+.mult-toolbar label { font-size: 11px; color: var(--text-muted); }
+.mult-size-select { padding: 3px 6px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
+.mult-half-btn { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.mult-half-btn.active { background: #3498db; color: white; border-color: #3498db; }
+.mult-hard-btn { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.mult-hard-btn.active { background: #e67e22; color: white; border-color: #e67e22; }
+.mult-table-wrap { flex: 1; overflow: auto; min-height: 0; padding: 4px; }
+.mult-table { border-collapse: collapse; table-layout: fixed; }
+.mult-table td, .mult-table th { width: 36px; height: 36px; min-width: 28px; text-align: center; vertical-align: middle; font-size: 12px; border: 1px solid var(--border-light); box-sizing: border-box; }
+.mult-table th { position: sticky; background: var(--bg-tertiary); font-weight: 700; color: var(--text-secondary); z-index: 1; }
+.mult-table th.mult-row-header { left: 0; z-index: 2; }
+.mult-table thead th { top: 0; }
+.mult-table thead th:first-child { left: 0; z-index: 3; }
+.mult-cell { cursor: default; }
+.mult-cell.mult-hard { background: rgba(255, 140, 0, 0.22); border-color: rgba(255, 140, 0, 0.45) !important; font-weight: 600; }
+.mult-cell.mult-diagonal { background: rgba(52, 152, 219, 0.12); font-weight: 700; }
+.mult-cell.mult-hard.mult-diagonal { background: rgba(255, 140, 0, 0.30); }
+.mult-cell.mult-hidden { visibility: hidden; }
+.mult-challenge-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow-y: auto; }
+.mult-challenge-panel.active { display: flex; }
+.mult-digit-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+.mult-digit-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.mult-digit-btn { width: 30px; height: 30px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.1s; }
+.mult-digit-btn.active { background: #27ae60; color: white; border-color: #27ae60; }
+.mult-quiz-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.mult-question { font-size: 48px; font-weight: 700; font-family: monospace; color: var(--text-primary); text-align: center; line-height: 1.1; min-height: 60px; }
+.mult-answer-row { display: flex; gap: 8px; align-items: center; }
+.mult-answer-input { padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 24px; font-family: monospace; width: 100px; text-align: center; background: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.mult-answer-input:focus { border-color: #3498db; }
+.mult-feedback { font-size: 16px; font-weight: 700; min-height: 24px; text-align: center; }
+.mult-feedback.correct { color: #27ae60; }
+.mult-feedback.wrong { color: #e74c3c; }
+.mult-score { font-size: 12px; color: var(--text-muted); text-align: center; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -1294,6 +1337,265 @@ function sdtKeydown(e) {
 }
 
 // =============================================
+// MULTIPLICATION TABLE
+// =============================================
+
+var MULT_HARD = new Set([
+    '6,7','7,6','6,8','8,6','7,8','8,7',
+    '6,9','9,6','7,9','9,7','8,9','9,8',
+    '6,6','7,7','8,8','9,9',
+    '11,7','7,11','11,8','8,11','11,9','9,11',
+    '12,7','7,12','12,8','8,12','12,9','9,12',
+    '11,11','11,12','12,11','12,12'
+]);
+
+var multState = {};
+
+function multGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function multGetWidget(el) {
+    return el.closest('.mult-widget');
+}
+
+function multInit() {
+    document.querySelectorAll('.mult-widget').forEach(function(widget) {
+        var toolId = multGetToolId(widget);
+        if (!toolId) return;
+        multState[toolId] = {
+            maxNum: 12,
+            halfMode: 'full',
+            showHard: true,
+            activeTab: 'grid',
+            challengeDigits: new Set([1,2,3,4,5,6,7,8,9,10,11,12]),
+            challengeCurrent: null,
+            score: { correct: 0, total: 0 }
+        };
+        multRenderGrid(widget);
+    });
+}
+
+function multSetTab(btn, tab) {
+    var widget = multGetWidget(btn);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    multState[toolId].activeTab = tab;
+
+    widget.querySelectorAll('.mult-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var gridPanel = widget.querySelector('.mult-grid-panel');
+    var challengePanel = widget.querySelector('.mult-challenge-panel');
+    if (tab === 'grid') {
+        if (gridPanel) gridPanel.style.display = '';
+        if (challengePanel) challengePanel.classList.remove('active');
+    } else {
+        if (gridPanel) gridPanel.style.display = 'none';
+        if (challengePanel) {
+            challengePanel.classList.add('active');
+            multRenderChallenge(widget);
+        }
+    }
+}
+
+function multRenderGrid(widget) {
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var st = multState[toolId];
+    var n = st.maxNum;
+    var half = st.halfMode;
+    var showHard = st.showHard;
+
+    var cellSize = n <= 10 ? 38 : (n <= 12 ? 34 : (n <= 15 ? 28 : 24));
+    var fontSize = n <= 12 ? 12 : (n <= 15 ? 10 : 9);
+
+    var html = '<table class="mult-table" style="font-size:' + fontSize + 'px;">';
+    html += '<thead><tr>';
+    html += '<th class="mult-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">×</th>';
+    for (var c = 1; c <= n; c++) {
+        html += '<th style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + c + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+
+    for (var r = 1; r <= n; r++) {
+        html += '<tr>';
+        html += '<th class="mult-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + r + '</th>';
+        for (var ci = 1; ci <= n; ci++) {
+            var hidden = (half === 'upper' && r > ci) || (half === 'lower' && r < ci);
+            var isDiag = (r === ci);
+            var isHard = showHard && MULT_HARD.has(r + ',' + ci);
+
+            var cls = 'mult-cell';
+            if (hidden) cls += ' mult-hidden';
+            if (!hidden && isDiag) cls += ' mult-diagonal';
+            if (!hidden && isHard) cls += ' mult-hard';
+
+            html += '<td class="' + cls + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">';
+            if (!hidden) html += (r * ci);
+            html += '</td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    var wrap = widget.querySelector('.mult-table-wrap');
+    if (wrap) wrap.innerHTML = html;
+}
+
+function multSetMax(select) {
+    var widget = multGetWidget(select);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    multState[toolId].maxNum = parseInt(select.value, 10);
+    multRenderGrid(widget);
+}
+
+function multSetHalf(btn, mode) {
+    var widget = multGetWidget(btn);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    multState[toolId].halfMode = mode;
+    widget.querySelectorAll('.mult-half-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    multRenderGrid(widget);
+}
+
+function multToggleHard(btn) {
+    var widget = multGetWidget(btn);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    multState[toolId].showHard = !multState[toolId].showHard;
+    btn.classList.toggle('active', multState[toolId].showHard);
+    multRenderGrid(widget);
+}
+
+function multRenderChallenge(widget) {
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var st = multState[toolId];
+
+    var digitRow = widget.querySelector('.mult-digit-row');
+    if (digitRow) {
+        var html = '';
+        for (var d = 1; d <= 12; d++) {
+            var isActive = st.challengeDigits.has(d);
+            html += '<button class="mult-digit-btn' + (isActive ? ' active' : '') + '" onclick="multToggleDigit(this,' + d + ')">' + d + '</button>';
+        }
+        digitRow.innerHTML = html;
+    }
+
+    if (!st.challengeCurrent) {
+        multNextQuestion(widget);
+    }
+    multUpdateScore(widget);
+}
+
+function multToggleDigit(btn, digit) {
+    var widget = multGetWidget(btn);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var digits = multState[toolId].challengeDigits;
+    if (digits.has(digit)) {
+        if (digits.size > 1) {
+            digits.delete(digit);
+            btn.classList.remove('active');
+        }
+    } else {
+        digits.add(digit);
+        btn.classList.add('active');
+    }
+}
+
+function multNextQuestion(widget) {
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var st = multState[toolId];
+    var digits = Array.from(st.challengeDigits);
+
+    var feedbackEl = widget.querySelector('.mult-feedback');
+    if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = 'mult-feedback'; }
+
+    var input = widget.querySelector('.mult-answer-input');
+    if (input) { input.value = ''; input.focus(); }
+
+    if (digits.length === 0) {
+        var qEl = widget.querySelector('.mult-question');
+        if (qEl) qEl.textContent = '';
+        st.challengeCurrent = null;
+        return;
+    }
+
+    var a = digits[Math.floor(Math.random() * digits.length)];
+    var b = digits[Math.floor(Math.random() * digits.length)];
+    st.challengeCurrent = { a: a, b: b, answer: a * b };
+
+    var qEl = widget.querySelector('.mult-question');
+    if (qEl) qEl.textContent = a + ' × ' + b + ' = ?';
+
+    multUpdateScore(widget);
+}
+
+function multCheckAnswer(input) {
+    var widget = multGetWidget(input);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var st = multState[toolId];
+    if (!st.challengeCurrent) return;
+
+    var val = parseInt(input.value.trim(), 10);
+    if (isNaN(val)) return;
+
+    var correct = (val === st.challengeCurrent.answer);
+    st.score.total++;
+    if (correct) st.score.correct++;
+
+    var feedbackEl = widget.querySelector('.mult-feedback');
+    if (feedbackEl) {
+        if (correct) {
+            feedbackEl.textContent = '✓ Correct!';
+            feedbackEl.className = 'mult-feedback correct';
+        } else {
+            feedbackEl.textContent = '✗ Wrong — the answer is ' + st.challengeCurrent.answer;
+            feedbackEl.className = 'mult-feedback wrong';
+        }
+    }
+
+    multUpdateScore(widget);
+
+    setTimeout(function() {
+        multNextQuestion(widget);
+    }, 1200);
+}
+
+function multSubmitChallenge(btn) {
+    var widget = multGetWidget(btn);
+    var input = widget.querySelector('.mult-answer-input');
+    if (input) multCheckAnswer(input);
+}
+
+function multUpdateScore(widget) {
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var st = multState[toolId];
+    var scoreEl = widget.querySelector('.mult-score');
+    if (scoreEl) {
+        scoreEl.textContent = 'Score: ' + st.score.correct + ' / ' + st.score.total;
+    }
+}
+
+function multNewChallenge(btn) {
+    var widget = multGetWidget(btn);
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    multState[toolId].score = { correct: 0, total: 0 };
+    multState[toolId].challengeCurrent = null;
+    multUpdateScore(widget);
+    multNextQuestion(widget);
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -1304,7 +1606,8 @@ function sdtKeydown(e) {
     var moneyFunctions = [moneyInit, moneyGetWidget, moneyRender, moneyAdd, moneyRemove, moneyClear, moneyTotal, moneyFormat, moneySetMode, moneyNewRound, moneyNewChallenge, moneyCheckAnswer, moneyNewChange, moneyNewNameit, moneyCheckNameit, moneyComputeOptimal, moneyNewLeast, moneyCheckLeast, moneyDragStart, moneyDragOver, moneyDragLeave, moneyDrop];
     var ptableFunctions = [ptableGetToolId, ptableGetWidget, ptableBuildGrid, ptableRender, ptableSelect, ptableSearch, ptableFilter, ptableInit];
     var sdtFunctions = [sdtGetToolId, sdtGetWidget, sdtInit, sdtSolveFor, sdtCalculate, sdtFormatNum, sdtClear, sdtKeydown];
-    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions);
+    var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid, multSetMax, multSetHalf, multToggleHard, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
+    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initClock !== "undefined") return;\n' +
@@ -1316,6 +1619,8 @@ function sdtKeydown(e) {
         'window.PTABLE_CATEGORIES = ' + JSON.stringify(PTABLE_CATEGORIES) + ';\n' +
         'window.ptableState = {};\n' +
         'window.sdtState = {};\n' +
+        'window.MULT_HARD = new Set(' + JSON.stringify(Array.from(MULT_HARD)) + ');\n' +
+        'window.multState = {};\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
     var encoded = btoa(unescape(encodeURIComponent(code)));
@@ -1337,7 +1642,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDF93',
     color: '#2ecc71',
     version: '1.0.0',
-    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time'],
+    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table'],
     source: 'external'
 });
 
@@ -1553,4 +1858,58 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Educational Tools plugin loaded (4 tools)');
+// Multiplication Table
+PluginRegistry.registerTool({
+    id: 'multiplication-table',
+    name: 'Multiplication Table',
+    description: 'Interactive multiplication grid with half-table toggle, hard-fact highlights, and quiz challenge mode',
+    icon: '✖️',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['multiplication', 'math', 'table', 'times', 'quiz', 'challenge', 'education'],
+    title: 'Multiplication Table',
+    content: '<div class="mult-widget">' +
+        '<div class="mult-tabs">' +
+            '<button class="mult-tab active" onclick="multSetTab(this,\'grid\')">📊 Grid</button>' +
+            '<button class="mult-tab" onclick="multSetTab(this,\'challenge\')">🎯 Challenge</button>' +
+        '</div>' +
+        '<div class="mult-grid-panel">' +
+            '<div class="mult-toolbar">' +
+                '<label>Size:</label>' +
+                '<select class="mult-size-select" onchange="multSetMax(this)">' +
+                    '<option value="10">10 × 10</option>' +
+                    '<option value="12" selected>12 × 12</option>' +
+                    '<option value="15">15 × 15</option>' +
+                    '<option value="20">20 × 20</option>' +
+                '</select>' +
+                '<button class="mult-half-btn active" onclick="multSetHalf(this,\'full\')">Full</button>' +
+                '<button class="mult-half-btn" onclick="multSetHalf(this,\'upper\')">▲ Upper</button>' +
+                '<button class="mult-half-btn" onclick="multSetHalf(this,\'lower\')">▼ Lower</button>' +
+                '<button class="mult-hard-btn active" onclick="multToggleHard(this)">🔥 Hard</button>' +
+            '</div>' +
+            '<div class="mult-table-wrap"></div>' +
+        '</div>' +
+        '<div class="mult-challenge-panel">' +
+            '<div>' +
+                '<div class="mult-digit-label">PRACTICE NUMBERS</div>' +
+                '<div class="mult-digit-row"></div>' +
+            '</div>' +
+            '<div class="mult-quiz-area">' +
+                '<div class="mult-question"></div>' +
+                '<div class="mult-answer-row">' +
+                    '<input type="number" class="mult-answer-input" placeholder="?" onkeydown="if(event.key===\'Enter\')multCheckAnswer(this)">' +
+                    '<button class="pomo-btn primary paused" onclick="multSubmitChallenge(this)">Check</button>' +
+                '</div>' +
+                '<div class="mult-feedback"></div>' +
+                '<div class="mult-score">Score: 0 / 0</div>' +
+                '<button class="pomo-btn" onclick="multNewChallenge(this)">Reset Score</button>' +
+            '</div>' +
+        '</div>' +
+    '</div>',
+    onInit: 'multInit',
+    defaultWidth: 560,
+    defaultHeight: 580,
+    source: 'external'
+});
+
+console.log('Educational Tools plugin loaded (5 tools)');
