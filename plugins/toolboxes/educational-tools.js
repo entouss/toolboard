@@ -247,7 +247,8 @@
 
 /* History Timeline Widget Styles */
 .tl-widget { display:flex; flex-direction:column; gap:8px; height:100%; box-sizing:border-box; padding:10px; }
-.tl-toolbar { display:flex; gap:6px; flex-wrap:wrap; }
+.tl-toolbar { display:flex; gap:6px; flex-wrap:wrap; opacity:0; max-height:0; margin-bottom:-8px; overflow:hidden; transition:opacity 0.15s, max-height 0.15s, margin-bottom 0.15s; }
+.tl-widget:hover .tl-toolbar, .tl-widget:has(.tl-panel.open) .tl-toolbar, .tl-toolbar:focus-within { opacity:1; max-height:200px; margin-bottom:0; }
 .tl-toolbar-btn { padding:4px 10px; font-size:12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
 .tl-toolbar-btn:hover { background:var(--bg-tertiary); }
 .tl-toolbar-btn.active { background:#3498db; border-color:#3498db; color:#fff; }
@@ -268,8 +269,14 @@
 .tl-cat-row, .tl-era-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
 .tl-cat-row input[type="text"], .tl-era-row input[type="text"] { flex:1; }
 .tl-era-row input[type="number"] { width:70px; }
+.tl-era-row select, .tl-new-era-type { width:110px; }
 .tl-panel input[type="color"] { width:24px; height:22px; padding:0; border:1px solid var(--border-color); border-radius:3px; cursor:pointer; }
 .tl-manager-add-row { display:flex; align-items:center; gap:6px; margin-top:6px; padding-top:6px; border-top:1px solid var(--border-color); flex-wrap:wrap; }
+.tl-era-toggle-row { margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border-color); font-size:12px; color:var(--text-secondary); }
+.tl-era-toggle-row label { display:flex; align-items:center; gap:6px; cursor:pointer; }
+.tl-era-preset-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border-color); flex-wrap:wrap; }
+.tl-era-preset-row label { font-size:12px; color:var(--text-secondary); }
+.tl-era-preset-select { flex:1; min-width:160px; }
 .tl-icon-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:2px 6px; border-radius:3px; line-height:1; }
 .tl-icon-btn:hover { color:var(--text-primary); background:rgba(0,0,0,0.08); }
 .tl-icon-btn.delete:hover { color:#e74c3c; background:rgba(231,76,60,0.1); }
@@ -2748,13 +2755,51 @@ var TL_DEFAULT_CATEGORIES = [
 ];
 
 var TL_DEFAULT_ERAS = [
-    { id: 'tl_default_prehistory', label: 'Prehistory', startYear: -3300000, endYear: -3000, color: '#7f8c8d' },
-    { id: 'tl_default_ancient', label: 'Ancient History', startYear: -3000, endYear: 500, color: '#f39c12' },
-    { id: 'tl_default_medieval', label: 'Middle Ages', startYear: 500, endYear: 1500, color: '#16a085' },
-    { id: 'tl_default_early_modern', label: 'Early Modern Period', startYear: 1500, endYear: 1800, color: '#9b59b6' },
-    { id: 'tl_default_late_modern', label: 'Late Modern Period', startYear: 1800, endYear: 1945, color: '#c0392b' },
-    { id: 'tl_default_contemporary', label: 'Contemporary History', startYear: 1945, endYear: 9999, color: '#34495e' }
+    { id: 'tl_default_prehistory', label: 'Prehistory', startYear: -3300000, endYear: -3000, color: '#7f8c8d', type: 'historical' },
+    { id: 'tl_default_ancient', label: 'Ancient History', startYear: -3000, endYear: 500, color: '#f39c12', type: 'historical' },
+    { id: 'tl_default_medieval', label: 'Middle Ages', startYear: 500, endYear: 1500, color: '#16a085', type: 'historical' },
+    { id: 'tl_default_early_modern', label: 'Early Modern Period', startYear: 1500, endYear: 1800, color: '#9b59b6', type: 'historical' },
+    { id: 'tl_default_late_modern', label: 'Late Modern Period', startYear: 1800, endYear: 1945, color: '#c0392b', type: 'historical' },
+    { id: 'tl_default_contemporary', label: 'Contemporary History', startYear: 1945, endYear: 9999, color: '#34495e', type: 'historical' }
 ];
+
+var TL_ERA_TYPES = [
+    { id: 'historical', label: 'Historical' },
+    { id: 'archaeological', label: 'Archaeological' },
+    { id: 'geological', label: 'Geological' },
+    { id: 'cosmological', label: 'Cosmological' }
+];
+
+var TL_ERA_PRESETS = {
+    historical: [
+        { label: 'Ancient History', startYear: -3000, endYear: 476, color: '#f39c12', type: 'historical' },
+        { label: 'Middle Ages', startYear: 476, endYear: 1500, color: '#16a085', type: 'historical' },
+        { label: 'Early Modern Period', startYear: 1500, endYear: 1789, color: '#9b59b6', type: 'historical' },
+        { label: 'Late Modern Period', startYear: 1789, endYear: 1945, color: '#c0392b', type: 'historical' },
+        { label: 'Contemporary Period', startYear: 1945, endYear: 9999, color: '#34495e', type: 'historical' }
+    ],
+    archaeological: [
+        { label: 'Stone Age', startYear: -3400000, endYear: -3300, color: '#7f8c8d', type: 'archaeological' },
+        { label: 'Bronze Age', startYear: -3300, endYear: -1200, color: '#d35400', type: 'archaeological' },
+        { label: 'Iron Age', startYear: -1200, endYear: -500, color: '#34495e', type: 'archaeological' }
+    ],
+    geological: [
+        { label: 'Paleozoic Era', startYear: -541000000, endYear: -252000000, color: '#27ae60', type: 'geological' },
+        { label: 'Mesozoic Era', startYear: -252000000, endYear: -66000000, color: '#2980b9', type: 'geological' },
+        { label: 'Cenozoic Era', startYear: -66000000, endYear: 9999, color: '#e67e22', type: 'geological' }
+    ],
+    cosmological: [
+        { label: 'Radiation Era', startYear: -13800000000, endYear: -13799953000, color: '#8e44ad', type: 'cosmological' },
+        { label: 'Matter Era', startYear: -13799953000, endYear: -4000000000, color: '#2c3e50', type: 'cosmological' },
+        { label: 'Dark Energy Era', startYear: -4000000000, endYear: 9999, color: '#1abc9c', type: 'cosmological' }
+    ]
+};
+
+function tlEraTypeOptionsHtml(selected) {
+    return TL_ERA_TYPES.map(function(t) {
+        return '<option value="' + t.id + '"' + (t.id === selected ? ' selected' : '') + '>' + t.label + '</option>';
+    }).join('');
+}
 
 function tlGetToolId(el) {
     var tool = el.closest('.tool');
@@ -2771,7 +2816,8 @@ function tlGetData(toolId) {
     return {
         events: data.events || [],
         categories: data.categories || [],
-        eras: data.eras || []
+        eras: data.eras || [],
+        showEras: data.showEras !== false
     };
 }
 
@@ -2790,7 +2836,8 @@ function tlInit() {
             tlSaveData(toolId, {
                 events: [],
                 categories: JSON.parse(JSON.stringify(TL_DEFAULT_CATEGORIES)),
-                eras: JSON.parse(JSON.stringify(TL_DEFAULT_ERAS))
+                eras: JSON.parse(JSON.stringify(TL_DEFAULT_ERAS)),
+                showEras: true
             });
         }
         tlRender(widget, toolId);
@@ -2888,7 +2935,7 @@ function tlRender(widget, toolId) {
         sorted.forEach(function(event) {
             var era = tlFindEraForEvent(data.eras, event);
             var eraId = era ? era.id : null;
-            if (eraId !== null && eraId !== lastEraId) {
+            if (data.showEras && eraId !== null && eraId !== lastEraId) {
                 html += tlRenderEraBanner(era);
             }
             lastEraId = eraId;
@@ -3138,8 +3185,19 @@ function tlToggleEraManager(btn) {
     }
 }
 
+function tlToggleShowEras(checkbox) {
+    var widget = tlGetWidget(checkbox);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    data.showEras = checkbox.checked;
+    tlSaveData(toolId, data);
+    tlRender(widget, toolId);
+}
+
 function tlRenderEraList(widget, toolId) {
     var data = tlGetData(toolId);
+    var toggle = widget.querySelector('.tl-show-eras-toggle');
+    if (toggle) toggle.checked = data.showEras;
     var listEl = widget.querySelector('.tl-era-list');
     if (data.eras.length === 0) {
         listEl.innerHTML = '<div class="tl-empty">No eras yet.</div>';
@@ -3150,6 +3208,7 @@ function tlRenderEraList(widget, toolId) {
             '<input type="text" value="' + escapeHtml(era.label) + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'label\')">' +
             '<input type="number" value="' + era.startYear + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'startYear\')">' +
             '<input type="number" value="' + era.endYear + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'endYear\')">' +
+            '<select class="tl-era-type" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'type\')">' + tlEraTypeOptionsHtml(era.type) + '</select>' +
             '<input type="color" value="' + tlSafeColor(era.color, '#9b59b6') + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'color\')">' +
             '<button class="tl-icon-btn delete" onclick="tlDeleteEra(this,\'' + era.id + '\')" title="Delete">×</button>' +
         '</div>';
@@ -3162,6 +3221,7 @@ function tlAddEra(btn) {
     var labelInput = widget.querySelector('.tl-new-era-label');
     var startInput = widget.querySelector('.tl-new-era-start');
     var endInput = widget.querySelector('.tl-new-era-end');
+    var typeSelect = widget.querySelector('.tl-new-era-type');
     var colorInput = widget.querySelector('.tl-new-era-color');
     var label = labelInput.value.trim();
     var start = parseInt(startInput.value, 10);
@@ -3169,7 +3229,7 @@ function tlAddEra(btn) {
     if (!label || isNaN(start) || isNaN(end)) return;
     if (start > end) { var tmp = start; start = end; end = tmp; }
     var data = tlGetData(toolId);
-    data.eras.push({ id: tlGenId(), label: label, startYear: start, endYear: end, color: colorInput.value });
+    data.eras.push({ id: tlGenId(), label: label, startYear: start, endYear: end, color: colorInput.value, type: typeSelect.value });
     tlSaveData(toolId, data);
     labelInput.value = '';
     startInput.value = '';
@@ -3201,6 +3261,8 @@ function tlUpdateEraField(input, eraId, field) {
         era.label = input.value.trim() || era.label;
     } else if (field === 'color') {
         era.color = input.value;
+    } else if (field === 'type') {
+        era.type = input.value;
     }
     tlSaveData(toolId, data);
     tlRenderEraList(widget, toolId);
@@ -3212,6 +3274,22 @@ function tlDeleteEra(btn, eraId) {
     var toolId = tlGetToolId(widget);
     var data = tlGetData(toolId);
     data.eras = data.eras.filter(function(e) { return e.id !== eraId; });
+    tlSaveData(toolId, data);
+    tlRenderEraList(widget, toolId);
+    tlRender(widget, toolId);
+}
+
+function tlLoadEraPreset(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var select = widget.querySelector('.tl-era-preset-select');
+    var preset = TL_ERA_PRESETS[select.value];
+    if (!preset) return;
+    if (!confirm('Replace the current eras with the ' + select.options[select.selectedIndex].text + ' preset?')) return;
+    var data = tlGetData(toolId);
+    data.eras = preset.map(function(era) {
+        return { id: tlGenId(), label: era.label, startYear: era.startYear, endYear: era.endYear, color: era.color, type: era.type };
+    });
     tlSaveData(toolId, data);
     tlRenderEraList(widget, toolId);
     tlRender(widget, toolId);
@@ -3231,7 +3309,7 @@ function tlDeleteEra(btn, eraId) {
     var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid, multSetMax, multSetHalf, multToggleHard, multCellHover, multCellOut, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
-    var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra];
+    var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras];
     var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions);
 
     var code = '(function() {\n' +
@@ -3253,6 +3331,8 @@ function tlDeleteEra(btn, eraId) {
         'window.TL_MONTH_NAMES = ' + JSON.stringify(TL_MONTH_NAMES) + ';\n' +
         'window.TL_DEFAULT_CATEGORIES = ' + JSON.stringify(TL_DEFAULT_CATEGORIES) + ';\n' +
         'window.TL_DEFAULT_ERAS = ' + JSON.stringify(TL_DEFAULT_ERAS) + ';\n' +
+        'window.TL_ERA_TYPES = ' + JSON.stringify(TL_ERA_TYPES) + ';\n' +
+        'window.TL_ERA_PRESETS = ' + JSON.stringify(TL_ERA_PRESETS) + ';\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         'if (typeof parseMarkdown === "undefined") { window.parseMarkdown = ' + parseMarkdown.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
@@ -3793,11 +3873,25 @@ PluginRegistry.registerTool({
             '</div>' +
         '</div>' +
         '<div class="tl-panel tl-era-manager">' +
+            '<div class="tl-era-toggle-row">' +
+                '<label><input type="checkbox" class="tl-show-eras-toggle" onchange="tlToggleShowEras(this)" checked> Show era banners on timeline</label>' +
+            '</div>' +
+            '<div class="tl-era-preset-row">' +
+                '<label>Preset</label>' +
+                '<select class="tl-era-preset-select">' +
+                    '<option value="historical">Historical Eras</option>' +
+                    '<option value="archaeological">Archaeological Eras (Stone/Bronze/Iron Age)</option>' +
+                    '<option value="geological">Geological Eras (Paleozoic/Mesozoic/Cenozoic)</option>' +
+                    '<option value="cosmological">Cosmological Eras (Radiation/Matter/Dark Energy)</option>' +
+                '</select>' +
+                '<button class="tl-toolbar-btn" onclick="tlLoadEraPreset(this)">Load Preset</button>' +
+            '</div>' +
             '<div class="tl-era-list"></div>' +
             '<div class="tl-manager-add-row">' +
                 '<input type="text" class="tl-new-era-label" placeholder="Era label">' +
                 '<input type="number" class="tl-new-era-start" placeholder="Start year">' +
                 '<input type="number" class="tl-new-era-end" placeholder="End year">' +
+                '<select class="tl-new-era-type">' + tlEraTypeOptionsHtml('historical') + '</select>' +
                 '<input type="color" class="tl-new-era-color" value="#9b59b6">' +
                 '<button class="tl-toolbar-btn" onclick="tlAddEra(this)">Add</button>' +
             '</div>' +
