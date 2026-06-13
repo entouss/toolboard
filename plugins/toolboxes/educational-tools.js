@@ -154,6 +154,10 @@
 .mult-cell.mult-diagonal { background: rgba(52, 152, 219, 0.12); font-weight: 700; }
 .mult-cell.mult-hard.mult-diagonal { background: rgba(255, 140, 0, 0.30); }
 .mult-cell.mult-hidden { visibility: hidden; }
+.mult-table tr:hover { background: inherit; }
+.mult-cell:not(.mult-hidden):hover { background: rgba(52, 152, 219, 0.28) !important; }
+.mult-table th.mult-col-highlight { background: rgba(52, 152, 219, 0.28) !important; color: var(--text-primary); }
+.mult-table th.mult-row-highlight { background: rgba(52, 152, 219, 0.28) !important; color: var(--text-primary); }
 .mult-challenge-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow-y: auto; }
 .mult-challenge-panel.active { display: flex; }
 .mult-digit-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
@@ -169,6 +173,126 @@
 .mult-feedback.correct { color: #27ae60; }
 .mult-feedback.wrong { color: #e74c3c; }
 .mult-score { font-size: 12px; color: var(--text-muted); text-align: center; }
+
+/* Number Line Explorer */
+.nl-widget { display:flex; flex-direction:column; gap:8px; padding:10px; font-family:system-ui,-apple-system,sans-serif; }
+.nl-tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.nl-tab { padding:5px 10px; font-size:12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
+.nl-tab.active { background:#3498db; color:#fff; border-color:#3498db; }
+.nl-panel { display:none; flex-direction:column; gap:8px; }
+.nl-panel.active { display:flex; }
+.nl-controls-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12px; color:var(--text-secondary); }
+.nl-controls-row label { font-weight:600; }
+.nl-svg-container { width:100%; overflow:hidden; cursor:pointer; }
+.nl-svg { width:100%; display:block; }
+.nl-fraction-label { text-align:center; font-size:26px; font-weight:700; color:var(--text-primary); min-height:34px; letter-spacing:1px; }
+.nl-feedback { text-align:center; font-size:13px; font-weight:600; min-height:18px; }
+.nl-feedback.correct { color:#27ae60; }
+.nl-feedback.wrong { color:#e74c3c; }
+.nl-score { text-align:center; font-size:12px; color:var(--text-muted); }
+.nl-frog-status { text-align:center; font-size:16px; font-weight:600; color:var(--text-primary); min-height:24px; }
+.nl-zoom-question { text-align:center; font-size:14px; color:var(--text-primary); font-weight:600; min-height:20px; }
+.nl-denom-select, .nl-roundto-select { padding:4px 6px; font-size:13px; border:1px solid var(--border-color); border-radius:4px; background:var(--input-bg); color:var(--text-primary); }
+.nl-number-input, .nl-jump-input { padding:4px 8px; font-size:13px; border:1px solid var(--border-color); border-radius:4px; width:72px; background:var(--input-bg); color:var(--text-primary); }
+.nl-jump-sign { padding:4px 8px; font-size:13px; border:1px solid var(--border-color); border-radius:4px; background:var(--input-bg); color:var(--text-primary); }
+.nl-jumps-list { display:flex; flex-wrap:wrap; gap:4px; min-height:20px; }
+.nl-jump-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600; background:#3498db22; color:#3498db; border:1px solid #3498db44; }
+
+/* Angle Explorer */
+.ang-widget { display:flex; flex-direction:column; align-items:center; gap:10px; padding:12px; }
+.ang-top-row { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; flex-wrap:wrap; }
+.ang-face-container { flex:1 1 240px; max-width:280px; min-width:0; }
+.ang-svg { width:100%; display:block; }
+.ang-face { fill:var(--bg-primary); stroke:var(--border-color); stroke-width:2; }
+.ang-tick-label { font-size:10px; fill:var(--text-muted); font-family:system-ui,-apple-system,sans-serif; paint-order:stroke; stroke:var(--bg-primary); stroke-width:3px; stroke-linejoin:round; }
+.ang-ray-fixed { stroke:var(--text-muted); stroke-width:3; stroke-linecap:round; }
+.ang-ray-movable { stroke:var(--text-primary); stroke-width:3; stroke-linecap:round; }
+.ang-ray-grab { stroke:transparent; stroke-width:24; cursor:grab; }
+.ang-ray-grab:active { cursor:grabbing; }
+.ang-vertex { fill:var(--text-primary); }
+.ang-arc { fill-opacity:0.35; stroke-width:1; }
+.ang-arc-acute { fill:#27ae60; stroke:#27ae60; }
+.ang-arc-right { fill:#3498db; stroke:#3498db; }
+.ang-arc-obtuse { fill:#e67e22; stroke:#e67e22; }
+.ang-arc-straight { fill:#e74c3c; stroke:#e74c3c; }
+.ang-arc-reflex { fill:#9b59b6; stroke:#9b59b6; }
+.ang-arc-zero { fill:#95a5a6; stroke:#95a5a6; }
+.ang-right-marker { fill:none; stroke:var(--text-primary); stroke-width:1.5; }
+.ang-dial-handle { fill:var(--bg-secondary); stroke:var(--text-muted); stroke-width:2; pointer-events:none; }
+.ang-dial-handle-grab { fill:transparent; cursor:grab; }
+.ang-dial-handle-grab:active { cursor:grabbing; }
+.ang-readout { font-size:28px; font-weight:700; font-family:monospace; color:var(--text-primary); }
+.ang-type-label { font-size:18px; font-weight:700; padding:6px 18px; border-radius:14px; background:var(--bg-secondary); color:var(--text-primary); border:2px solid transparent; letter-spacing:0.5px; transition:background-color 0.15s, color 0.15s, border-color 0.15s; }
+.ang-type-acute { background:#27ae6022; color:#27ae60; border-color:#27ae6055; }
+.ang-type-right { background:#3498db22; color:#3498db; border-color:#3498db55; }
+.ang-type-obtuse { background:#e67e2222; color:#e67e22; border-color:#e67e2255; }
+.ang-type-straight { background:#e74c3c22; color:#e74c3c; border-color:#e74c3c55; }
+.ang-type-reflex { background:#9b59b622; color:#9b59b6; border-color:#9b59b655; }
+.ang-type-zero { background:#95a5a622; color:#95a5a6; border-color:#95a5a655; }
+.ang-controls { display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--text-secondary); flex-wrap:wrap; }
+.ang-snap-checkbox, .ang-big-checkbox { cursor:pointer; }
+.ang-turn-btn, .ang-reset-btn { padding:3px 8px; font-size:11px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
+.ang-turn-btn:hover:not(:disabled), .ang-reset-btn:hover { background:var(--bg-tertiary); }
+.ang-turn-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.ang-skater-container { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:2px; width:64px; }
+.ang-skater-svg { width:100%; display:block; }
+.ang-skater-board { fill:#e67e22; }
+.ang-skater-wheel { fill:#2c3e50; }
+.ang-skater-truck { fill:#95a5a6; }
+.ang-skater-head { fill:#f1c27d; }
+.ang-skater-body { stroke:#3498db; stroke-width:5; stroke-linecap:round; }
+.ang-skater-arm { stroke:#3498db; stroke-width:3; stroke-linecap:round; }
+.ang-skater-leg { stroke:#2c3e50; stroke-width:4; stroke-linecap:round; }
+.ang-skater-label { font-size:11px; color:var(--text-muted); }
+
+/* History Timeline Widget Styles */
+.tl-widget { display:flex; flex-direction:column; gap:8px; height:100%; box-sizing:border-box; padding:10px; }
+.tl-toolbar { display:flex; gap:6px; flex-wrap:wrap; }
+.tl-toolbar-btn { padding:4px 10px; font-size:12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
+.tl-toolbar-btn:hover { background:var(--bg-tertiary); }
+.tl-toolbar-btn.active { background:#3498db; border-color:#3498db; color:#fff; }
+.tl-panel { display:none; border:1px solid var(--border-color); border-radius:6px; padding:10px; background:var(--bg-tertiary); box-sizing:border-box; }
+.tl-panel.open { display:block; }
+.tl-form-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
+.tl-form-row label { font-size:12px; color:var(--text-secondary); }
+.tl-panel input[type="text"], .tl-panel input[type="number"], .tl-panel select, .tl-panel textarea { padding:4px 6px; border:1px solid var(--border-color); border-radius:4px; background:var(--input-bg); color:var(--text-primary); font-size:12px; box-sizing:border-box; }
+.tl-form-year, .tl-form-to-year { width:90px; }
+.tl-form-day, .tl-form-to-day { width:60px; }
+.tl-form-title, .tl-form-category { flex:1; min-width:120px; }
+.tl-form-textarea { width:100%; min-height:60px; resize:vertical; font-family:inherit; }
+.tl-form-actions { display:flex; gap:6px; margin-top:6px; }
+.tl-form-save { padding:4px 12px; font-size:12px; border:1px solid #3498db; border-radius:4px; background:#3498db; color:#fff; cursor:pointer; }
+.tl-form-save:hover { background:#2980b9; }
+.tl-form-cancel { padding:4px 12px; font-size:12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
+.tl-form-cancel:hover { background:var(--bg-tertiary); }
+.tl-cat-row, .tl-era-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.tl-cat-row input[type="text"], .tl-era-row input[type="text"] { flex:1; }
+.tl-era-row input[type="number"] { width:70px; }
+.tl-panel input[type="color"] { width:24px; height:22px; padding:0; border:1px solid var(--border-color); border-radius:3px; cursor:pointer; }
+.tl-manager-add-row { display:flex; align-items:center; gap:6px; margin-top:6px; padding-top:6px; border-top:1px solid var(--border-color); flex-wrap:wrap; }
+.tl-icon-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:2px 6px; border-radius:3px; line-height:1; }
+.tl-icon-btn:hover { color:var(--text-primary); background:rgba(0,0,0,0.08); }
+.tl-icon-btn.delete:hover { color:#e74c3c; background:rgba(231,76,60,0.1); }
+.tl-scroll { flex:1; min-height:0; overflow-y:auto; }
+.tl-line { display:flex; flex-direction:column; padding:4px 4px 4px 0; }
+.tl-empty { text-align:center; color:var(--text-muted); font-size:13px; padding:30px 10px; font-style:italic; }
+.tl-era-banner { margin:12px 0 8px; padding:4px 10px; border-radius:4px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-primary); background:var(--bg-secondary); text-align:center; }
+.tl-era-range { font-weight:400; text-transform:none; letter-spacing:normal; opacity:0.85; }
+.tl-event { display:flex; gap:10px; }
+.tl-event-dot-col { position:relative; width:20px; flex-shrink:0; display:flex; justify-content:center; }
+.tl-event-dot-col::before { content:''; position:absolute; top:4px; bottom:-16px; left:50%; width:2px; background:var(--border-color); transform:translateX(-50%); }
+.tl-event:last-child .tl-event-dot-col::before { display:none; }
+.tl-event-dot { position:relative; z-index:1; width:14px; height:14px; margin-top:4px; border-radius:50%; border:2px solid var(--bg-primary); background:#95a5a6; }
+.tl-event-content { flex:1; min-width:0; padding-bottom:16px; }
+.tl-event-date { font-size:11px; font-weight:700; font-family:monospace; color:var(--text-muted); }
+.tl-event-title { font-size:14px; font-weight:700; margin:2px 0; color:var(--text-primary); }
+.tl-event-desc { font-size:12px; line-height:1.45; color:var(--text-secondary); }
+.tl-event-desc p { margin:4px 0; }
+.tl-event-desc ul, .tl-event-desc ol { margin:4px 0 4px 18px; padding:0; }
+.tl-event-desc a { color:#3498db; }
+.tl-event-chip { display:inline-block; margin-top:4px; padding:1px 8px; border-radius:10px; font-size:10px; font-weight:600; color:#fff; }
+.tl-event-actions { display:flex; gap:2px; opacity:0; transition:opacity 0.15s; float:right; }
+.tl-event:hover .tl-event-actions { opacity:1; }
 
 `;
     document.head.appendChild(style);
@@ -1365,11 +1489,11 @@ function multInit() {
         var toolId = multGetToolId(widget);
         if (!toolId) return;
         multState[toolId] = {
-            maxNum: 12,
-            halfMode: 'full',
+            maxNum: 10,
+            halfMode: 'lower',
             showHard: true,
             activeTab: 'grid',
-            challengeDigits: new Set([1,2,3,4,5,6,7,8,9,10,11,12]),
+            challengeDigits: new Set([1,2,3,4,5,6,7,8,9,10]),
             challengeCurrent: null,
             score: { correct: 0, total: 0 }
         };
@@ -1411,11 +1535,11 @@ function multRenderGrid(widget) {
     var cellSize = n <= 10 ? 38 : (n <= 12 ? 34 : (n <= 15 ? 28 : 24));
     var fontSize = n <= 12 ? 12 : (n <= 15 ? 10 : 9);
 
-    var html = '<table class="mult-table" style="font-size:' + fontSize + 'px;">';
+    var html = '<table class="mult-table" style="font-size:' + fontSize + 'px;" onmouseover="multCellHover(event)" onmouseout="multCellOut(event)">';
     html += '<thead><tr>';
     html += '<th class="mult-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">×</th>';
     for (var c = 1; c <= n; c++) {
-        html += '<th style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + c + '</th>';
+        html += '<th data-col="' + c + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + c + '</th>';
     }
     html += '</tr></thead><tbody>';
 
@@ -1432,7 +1556,7 @@ function multRenderGrid(widget) {
             if (!hidden && isDiag) cls += ' mult-diagonal';
             if (!hidden && isHard) cls += ' mult-hard';
 
-            html += '<td class="' + cls + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">';
+            html += '<td class="' + cls + '" data-col="' + ci + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">';
             if (!hidden) html += (r * ci);
             html += '</td>';
         }
@@ -1469,6 +1593,24 @@ function multToggleHard(btn) {
     multState[toolId].showHard = !multState[toolId].showHard;
     btn.classList.toggle('active', multState[toolId].showHard);
     multRenderGrid(widget);
+}
+
+function multCellHover(event) {
+    var td = event.target.closest('td.mult-cell');
+    if (!td || td.classList.contains('mult-hidden')) return;
+    var col = td.getAttribute('data-col');
+    var table = td.closest('.mult-table');
+    if (!table || !col) return;
+    var colHeader = table.querySelector('thead th[data-col="' + col + '"]');
+    if (colHeader) colHeader.classList.add('mult-col-highlight');
+    var rowHeader = td.closest('tr').querySelector('th.mult-row-header');
+    if (rowHeader) rowHeader.classList.add('mult-row-highlight');
+}
+
+function multCellOut(event) {
+    var table = event.currentTarget;
+    table.querySelectorAll('.mult-col-highlight').forEach(function(c) { c.classList.remove('mult-col-highlight'); });
+    table.querySelectorAll('.mult-row-highlight').forEach(function(c) { c.classList.remove('mult-row-highlight'); });
 }
 
 function multRenderChallenge(widget) {
@@ -1596,6 +1738,1486 @@ function multNewChallenge(btn) {
 }
 
 // =============================================
+// NUMBER LINE EXPLORER
+// =============================================
+
+var nlState = {}; // keyed by toolId
+
+var NL_X0 = 40, NL_X1 = 460, NL_Y = 75, NL_W = 500, NL_H = 130;
+
+function nlGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function nlGetWidget(el) {
+    return el.closest('.nl-widget');
+}
+
+function nlDefaultState() {
+    return {
+        mode: 'fraction',
+        denominator: 4, markerNumerator: 3, showLabels: true, showBar: false,
+        frogStart: 0, jumps: [], frogJumpSign: '+', frogJumpVal: '',
+        zoomValue: 63, roundTo: 10, zoomedIn: false, zoomAnswered: false, zoomCorrect: false, zoomFeedback: '',
+        secretNumerator: 3, secretDenominator: 4,
+        gameDenominator: 4, gameNumerator: -1,
+        gameScore: { correct: 0, total: 0 }, gameRevealed: false, gameFeedback: ''
+    };
+}
+
+function nlInit() {
+    document.querySelectorAll('.nl-widget').forEach(function(widget) {
+        var toolId = nlGetToolId(widget);
+        if (!toolId) return;
+        if (!nlState[toolId]) nlState[toolId] = nlDefaultState();
+        nlRenderWidget(widget, toolId);
+    });
+}
+
+function nlSetMode(btn, mode) {
+    var widget = nlGetWidget(btn);
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].mode = mode;
+    widget.querySelectorAll('.nl-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    nlRenderWidget(widget, toolId);
+}
+
+function nlRender(toolId) {
+    document.querySelectorAll('.nl-widget').forEach(function(widget) {
+        if (nlGetToolId(widget) === toolId) nlRenderWidget(widget, toolId);
+    });
+}
+
+function nlRenderWidget(widget, toolId) {
+    if (!nlState[toolId]) return;
+    var st = nlState[toolId];
+    var panels = widget.querySelectorAll('.nl-panel');
+    panels.forEach(function(p) { p.classList.remove('active'); });
+    var active = widget.querySelector('.nl-panel-' + st.mode);
+    if (active) active.classList.add('active');
+    if (st.mode === 'fraction') nlFractionRender(widget, toolId);
+    else if (st.mode === 'frog') nlFrogRender(widget, toolId);
+    else if (st.mode === 'zoom') nlZoomRender(widget, toolId);
+    else if (st.mode === 'game') nlGameRender(widget, toolId);
+}
+
+// --- SVG LINE BUILDER ---
+
+// Returns 0–4: how "prominent" an integer tick at `val` should be,
+// relative to the labelled step `labelEvery`.
+//   4 = major (labelled)  → tallest
+//   3 = half-step         → tall
+//   2 = fifth-step        → medium
+//   1 = tenth-step        → short
+//   0 = minor             → shortest
+function nlTickLevel(val, labelEvery) {
+    if (labelEvery <= 1) return 4;
+    if (val % labelEvery === 0) return 4;
+    var half  = labelEvery / 2;
+    if (half  === Math.floor(half)  && half  >= 1 && val % half  === 0) return 3;
+    var fifth = labelEvery / 5;
+    if (fifth === Math.floor(fifth) && fifth >= 1 && val % fifth === 0) return 2;
+    var tenth = labelEvery / 10;
+    if (tenth === Math.floor(tenth) && tenth >= 1 && val % tenth === 0) return 1;
+    return 0;
+}
+
+function nlBuildLine(opts) {
+    // opts: rangeStart, rangeEnd, denominator, markerNumerator, showLabels, showBar,
+    //       arcs([{from,to,label,color}]), highlights([{from,to,color}]),
+    //       secretPos(0..1 of full range, or -1), markerColor, mode, hideTicks
+    var rs = opts.rangeStart || 0;
+    var re = opts.rangeEnd || 2;
+    var denom = opts.denominator || 1;
+    var totalTicks = Math.round((re - rs) * denom);
+    var x0 = NL_X0, x1 = NL_X1, y = NL_Y;
+    var span = x1 - x0;
+    var markerN = (opts.markerNumerator !== undefined) ? opts.markerNumerator : -1;
+    var mc = opts.markerColor || '#3498db';
+
+    function tickX(n) { return x0 + (n / totalTicks) * span; }
+    function valX(v) { return x0 + ((v - rs) / (re - rs)) * span; }
+
+    var svgParts = [];
+    svgParts.push('<svg class="nl-svg" viewBox="0 0 ' + NL_W + ' ' + NL_H + '" xmlns="http://www.w3.org/2000/svg"');
+    if (opts.mode === 'fraction' || opts.mode === 'game') {
+        svgParts.push(' onclick="nlSvgClick(this,event)"');
+    } else if (opts.mode === 'zoom') {
+        svgParts.push(' onclick="nlZoomSvgClick(this,event)"');
+    }
+    svgParts.push(' onmousemove="nlSvgMove(this,event)" onmouseup="nlSvgUp(this,event)" onmouseleave="nlSvgUp(this,event)">');
+
+    // highlights (zoom mode)
+    if (opts.highlights) {
+        opts.highlights.forEach(function(h) {
+            var hx0 = valX(h.from), hx1 = valX(h.to);
+            svgParts.push('<rect x="' + hx0 + '" y="' + (y-16) + '" width="' + (hx1-hx0) + '" height="32" fill="' + h.color + '" rx="3" opacity="0.25"/>');
+        });
+    }
+
+    // fraction bar
+    if (opts.showBar && markerN >= 0) {
+        var barW = (markerN / totalTicks) * span;
+        svgParts.push('<rect x="' + x0 + '" y="8" width="' + span + '" height="18" fill="var(--bg-tertiary)" rx="3" stroke="var(--border-color)" stroke-width="1"/>');
+        if (barW > 0) {
+            svgParts.push('<rect x="' + x0 + '" y="8" width="' + barW + '" height="18" fill="' + mc + '" rx="3" opacity="0.7"/>');
+        }
+        // bar tick marks
+        for (var b = 0; b <= totalTicks && b <= Math.round((1 - rs) * denom) + (Math.round((re - 1) * denom)); b++) {
+            var bx = x0 + (b / totalTicks) * span;
+            svgParts.push('<line x1="' + bx + '" y1="8" x2="' + bx + '" y2="26" stroke="var(--border-color)" stroke-width="1"/>');
+        }
+    }
+
+    // arcs (frog mode)
+    if (opts.arcs) {
+        var arcColors = ['#e74c3c','#9b59b6','#27ae60','#e67e22','#1abc9c','#f39c12'];
+        opts.arcs.forEach(function(arc, i) {
+            var ax0 = valX(arc.from), ax1 = valX(arc.to);
+            var arcH = 28 + Math.abs(ax1 - ax0) * 0.15;
+            var cy = y - arcH;
+            var midX = (ax0 + ax1) / 2;
+            var col = arcColors[i % arcColors.length];
+            svgParts.push('<path d="M' + ax0 + ' ' + y + ' Q' + midX + ' ' + cy + ' ' + ax1 + ' ' + y + '" fill="none" stroke="' + col + '" stroke-width="2.5" stroke-dasharray="none"/>');
+            var lbl = (arc.delta >= 0 ? '+' : '') + arc.delta;
+            svgParts.push('<text x="' + midX + '" y="' + (cy - 4) + '" text-anchor="middle" font-size="11" font-weight="600" fill="' + col + '">' + lbl + '</text>');
+        });
+    }
+
+    // main axis line
+    svgParts.push('<line x1="' + x0 + '" y1="' + y + '" x2="' + x1 + '" y2="' + y + '" stroke="var(--text-primary)" stroke-width="2"/>');
+    // arrow heads
+    svgParts.push('<polygon points="' + x1 + ',' + y + ' ' + (x1-8) + ',' + (y-4) + ' ' + (x1-8) + ',' + (y+4) + '" fill="var(--text-primary)"/>');
+
+    // tick marks and labels
+    // — auto-thin labels and ticks when the range is large —
+    var pxPerTick = totalTicks > 0 ? span / totalTicks : span;
+    var pxPerWhole = pxPerTick * denom;
+    // pick the smallest "nice" step so labels stay at least 28 px apart
+    var labelEvery = 1;
+    if (pxPerWhole < 28) {
+        var raw = Math.ceil(28 / pxPerWhole);
+        var niceSteps = [1, 5, 10, 25, 50, 100, 250, 500, 1000];
+        for (var ni = 0; ni < niceSteps.length; ni++) {
+            if (niceSteps[ni] >= raw) { labelEvery = niceSteps[ni]; break; }
+        }
+        if (labelEvery === 1 && raw > 1000) labelEvery = raw; // fallback
+    }
+    // skip fractional tick marks when they would be denser than 3 px
+    var showFracTicks = pxPerTick >= 3;
+    // skip whole-number tick marks that won't get a label when very crowded
+    var tickEvery = (pxPerWhole < 6) ? labelEvery : 1;
+
+    for (var n = 0; n <= totalTicks; n++) {
+        var tx = tickX(n);
+        var isWhole = (n % denom === 0);
+        // intVal: the actual number-line value at this tick (used for alignment, not index)
+        var intVal = Math.round(rs + n / denom);
+
+        // skip fractional ticks when too dense
+        if (!isWhole && !showFracTicks) continue;
+        // skip whole-number ticks between labelled positions when very crowded
+        // align to actual values (intVal % tickEvery), not index, so 0 stays prominent
+        if (isWhole && tickEvery > 1 && (intVal % tickEvery !== 0)) continue;
+
+        var tickH, tickDown, tickSW;
+        if (isWhole && denom === 1) {
+            // graduated heights for integer scales: major > half > fifth > tenth > minor
+            var lvl = nlTickLevel(intVal, labelEvery);
+            var lvlH  = [5, 7, 9, 12, 16];  // px above line
+            var lvlD  = [2, 3, 4,  5,  6];  // px below line
+            var lvlW  = ['0.7', '0.8', '1.0', '1.2', '1.5']; // stroke-width
+            tickH = lvlH[lvl]; tickDown = lvlD[lvl]; tickSW = lvlW[lvl];
+        } else if (isWhole) {
+            tickH = 16; tickDown = 6; tickSW = '1.5';
+        } else {
+            tickH = 10; tickDown = 4; tickSW = '1';
+        }
+        svgParts.push('<line x1="' + tx + '" y1="' + (y - tickH) + '" x2="' + tx + '" y2="' + (y + tickDown) + '" stroke="var(--text-secondary)" stroke-width="' + tickSW + '"/>');
+        if (opts.showLabels !== false) {
+            var val = rs + n / denom;
+            var lbl = '';
+            // label at multiples of labelEvery in value space (not index space)
+            if (isWhole && (intVal % labelEvery === 0)) {
+                lbl = String(intVal);
+            } else if (!isWhole && !opts.hideTicks && showFracTicks) {
+                var num = n % denom;
+                lbl = num + '/' + denom;
+            }
+            if (lbl) {
+                svgParts.push('<text x="' + tx + '" y="' + (y + 20) + '" text-anchor="middle" font-size="' + (isWhole ? 12 : 10) + '" font-weight="' + (isWhole ? '700' : '400') + '" fill="var(--text-' + (isWhole ? 'primary' : 'secondary') + ')">' + lbl + '</text>');
+            }
+        }
+    }
+
+    // secret chest (game mode)
+    if (opts.secretPos !== undefined && opts.secretPos >= 0) {
+        var cx = x0 + opts.secretPos * span;
+        svgParts.push('<text x="' + cx + '" y="' + (y - 20) + '" text-anchor="middle" font-size="20">' + (opts.secretRevealed ? '✅' : '🎁') + '</text>');
+    }
+
+    // marker flag
+    if (markerN >= 0) {
+        var mx = tickX(markerN);
+        svgParts.push('<line x1="' + mx + '" y1="' + (y - 16) + '" x2="' + mx + '" y2="' + (y + 6) + '" stroke="' + mc + '" stroke-width="2.5"/>');
+        svgParts.push('<polygon points="' + mx + ',' + (y-16) + ' ' + (mx+14) + ',' + (y-24) + ' ' + (mx+14) + ',' + (y-8) + '" fill="' + mc + '" opacity="0.85" onmousedown="nlMarkerDown(this,event)" style="cursor:grab"/>');
+    }
+
+    // frog emoji at current position (frog mode)
+    if (opts.frogPos !== undefined) {
+        var fp = valX(opts.frogPos);
+        svgParts.push('<text x="' + fp + '" y="' + (y - 20) + '" text-anchor="middle" font-size="20">🐸</text>');
+    }
+
+    svgParts.push('</svg>');
+    return svgParts.join('');
+}
+
+// --- FRACTION MODE ---
+function nlFractionRender(widget, toolId) {
+    var st = nlState[toolId];
+    var container = widget.querySelector('.nl-panel-fraction .nl-svg-container');
+    if (!container) return;
+    container.innerHTML = nlBuildLine({
+        rangeStart: 0, rangeEnd: 2,
+        denominator: st.denominator,
+        markerNumerator: st.markerNumerator,
+        showLabels: st.showLabels,
+        showBar: st.showBar,
+        markerColor: '#3498db',
+        mode: 'fraction'
+    });
+
+    // fraction label
+    var label = widget.querySelector('.nl-fraction-label');
+    if (label) {
+        var n = st.markerNumerator, d = st.denominator;
+        if (n === 0) label.textContent = '0';
+        else if (n % d === 0) label.textContent = String(n / d);
+        else if (n < d) label.textContent = n + ' / ' + d;
+        else { var w = Math.floor(n/d), r = n%d; label.textContent = w + '  ' + r + ' / ' + d; }
+    }
+
+    // sync denom select
+    var sel = widget.querySelector('.nl-denom-select');
+    if (sel) sel.value = String(st.denominator);
+
+    // sync labels btn
+    var lbtn = widget.querySelector('.nl-labels-btn');
+    if (lbtn) lbtn.textContent = st.showLabels ? '🔢 Labels: ON' : '🔢 Labels: OFF';
+
+    // sync bar btn
+    var bbtn = widget.querySelector('.nl-bar-btn');
+    if (bbtn) { bbtn.textContent = st.showBar ? '📊 Bar: ON' : '📊 Bar: OFF'; bbtn.className = 'pomo-btn nl-bar-btn' + (st.showBar ? ' primary paused' : ''); }
+}
+
+function nlFractionSetDenom(sel) {
+    var toolId = nlGetToolId(sel);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    st.denominator = parseInt(sel.value);
+    var maxN = 2 * st.denominator;
+    if (st.markerNumerator > maxN) st.markerNumerator = maxN;
+    nlRender(toolId);
+}
+
+function nlFractionToggleLabels(btn) {
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].showLabels = !nlState[toolId].showLabels;
+    nlRender(toolId);
+}
+
+function nlFractionToggleBar(btn) {
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].showBar = !nlState[toolId].showBar;
+    nlRender(toolId);
+}
+
+// shared SVG click/drag (fraction + game)
+function nlSvgClick(svgEl, event) {
+    var widget = nlGetWidget(svgEl);
+    var toolId = nlGetToolId(svgEl);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    if (st._dragging) return;
+    var rect = svgEl.getBoundingClientRect();
+    var rawX = (event.clientX - rect.left) / rect.width * NL_W;
+    if (st.mode === 'fraction') {
+        var totalTicks = 2 * st.denominator;
+        var n = Math.round((rawX - NL_X0) / (NL_X1 - NL_X0) * totalTicks);
+        n = Math.max(0, Math.min(totalTicks, n));
+        st.markerNumerator = n;
+    } else if (st.mode === 'game') {
+        var totalG = st.gameDenominator;
+        var gn = Math.round((rawX - NL_X0) / (NL_X1 - NL_X0) * totalG);
+        gn = Math.max(0, Math.min(totalG, gn));
+        st.gameNumerator = gn;
+        st.gameFeedback = '';
+        st.gameRevealed = false;
+    }
+    nlRender(toolId);
+}
+
+function nlMarkerDown(el, event) {
+    event.stopPropagation();
+    var svgEl = el.closest('svg');
+    var widget = nlGetWidget(svgEl);
+    var toolId = nlGetToolId(svgEl);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId]._dragging = true;
+}
+
+function nlSvgMove(svgEl, event) {
+    var toolId = nlGetToolId(svgEl);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    if (!st._dragging) return;
+    var rect = svgEl.getBoundingClientRect();
+    var rawX = (event.clientX - rect.left) / rect.width * NL_W;
+    if (st.mode === 'fraction') {
+        var totalTicks = 2 * st.denominator;
+        var n = Math.round((rawX - NL_X0) / (NL_X1 - NL_X0) * totalTicks);
+        n = Math.max(0, Math.min(totalTicks, n));
+        if (n !== st.markerNumerator) { st.markerNumerator = n; nlRender(toolId); }
+    }
+}
+
+function nlSvgUp(svgEl, event) {
+    var toolId = nlGetToolId(svgEl);
+    if (toolId && nlState[toolId]) nlState[toolId]._dragging = false;
+}
+
+// --- FROG JUMP MODE ---
+function nlFrogRender(widget, toolId) {
+    var st = nlState[toolId];
+    var container = widget.querySelector('.nl-panel-frog .nl-svg-container');
+    if (!container) return;
+
+    // compute range
+    var positions = [st.frogStart];
+    var cur = st.frogStart;
+    var arcs = [];
+    st.jumps.forEach(function(j) {
+        var prev = cur;
+        cur += j.delta;
+        positions.push(cur);
+        arcs.push({ from: prev, to: cur, delta: j.delta });
+    });
+    var minV = Math.min.apply(null, positions);
+    var maxV = Math.max.apply(null, positions);
+    var pad = Math.max(5, (maxV - minV) * 0.1);
+    var rs = Math.floor(minV - pad);
+    var re = Math.ceil(maxV + pad);
+    if (rs === re) { rs -= 5; re += 5; }
+    var range = re - rs;
+    // choose nice denominator
+    var fd = 1;
+
+    container.innerHTML = nlBuildLine({
+        rangeStart: rs, rangeEnd: re,
+        denominator: fd,
+        markerNumerator: -1,
+        showLabels: true,
+        arcs: arcs,
+        frogPos: cur,
+        mode: 'frog'
+    });
+
+    // update jump chips
+    var chipList = widget.querySelector('.nl-jumps-list');
+    if (chipList) {
+        chipList.innerHTML = st.jumps.length ? st.jumps.map(function(j, i) {
+            return '<span class="nl-jump-chip">' + (j.delta >= 0 ? '+' : '') + j.delta + ' <span onclick="nlFrogRemoveJump(' + i + ',this)" style="cursor:pointer;opacity:.6;">✕</span></span>';
+        }).join('') : '<span style="font-size:11px;color:var(--text-muted);">No jumps yet</span>';
+    }
+
+    // update status
+    var status = widget.querySelector('.nl-frog-status');
+    if (status) {
+        if (st.jumps.length === 0) status.textContent = 'Start: ' + st.frogStart;
+        else status.textContent = st.frogStart + ' → ' + cur + '  (net: ' + (cur - st.frogStart) + ')';
+    }
+}
+
+function nlFrogSetStart(inp) {
+    var toolId = nlGetToolId(inp);
+    if (!toolId || !nlState[toolId]) return;
+    var v = parseFloat(inp.value);
+    if (isNaN(v)) return;
+    nlState[toolId].frogStart = v;
+    nlState[toolId].jumps = [];
+    nlRender(toolId);
+}
+
+function nlFrogAddJump(btn) {
+    var widget = nlGetWidget(btn);
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    var valInp = widget.querySelector('.nl-jump-input');
+    var signSel = widget.querySelector('.nl-jump-sign');
+    if (!valInp) return;
+    var val = parseFloat(valInp.value);
+    if (isNaN(val) || val === 0) return;
+    var sign = signSel ? signSel.value : '+';
+    var delta = sign === '-' ? -Math.abs(val) : Math.abs(val);
+    nlState[toolId].jumps.push({ delta: delta });
+    valInp.value = '';
+    nlRender(toolId);
+}
+
+function nlFrogClear(btn) {
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].jumps = [];
+    nlRender(toolId);
+}
+
+function nlFrogRemoveJump(idx, el) {
+    var toolId = nlGetToolId(el);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].jumps.splice(idx, 1);
+    nlRender(toolId);
+}
+
+// --- ZOOM / ROUNDING MODE ---
+function nlZoomRender(widget, toolId) {
+    var st = nlState[toolId];
+    var container = widget.querySelector('.nl-panel-zoom .nl-svg-container');
+    if (!container) return;
+
+    var roundTo = st.roundTo;
+    var v = st.zoomValue;
+    var lo = Math.floor(v / roundTo) * roundTo;
+    var hi = lo + roundTo;
+
+    var highlights = [];
+    if (st.zoomedIn) {
+        // zoomed in: show lo to hi range with tick every 1
+        var denom = 1;
+        var markerN = v - lo; // position within range as integer
+        var totalN = roundTo;
+        // highlight lo and hi markers
+        highlights.push({ from: lo, to: lo, color: '#3498db' });
+        highlights.push({ from: hi, to: hi, color: '#3498db' });
+
+        container.innerHTML = nlBuildLine({
+            rangeStart: lo, rangeEnd: hi,
+            denominator: denom,
+            markerNumerator: markerN,
+            showLabels: true,
+            highlights: [
+                { from: lo, to: lo + 0.01, color: '#3498db' },
+                { from: hi - 0.01, to: hi, color: '#3498db' }
+            ],
+            markerColor: '#e74c3c',
+            mode: 'zoom'
+        });
+
+        var q = widget.querySelector('.nl-zoom-question');
+        if (q && !st.zoomAnswered) q.textContent = 'Is ' + v + ' closer to ' + lo + ' or ' + hi + '?';
+        else if (q && st.zoomAnswered) q.textContent = st.zoomFeedback;
+
+        var ab = widget.querySelector('.nl-zoom-answer-btns');
+        if (ab) ab.style.display = st.zoomAnswered ? 'none' : 'flex';
+
+        var ans0 = widget.querySelector('.nl-zoom-btn-lo');
+        if (ans0) ans0.textContent = String(lo);
+        var ans1 = widget.querySelector('.nl-zoom-btn-hi');
+        if (ans1) ans1.textContent = String(hi);
+
+        var fb = widget.querySelector('.nl-feedback');
+        if (fb) { fb.textContent = st.zoomAnswered ? st.zoomFeedback : ''; fb.className = 'nl-feedback' + (st.zoomAnswered ? (st.zoomCorrect ? ' correct' : ' wrong') : ''); }
+    } else {
+        // zoomed out: 0 to roundTo*10 (0-100 or 0-1000)
+        var maxV = roundTo === 10 ? 100 : 1000;
+        var dz = maxV / roundTo; // number of major divisions = 10
+        var posN = Math.round((v / maxV) * (maxV / roundTo) * roundTo); // numerator in ticks of size roundTo
+        // actually just show whole-number scale
+        container.innerHTML = nlBuildLine({
+            rangeStart: 0, rangeEnd: maxV,
+            denominator: 1,
+            markerNumerator: Math.round((v / maxV) * maxV), // position = v itself mapped
+            showLabels: true,
+            markerColor: '#e74c3c',
+            mode: 'zoom',
+            // override: we want ticks every roundTo, so set denominator=1 and range 0..maxV
+            // but we want 10 ticks → denominator trick: show 0..10 with labels ×roundTo
+            _customRange: true
+        });
+
+        // Re-render with correct tick spacing
+        container.innerHTML = nlBuildLineZoomOut(v, roundTo);
+
+        var q = widget.querySelector('.nl-zoom-question');
+        if (q) q.textContent = 'Click near ' + v + ' to zoom in!';
+
+        var ab = widget.querySelector('.nl-zoom-answer-btns');
+        if (ab) ab.style.display = 'none';
+
+        var fb = widget.querySelector('.nl-feedback');
+        if (fb) { fb.textContent = ''; fb.className = 'nl-feedback'; }
+    }
+
+    // sync input
+    var inp = widget.querySelector('.nl-number-input');
+    if (inp && document.activeElement !== inp) inp.value = String(v);
+    var sel = widget.querySelector('.nl-roundto-select');
+    if (sel) sel.value = String(roundTo);
+}
+
+function nlBuildLineZoomOut(v, roundTo) {
+    // Draws a number line from 0 to maxV with ticks every roundTo
+    var maxV = roundTo === 10 ? 100 : 1000;
+    var numTicks = maxV / roundTo; // = 10
+    var x0 = NL_X0, x1 = NL_X1, y = NL_Y;
+    var span = x1 - x0;
+    var markerX = x0 + (v / maxV) * span;
+
+    var parts = [];
+    parts.push('<svg class="nl-svg" viewBox="0 0 ' + NL_W + ' ' + NL_H + '" onclick="nlZoomSvgClick(this,event)" xmlns="http://www.w3.org/2000/svg">');
+    parts.push('<line x1="' + x0 + '" y1="' + y + '" x2="' + x1 + '" y2="' + y + '" stroke="var(--text-primary)" stroke-width="2"/>');
+    parts.push('<polygon points="' + x1 + ',' + y + ' ' + (x1-8) + ',' + (y-4) + ' ' + (x1-8) + ',' + (y+4) + '" fill="var(--text-primary)"/>');
+
+    for (var i = 0; i <= numTicks; i++) {
+        var tx = x0 + (i / numTicks) * span;
+        parts.push('<line x1="' + tx + '" y1="' + (y-16) + '" x2="' + tx + '" y2="' + (y+6) + '" stroke="var(--text-secondary)" stroke-width="1.5"/>');
+        parts.push('<text x="' + tx + '" y="' + (y+20) + '" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-primary)">' + (i * roundTo) + '</text>');
+    }
+
+    // highlight the zone
+    var lo = Math.floor(v / roundTo) * roundTo;
+    var hi = lo + roundTo;
+    var zx0 = x0 + (lo / maxV) * span;
+    var zx1 = x0 + (hi / maxV) * span;
+    parts.push('<rect x="' + zx0 + '" y="' + (y-16) + '" width="' + (zx1-zx0) + '" height="22" fill="#e74c3c" opacity="0.12" rx="2"/>');
+
+    // marker
+    parts.push('<line x1="' + markerX + '" y1="' + (y-20) + '" x2="' + markerX + '" y2="' + (y+6) + '" stroke="#e74c3c" stroke-width="2.5"/>');
+    parts.push('<polygon points="' + markerX + ',' + (y-20) + ' ' + (markerX+14) + ',' + (y-28) + ' ' + (markerX+14) + ',' + (y-12) + '" fill="#e74c3c" opacity="0.85"/>');
+    parts.push('<text x="' + markerX + '" y="' + (y-32) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#e74c3c">' + v + '</text>');
+    parts.push('</svg>');
+    return parts.join('');
+}
+
+function nlZoomSvgClick(svgEl, event) {
+    var toolId = nlGetToolId(svgEl);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    if (st.zoomedIn) {
+        st.zoomedIn = false;
+        st.zoomAnswered = false;
+        st.zoomFeedback = '';
+    } else {
+        st.zoomedIn = true;
+        st.zoomAnswered = false;
+        st.zoomFeedback = '';
+    }
+    nlRender(toolId);
+}
+
+function nlZoomSetValue(inp) {
+    var toolId = nlGetToolId(inp);
+    if (!toolId || !nlState[toolId]) return;
+    var v = parseInt(inp.value);
+    if (isNaN(v)) return;
+    var maxV = nlState[toolId].roundTo === 10 ? 99 : 999;
+    v = Math.max(1, Math.min(maxV, v));
+    nlState[toolId].zoomValue = v;
+    nlState[toolId].zoomedIn = false;
+    nlState[toolId].zoomAnswered = false;
+    nlState[toolId].zoomFeedback = '';
+    nlRender(toolId);
+}
+
+function nlZoomSetRoundTo(sel) {
+    var toolId = nlGetToolId(sel);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].roundTo = parseInt(sel.value);
+    nlState[toolId].zoomedIn = false;
+    nlState[toolId].zoomAnswered = false;
+    nlState[toolId].zoomFeedback = '';
+    nlRender(toolId);
+}
+
+function nlZoomAnswer(btn, answer) {
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    var v = st.zoomValue, rt = st.roundTo;
+    var lo = Math.floor(v / rt) * rt;
+    var hi = lo + rt;
+    var correct = (v - lo < hi - v) ? lo : (hi - v < v - lo ? hi : (v % rt === rt/2 ? hi : lo));
+    // Standard rounding: if exactly halfway, round up
+    var mid = lo + rt / 2;
+    var correctAns = v < mid ? lo : hi;
+    var chosen = parseInt(answer);
+    st.zoomAnswered = true;
+    st.zoomCorrect = (chosen === correctAns);
+    st.zoomFeedback = st.zoomCorrect ? '✅ Correct! ' + v + ' rounds to ' + correctAns : '❌ ' + v + ' is closer to ' + correctAns;
+    nlRender(toolId);
+}
+
+// --- GAME MODE ---
+function nlGameNew(btn) {
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    var d = st.gameDenominator; // always use the player's chosen denominator
+    var n = Math.floor(Math.random() * (d - 1)) + 1; // 1..d-1
+    st.secretDenominator = d;
+    st.secretNumerator = n;
+    st.gameNumerator = -1;
+    st.gameRevealed = false;
+    st.gameFeedback = '';
+    nlRender(toolId);
+}
+
+function nlGameSetDenom(sel) {
+    var toolId = nlGetToolId(sel);
+    if (!toolId || !nlState[toolId]) return;
+    nlState[toolId].gameDenominator = parseInt(sel.value);
+    nlState[toolId].gameNumerator = -1;
+    nlState[toolId].gameFeedback = '';
+    nlState[toolId].gameRevealed = false;
+    nlRender(toolId);
+}
+
+function nlGameRender(widget, toolId) {
+    var st = nlState[toolId];
+    var container = widget.querySelector('.nl-panel-game .nl-svg-container');
+    if (!container) return;
+
+    var sd = st.secretDenominator, sn = st.secretNumerator;
+    var gd = st.gameDenominator;
+    var secretPos = sn / sd; // 0..1 within 0-1 range
+
+    // We show range 0..1, user picks denominator for their ticks
+    container.innerHTML = nlGameBuildSvg(st);
+
+    // feedback
+    var fb = widget.querySelector('.nl-feedback');
+    if (fb) {
+        fb.textContent = st.gameFeedback;
+        fb.className = 'nl-feedback' + (st.gameFeedback.startsWith('✅') ? ' correct' : st.gameFeedback.startsWith('❌') ? ' wrong' : '');
+    }
+
+    var scoreEl = widget.querySelector('.nl-score');
+    if (scoreEl) scoreEl.textContent = 'Score: ' + st.gameScore.correct + ' / ' + st.gameScore.total;
+
+    // hint label — always shows the challenge fraction so the goal is clear
+    var hint = widget.querySelector('.nl-game-hint');
+    if (hint) {
+        if (st.gameRevealed) {
+            hint.textContent = '';
+            hint.style.fontWeight = 'normal';
+            hint.style.color = 'var(--text-muted)';
+        } else if (st.gameNumerator >= 0) {
+            hint.textContent = 'Find ' + sn + '/' + sd + ' — your flag is at ' + st.gameNumerator + '/' + gd + ' — press Check!';
+            hint.style.fontWeight = '600';
+            hint.style.color = 'var(--text-primary)';
+        } else {
+            hint.textContent = 'Find ' + sn + '/' + sd + ' — tap a tick to place your flag 🚩';
+            hint.style.fontWeight = '700';
+            hint.style.color = 'var(--text-primary)';
+        }
+    }
+
+    // sync denom select
+    var sel = widget.querySelector('.nl-game-denom');
+    if (sel) sel.value = String(gd);
+}
+
+function nlGameBuildSvg(st) {
+    var gd = st.gameDenominator;
+    var sd = st.secretDenominator, sn = st.secretNumerator;
+    var x0 = NL_X0, x1 = NL_X1, y = NL_Y, span = x1 - x0;
+    var secretX = x0 + (sn / sd) * span;
+    var parts = [];
+    parts.push('<svg class="nl-svg" viewBox="0 0 ' + NL_W + ' ' + NL_H + '" onclick="nlSvgClick(this,event)" xmlns="http://www.w3.org/2000/svg">');
+    parts.push('<line x1="' + x0 + '" y1="' + y + '" x2="' + x1 + '" y2="' + y + '" stroke="var(--text-primary)" stroke-width="2"/>');
+    parts.push('<polygon points="' + x1 + ',' + y + ' ' + (x1-8) + ',' + (y-4) + ' ' + (x1-8) + ',' + (y+4) + '" fill="var(--text-primary)"/>');
+
+    // user's denominator ticks (no labels — blank line challenge)
+    for (var n = 0; n <= gd; n++) {
+        var tx = x0 + (n / gd) * span;
+        var isWhole = (n === 0 || n === gd);
+        parts.push('<line x1="' + tx + '" y1="' + (y - (isWhole?16:10)) + '" x2="' + tx + '" y2="' + (y+6) + '" stroke="var(--text-secondary)" stroke-width="' + (isWhole?1.5:1) + '"/>');
+        if (isWhole) parts.push('<text x="' + tx + '" y="' + (y+20) + '" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-primary)">' + n + '</text>');
+    }
+
+    // secret chest — only revealed after the player checks their guess
+    if (st.gameRevealed) {
+        parts.push('<text x="' + secretX + '" y="' + (y-20) + '" text-anchor="middle" font-size="22">' + (st.gameFeedback.startsWith('✅') ? '✅' : '🎁') + '</text>');
+    }
+
+    // player flag
+    if (st.gameNumerator >= 0) {
+        var mx = x0 + (st.gameNumerator / gd) * span;
+        var mc = st.gameRevealed ? (st.gameFeedback.startsWith('✅') ? '#27ae60' : '#e74c3c') : '#9b59b6';
+        parts.push('<line x1="' + mx + '" y1="' + (y-16) + '" x2="' + mx + '" y2="' + (y+6) + '" stroke="' + mc + '" stroke-width="2.5"/>');
+        parts.push('<polygon points="' + mx + ',' + (y-16) + ' ' + (mx+14) + ',' + (y-24) + ' ' + (mx+14) + ',' + (y-8) + '" fill="' + mc + '" opacity="0.85"/>');
+        parts.push('<text x="' + (mx+7) + '" y="' + (y-28) + '" text-anchor="middle" font-size="10" fill="' + mc + '" font-weight="600">🚩</text>');
+    }
+
+    parts.push('</svg>');
+    return parts.join('');
+}
+
+function nlGameCheck(btn) {
+    var toolId = nlGetToolId(btn);
+    if (!toolId || !nlState[toolId]) return;
+    var st = nlState[toolId];
+    if (st.gameNumerator < 0) { st.gameFeedback = 'Place your flag first!'; nlRender(toolId); return; }
+    var gd = st.gameDenominator, gn = st.gameNumerator;
+    var sd = st.secretDenominator, sn = st.secretNumerator;
+    // compare as fractions: gn/gd === sn/sd → gn*sd === sn*gd
+    var correct = (gn * sd === sn * gd);
+    st.gameScore.total++;
+    if (correct) { st.gameScore.correct++; st.gameFeedback = '✅ You found it! ' + sn + '/' + sd; }
+    else { st.gameFeedback = '❌ Not quite! It was ' + sn + '/' + sd; }
+    st.gameRevealed = true;
+    nlRender(toolId);
+}
+
+// =============================================
+// ANGLE EXPLORER
+// =============================================
+
+// Coordinate convention used throughout this section: x = cx + r*cos(rad), y = cy + r*sin(rad),
+// with screen-Y pointing down, so 0deg points east and the angle increases clockwise on screen.
+var angTickSvg = '';
+(function() {
+    var cx = 150, cy = 150, rOuter = 120, rInnerMajor = 108, rInnerMinor = 114, rLabel = 96;
+    for (var deg = 0; deg < 360; deg += 10) {
+        var isMajor = deg % 30 === 0;
+        var rad = deg * Math.PI / 180;
+        var x1 = cx + rOuter * Math.cos(rad);
+        var y1 = cy + rOuter * Math.sin(rad);
+        var rInner = isMajor ? rInnerMajor : rInnerMinor;
+        var x2 = cx + rInner * Math.cos(rad);
+        var y2 = cy + rInner * Math.sin(rad);
+        var w = isMajor ? 2 : 1;
+        angTickSvg += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="var(--text-muted)" stroke-width="' + w + '" stroke-linecap="round"/>';
+        if (isMajor) {
+            var lx = cx + rLabel * Math.cos(rad);
+            var ly = cy + rLabel * Math.sin(rad);
+            angTickSvg += '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="middle" dominant-baseline="central" class="ang-tick-label">' + deg + '</text>';
+        }
+    }
+})();
+
+var angState = {};
+
+function angGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function angGetWidget(el) {
+    return el.closest('.ang-widget');
+}
+
+function angComputeAngle(svgX, svgY, cx, cy) {
+    var dx = svgX - cx;
+    var dy = svgY - cy;
+    var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    if (angle < 0) angle += 360;
+    return angle;
+}
+
+function angArcPath(startDeg, sweepDeg, cx, cy, rBase, rGrowth) {
+    if (sweepDeg <= 0.5) return '';
+    var steps = Math.max(2, Math.ceil(sweepDeg / 4));
+    var path = 'M ' + cx + ' ' + cy;
+    for (var i = 0; i <= steps; i++) {
+        var theta = sweepDeg * i / steps;
+        var r = rBase + rGrowth * (theta / 360);
+        var rad = (startDeg + theta) * Math.PI / 180;
+        var x = cx + r * Math.cos(rad);
+        var y = cy + r * Math.sin(rad);
+        path += ' L ' + x.toFixed(2) + ' ' + y.toFixed(2);
+    }
+    path += ' Z';
+    return path;
+}
+
+function angClassify(a) {
+    var EPS = 0.5;
+    var turns = Math.floor((a + EPS) / 360);
+    var rem = a - turns * 360;
+    if (rem < 0) rem = 0;
+    var base = null;
+    if (rem <= EPS || rem >= 360 - EPS) {
+        base = null;
+    } else if (Math.abs(rem - 90) <= EPS) {
+        base = { label: 'Right Angle (90°)', cls: 'ang-arc-right' };
+    } else if (Math.abs(rem - 180) <= EPS) {
+        base = { label: 'Straight Angle (180°)', cls: 'ang-arc-straight' };
+    } else if (rem < 90) {
+        base = { label: 'Acute Angle', cls: 'ang-arc-acute' };
+    } else if (rem < 180) {
+        base = { label: 'Obtuse Angle', cls: 'ang-arc-obtuse' };
+    } else {
+        base = { label: 'Reflex Angle', cls: 'ang-arc-reflex' };
+    }
+    if (turns <= 0) return base || { label: 'Zero / Full Angle', cls: 'ang-arc-zero' };
+    var turnLabel = turns === 1 ? 'Full Turn' : turns + ' Full Turns';
+    if (!base) return { label: turnLabel + ' (' + a + '°)', cls: 'ang-arc-zero' };
+    return { label: turnLabel + ' + ' + base.label, cls: base.cls };
+}
+
+function angInit() {
+    document.querySelectorAll('.ang-widget').forEach(function(widget) {
+        var toolId = angGetToolId(widget);
+        if (!toolId) return;
+        if (!angState[toolId]) angState[toolId] = { rayAngle: 45, dialRotation: 0, turns: 0, bigMode: false, snap: false, dragging: null };
+        angRender(widget);
+    });
+}
+
+function angRayDown(el, event) {
+    event.preventDefault();
+    var toolId = angGetToolId(el);
+    if (!toolId || !angState[toolId]) return;
+    angState[toolId].dragging = 'ray';
+}
+
+function angDialDown(el, event) {
+    event.preventDefault();
+    var toolId = angGetToolId(el);
+    if (!toolId || !angState[toolId]) return;
+    angState[toolId].dragging = 'dial';
+}
+
+function angSvgMove(svgEl, event) {
+    var toolId = angGetToolId(svgEl);
+    if (!toolId || !angState[toolId]) return;
+    var st = angState[toolId];
+    if (!st.dragging) return;
+    event.preventDefault();
+    var rect = svgEl.getBoundingClientRect();
+    var point = event.touches ? event.touches[0] : event;
+    var svgX = (point.clientX - rect.left) / rect.width * 300;
+    var svgY = (point.clientY - rect.top) / rect.height * 300;
+    var angle = angComputeAngle(svgX, svgY, 150, 150);
+    if (st.snap) {
+        angle = Math.round(angle / 5) * 5;
+    } else {
+        angle = Math.round(angle);
+    }
+    if (angle >= 360) angle -= 360;
+    if (st.dragging === 'dial') {
+        st.dialRotation = angle;
+    } else {
+        st.rayAngle = angle;
+    }
+    angRender(angGetWidget(svgEl));
+}
+
+function angSvgUp(svgEl, event) {
+    var toolId = angGetToolId(svgEl);
+    if (toolId && angState[toolId]) angState[toolId].dragging = null;
+}
+
+function angRender(widget) {
+    var toolId = angGetToolId(widget);
+    if (!toolId || !angState[toolId]) return;
+    var st = angState[toolId];
+    var cx = 150, cy = 150, arcR = 60, markerSize = 18, spiralGrowth = st.bigMode ? 18 : 0;
+
+    var baseAngle = ((st.rayAngle - st.dialRotation) % 360 + 360) % 360;
+    var totalAngle = st.turns * 360 + baseAngle;
+    var info = angClassify(totalAngle);
+
+    var dial = widget.querySelector('.ang-dial');
+    if (dial) dial.setAttribute('transform', 'rotate(' + st.dialRotation + ',' + cx + ',' + cy + ')');
+
+    var transform = 'rotate(' + st.rayAngle + ',' + cx + ',' + cy + ')';
+    var movable = widget.querySelector('.ang-ray-movable');
+    var grab = widget.querySelector('.ang-ray-grab');
+    if (movable) movable.setAttribute('transform', transform);
+    if (grab) grab.setAttribute('transform', transform);
+
+    var skater = widget.querySelector('.ang-skater');
+    if (skater) skater.setAttribute('transform', 'rotate(' + totalAngle + ',30,30)');
+
+    var arc = widget.querySelector('.ang-arc');
+    if (arc) {
+        arc.setAttribute('d', angArcPath(0, totalAngle, cx, cy, arcR, spiralGrowth));
+        arc.setAttribute('class', 'ang-arc ' + info.cls);
+    }
+
+    var readout = widget.querySelector('.ang-readout');
+    if (readout) readout.textContent = totalAngle + '°';
+
+    var typeLabel = widget.querySelector('.ang-type-label');
+    if (typeLabel) {
+        typeLabel.textContent = info.label;
+        typeLabel.className = 'ang-type-label ' + info.cls.replace('ang-arc-', 'ang-type-');
+    }
+
+    var marker = widget.querySelector('.ang-right-marker');
+    if (marker) {
+        var EPS = 0.5;
+        var rem = totalAngle % 360;
+        if (Math.abs(rem - 90) <= EPS) {
+            marker.setAttribute('x', cx);
+            marker.setAttribute('y', cy);
+            marker.style.display = '';
+        } else if (Math.abs(rem - 270) <= EPS) {
+            marker.setAttribute('x', cx);
+            marker.setAttribute('y', cy - markerSize);
+            marker.style.display = '';
+        } else {
+            marker.style.display = 'none';
+        }
+    }
+
+    var turnBtn = widget.querySelector('.ang-turn-btn');
+    if (turnBtn) {
+        turnBtn.textContent = st.turns ? '− Remove extra turn (360°)' : '+ Add extra turn (360°)';
+        turnBtn.disabled = !st.bigMode;
+    }
+}
+
+function angToggleSnap(checkbox) {
+    var widget = angGetWidget(checkbox);
+    var toolId = angGetToolId(checkbox);
+    if (!toolId || !angState[toolId]) return;
+    var st = angState[toolId];
+    st.snap = checkbox.checked;
+    if (st.snap) {
+        st.rayAngle = Math.round(st.rayAngle / 5) * 5 % 360;
+        st.dialRotation = Math.round(st.dialRotation / 5) * 5 % 360;
+    }
+    angRender(widget);
+}
+
+function angToggleBigMode(checkbox) {
+    var widget = angGetWidget(checkbox);
+    var toolId = angGetToolId(checkbox);
+    if (!toolId || !angState[toolId]) return;
+    var st = angState[toolId];
+    st.bigMode = checkbox.checked;
+    if (!st.bigMode) st.turns = 0;
+    angRender(widget);
+}
+
+function angAddTurn(btn) {
+    var widget = angGetWidget(btn);
+    var toolId = angGetToolId(btn);
+    if (!toolId || !angState[toolId]) return;
+    var st = angState[toolId];
+    if (!st.bigMode) return;
+    st.turns = st.turns ? 0 : 1;
+    angRender(widget);
+}
+
+function angResetDial(btn) {
+    var widget = angGetWidget(btn);
+    var toolId = angGetToolId(btn);
+    if (!toolId || !angState[toolId]) return;
+    angState[toolId].dialRotation = 0;
+    angRender(widget);
+}
+
+// =============================================
+// HISTORY TIMELINE
+// =============================================
+
+var TL_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+var TL_DEFAULT_CATEGORIES = [
+    { id: 'tl_default_politics', name: 'Politics', color: '#3498db' },
+    { id: 'tl_default_war', name: 'War', color: '#e74c3c' },
+    { id: 'tl_default_science', name: 'Science & Tech', color: '#2ecc71' },
+    { id: 'tl_default_culture', name: 'Culture', color: '#9b59b6' },
+    { id: 'tl_default_economy', name: 'Economy', color: '#f1c40f' },
+    { id: 'tl_default_religion', name: 'Religion', color: '#1abc9c' },
+    { id: 'tl_default_exploration', name: 'Exploration', color: '#e67e22' },
+    { id: 'tl_default_disasters', name: 'Disasters', color: '#95a5a6' },
+    { id: 'tl_default_personal', name: 'Personal', color: '#2980b9' },
+    { id: 'tl_default_career', name: 'Career', color: '#d35400' },
+    { id: 'tl_default_travel', name: 'Travel', color: '#16a085' },
+    { id: 'tl_default_milestones', name: 'Milestones', color: '#8e44ad' }
+];
+
+var TL_DEFAULT_ERAS = [
+    { id: 'tl_default_prehistory', label: 'Prehistory', startYear: -3300000, endYear: -3000, color: '#7f8c8d' },
+    { id: 'tl_default_ancient', label: 'Ancient History', startYear: -3000, endYear: 500, color: '#f39c12' },
+    { id: 'tl_default_medieval', label: 'Middle Ages', startYear: 500, endYear: 1500, color: '#16a085' },
+    { id: 'tl_default_early_modern', label: 'Early Modern Period', startYear: 1500, endYear: 1800, color: '#9b59b6' },
+    { id: 'tl_default_late_modern', label: 'Late Modern Period', startYear: 1800, endYear: 1945, color: '#c0392b' },
+    { id: 'tl_default_contemporary', label: 'Contemporary History', startYear: 1945, endYear: 9999, color: '#34495e' }
+];
+
+function tlGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function tlGetWidget(el) {
+    return el.closest('.tl-widget');
+}
+
+function tlGetData(toolId) {
+    var custom = toolCustomizations[toolId] || {};
+    var data = custom.timeline || {};
+    return {
+        events: data.events || [],
+        categories: data.categories || [],
+        eras: data.eras || []
+    };
+}
+
+function tlSaveData(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].timeline = data;
+    saveToolCustomizations(toolCustomizations);
+}
+
+function tlInit() {
+    document.querySelectorAll('.tl-widget').forEach(function(widget) {
+        var toolId = tlGetToolId(widget);
+        if (!toolId) return;
+        var custom = toolCustomizations[toolId] || {};
+        if (!custom.timeline) {
+            tlSaveData(toolId, {
+                events: [],
+                categories: JSON.parse(JSON.stringify(TL_DEFAULT_CATEGORIES)),
+                eras: JSON.parse(JSON.stringify(TL_DEFAULT_ERAS))
+            });
+        }
+        tlRender(widget, toolId);
+    });
+}
+
+function tlGenId() {
+    return 'tl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function tlSafeColor(color, fallback) {
+    return (typeof color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(color)) ? color : fallback;
+}
+
+function tlClosePanels(widget) {
+    widget.querySelectorAll('.tl-panel.open').forEach(function(panel) { panel.classList.remove('open'); });
+    widget.querySelectorAll('.tl-toolbar-btn.active').forEach(function(b) { b.classList.remove('active'); });
+}
+
+function tlFormatSingleDate(year, month, day) {
+    var isBce = year < 0;
+    var absYear = Math.abs(year);
+    var suffix = isBce ? ' BCE' : '';
+    if (month) {
+        var monthName = TL_MONTH_NAMES[month - 1];
+        if (day) return monthName + ' ' + day + ', ' + absYear + suffix;
+        return monthName + ' ' + absYear + suffix;
+    }
+    return absYear + suffix;
+}
+
+function tlFormatDate(event) {
+    var start = tlFormatSingleDate(event.year, event.month, event.day);
+    if (event.toYear == null) return start;
+    return start + '–' + tlFormatSingleDate(event.toYear, event.toMonth, event.toDay);
+}
+
+function tlFormatEraYear(year) {
+    var abs = Math.abs(year);
+    var str = abs >= 10000 ? abs.toLocaleString() : String(abs);
+    return year < 0 ? str + ' BCE' : str;
+}
+
+function tlFormatEraRange(era) {
+    var end = era.endYear >= 9999 ? 'Present' : tlFormatEraYear(era.endYear);
+    return tlFormatEraYear(era.startYear) + '–' + end;
+}
+
+function tlContrastColor(hex) {
+    var c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(function(ch) { return ch + ch; }).join('');
+    if (c.length < 6) return '#000';
+    var r = parseInt(c.substr(0, 2), 16);
+    var g = parseInt(c.substr(2, 2), 16);
+    var b = parseInt(c.substr(4, 2), 16);
+    var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55 ? '#000' : '#fff';
+}
+
+function tlSortEvents(events) {
+    return events.slice().sort(function(a, b) {
+        if (a.year !== b.year) return a.year - b.year;
+        var am = a.month || 0, bm = b.month || 0;
+        if (am !== bm) return am - bm;
+        return (a.day || 0) - (b.day || 0);
+    });
+}
+
+function tlFindEraForEvent(eras, event) {
+    for (var i = 0; i < eras.length; i++) {
+        if (event.year >= eras[i].startYear && event.year <= eras[i].endYear) return eras[i];
+    }
+    return null;
+}
+
+function tlGetCategoryById(categories, categoryId) {
+    if (!categoryId) return null;
+    for (var i = 0; i < categories.length; i++) {
+        if (categories[i].id === categoryId) return categories[i];
+    }
+    return null;
+}
+
+function tlRender(widget, toolId) {
+    var data = tlGetData(toolId);
+    var sorted = tlSortEvents(data.events);
+    var lineEl = widget.querySelector('.tl-line');
+    if (!lineEl) return;
+
+    if (sorted.length === 0) {
+        lineEl.innerHTML = '<div class="tl-empty">No events yet. Click "+ Add Event" to get started.</div>';
+    } else {
+        var html = '';
+        var lastEraId = null;
+        sorted.forEach(function(event) {
+            var era = tlFindEraForEvent(data.eras, event);
+            var eraId = era ? era.id : null;
+            if (eraId !== null && eraId !== lastEraId) {
+                html += tlRenderEraBanner(era);
+            }
+            lastEraId = eraId;
+            html += tlRenderEvent(event, data.categories);
+        });
+        lineEl.innerHTML = html;
+    }
+
+    tlPopulateCategorySelect(widget, toolId);
+    if (widget.querySelector('.tl-category-manager.open')) tlRenderCategoryList(widget, toolId);
+    if (widget.querySelector('.tl-era-manager.open')) tlRenderEraList(widget, toolId);
+}
+
+function tlRenderEraBanner(era) {
+    var color = tlSafeColor(era.color, null);
+    var style = color ? ' style="background:' + color + ';color:' + tlContrastColor(color) + '"' : '';
+    return '<div class="tl-era-banner"' + style + '>' + escapeHtml(era.label) +
+        ' <span class="tl-era-range">(' + tlFormatEraRange(era) + ')</span></div>';
+}
+
+function tlRenderEvent(event, categories) {
+    var category = tlGetCategoryById(categories, event.categoryId);
+    var color = category ? tlSafeColor(category.color, '#95a5a6') : null;
+    var dotStyle = color ? ' style="background:' + color + '"' : '';
+    var chip = category ? '<div class="tl-event-chip" style="background:' + color + '">' + escapeHtml(category.name) + '</div>' : '';
+    var desc = event.description ? '<div class="tl-event-desc">' + parseMarkdown(event.description) + '</div>' : '';
+    return '<div class="tl-event">' +
+        '<div class="tl-event-dot-col"><div class="tl-event-dot"' + dotStyle + '></div></div>' +
+        '<div class="tl-event-content">' +
+            '<div class="tl-event-actions">' +
+                '<button class="tl-icon-btn" onclick="tlEditEvent(this,\'' + event.id + '\')" title="Edit">✎</button>' +
+                '<button class="tl-icon-btn delete" onclick="tlDeleteEvent(this,\'' + event.id + '\')" title="Delete">×</button>' +
+            '</div>' +
+            '<div class="tl-event-date">' + tlFormatDate(event) + '</div>' +
+            '<div class="tl-event-title">' + escapeHtml(event.title) + '</div>' +
+            desc +
+            chip +
+        '</div>' +
+    '</div>';
+}
+
+function tlPopulateCategorySelect(widget, toolId) {
+    var select = widget.querySelector('.tl-form-category');
+    if (!select) return;
+    var data = tlGetData(toolId);
+    var current = select.value;
+    select.innerHTML = '<option value="">(none)</option>' + data.categories.map(function(cat) {
+        return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+    }).join('');
+    select.value = data.categories.some(function(c) { return c.id === current; }) ? current : '';
+}
+
+function tlOpenEventForm(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    tlClosePanels(widget);
+    var form = widget.querySelector('.tl-event-form');
+    form.querySelector('.tl-form-event-id').value = '';
+    form.querySelector('.tl-form-year').value = '';
+    form.querySelector('.tl-form-month').value = '';
+    form.querySelector('.tl-form-day').value = '';
+    form.querySelector('.tl-form-to-year').value = '';
+    form.querySelector('.tl-form-to-month').value = '';
+    form.querySelector('.tl-form-to-day').value = '';
+    form.querySelector('.tl-form-title').value = '';
+    form.querySelector('.tl-form-textarea').value = '';
+    tlPopulateCategorySelect(widget, toolId);
+    form.querySelector('.tl-form-category').value = '';
+    form.classList.add('open');
+    if (btn.classList.contains('tl-toolbar-btn')) btn.classList.add('active');
+}
+
+function tlEditEvent(btn, eventId) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    var event = data.events.find(function(e) { return e.id === eventId; });
+    if (!event) return;
+    tlClosePanels(widget);
+    var form = widget.querySelector('.tl-event-form');
+    form.querySelector('.tl-form-event-id').value = event.id;
+    form.querySelector('.tl-form-year').value = event.year;
+    form.querySelector('.tl-form-month').value = event.month || '';
+    form.querySelector('.tl-form-day').value = event.day || '';
+    form.querySelector('.tl-form-to-year').value = event.toYear != null ? event.toYear : '';
+    form.querySelector('.tl-form-to-month').value = event.toMonth || '';
+    form.querySelector('.tl-form-to-day').value = event.toDay || '';
+    form.querySelector('.tl-form-title').value = event.title || '';
+    form.querySelector('.tl-form-textarea').value = event.description || '';
+    tlPopulateCategorySelect(widget, toolId);
+    var category = tlGetCategoryById(data.categories, event.categoryId);
+    form.querySelector('.tl-form-category').value = category ? category.id : '';
+    form.classList.add('open');
+}
+
+function tlCloseEventForm(btn) {
+    var widget = tlGetWidget(btn);
+    tlClosePanels(widget);
+}
+
+function tlSaveEvent(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var form = widget.querySelector('.tl-event-form');
+    var yearInput = form.querySelector('.tl-form-year');
+    var year = parseInt(yearInput.value, 10);
+    if (isNaN(year)) {
+        yearInput.focus();
+        return;
+    }
+    var monthVal = form.querySelector('.tl-form-month').value;
+    var dayVal = form.querySelector('.tl-form-day').value;
+    var month = monthVal ? parseInt(monthVal, 10) : null;
+    var day = dayVal ? parseInt(dayVal, 10) : null;
+    var toYearVal = form.querySelector('.tl-form-to-year').value;
+    var toYear = toYearVal !== '' ? parseInt(toYearVal, 10) : null;
+    if (toYear !== null && isNaN(toYear)) toYear = null;
+    var toMonthVal = form.querySelector('.tl-form-to-month').value;
+    var toDayVal = form.querySelector('.tl-form-to-day').value;
+    var toMonth = toYear !== null && toMonthVal ? parseInt(toMonthVal, 10) : null;
+    var toDay = toYear !== null && toDayVal ? parseInt(toDayVal, 10) : null;
+    if (toYear !== null && toYear < year) {
+        var swapY = year, swapM = month, swapD = day;
+        year = toYear; month = toMonth; day = toDay;
+        toYear = swapY; toMonth = swapM; toDay = swapD;
+    }
+    var title = form.querySelector('.tl-form-title').value.trim();
+    var description = form.querySelector('.tl-form-textarea').value;
+    var categoryId = form.querySelector('.tl-form-category').value || null;
+    var eventId = form.querySelector('.tl-form-event-id').value;
+
+    var data = tlGetData(toolId);
+    var eventObj = { id: eventId || tlGenId(), year: year, month: month, day: day, toYear: toYear, toMonth: toMonth, toDay: toDay, title: title || 'Untitled Event', description: description, categoryId: categoryId };
+    if (eventId) {
+        var idx = data.events.findIndex(function(e) { return e.id === eventId; });
+        if (idx !== -1) data.events[idx] = eventObj;
+        else data.events.push(eventObj);
+    } else {
+        data.events.push(eventObj);
+    }
+    tlSaveData(toolId, data);
+    tlCloseEventForm(btn);
+    tlRender(widget, toolId);
+}
+
+function tlDeleteEvent(btn, eventId) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    data.events = data.events.filter(function(e) { return e.id !== eventId; });
+    tlSaveData(toolId, data);
+    tlRender(widget, toolId);
+}
+
+function tlToggleCategoryManager(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var panel = widget.querySelector('.tl-category-manager');
+    var isOpen = panel.classList.contains('open');
+    tlClosePanels(widget);
+    if (!isOpen) {
+        panel.classList.add('open');
+        if (btn.classList.contains('tl-toolbar-btn')) btn.classList.add('active');
+        tlRenderCategoryList(widget, toolId);
+    }
+}
+
+function tlRenderCategoryList(widget, toolId) {
+    var data = tlGetData(toolId);
+    var listEl = widget.querySelector('.tl-cat-list');
+    if (data.categories.length === 0) {
+        listEl.innerHTML = '<div class="tl-empty">No categories yet.</div>';
+        return;
+    }
+    listEl.innerHTML = data.categories.map(function(cat) {
+        return '<div class="tl-cat-row">' +
+            '<input type="color" value="' + tlSafeColor(cat.color, '#3498db') + '" onchange="tlSetCategoryColor(this,\'' + cat.id + '\')">' +
+            '<input type="text" value="' + escapeHtml(cat.name) + '" onchange="tlRenameCategory(this,\'' + cat.id + '\')">' +
+            '<button class="tl-icon-btn delete" onclick="tlDeleteCategory(this,\'' + cat.id + '\')" title="Delete">×</button>' +
+        '</div>';
+    }).join('');
+}
+
+function tlAddCategory(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var nameInput = widget.querySelector('.tl-new-cat-name');
+    var colorInput = widget.querySelector('.tl-new-cat-color');
+    var name = nameInput.value.trim();
+    if (!name) return;
+    var data = tlGetData(toolId);
+    data.categories.push({ id: tlGenId(), name: name, color: colorInput.value });
+    tlSaveData(toolId, data);
+    nameInput.value = '';
+    colorInput.value = '#3498db';
+    tlRenderCategoryList(widget, toolId);
+    tlRender(widget, toolId);
+}
+
+function tlRenameCategory(input, categoryId) {
+    var widget = tlGetWidget(input);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    var category = tlGetCategoryById(data.categories, categoryId);
+    if (!category) return;
+    var name = input.value.trim();
+    category.name = name || category.name;
+    input.value = category.name;
+    tlSaveData(toolId, data);
+    tlRender(widget, toolId);
+}
+
+function tlSetCategoryColor(input, categoryId) {
+    var widget = tlGetWidget(input);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    var category = tlGetCategoryById(data.categories, categoryId);
+    if (!category) return;
+    category.color = input.value;
+    tlSaveData(toolId, data);
+    tlRender(widget, toolId);
+}
+
+function tlDeleteCategory(btn, categoryId) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    data.categories = data.categories.filter(function(c) { return c.id !== categoryId; });
+    data.events.forEach(function(e) {
+        if (e.categoryId === categoryId) e.categoryId = null;
+    });
+    tlSaveData(toolId, data);
+    tlRenderCategoryList(widget, toolId);
+    tlRender(widget, toolId);
+}
+
+function tlToggleEraManager(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var panel = widget.querySelector('.tl-era-manager');
+    var isOpen = panel.classList.contains('open');
+    tlClosePanels(widget);
+    if (!isOpen) {
+        panel.classList.add('open');
+        if (btn.classList.contains('tl-toolbar-btn')) btn.classList.add('active');
+        tlRenderEraList(widget, toolId);
+    }
+}
+
+function tlRenderEraList(widget, toolId) {
+    var data = tlGetData(toolId);
+    var listEl = widget.querySelector('.tl-era-list');
+    if (data.eras.length === 0) {
+        listEl.innerHTML = '<div class="tl-empty">No eras yet.</div>';
+        return;
+    }
+    listEl.innerHTML = data.eras.map(function(era) {
+        return '<div class="tl-era-row">' +
+            '<input type="text" value="' + escapeHtml(era.label) + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'label\')">' +
+            '<input type="number" value="' + era.startYear + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'startYear\')">' +
+            '<input type="number" value="' + era.endYear + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'endYear\')">' +
+            '<input type="color" value="' + tlSafeColor(era.color, '#9b59b6') + '" onchange="tlUpdateEraField(this,\'' + era.id + '\',\'color\')">' +
+            '<button class="tl-icon-btn delete" onclick="tlDeleteEra(this,\'' + era.id + '\')" title="Delete">×</button>' +
+        '</div>';
+    }).join('');
+}
+
+function tlAddEra(btn) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var labelInput = widget.querySelector('.tl-new-era-label');
+    var startInput = widget.querySelector('.tl-new-era-start');
+    var endInput = widget.querySelector('.tl-new-era-end');
+    var colorInput = widget.querySelector('.tl-new-era-color');
+    var label = labelInput.value.trim();
+    var start = parseInt(startInput.value, 10);
+    var end = parseInt(endInput.value, 10);
+    if (!label || isNaN(start) || isNaN(end)) return;
+    if (start > end) { var tmp = start; start = end; end = tmp; }
+    var data = tlGetData(toolId);
+    data.eras.push({ id: tlGenId(), label: label, startYear: start, endYear: end, color: colorInput.value });
+    tlSaveData(toolId, data);
+    labelInput.value = '';
+    startInput.value = '';
+    endInput.value = '';
+    colorInput.value = '#9b59b6';
+    tlRenderEraList(widget, toolId);
+    tlRender(widget, toolId);
+}
+
+function tlUpdateEraField(input, eraId, field) {
+    var widget = tlGetWidget(input);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    var era = null;
+    for (var i = 0; i < data.eras.length; i++) {
+        if (data.eras[i].id === eraId) { era = data.eras[i]; break; }
+    }
+    if (!era) return;
+    if (field === 'startYear' || field === 'endYear') {
+        var num = parseInt(input.value, 10);
+        if (isNaN(num)) return;
+        era[field] = num;
+        if (era.startYear > era.endYear) {
+            var tmp = era.startYear;
+            era.startYear = era.endYear;
+            era.endYear = tmp;
+        }
+    } else if (field === 'label') {
+        era.label = input.value.trim() || era.label;
+    } else if (field === 'color') {
+        era.color = input.value;
+    }
+    tlSaveData(toolId, data);
+    tlRenderEraList(widget, toolId);
+    tlRender(widget, toolId);
+}
+
+function tlDeleteEra(btn, eraId) {
+    var widget = tlGetWidget(btn);
+    var toolId = tlGetToolId(widget);
+    var data = tlGetData(toolId);
+    data.eras = data.eras.filter(function(e) { return e.id !== eraId; });
+    tlSaveData(toolId, data);
+    tlRenderEraList(widget, toolId);
+    tlRender(widget, toolId);
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -1606,8 +3228,11 @@ function multNewChallenge(btn) {
     var moneyFunctions = [moneyInit, moneyGetWidget, moneyRender, moneyAdd, moneyRemove, moneyClear, moneyTotal, moneyFormat, moneySetMode, moneyNewRound, moneyNewChallenge, moneyCheckAnswer, moneyNewChange, moneyNewNameit, moneyCheckNameit, moneyComputeOptimal, moneyNewLeast, moneyCheckLeast, moneyDragStart, moneyDragOver, moneyDragLeave, moneyDrop];
     var ptableFunctions = [ptableGetToolId, ptableGetWidget, ptableBuildGrid, ptableRender, ptableSelect, ptableSearch, ptableFilter, ptableInit];
     var sdtFunctions = [sdtGetToolId, sdtGetWidget, sdtInit, sdtSolveFor, sdtCalculate, sdtFormatNum, sdtClear, sdtKeydown];
-    var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid, multSetMax, multSetHalf, multToggleHard, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
-    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions);
+    var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid, multSetMax, multSetHalf, multToggleHard, multCellHover, multCellOut, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
+    var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
+    var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
+    var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra];
+    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initClock !== "undefined") return;\n' +
@@ -1621,6 +3246,15 @@ function multNewChallenge(btn) {
         'window.sdtState = {};\n' +
         'window.MULT_HARD = new Set(' + JSON.stringify(Array.from(MULT_HARD)) + ');\n' +
         'window.multState = {};\n' +
+        'window.nlState = {};\n' +
+        'window.NL_X0 = 40; window.NL_X1 = 460; window.NL_Y = 75; window.NL_W = 500; window.NL_H = 130;\n' +
+        'window.angTickSvg = ' + JSON.stringify(angTickSvg) + ';\n' +
+        'window.angState = {};\n' +
+        'window.TL_MONTH_NAMES = ' + JSON.stringify(TL_MONTH_NAMES) + ';\n' +
+        'window.TL_DEFAULT_CATEGORIES = ' + JSON.stringify(TL_DEFAULT_CATEGORIES) + ';\n' +
+        'window.TL_DEFAULT_ERAS = ' + JSON.stringify(TL_DEFAULT_ERAS) + ';\n' +
+        'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
+        'if (typeof parseMarkdown === "undefined") { window.parseMarkdown = ' + parseMarkdown.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
     var encoded = btoa(unescape(encodeURIComponent(code)));
@@ -1642,7 +3276,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDF93',
     color: '#2ecc71',
     version: '1.0.0',
-    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table'],
+    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table', 'number-line-explorer', 'angle-explorer', 'history-timeline'],
     source: 'external'
 });
 
@@ -1877,14 +3511,14 @@ PluginRegistry.registerTool({
             '<div class="mult-toolbar">' +
                 '<label>Size:</label>' +
                 '<select class="mult-size-select" onchange="multSetMax(this)">' +
-                    '<option value="10">10 × 10</option>' +
-                    '<option value="12" selected>12 × 12</option>' +
+                    '<option value="10" selected>10 × 10</option>' +
+                    '<option value="12">12 × 12</option>' +
                     '<option value="15">15 × 15</option>' +
                     '<option value="20">20 × 20</option>' +
                 '</select>' +
-                '<button class="mult-half-btn active" onclick="multSetHalf(this,\'full\')">Full</button>' +
+                '<button class="mult-half-btn" onclick="multSetHalf(this,\'full\')">Full</button>' +
                 '<button class="mult-half-btn" onclick="multSetHalf(this,\'upper\')">▲ Upper</button>' +
-                '<button class="mult-half-btn" onclick="multSetHalf(this,\'lower\')">▼ Lower</button>' +
+                '<button class="mult-half-btn active" onclick="multSetHalf(this,\'lower\')">▼ Lower</button>' +
                 '<button class="mult-hard-btn active" onclick="multToggleHard(this)">🔥 Hard</button>' +
             '</div>' +
             '<div class="mult-table-wrap"></div>' +
@@ -1912,4 +3546,268 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Educational Tools plugin loaded (5 tools)');
+// Number Line Explorer
+PluginRegistry.registerTool({
+    id: 'number-line-explorer',
+    name: 'Number Line Explorer',
+    description: 'Interactive number line for fractions, frog jumps, rounding, and a secret coordinate game — designed for 3rd grade math',
+    icon: '📏',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['number line', 'fractions', 'rounding', 'math', 'kids', 'education', 'jump', 'game', '3rd grade'],
+    title: 'Number Line Explorer',
+    content: '<div class="nl-widget">' +
+        '<div class="nl-tabs">' +
+            '<button class="nl-tab active" onclick="nlSetMode(this,\'fraction\')">🔢 Fractions</button>' +
+            '<button class="nl-tab" onclick="nlSetMode(this,\'frog\')">🐸 Frog Jump</button>' +
+            '<button class="nl-tab" onclick="nlSetMode(this,\'zoom\')">🔍 Rounding</button>' +
+            '<button class="nl-tab" onclick="nlSetMode(this,\'game\')">🎮 Game</button>' +
+        '</div>' +
+        // Fraction panel
+        '<div class="nl-panel nl-panel-fraction active">' +
+            '<div class="nl-controls-row">' +
+                '<label>Denominator:</label>' +
+                '<select class="nl-denom-select" onchange="nlFractionSetDenom(this)">' +
+                    '<option value="2">Halves (2)</option>' +
+                    '<option value="3">Thirds (3)</option>' +
+                    '<option value="4" selected>Quarters (4)</option>' +
+                    '<option value="5">Fifths (5)</option>' +
+                    '<option value="6">Sixths (6)</option>' +
+                    '<option value="8">Eighths (8)</option>' +
+                    '<option value="10">Tenths (10)</option>' +
+                    '<option value="12">Twelfths (12)</option>' +
+                '</select>' +
+                '<button class="pomo-btn nl-labels-btn" onclick="nlFractionToggleLabels(this)">🔢 Labels: ON</button>' +
+                '<button class="pomo-btn nl-bar-btn" onclick="nlFractionToggleBar(this)">📊 Bar: OFF</button>' +
+            '</div>' +
+            '<div class="nl-svg-container"></div>' +
+            '<div class="nl-fraction-label">3 / 4</div>' +
+        '</div>' +
+        // Frog Jump panel
+        '<div class="nl-panel nl-panel-frog">' +
+            '<div class="nl-controls-row">' +
+                '<label>Start:</label>' +
+                '<input type="number" class="nl-number-input" value="0" onchange="nlFrogSetStart(this)" style="width:60px">' +
+                '<label>Jump:</label>' +
+                '<select class="nl-jump-sign"><option value="+">+</option><option value="-">−</option></select>' +
+                '<input type="number" class="nl-jump-input" placeholder="amount" min="0" style="width:80px">' +
+                '<button class="pomo-btn primary paused" onclick="nlFrogAddJump(this)">Add Jump</button>' +
+                '<button class="pomo-btn" onclick="nlFrogClear(this)">Clear</button>' +
+            '</div>' +
+            '<div class="nl-jumps-list"></div>' +
+            '<div class="nl-svg-container"></div>' +
+            '<div class="nl-frog-status"></div>' +
+        '</div>' +
+        // Zoom/Rounding panel
+        '<div class="nl-panel nl-panel-zoom">' +
+            '<div class="nl-controls-row">' +
+                '<label>Number:</label>' +
+                '<input type="number" class="nl-number-input" value="63" min="1" max="999" onchange="nlZoomSetValue(this)">' +
+                '<label>Round to nearest:</label>' +
+                '<select class="nl-roundto-select" onchange="nlZoomSetRoundTo(this)">' +
+                    '<option value="10">10</option>' +
+                    '<option value="100">100</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="nl-svg-container"></div>' +
+            '<div class="nl-zoom-question"></div>' +
+            '<div class="nl-zoom-answer-btns" style="display:none;justify-content:center;gap:12px;">' +
+                '<button class="pomo-btn primary paused nl-zoom-btn-lo" onclick="nlZoomAnswer(this,this.textContent)">60</button>' +
+                '<button class="pomo-btn primary paused nl-zoom-btn-hi" onclick="nlZoomAnswer(this,this.textContent)">70</button>' +
+            '</div>' +
+            '<div class="nl-feedback"></div>' +
+        '</div>' +
+        // Game panel
+        '<div class="nl-panel nl-panel-game">' +
+            '<div class="nl-controls-row">' +
+                '<label>Your splits:</label>' +
+                '<select class="nl-game-denom nl-denom-select" onchange="nlGameSetDenom(this)">' +
+                    '<option value="2">Halves (2)</option>' +
+                    '<option value="3">Thirds (3)</option>' +
+                    '<option value="4" selected>Quarters (4)</option>' +
+                    '<option value="5">Fifths (5)</option>' +
+                    '<option value="6">Sixths (6)</option>' +
+                    '<option value="8">Eighths (8)</option>' +
+                '</select>' +
+                '<button class="pomo-btn primary paused" onclick="nlGameNew(this)">🎲 New Game</button>' +
+                '<button class="pomo-btn" onclick="nlGameCheck(this)">Check ✔</button>' +
+            '</div>' +
+            '<div class="nl-svg-container"></div>' +
+            '<div class="nl-game-hint" style="text-align:center;font-size:12px;color:var(--text-muted);min-height:18px;"></div>' +
+            '<div class="nl-feedback"></div>' +
+            '<div class="nl-score"></div>' +
+        '</div>' +
+    '</div>',
+    onInit: 'nlInit',
+    defaultWidth: 600,
+    defaultHeight: 400,
+    source: 'external'
+});
+
+// Angle Explorer
+PluginRegistry.registerTool({
+    id: 'angle-explorer',
+    name: 'Angle Explorer',
+    description: 'Interactive protractor for exploring angles — drag a ray to measure 0-360° and learn acute, right, obtuse, straight, and reflex angle types',
+    icon: '📐',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['angle', 'protractor', 'geometry', 'degrees', 'math', 'kids', 'education'],
+    title: 'Angle Explorer',
+    content: '<div class="ang-widget">' +
+        '<div class="ang-top-row">' +
+        '<div class="ang-face-container">' +
+            '<svg class="ang-svg" viewBox="0 0 300 300" onmousemove="angSvgMove(this,event)" onmouseup="angSvgUp(this,event)" onmouseleave="angSvgUp(this,event)" ontouchmove="angSvgMove(this,event)" ontouchend="angSvgUp(this,event)">' +
+                '<g class="ang-dial" transform="rotate(0,150,150)">' +
+                    '<circle class="ang-face" cx="150" cy="150" r="120"/>' +
+                    '<path class="ang-arc" d=""/>' +
+                    '<rect class="ang-right-marker" width="18" height="18" style="display:none"/>' +
+                    '<line class="ang-ray-fixed" x1="150" y1="150" x2="260" y2="150"/>' +
+                    '<circle class="ang-dial-handle" cx="278" cy="150" r="6"/>' +
+                    '<circle class="ang-dial-handle-grab" cx="278" cy="150" r="15" onmousedown="angDialDown(this,event)" ontouchstart="angDialDown(this,event)"><title>Drag to rotate the protractor</title></circle>' +
+                    angTickSvg +
+                '</g>' +
+                '<line class="ang-ray-movable" x1="150" y1="150" x2="260" y2="150"/>' +
+                '<line class="ang-ray-grab" x1="150" y1="150" x2="260" y2="150" onmousedown="angRayDown(this,event)" ontouchstart="angRayDown(this,event)"/>' +
+                '<circle class="ang-vertex" cx="150" cy="150" r="4"/>' +
+            '</svg>' +
+        '</div>' +
+        '<div class="ang-skater-container">' +
+            '<svg class="ang-skater-svg" viewBox="0 0 60 60">' +
+                '<g class="ang-skater" transform="rotate(0,30,30)">' +
+                    '<rect class="ang-skater-truck" x="10" y="48" width="6" height="2"/>' +
+                    '<rect class="ang-skater-truck" x="44" y="48" width="6" height="2"/>' +
+                    '<rect class="ang-skater-board" x="6" y="44" width="48" height="6" rx="3"/>' +
+                    '<circle class="ang-skater-wheel" cx="14" cy="52" r="3.5"/>' +
+                    '<circle class="ang-skater-wheel" cx="46" cy="52" r="3.5"/>' +
+                    '<line class="ang-skater-leg" x1="28" y1="34" x2="18" y2="44"/>' +
+                    '<line class="ang-skater-leg" x1="28" y1="34" x2="40" y2="44"/>' +
+                    '<line class="ang-skater-body" x1="30" y1="18" x2="28" y2="34"/>' +
+                    '<line class="ang-skater-arm" x1="29" y1="22" x2="14" y2="16"/>' +
+                    '<line class="ang-skater-arm" x1="29" y1="24" x2="44" y2="30"/>' +
+                    '<circle class="ang-skater-head" cx="30" cy="12" r="6"/>' +
+                '</g>' +
+            '</svg>' +
+            '<div class="ang-skater-label">🛹 Spin!</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="ang-readout">45°</div>' +
+        '<div class="ang-type-label">Acute Angle</div>' +
+        '<div class="ang-controls">' +
+            '<label><input type="checkbox" class="ang-snap-checkbox" onchange="angToggleSnap(this)"> Snap to 5°</label>' +
+            '<label><input type="checkbox" class="ang-big-checkbox" onchange="angToggleBigMode(this)"> Angles over 360°</label>' +
+        '</div>' +
+        '<div class="ang-controls">' +
+            '<button class="ang-turn-btn" onclick="angAddTurn(this)" disabled>+ Add extra turn (360°)</button>' +
+            '<button class="ang-reset-btn" onclick="angResetDial(this)">Reset protractor</button>' +
+        '</div>' +
+    '</div>',
+    onInit: 'angInit',
+    defaultWidth: 380,
+    defaultHeight: 520,
+    source: 'external'
+});
+
+// History Timeline
+PluginRegistry.registerTool({
+    id: 'history-timeline',
+    name: 'History Timeline',
+    description: 'Build a chronological timeline of events with categories and era overlays — great for history lessons or project timelines',
+    icon: '🕰️',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['history', 'timeline', 'events', 'chronology', 'education', 'dates'],
+    title: 'History Timeline',
+    content: '<div class="tl-widget">' +
+        '<div class="tl-toolbar">' +
+            '<button class="tl-toolbar-btn" onclick="tlOpenEventForm(this)">+ Add Event</button>' +
+            '<button class="tl-toolbar-btn" onclick="tlToggleCategoryManager(this)">🏷 Categories</button>' +
+            '<button class="tl-toolbar-btn" onclick="tlToggleEraManager(this)">📅 Eras</button>' +
+        '</div>' +
+        '<div class="tl-panel tl-event-form">' +
+            '<input type="hidden" class="tl-form-event-id" value="">' +
+            '<div class="tl-form-row">' +
+                '<label>Year</label>' +
+                '<input type="number" class="tl-form-year" placeholder="e.g. -3000 for 3000 BCE">' +
+                '<label>Month</label>' +
+                '<select class="tl-form-month">' +
+                    '<option value="">(none)</option>' +
+                    '<option value="1">Jan</option>' +
+                    '<option value="2">Feb</option>' +
+                    '<option value="3">Mar</option>' +
+                    '<option value="4">Apr</option>' +
+                    '<option value="5">May</option>' +
+                    '<option value="6">Jun</option>' +
+                    '<option value="7">Jul</option>' +
+                    '<option value="8">Aug</option>' +
+                    '<option value="9">Sep</option>' +
+                    '<option value="10">Oct</option>' +
+                    '<option value="11">Nov</option>' +
+                    '<option value="12">Dec</option>' +
+                '</select>' +
+                '<label>Day</label>' +
+                '<input type="number" class="tl-form-day" min="1" max="31" placeholder="(none)">' +
+            '</div>' +
+            '<div class="tl-form-row">' +
+                '<label>To Year</label>' +
+                '<input type="number" class="tl-form-to-year" placeholder="(optional, for a date range)">' +
+                '<label>Month</label>' +
+                '<select class="tl-form-to-month">' +
+                    '<option value="">(none)</option>' +
+                    '<option value="1">Jan</option>' +
+                    '<option value="2">Feb</option>' +
+                    '<option value="3">Mar</option>' +
+                    '<option value="4">Apr</option>' +
+                    '<option value="5">May</option>' +
+                    '<option value="6">Jun</option>' +
+                    '<option value="7">Jul</option>' +
+                    '<option value="8">Aug</option>' +
+                    '<option value="9">Sep</option>' +
+                    '<option value="10">Oct</option>' +
+                    '<option value="11">Nov</option>' +
+                    '<option value="12">Dec</option>' +
+                '</select>' +
+                '<label>Day</label>' +
+                '<input type="number" class="tl-form-to-day" min="1" max="31" placeholder="(none)">' +
+            '</div>' +
+            '<div class="tl-form-row">' +
+                '<input type="text" class="tl-form-title" placeholder="Event title">' +
+            '</div>' +
+            '<div class="tl-form-row">' +
+                '<label>Category</label>' +
+                '<select class="tl-form-category"><option value="">(none)</option></select>' +
+                '<button class="tl-toolbar-btn" onclick="tlToggleCategoryManager(this)">+ Category</button>' +
+            '</div>' +
+            '<textarea class="tl-form-textarea" placeholder="Description (markdown supported)"></textarea>' +
+            '<div class="tl-form-actions">' +
+                '<button class="tl-form-save" onclick="tlSaveEvent(this)">Save</button>' +
+                '<button class="tl-form-cancel" onclick="tlCloseEventForm(this)">Cancel</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="tl-panel tl-category-manager">' +
+            '<div class="tl-cat-list"></div>' +
+            '<div class="tl-manager-add-row">' +
+                '<input type="color" class="tl-new-cat-color" value="#3498db">' +
+                '<input type="text" class="tl-new-cat-name" placeholder="New category name">' +
+                '<button class="tl-toolbar-btn" onclick="tlAddCategory(this)">Add</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="tl-panel tl-era-manager">' +
+            '<div class="tl-era-list"></div>' +
+            '<div class="tl-manager-add-row">' +
+                '<input type="text" class="tl-new-era-label" placeholder="Era label">' +
+                '<input type="number" class="tl-new-era-start" placeholder="Start year">' +
+                '<input type="number" class="tl-new-era-end" placeholder="End year">' +
+                '<input type="color" class="tl-new-era-color" value="#9b59b6">' +
+                '<button class="tl-toolbar-btn" onclick="tlAddEra(this)">Add</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="tl-scroll"><div class="tl-line"></div></div>' +
+    '</div>',
+    onInit: 'tlInit',
+    defaultWidth: 520,
+    defaultHeight: 580,
+    source: 'external'
+});
+
+console.log('Educational Tools plugin loaded (8 tools)');
