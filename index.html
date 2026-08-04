@@ -757,6 +757,135 @@ header h1 {
     background: rgba(231, 76, 60, 0.85);
 }
 
+.board-card-actions button.board-card-settings-btn.active {
+    background: #3498db;
+}
+
+/* Current board, pinned above the list */
+.board-manager-current {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 10px 18px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.board-manager-current .board-card-color-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.board-manager-current .board-card-emoji {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.board-manager-current-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-heading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.board-manager-current-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-right: auto;
+}
+
+.board-manager-current .board-card-settings-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.board-manager-current .board-card-settings-btn:hover {
+    background: var(--table-hover);
+}
+
+.board-manager-current .board-card-settings-btn.active {
+    background: #3498db;
+    border-color: #3498db;
+    color: #fff;
+}
+
+/* Settings drawer, shared by the current-board row and each list row */
+.board-settings-drawer {
+    display: none;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    max-height: 46vh;
+    overflow-y: auto;
+}
+
+.board-settings-drawer.open { display: block; }
+
+.board-settings-drawer label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 8px 0 3px;
+}
+
+.board-settings-drawer label:first-child { margin-top: 0; }
+
+.board-settings-drawer label a {
+    font-size: 10px;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+.board-settings-drawer input[type="text"],
+.board-settings-drawer select {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 12px;
+}
+
+.board-settings-drawer .bs-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.board-settings-drawer .bs-row input[type="range"] { flex: 1; cursor: pointer; }
+
+.board-settings-drawer .bs-font-size-label {
+    font-size: 11px;
+    min-width: 46px;
+    text-align: right;
+    color: var(--text-secondary);
+}
+
+.board-settings-drawer .bs-mini {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 3px 6px;
+    color: var(--text-secondary);
+}
+
+.board-settings-drawer .bs-mini:hover { background: var(--table-hover); }
+
 .board-card-rename-wrap {
     flex: 1;
     display: flex;
@@ -1236,6 +1365,63 @@ main#toolboard {
     box-shadow: 0 8px 30px var(--shadow-heavy);
 }
 
+/* Multi-select for copy/cut between boards */
+.tool.selected {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+.tool.selected .tool-header {
+    box-shadow: inset 0 0 0 1px rgba(52, 152, 219, 0.6);
+}
+.tool-marquee {
+    position: absolute;
+    border: 1px solid #3498db;
+    background: rgba(52, 152, 219, 0.12);
+    pointer-events: none;
+    z-index: 100000;
+}
+.tool-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-tool-header);
+    color: #fff;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    z-index: 100001;
+    box-shadow: 0 4px 16px var(--shadow-heavy);
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+}
+.tool-toast.show { opacity: 1; }
+.board-context-menu {
+    position: fixed;
+    z-index: 100002;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px var(--shadow-heavy);
+    padding: 4px;
+    min-width: 150px;
+}
+.board-context-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    padding: 7px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.board-context-menu button:hover:not([disabled]) { background: var(--table-hover); }
+.board-context-menu button[disabled] { color: var(--text-muted); cursor: default; }
+
 .tool-header {
     background: var(--bg-tool-header);
     color: white;
@@ -1597,6 +1783,25 @@ main#toolboard {
 
 .duplicate-tool-btn:hover {
     background: #8e44ad;
+}
+.copy-tool-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 4px;
+}
+.copy-tool-btn:hover {
+    background: #2980b9;
+}
+.copy-tool-btn[disabled] {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    cursor: default;
 }
 
 .export-tool-btn {
@@ -2881,9 +3086,7 @@ tr:hover {
     <header id="mainHeader">
         <div class="header-section header-section-board">
             <a id="toolboardLogo" href="https://toolboard.me" title="Visit Toolboard.me"><img alt="Toolboard Logo" style="width: 24px; height: 24px;" src="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22board%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22300%22%20y2%3D%22300%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%233d4555%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%231e2230%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22vignette%22%20cx%3D%220.45%22%20cy%3D%220.4%22%20r%3D%220.65%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220.03%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220.2%22%2F%3E%3C%2FradialGradient%3E%3Cpattern%20id%3D%22holes%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%228%22%20fill%3D%22%2314171e%22%2F%3E%3C%2Fpattern%3E%3CclipPath%20id%3D%22hole-clip%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22274%22%20height%3D%22274%22%20rx%3D%2220%22%2F%3E%3C%2FclipPath%3E%3ClinearGradient%20id%3D%22amber%22%20x1%3D%22145%22%20y1%3D%2215%22%20x2%3D%22165%22%20y2%3D%22280%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fef3c7%22%2F%3E%3Cstop%20offset%3D%2225%25%22%20stop-color%3D%22%23fcd34d%22%2F%3E%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23f59e0b%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23d97706%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22bloom%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2218%22%2F%3E%3C%2Ffilter%3E%3Cfilter%20id%3D%22glow%22%20x%3D%22-15%25%22%20y%3D%22-15%25%22%20width%3D%22130%25%22%20height%3D%22130%25%22%3E%3CfeGaussianBlur%20in%3D%22SourceGraphic%22%20stdDeviation%3D%222%22%20result%3D%22blur%22%2F%3E%3CfeMerge%3E%3CfeMergeNode%20in%3D%22blur%22%2F%3E%3CfeMergeNode%20in%3D%22SourceGraphic%22%2F%3E%3C%2FfeMerge%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23board%29%22%2F%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23vignette%29%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%22298%22%20height%3D%22298%22%20rx%3D%2225%22%20fill%3D%22none%22%20stroke%3D%22%234c566a%22%20stroke-width%3D%221.2%22%20opacity%3D%220.35%22%2F%3E%3Cg%20clip-path%3D%22url%28%23hole-clip%29%22%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22url%28%23holes%29%22%2F%3E%3C%2Fg%3E%3Cg%20filter%3D%22url%28%23bloom%29%22%20opacity%3D%220.18%22%3E%3Crect%20x%3D%2215%22%20y%3D%2212%22%20width%3D%22260%22%20height%3D%2282%22%20rx%3D%2210%22%20fill%3D%22%23fbbf24%22%2F%3E%3Crect%20x%3D%22105%22%20y%3D%2282%22%20width%3D%2280%22%20height%3D%22195%22%20rx%3D%2210%22%20fill%3D%22%23f59e0b%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22url%28%23amber%29%22%20filter%3D%22url%28%23glow%29%22%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.3%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"></a>
-            <h1 id="toolboardTitle" style="display:none;">My Toolboard</h1>
             <button id="boardSelectorTrigger" class="board-selector-trigger" title="Manage Boards"></button>
-            <button id="toolboardSettingsBtn" class="header-settings-btn" title="Edit Toolboard">&#8942;</button>
         </div>
         <div class="header-section header-section-notes">
             <button id="addToolBtn" class="header-settings-btn" title="Add Tool">+</button>
@@ -2891,82 +3094,13 @@ tr:hover {
             <button id="deleteAllBtn" class="header-settings-btn" title="Delete All Tools">&times;</button>
         </div>
         <div class="header-section header-section-page">
+            <button id="managePluginsBtn" class="header-settings-btn" title="Manage Plugins"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg></button>
             <button id="searchToolBtn" class="header-settings-btn" title="Search tools (Ctrl+K)">&#128269;</button>
             <button id="darkModeToggle" class="header-settings-btn" title="Toggle Dark Mode">&#9790;</button>
             <div id="storageIndicator" class="storage-indicator" title="localStorage usage"></div>
             <button id="importExportBtn" class="header-settings-btn" title="Import/Export">&#8693;</button>
         </div>
-        <div id="toolboardSettings" class="toolboard-settings">
-            <label>Board Title</label>
-            <input type="text" id="toolboardTitleInput" placeholder="Board title">
-            <label>Header Color</label>
-            <div class="color-picker-row" id="toolboardColorPicker"></div>
-            <label>Favicon</label>
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-                <input type="text" id="toolboardFaviconInput" placeholder="Enter an emoji..." style="flex:1;" maxlength="2">
-                <button id="toolboardFaviconPick" title="Pick from Emoji Tool" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:13px;padding:1px 5px;">🎭</button>
-                <button id="toolboardFaviconReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
-            </div>
-            <label style="display:flex;align-items:center;gap:6px;">Board Font <a href="https://fonts.google.com" target="_blank" rel="noopener" style="font-size:10px;color:#3498db;text-decoration:none;" title="Browse Google Fonts">Browse fonts ↗</a></label>
-            <select id="toolboardFontFamily" class="font-select">
-                <option value="">System Default</option>
-                <optgroup label="Sans-Serif">
-                    <option value="Inter, sans-serif">Inter</option>
-                    <option value="'Roboto', sans-serif">Roboto</option>
-                    <option value="'Open Sans', sans-serif">Open Sans</option>
-                    <option value="'Lato', sans-serif">Lato</option>
-                    <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
-                    <option value="'Nunito', sans-serif">Nunito</option>
-                    <option value="'Poppins', sans-serif">Poppins</option>
-                    <option value="'Montserrat', sans-serif">Montserrat</option>
-                    <option value="'Raleway', sans-serif">Raleway</option>
-                    <option value="'Work Sans', sans-serif">Work Sans</option>
-                    <option value="'Quicksand', sans-serif">Quicksand</option>
-                    <option value="'Rubik', sans-serif">Rubik</option>
-                    <option value="'Barlow', sans-serif">Barlow</option>
-                    <option value="'DM Sans', sans-serif">DM Sans</option>
-                    <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
-                </optgroup>
-                <optgroup label="Serif">
-                    <option value="'Playfair Display', serif">Playfair Display</option>
-                    <option value="'Merriweather', serif">Merriweather</option>
-                    <option value="'Lora', serif">Lora</option>
-                    <option value="'EB Garamond', serif">EB Garamond</option>
-                    <option value="'Libre Baskerville', serif">Libre Baskerville</option>
-                    <option value="'Crimson Text', serif">Crimson Text</option>
-                    <option value="Georgia, serif">Georgia</option>
-                    <option value="'Times New Roman', serif">Times New Roman</option>
-                </optgroup>
-                <optgroup label="Display &amp; Handwriting">
-                    <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
-                    <option value="'Oswald', sans-serif">Oswald</option>
-                    <option value="'Pacifico', cursive">Pacifico</option>
-                    <option value="'Permanent Marker', cursive">Permanent Marker</option>
-                    <option value="'Dancing Script', cursive">Dancing Script</option>
-                    <option value="'Caveat', cursive">Caveat</option>
-                    <option value="'Patrick Hand', cursive">Patrick Hand</option>
-                    <option value="'Indie Flower', cursive">Indie Flower</option>
-                </optgroup>
-                <optgroup label="Monospace">
-                    <option value="'Fira Code', monospace">Fira Code</option>
-                    <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
-                    <option value="'Source Code Pro', monospace">Source Code Pro</option>
-                    <option value="'Roboto Mono', monospace">Roboto Mono</option>
-                    <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
-                    <option value="'Space Mono', monospace">Space Mono</option>
-                    <option value="'Courier New', monospace">Courier New</option>
-                    <option value="'Monaco', monospace">Monaco</option>
-                </optgroup>
-            </select>
-            <input type="text" id="toolboardCustomFont" class="font-custom-input" placeholder="Or type any Google Font name..." spellcheck="false">
-            <label>Font Size</label>
-            <div style="display:flex;align-items:center;gap:6px;">
-                <input type="range" id="toolboardFontSize" min="8" max="120" value="12" style="flex:1;cursor:pointer;">
-                <span id="toolboardFontSizeLabel" style="font-size:11px;min-width:38px;text-align:right;">default</span>
-                <button id="toolboardFontSizeReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
-            </div>
-        </div>
-    </header>
+            </header>
 
     <!-- Board Manager Popup -->
     <div id="boardManagerOverlay" class="board-manager-overlay">
@@ -2975,6 +3109,8 @@ tr:hover {
                 <span class="board-manager-title">Boards</span>
                 <button class="board-manager-close" title="Close">&times;</button>
             </div>
+            <div id="boardManagerCurrent" class="board-manager-current"></div>
+            <div id="boardSettingsDrawer" class="board-settings-drawer"></div>
             <div class="board-manager-search-wrap">
                 <input id="boardManagerSearch" class="board-manager-search" type="search" placeholder="Search boards…" autocomplete="off" spellcheck="false">
             </div>
@@ -3261,6 +3397,9 @@ tr:hover {
             </label>
             <button class="edit-content-btn" id="toolSettingsEditBtn">Edit Content</button>
             <button class="duplicate-tool-btn" id="toolSettingsDuplicateBtn">Duplicate Tool</button>
+            <button class="copy-tool-btn" id="toolSettingsCopyBtn">Copy Tool</button>
+            <button class="copy-tool-btn" id="toolSettingsCutBtn">Cut Tool</button>
+            <button class="copy-tool-btn" id="toolSettingsPasteBtn">Paste Tool</button>
             <button class="export-tool-btn" id="toolSettingsExportBtn">Export as HTML</button>
             <button class="export-png-btn" id="toolSettingsExportPngBtn">Export as PNG</button>
             <button class="send-to-back-btn" id="toolSettingsSendToBackBtn">Send to Back</button>
@@ -4009,6 +4148,35 @@ function getCurrentBoardId() {
     return localStorage.getItem('financeCurrentBoard') || 'default';
 }
 
+// Board names live in boards[].name. toolboardSettings.title is kept in sync purely
+// so older exports (which read board.settings.title) keep working — never read it as
+// the name, or the two copies drift.
+function getBoardName(boardId) {
+    const board = boards.find(b => b.id === boardId);
+    return board ? board.name : 'Board';
+}
+
+function setBoardName(boardId, name) {
+    const clean = (name || '').trim();
+    if (!clean) return false;
+    const board = boards.find(b => b.id === boardId);
+    if (!board || board.name === clean) return false;
+
+    board.name = clean;
+    saveBoards(boards);
+
+    const settings = readBoardJson(boardId, 'toolboardSettings', {});
+    settings.title = clean;
+    writeBoardJson(boardId, 'toolboardSettings', settings);
+    if (boardId === currentBoardId) {
+        toolboardSettings.title = clean;
+        document.title = clean + ' - Toolboard';
+    }
+
+    updateBoardSelectorLabel();
+    return true;
+}
+
 function setCurrentBoardId(boardId) {
     localStorage.setItem('financeCurrentBoard', boardId);
 }
@@ -4138,7 +4306,8 @@ let dragState = {
     startX: 0,
     startY: 0,
     offsetX: 0,
-    offsetY: 0
+    offsetY: 0,
+    group: []
 };
 
 // Resize state
@@ -4198,9 +4367,9 @@ async function init() {
 
     populateBoardSelector();
     applyToolboardSettings();
-    setupToolboardSettings();
     renderToolboard();
     setupDragging();
+    setupToolSelection();
     setupResizing();
     setupResponsiveLayout();
     setupToolControls();
@@ -4875,6 +5044,7 @@ function setupToolControls() {
             const tool = e.target.closest('.tool');
             const toolId = tool.getAttribute('data-tool');
             currentSettingsToolId = toolId;
+            refreshClipboardMenuLabels(toolId);
 
             // Bring tool to front
             let highestZ = 0;
@@ -5244,6 +5414,26 @@ function setupToolControls() {
             closeSettingsModal();
             duplicateTool(toolId);
         }
+    });
+
+    document.getElementById('toolSettingsCopyBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ids = clipboardTargetIds(currentSettingsToolId);
+        closeSettingsModal();
+        if (ids.length) { setToolSelection(ids); copyToolsToClipboard(ids, 'copy'); }
+    });
+
+    document.getElementById('toolSettingsCutBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ids = clipboardTargetIds(currentSettingsToolId);
+        closeSettingsModal();
+        if (ids.length) { setToolSelection(ids); copyToolsToClipboard(ids, 'cut'); }
+    });
+
+    document.getElementById('toolSettingsPasteBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeSettingsModal();
+        pasteTools();
     });
 
     // Export tool button in modal
@@ -6143,68 +6333,32 @@ function saveToolboardSettings(settings) {
 
 let toolboardSettings = loadToolboardSettings();
 
+// Applies the current board's settings to the page. Form population lives in
+// renderBoardSettingsDrawer(), so this stays purely about what the user sees.
 function applyToolboardSettings() {
     const header = document.getElementById('mainHeader');
-    const title = document.getElementById('toolboardTitle');
-    const titleInput = document.getElementById('toolboardTitleInput');
-    const colorPicker = document.getElementById('toolboardColorPicker');
-    const fontFamilySelect = document.getElementById('toolboardFontFamily');
-    const fontSizeSelect = document.getElementById('toolboardFontSize');
     const toolboard = document.getElementById('toolboard');
 
-    title.textContent = toolboardSettings.title;
+    // boards[].name is authoritative. This used to copy toolboardSettings.title back
+    // over board.name, which silently reverted any rename made from the board list
+    // while a different board was open.
     header.style.background = toolboardSettings.color;
-    titleInput.value = toolboardSettings.title;
-
-    // Update boards array and trigger label
-    const board = boards.find(b => b.id === currentBoardId);
-    if (board) board.name = toolboardSettings.title;
     updateBoardSelectorLabel();
-
-    // Update browser tab title
-    document.title = toolboardSettings.title + ' - Toolboard';
+    document.title = getBoardName(currentBoardId) + ' - Toolboard';
 
     // Apply favicon
     const faviconLink = document.querySelector('link[rel="icon"]');
     if (!applyToolboardSettings._defaultFavicon) {
         applyToolboardSettings._defaultFavicon = faviconLink.getAttribute('href');
     }
-    const faviconInput = document.getElementById('toolboardFaviconInput');
     if (toolboardSettings.favicon) {
         const emoji = encodeURIComponent(toolboardSettings.favicon);
         faviconLink.setAttribute('href', `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="28">${emoji}</text></svg>`);
     } else {
         faviconLink.setAttribute('href', applyToolboardSettings._defaultFavicon);
     }
-    if (faviconInput) faviconInput.value = toolboardSettings.favicon || '';
 
-    // Populate color picker
-    colorPicker.innerHTML = DASHBOARD_COLORS.map(c =>
-        `<div class="color-swatch${toolboardSettings.color === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`
-    ).join('') + '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
-
-    // Apply font settings
-    const fontCustomInput = document.getElementById('toolboardCustomFont');
-    if (fontFamilySelect) fontFamilySelect.value = toolboardSettings.fontFamily || '';
-    if (fontCustomInput) {
-        if (toolboardSettings.customFontName) {
-            fontCustomInput.value = toolboardSettings.customFontName;
-            loadGoogleFont(toolboardSettings.customFontName);
-            if (fontFamilySelect) fontFamilySelect.value = '';
-        } else {
-            fontCustomInput.value = '';
-        }
-    }
-    const fontSizeLabel = document.getElementById('toolboardFontSizeLabel');
-    if (fontSizeSelect) {
-        if (toolboardSettings.fontSize) {
-            fontSizeSelect.value = parseInt(toolboardSettings.fontSize);
-            if (fontSizeLabel) fontSizeLabel.textContent = toolboardSettings.fontSize;
-        } else {
-            fontSizeSelect.value = 12;
-            if (fontSizeLabel) fontSizeLabel.textContent = 'default';
-        }
-    }
+    if (toolboardSettings.customFontName) loadGoogleFont(toolboardSettings.customFontName);
 
     // Apply board-level fonts to toolboard
     if (toolboardSettings.fontFamily) {
@@ -6294,165 +6448,190 @@ function applyToolTextAlign(toolId) {
     }
 }
 
-function setupToolboardSettings() {
-    const settingsBtn = document.getElementById('toolboardSettingsBtn');
-    const settingsPanel = document.getElementById('toolboardSettings');
-    const titleInput = document.getElementById('toolboardTitleInput');
-    const colorPicker = document.getElementById('toolboardColorPicker');
-    const fontFamilySelect = document.getElementById('toolboardFontFamily');
-    const fontCustomInput = document.getElementById('toolboardCustomFont');
-    const fontSizeSelect = document.getElementById('toolboardFontSize');
-    const header = document.getElementById('mainHeader');
-    const title = document.getElementById('toolboardTitle');
-    const toolboard = document.getElementById('toolboard');
+// Board settings now live in the board menu and can target any board, not just the
+// open one. Writes go through readBoardJson/writeBoardJson so a board that isn't
+// loaded can still be edited.
+let boardSettingsOpenFor = null;
 
-    // Toggle settings panel
-    settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Close tool settings modal
-        document.getElementById('toolSettingsOverlay').classList.remove('open');
-        settingsPanel.classList.toggle('open');
+function getBoardSettings(boardId) {
+    return readBoardJson(boardId, 'toolboardSettings', { title: getBoardName(boardId), color: '#2c3e50' });
+}
+
+function updateBoardSetting(boardId, patch) {
+    const settings = getBoardSettings(boardId);
+    Object.assign(settings, patch);
+    writeBoardJson(boardId, 'toolboardSettings', settings);
+    if (boardId === currentBoardId) {
+        Object.assign(toolboardSettings, patch);
+        applyToolboardSettings();
+    }
+    updateBoardSelectorLabel();
+    refreshBoardRow(boardId);
+}
+
+// Repaint just the colour strip and emoji of one row, so editing settings doesn't
+// tear down the list (and any open rename input) underneath the user.
+function refreshBoardRow(boardId) {
+    if (boardId === currentBoardId) renderCurrentBoardRow();
+    const card = document.querySelector(`.board-card[data-board-id="${boardId}"]`);
+    if (!card) return;
+    const strip = card.querySelector('.board-card-color-strip');
+    const emojiEl = card.querySelector('.board-card-emoji');
+    const nameEl = card.querySelector('.board-card-name');
+    if (strip) strip.style.background = getBoardColor(boardId);
+    if (emojiEl) {
+        const favicon = getBoardFavicon(boardId);
+        emojiEl.innerHTML = '';
+        if (favicon) emojiEl.textContent = favicon;
+        else {
+            const ph = document.createElement('div');
+            ph.className = 'board-card-emoji-placeholder';
+            emojiEl.appendChild(ph);
+        }
+    }
+    if (nameEl) { nameEl.textContent = getBoardName(boardId); nameEl.title = getBoardName(boardId); }
+}
+
+function closeBoardSettingsDrawer() {
+    boardSettingsOpenFor = null;
+    const drawer = document.getElementById('boardSettingsDrawer');
+    if (drawer) { drawer.innerHTML = ''; drawer.classList.remove('open'); }
+    document.querySelectorAll('.board-card-settings-btn.active').forEach(b => b.classList.remove('active'));
+}
+
+function toggleBoardSettingsDrawer(boardId) {
+    if (boardSettingsOpenFor === boardId) { closeBoardSettingsDrawer(); return; }
+    renderBoardSettingsDrawer(boardId);
+}
+
+function renderBoardSettingsDrawer(boardId) {
+    const drawer = document.getElementById('boardSettingsDrawer');
+    if (!drawer) return;
+    boardSettingsOpenFor = boardId;
+    const s = getBoardSettings(boardId);
+
+    drawer.innerHTML =
+        '<label>Name</label>' +
+        '<input type="text" class="bs-name" value="' + escapeHtml(getBoardName(boardId)) + '" placeholder="Board name">' +
+        '<label>Header Color</label>' +
+        '<div class="color-picker-row bs-colors"></div>' +
+        '<label>Icon</label>' +
+        '<div class="bs-row">' +
+            '<input type="text" class="bs-favicon" maxlength="2" placeholder="Emoji…" value="' + escapeHtml(s.favicon || '') + '">' +
+            '<button class="bs-mini bs-favicon-pick" title="Pick from Emoji Tool">🎭</button>' +
+            '<button class="bs-mini bs-favicon-reset" title="Reset">↺</button>' +
+        '</div>' +
+        '<label>Board Font <a href="https://fonts.google.com" target="_blank" rel="noopener">Browse ↗</a></label>' +
+        '<select class="font-select bs-font"></select>' +
+        '<input type="text" class="font-custom-input bs-font-custom" placeholder="Or type any Google Font name..." spellcheck="false" value="' + escapeHtml(s.customFontName || '') + '">' +
+        '<label>Font Size</label>' +
+        '<div class="bs-row">' +
+            '<input type="range" class="bs-font-size" min="8" max="120" value="' + (parseInt(s.fontSize) || 12) + '">' +
+            '<span class="bs-font-size-label">' + (s.fontSize || 'default') + '</span>' +
+            '<button class="bs-mini bs-font-size-reset" title="Reset">↺</button>' +
+        '</div>';
+    drawer.classList.add('open');
+
+    document.querySelectorAll('.board-card-settings-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.boardId === boardId));
+
+    // Name
+    const nameInput = drawer.querySelector('.bs-name');
+    nameInput.addEventListener('input', (e) => {
+        if (setBoardName(boardId, e.target.value)) refreshBoardRow(boardId);
     });
 
-    // Title input
-    titleInput.addEventListener('input', (e) => {
-        toolboardSettings.title = e.target.value;
-        title.textContent = e.target.value;
-        saveToolboardSettings(toolboardSettings);
-        // Update board name to match toolboard title
-        renameBoardInSelector();
-    });
-
-    // Color picker
-    colorPicker.addEventListener('click', (e) => {
+    // Colour
+    const colors = drawer.querySelector('.bs-colors');
+    colors.innerHTML = DASHBOARD_COLORS.map(c =>
+        `<div class="color-swatch${s.color === c ? ' selected' : ''}" style="background: ${c}" data-color="${c}"></div>`
+    ).join('') + '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
+    colors.addEventListener('click', (e) => {
         if (!e.target.classList.contains('color-swatch')) return;
         if (e.target.classList.contains('swatch-custom')) {
             e.stopPropagation();
-            const originalColor = toolboardSettings.color;
+            const original = getBoardSettings(boardId).color;
             window._toolLink = {
                 type: 'color',
                 label: 'Board Header Color',
-                preview: (hex) => { header.style.background = hex; },
-                commit: (hex) => {
-                    toolboardSettings.color = hex;
-                    header.style.background = hex;
-                    saveToolboardSettings(toolboardSettings);
-                    colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                },
-                revert: () => { header.style.background = originalColor; },
+                preview: (hex) => { if (boardId === currentBoardId) document.getElementById('mainHeader').style.background = hex; },
+                commit: (hex) => { updateBoardSetting(boardId, { color: hex }); renderBoardSettingsDrawer(boardId); },
+                revert: () => { if (boardId === currentBoardId) document.getElementById('mainHeader').style.background = original; },
             };
             openToolPickerPopup(e.target, 'color');
             return;
         }
         const color = e.target.getAttribute('data-color');
-        toolboardSettings.color = color;
-        header.style.background = color;
-        colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        colors.querySelectorAll('.color-swatch').forEach(sw => sw.classList.remove('selected'));
         e.target.classList.add('selected');
-        saveToolboardSettings(toolboardSettings);
+        updateBoardSetting(boardId, { color: color });
     });
 
-    // Font family select
-    fontFamilySelect.addEventListener('change', (e) => {
-        fontCustomInput.value = '';
-        toolboardSettings.fontFamily = e.target.value;
-        toolboardSettings.customFontName = '';
-        if (e.target.value) {
-            toolboard.style.fontFamily = e.target.value;
-        } else {
-            toolboard.style.fontFamily = '';
-        }
-        saveToolboardSettings(toolboardSettings);
-        applyAllToolFonts();
-    });
-
-    // Custom font input
-    let boardFontDebounce;
-    fontCustomInput.addEventListener('input', (e) => {
-        clearTimeout(boardFontDebounce);
-        boardFontDebounce = setTimeout(() => {
-            const fontName = e.target.value.trim();
-            if (fontName) {
-                loadGoogleFont(fontName);
-                const fontValue = "'" + fontName + "', sans-serif";
-                fontFamilySelect.value = '';
-                toolboardSettings.fontFamily = fontValue;
-                toolboardSettings.customFontName = fontName;
-                toolboard.style.fontFamily = fontValue;
-            } else {
-                // Cleared: revert to dropdown selection
-                toolboardSettings.fontFamily = fontFamilySelect.value;
-                toolboardSettings.customFontName = '';
-                toolboard.style.fontFamily = fontFamilySelect.value || '';
-            }
-            saveToolboardSettings(toolboardSettings);
-            applyAllToolFonts();
-        }, 400);
-    });
-
-    // Font size slider
-    const fontSizeLabel = document.getElementById('toolboardFontSizeLabel');
-    const fontSizeReset = document.getElementById('toolboardFontSizeReset');
-    fontSizeSelect.addEventListener('input', (e) => {
-        const px = e.target.value + 'px';
-        if (fontSizeLabel) fontSizeLabel.textContent = px;
-        toolboardSettings.fontSize = px;
-        toolboard.style.fontSize = px;
-        saveToolboardSettings(toolboardSettings);
-        applyAllToolFonts();
-    });
-    if (fontSizeReset) fontSizeReset.addEventListener('click', () => {
-        toolboardSettings.fontSize = '';
-        toolboard.style.fontSize = '';
-        fontSizeSelect.value = 12;
-        if (fontSizeLabel) fontSizeLabel.textContent = 'default';
-        saveToolboardSettings(toolboardSettings);
-        applyAllToolFonts();
-    });
-
-    // Favicon input
-    const faviconInput = document.getElementById('toolboardFaviconInput');
-    const faviconReset = document.getElementById('toolboardFaviconReset');
-    const faviconLink = document.querySelector('link[rel="icon"]');
-    if (faviconInput) faviconInput.addEventListener('input', (e) => {
-        toolboardSettings.favicon = e.target.value;
-        saveToolboardSettings(toolboardSettings);
-        if (e.target.value) {
-            const emoji = encodeURIComponent(e.target.value);
-            faviconLink.setAttribute('href', `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="28">${emoji}</text></svg>`);
-        } else {
-            faviconLink.setAttribute('href', applyToolboardSettings._defaultFavicon);
-        }
-        updateBoardSelectorLabel();
-    });
-    if (faviconReset) faviconReset.addEventListener('click', () => {
+    // Icon
+    const faviconInput = drawer.querySelector('.bs-favicon');
+    faviconInput.addEventListener('input', (e) => updateBoardSetting(boardId, { favicon: e.target.value }));
+    drawer.querySelector('.bs-favicon-reset').addEventListener('click', () => {
         faviconInput.value = '';
-        toolboardSettings.favicon = '';
-        saveToolboardSettings(toolboardSettings);
-        faviconLink.setAttribute('href', applyToolboardSettings._defaultFavicon);
-        updateBoardSelectorLabel();
+        updateBoardSetting(boardId, { favicon: '' });
     });
-    const faviconPick = document.getElementById('toolboardFaviconPick');
-    if (faviconPick) faviconPick.addEventListener('click', (e) => {
+    drawer.querySelector('.bs-favicon-pick').addEventListener('click', (e) => {
         e.stopPropagation();
         window._toolLink = {
             type: 'emoji',
             label: 'Board Icon',
             apply: (emoji) => {
                 faviconInput.value = emoji;
-                faviconInput.dispatchEvent(new Event('input'));
+                updateBoardSetting(boardId, { favicon: emoji });
                 window._toolLink = null;
                 closeToolPickerPopup();
             },
         };
-        openToolPickerPopup(faviconPick, 'emoji');
+        openToolPickerPopup(e.target, 'emoji');
     });
 
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.toolboard-settings') && !e.target.closest('#toolboardSettingsBtn') && !e.target.closest('#toolPickerPopup')) {
-            settingsPanel.classList.remove('open');
-        }
+    // Font family — reuse the option list from the tool settings select
+    const fontSelect = drawer.querySelector('.bs-font');
+    const templateSelect = document.getElementById('toolSettingsFontFamily');
+    fontSelect.innerHTML = templateSelect
+        ? templateSelect.innerHTML.replace('Use Board Default', 'Use Default')
+        : '<option value="">Use Default</option>';
+    fontSelect.value = s.customFontName ? '' : (s.fontFamily || '');
+    fontSelect.addEventListener('change', (e) => {
+        drawer.querySelector('.bs-font-custom').value = '';
+        updateBoardSetting(boardId, { fontFamily: e.target.value, customFontName: '' });
+        applyAllToolFonts();
+    });
+
+    let fontDebounce;
+    drawer.querySelector('.bs-font-custom').addEventListener('input', (e) => {
+        clearTimeout(fontDebounce);
+        const name = e.target.value.trim();
+        fontDebounce = setTimeout(() => {
+            if (name) {
+                loadGoogleFont(name);
+                fontSelect.value = '';
+                updateBoardSetting(boardId, { fontFamily: "'" + name + "', sans-serif", customFontName: name });
+            } else {
+                updateBoardSetting(boardId, { fontFamily: fontSelect.value, customFontName: '' });
+            }
+            applyAllToolFonts();
+        }, 400);
+    });
+
+    // Font size
+    const sizeInput = drawer.querySelector('.bs-font-size');
+    const sizeLabel = drawer.querySelector('.bs-font-size-label');
+    sizeInput.addEventListener('input', (e) => {
+        const px = e.target.value + 'px';
+        sizeLabel.textContent = px;
+        updateBoardSetting(boardId, { fontSize: px });
+        applyAllToolFonts();
+    });
+    drawer.querySelector('.bs-font-size-reset').addEventListener('click', () => {
+        sizeInput.value = 12;
+        sizeLabel.textContent = 'default';
+        updateBoardSetting(boardId, { fontSize: '' });
+        applyAllToolFonts();
     });
 }
 
@@ -6792,6 +6971,16 @@ function setupDragging() {
         dragState.offsetX = tool.offsetLeft;
         dragState.offsetY = tool.offsetTop;
 
+        // If this tool is part of a multi-selection, carry the rest along with it.
+        dragState.group = [];
+        if (selectedToolIds.size > 1 && selectedToolIds.has(toolId)) {
+            selectedToolIds.forEach(id => {
+                if (id === toolId) return;
+                const el = document.querySelector(`[data-tool="${id}"]`);
+                if (el) dragState.group.push({ el: el, startLeft: el.offsetLeft, startTop: el.offsetTop });
+            });
+        }
+
         tool.classList.add('dragging');
         document.body.classList.add('is-dragging');
     }
@@ -6835,6 +7024,16 @@ function setupDragging() {
 
         dragState.tool.style.left = newX + 'px';
         dragState.tool.style.top = newY + 'px';
+
+        // Shift the rest of the selection by the same delta the lead tool actually moved.
+        if (dragState.group && dragState.group.length) {
+            const movedX = newX - dragState.offsetX;
+            const movedY = newY - dragState.offsetY;
+            dragState.group.forEach(m => {
+                m.el.style.left = Math.max(0, m.startLeft + movedX) + 'px';
+                m.el.style.top = Math.max(0, m.startTop + movedY) + 'px';
+            });
+        }
     }
 
     // Mouse/touch move updates position with snapping
@@ -6858,12 +7057,28 @@ function setupDragging() {
             height: existing.height || tool.offsetHeight,
             rotation: existing.rotation || 0
         };
+        // Persist everything that moved with it
+        if (dragState.group && dragState.group.length) {
+            dragState.group.forEach(m => {
+                const id = m.el.getAttribute('data-tool');
+                const prev = positions[id] || {};
+                positions[id] = {
+                    x: m.el.offsetLeft,
+                    y: m.el.offsetTop,
+                    z: parseInt(m.el.style.zIndex) || prev.z || 1,
+                    width: prev.width || m.el.offsetWidth,
+                    height: prev.height || m.el.offsetHeight,
+                    rotation: prev.rotation || 0
+                };
+            });
+        }
         savePositions(positions);
 
         tool.classList.remove('dragging');
         document.body.classList.remove('is-dragging');
         dragState.isDragging = false;
         dragState.tool= null;
+        dragState.group = [];
 
         // Hide snap guides
         updateSnapGuides([]);
@@ -7207,6 +7422,12 @@ function autoResizeTool(tool, handleType) {
         tool.style.width = 'auto';
         content.style.overflow = 'visible';
     }
+    // Release the height too, the way autoFitToolContent does. Without this, any
+    // widget that stretches to fill (flex: 1) just reports the height it already has,
+    // so auto-height became a no-op for them.
+    if (autoHeight && !hasCropRatio) {
+        tool.style.height = 'auto';
+    }
 
     // Force reflow
     tool.offsetHeight;
@@ -7234,13 +7455,9 @@ function autoResizeTool(tool, handleType) {
             newHeight = Math.round(Math.max(100, Math.min(1200, targetW / cropRatio + headerH + controlsH)));
         } else {
             const isFrameless = tool.classList.contains('frameless');
-            // Measure the first child directly — it's a block element whose height is never
-            // distorted by the flex-stretch on tool-content. Fall back to scrollHeight for
-            // frameless / unknown layouts.
-            const innerEl = content.firstElementChild;
-            const naturalH = innerEl
-                ? innerEl.offsetHeight + (isFrameless ? 0 : 30)
-                : content.scrollHeight;
+            // The height was released above, so the content box now reports its true
+            // natural height (padding included) whether the widget stretches or not.
+            const naturalH = content.scrollHeight;
             newHeight = Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8)));
         }
     }
@@ -7888,22 +8105,12 @@ function instantiateBoardTemplate(boardId) {
 }
 
 // Plugin Settings UI
+// Plugins are app-level, not board-level, so the entry point lives in the header's
+// page section alongside search / theme / import-export — not in the board menu.
 function setupPluginSettings() {
-    // Plugin settings will be accessible via the toolboard settings panel
-    // Add a "Manage Plugins" button
-    const settingsPanel = document.getElementById('toolboardSettings');
-    if (!settingsPanel) return;
-
-    // Check if button already exists
-    if (document.getElementById('managePluginsBtn')) return;
-
-    const pluginBtn = document.createElement('button');
-    pluginBtn.id = 'managePluginsBtn';
-    pluginBtn.textContent = 'Manage Plugins';
-    pluginBtn.className = 'plugin-manage-btn';
-    pluginBtn.style.cssText = 'margin-top: 15px; padding: 8px 12px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;';
+    const pluginBtn = document.getElementById('managePluginsBtn');
+    if (!pluginBtn) return;
     pluginBtn.onclick = openPluginSettingsModal;
-    settingsPanel.appendChild(pluginBtn);
 }
 
 const OFFICIAL_PLUGINS = [
@@ -8568,7 +8775,7 @@ function downloadJSON(data, filename) {
 
 function exportBoardAsHTML() {
     // Get current board data
-    const boardTitle = document.getElementById('toolboardTitle').textContent || 'toolboard';
+    const boardTitle = getBoardName(currentBoardId) || 'toolboard';
     const safeTitle = boardTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase();
 
     // Collect all tool template IDs used in the current board
@@ -8606,24 +8813,13 @@ function exportBoardAsHTML() {
     const existingEmbed = document.getElementById('embedded-board-data');
     if (existingEmbed) existingEmbed.remove();
 
-    // Remove plugin-injected scripts before capturing (they cause issues in exported HTML)
-    // The exported HTML uses embedded plugin data instead
-    const devScripts = document.getElementById('developer-tools-scripts');
-    const finScripts = document.getElementById('finance-tools-scripts');
-    const prodScripts = document.getElementById('productivity-tools-scripts');
-    const coreScripts = document.getElementById('core-tools-scripts');
-    if (devScripts) devScripts.remove();
-    if (finScripts) finScripts.remove();
-    if (prodScripts) prodScripts.remove();
-    if (coreScripts) coreScripts.remove();
+    // Keep the plugin-injected script bundles: embedded plugin data only carries tool
+    // metadata (content HTML, onInit name), never the functions, and the exported file
+    // cannot reach the original plugin .js files. Stripping these left every tool from
+    // core/developer/finance/productivity inert in exported boards.
 
     // Get the full HTML of the current document
     const originalHTML = document.documentElement.outerHTML;
-
-    // Re-inject the scripts so they work on the current page after export
-    if (typeof injectScriptsForExport === 'undefined') {
-        // Scripts were removed; they'll be re-injected when plugins reload if needed
-    }
 
     // Reopen modal briefly so user sees it close after download
     modal.classList.add('open');
@@ -8665,8 +8861,11 @@ function exportBoardAsHTML() {
         '        localStorage.setItem("finance_default_customTools", JSON.stringify(data.customTools));\n' +
         '        localStorage.setItem("finance_default_hiddenTools", JSON.stringify(data.hiddenTools));\n' +
         '        localStorage.setItem("finance_default_toolboardSettings", JSON.stringify(data.toolboardSettings));\n' +
-        '        // Clear plugin URLs so exported HTML does not try to load external files\n' +
-        '        localStorage.removeItem("toolboard_pluginUrls");\n' +
+        '        // Do NOT clear toolboard_pluginUrls here. file:// pages share one\n' +
+        '        // localStorage, so an exported board opened from disk would disable the\n' +
+        '        // plugins of the live app too. It is also unnecessary: exported files set\n' +
+        '        // window.TOOLBOARD_EMBEDDED, and PluginLoader.getPluginUrls() already\n' +
+        '        // returns [] in that case, so no external plugin is ever fetched.\n' +
         '        dataScript.remove();\n' +
         '    } catch (e) { console.error("Failed to import embedded board data:", e); }\n' +
         '})();\n' +
@@ -8714,24 +8913,69 @@ function exportBoardAsPNG() {
     }
 }
 
+// Stamps "toolboard.me" into the bottom-right of an exported canvas. No backing
+// box — an outline in the opposite tone carries the contrast, so it stays readable
+// on a light or dark board without blocking anything behind it.
+function drawWatermark(canvas, scale) {
+    const ctx = canvas.getContext('2d');
+    const s = scale || 1;
+    const w = canvas.width / s;
+    const h = canvas.height / s;
+    const dark = document.body.classList.contains('dark-mode');
+
+    ctx.save();
+    // html2canvas hands back a context that still carries its own scale transform;
+    // without this reset the scale below compounds and the text lands off-canvas.
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(s, s);
+    ctx.font = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = dark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.8)';
+    ctx.strokeText('toolboard.me', w - 14, h - 12);
+    ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)';
+    ctx.fillText('toolboard.me', w - 14, h - 12);
+    ctx.restore();
+}
+
 function captureAndDownloadPNG() {
-    const boardTitle = document.getElementById('toolboardTitle').textContent || 'toolboard';
+    const boardTitle = getBoardName(currentBoardId) || 'toolboard';
     const safeTitle = boardTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase();
 
     // Close modal first so it's not in the screenshot
     document.getElementById('importExportModal').classList.remove('open');
 
+    // Selection outlines are editing chrome, not board content — drop them for the
+    // capture and put them back afterwards.
+    const restoreSelection = [...selectedToolIds];
+    document.querySelectorAll('.tool.selected').forEach(el => el.classList.remove('selected'));
+    closeBoardContextMenu();
+
     // Small delay to let the modal close
     setTimeout(() => {
-        // Capture the entire page
-        html2canvas(document.body, {
+        // Capture the board only, so the app header bar stays out of the image
+        const board = document.getElementById('toolboard');
+        html2canvas(board, {
             backgroundColor: getComputedStyle(document.body).backgroundColor || '#1a1a2e',
             scale: 2, // Higher quality
             useCORS: true,
             logging: false,
+            width: board.scrollWidth,
+            height: board.scrollHeight,
             windowWidth: document.documentElement.scrollWidth,
-            windowHeight: document.documentElement.scrollHeight
+            windowHeight: document.documentElement.scrollHeight,
+            ignoreElements: (el) => el.classList && (
+                el.classList.contains('snap-guide') ||
+                el.classList.contains('tool-marquee') ||
+                el.classList.contains('resize-handle') ||
+                el.classList.contains('board-context-menu') ||
+                el.classList.contains('tool-toast')
+            )
         }).then(canvas => {
+            drawWatermark(canvas, 2);
             // Download the image
             const link = document.createElement('a');
             link.download = `${safeTitle}-${getTimestamp()}.png`;
@@ -8740,6 +8984,8 @@ function captureAndDownloadPNG() {
         }).catch(err => {
             console.error('PNG export error:', err);
             alert('Failed to export as PNG. Please try again.');
+        }).finally(() => {
+            if (restoreSelection.length) setToolSelection(restoreSelection);
         });
     }, 100);
 }
@@ -9012,6 +9258,350 @@ function duplicateTool(toolId) {
     }
 }
 
+// ============================================================
+// Tool selection + copy/cut/paste between boards
+// ============================================================
+
+let selectedToolIds = new Set();
+let marqueeState = { active: false, startX: 0, startY: 0, el: null, additive: false };
+const TOOL_CLIPBOARD_KEY = 'toolboard_toolClipboard';
+
+function closeBoardContextMenu() {
+    document.querySelectorAll('.board-context-menu').forEach(m => m.remove());
+}
+
+function showToolToast(message) {
+    let toast = document.querySelector('.tool-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'tool-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    requestAnimationFrame(() => toast.classList.add('show'));
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+function updateToolSelectionStyles() {
+    document.querySelectorAll('.tool').forEach(el => {
+        el.classList.toggle('selected', selectedToolIds.has(el.getAttribute('data-tool')));
+    });
+}
+
+function setToolSelection(ids) {
+    selectedToolIds = new Set(ids);
+    updateToolSelectionStyles();
+}
+
+function clearToolSelection() {
+    if (!selectedToolIds.size) return;
+    selectedToolIds.clear();
+    updateToolSelectionStyles();
+}
+
+function toggleToolSelected(toolId) {
+    if (selectedToolIds.has(toolId)) selectedToolIds.delete(toolId);
+    else selectedToolIds.add(toolId);
+    updateToolSelectionStyles();
+}
+
+// --- storage for a board that may not be the one currently open ---
+
+function boardScopedKey(boardId, key) {
+    return `finance_${boardId}_${key}`;
+}
+
+function readBoardJson(boardId, key, fallback) {
+    try {
+        const raw = localStorage.getItem(boardScopedKey(boardId, key));
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+        return fallback;
+    }
+}
+
+function writeBoardJson(boardId, key, value) {
+    localStorage.setItem(boardScopedKey(boardId, key), JSON.stringify(value));
+}
+
+// Drop tools from a board. Works whether or not that board is the open one.
+function removeToolsFromBoard(boardId, toolIds) {
+    if (boardId === currentBoardId) {
+        customTools = customTools.filter(id => !toolIds.includes(id));
+        saveCustomTools(customTools);
+        toolIds.forEach(id => { delete toolCustomizations[id]; delete positions[id]; });
+        saveToolCustomizations(toolCustomizations);
+        savePositions(positions);
+        toolIds.forEach(id => {
+            const el = document.querySelector(`[data-tool="${id}"]`);
+            if (el) el.remove();
+        });
+        return;
+    }
+    const tools = readBoardJson(boardId, 'customTools', []);
+    const customs = readBoardJson(boardId, 'toolCustomizations', {});
+    const pos = readBoardJson(boardId, 'positions', {});
+    writeBoardJson(boardId, 'customTools', tools.filter(id => !toolIds.includes(id)));
+    toolIds.forEach(id => { delete customs[id]; delete pos[id]; });
+    writeBoardJson(boardId, 'toolCustomizations', customs);
+    writeBoardJson(boardId, 'positions', pos);
+}
+
+// --- clipboard ---
+
+function copySelectedTools(op) {
+    return copyToolsToClipboard([...selectedToolIds], op);
+}
+
+// The menu acts on the whole selection when the clicked tool is part of it, and on
+// just that tool otherwise — which is what right-click menus normally do.
+function clipboardTargetIds(toolId) {
+    if (selectedToolIds.size && selectedToolIds.has(toolId)) return [...selectedToolIds];
+    return toolId ? [toolId] : [];
+}
+
+function copyToolsToClipboard(idList, op) {
+    const ids = idList.filter(id => document.querySelector(`[data-tool="${id}"]`));
+    if (!ids.length) return false;
+
+    const payload = {
+        op: op,
+        sourceBoardId: currentBoardId,
+        copiedAt: Date.now(),
+        tools: ids.map(id => ({
+            id: id,
+            custom: JSON.parse(JSON.stringify(toolCustomizations[id] || {})),
+            position: JSON.parse(JSON.stringify(positions[id] || { x: 40, y: 40, z: 1 }))
+        }))
+    };
+    localStorage.setItem(TOOL_CLIPBOARD_KEY, JSON.stringify(payload));
+    showToolToast((op === 'cut' ? 'Cut ' : 'Copied ') + ids.length + (ids.length === 1 ? ' tool' : ' tools'));
+    return true;
+}
+
+// Refresh the copy/cut/paste entries in whichever menu is opening, so the labels
+// say how many tools are actually involved.
+function refreshClipboardMenuLabels(toolId) {
+    const clip = readToolClipboard();
+    const clipCount = clip ? clip.tools.length : 0;
+    const plural = n => n + (n === 1 ? ' Tool' : ' Tools');
+
+    const copyBtn = document.getElementById('toolSettingsCopyBtn');
+    const cutBtn = document.getElementById('toolSettingsCutBtn');
+    if (copyBtn && cutBtn) {
+        const n = clipboardTargetIds(toolId).length;
+        copyBtn.textContent = 'Copy ' + plural(n);
+        cutBtn.textContent = 'Cut ' + plural(n);
+        copyBtn.disabled = cutBtn.disabled = n === 0;
+    }
+    [document.getElementById('toolSettingsPasteBtn')]
+        .forEach(btn => {
+            if (!btn) return;
+            btn.textContent = clipCount ? 'Paste ' + plural(clipCount) : 'Paste Tools';
+            btn.disabled = clipCount === 0;
+            btn.title = clipCount ? 'Paste onto this board' : 'Nothing copied yet';
+        });
+}
+
+function readToolClipboard() {
+    try {
+        const raw = localStorage.getItem(TOOL_CLIPBOARD_KEY);
+        const data = raw ? JSON.parse(raw) : null;
+        return (data && Array.isArray(data.tools) && data.tools.length) ? data : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function pasteTools() {
+    const clip = readToolClipboard();
+    if (!clip) return false;
+
+    // Pasting back into the source board would stack copies exactly on top of the
+    // originals, so nudge them the way duplicateTool does.
+    const sameBoard = clip.sourceBoardId === currentBoardId;
+    const offset = sameBoard ? 30 : 0;
+    const newIds = [];
+
+    clip.tools.forEach(entry => {
+        // Always mint a fresh id: ids are board-scoped, so this sidesteps collisions
+        // entirely and keeps a paste into the source board working as a duplicate.
+        const newId = 'tool_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        newIds.push(newId);
+
+        customTools.push(newId);
+        toolCustomizations[newId] = JSON.parse(JSON.stringify(entry.custom || {}));
+        const p = entry.position || {};
+        positions[newId] = {
+            x: Math.max(0, (p.x || 40) + offset),
+            y: Math.max(0, (p.y || 40) + offset),
+            z: ++maxZ,
+            width: p.width,
+            height: p.height,
+            rotation: p.rotation || 0
+        };
+    });
+
+    saveCustomTools(customTools);
+    saveToolCustomizations(toolCustomizations);
+    savePositions(positions);
+
+    const toolboard = document.getElementById('toolboard');
+    newIds.forEach(id => {
+        const el = createTool(id);
+        if (el) toolboard.appendChild(el);
+    });
+    initializeCalculators();
+
+    // A cut is only destructive once the paste has actually landed.
+    if (clip.op === 'cut') {
+        removeToolsFromBoard(clip.sourceBoardId, clip.tools.map(t => t.id));
+        // Further pastes should duplicate, not delete the (now gone) originals again.
+        clip.op = 'copy';
+        localStorage.setItem(TOOL_CLIPBOARD_KEY, JSON.stringify(clip));
+    }
+
+    setToolSelection(newIds);
+    showToolToast('Pasted ' + newIds.length + (newIds.length === 1 ? ' tool' : ' tools'));
+    return true;
+}
+
+// --- selection interactions ---
+
+function setupToolSelection() {
+    const toolboard = document.getElementById('toolboard');
+
+    // Header mousedown: modifier toggles membership, plain click selects just this one.
+    // Runs in the capture phase so it settles the selection before startDrag reads it.
+    toolboard.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        const header = e.target.closest('.tool-header');
+        if (!header || e.target.closest('.header-btn')) return;
+        const tool = header.closest('.tool');
+        if (!tool) return;
+        const toolId = tool.getAttribute('data-tool');
+
+        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            toggleToolSelected(toolId);
+            e.stopPropagation();   // don't start a drag on a modifier-click
+            e.preventDefault();
+            return;
+        }
+        if (!selectedToolIds.has(toolId)) setToolSelection([toolId]);
+    }, true);
+
+    // Marquee on empty board background
+    toolboard.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        if (e.target.closest('.tool')) return;
+        if (toolboard.classList.contains('mobile-layout')) return;
+
+        marqueeState.active = true;
+        marqueeState.additive = e.shiftKey || e.metaKey || e.ctrlKey;
+        const rect = toolboard.getBoundingClientRect();
+        marqueeState.startX = e.clientX - rect.left + toolboard.scrollLeft;
+        marqueeState.startY = e.clientY - rect.top + toolboard.scrollTop;
+        marqueeState.el = null;
+        if (!marqueeState.additive) clearToolSelection();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!marqueeState.active) return;
+        const rect = toolboard.getBoundingClientRect();
+        const x = e.clientX - rect.left + toolboard.scrollLeft;
+        const y = e.clientY - rect.top + toolboard.scrollTop;
+        const left = Math.min(x, marqueeState.startX);
+        const top = Math.min(y, marqueeState.startY);
+        const w = Math.abs(x - marqueeState.startX);
+        const h = Math.abs(y - marqueeState.startY);
+
+        // Only materialise the box once it's an actual drag, so a plain background
+        // click stays a click.
+        if (!marqueeState.el) {
+            if (w < 4 && h < 4) return;
+            marqueeState.el = document.createElement('div');
+            marqueeState.el.className = 'tool-marquee';
+            toolboard.appendChild(marqueeState.el);
+        }
+        Object.assign(marqueeState.el.style,
+            { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
+
+        const box = { left: left, top: top, right: left + w, bottom: top + h };
+        const base = marqueeState.additive ? new Set(selectedToolIds) : new Set();
+        document.querySelectorAll('.tool').forEach(el => {
+            const tl = el.offsetLeft, tt = el.offsetTop;
+            const hit = tl < box.right && tl + el.offsetWidth > box.left &&
+                        tt < box.bottom && tt + el.offsetHeight > box.top;
+            if (hit) base.add(el.getAttribute('data-tool'));
+        });
+        setToolSelection(base);
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!marqueeState.active) return;
+        marqueeState.active = false;
+        if (marqueeState.el) {
+            marqueeState.el.remove();
+            marqueeState.el = null;
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && selectedToolIds.size && !document.querySelector('.modal.open')) {
+            clearToolSelection();
+        }
+    });
+
+    // Right-click the empty board to paste — the only place Paste makes sense when
+    // no tool is under the cursor.
+    toolboard.addEventListener('contextmenu', (e) => {
+        if (e.target.closest('.tool')) return;
+        e.preventDefault();
+        closeBoardContextMenu();
+        const clip = readToolClipboard();
+
+        const menu = document.createElement('div');
+        menu.className = 'board-context-menu';
+        const item = document.createElement('button');
+        const n = clip ? clip.tools.length : 0;
+        item.textContent = n ? 'Paste ' + n + (n === 1 ? ' Tool' : ' Tools') : 'Paste Tools';
+        item.disabled = !n;
+        item.onclick = () => { closeBoardContextMenu(); pasteTools(); };
+        menu.appendChild(item);
+
+        menu.style.left = e.clientX + 'px';
+        menu.style.top = e.clientY + 'px';
+        document.body.appendChild(menu);
+    });
+
+    document.addEventListener('mousedown', (e) => {
+        if (!e.target.closest('.board-context-menu')) closeBoardContextMenu();
+    });
+
+    // Copy / cut / paste tools. Deliberately yields to normal text editing: if the
+    // caret is in a field or the user has highlighted text, the browser's own
+    // clipboard behaviour wins.
+    document.addEventListener('keydown', (e) => {
+        if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+        const key = (e.key || '').toLowerCase();
+        if (key !== 'c' && key !== 'x' && key !== 'v') return;
+
+        const el = document.activeElement;
+        const inTextField = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+        if (inTextField) return;
+        if (key !== 'v' && String(window.getSelection() || '').length) return;
+        if (document.querySelector('.modal.open')) return;
+
+        if (key === 'v') {
+            if (readToolClipboard() && pasteTools()) e.preventDefault();
+            return;
+        }
+        if (!selectedToolIds.size) return;
+        if (copySelectedTools(key === 'x' ? 'cut' : 'copy')) e.preventDefault();
+    });
+}
+
 // Export a tool as HTML file
 function exportToolAsHtml(toolId) {
     const custom = toolCustomizations[toolId] || {};
@@ -9192,8 +9782,11 @@ function exportToolAsFullHtml(toolId, title) {
         '        localStorage.setItem("finance_default_customTools", JSON.stringify(data.customTools));\n' +
         '        localStorage.setItem("finance_default_hiddenTools", JSON.stringify(data.hiddenTools));\n' +
         '        localStorage.setItem("finance_default_toolboardSettings", JSON.stringify(data.toolboardSettings));\n' +
-        '        // Clear plugin URLs so exported HTML does not try to load external files\n' +
-        '        localStorage.removeItem("toolboard_pluginUrls");\n' +
+        '        // Do NOT clear toolboard_pluginUrls here. file:// pages share one\n' +
+        '        // localStorage, so an exported board opened from disk would disable the\n' +
+        '        // plugins of the live app too. It is also unnecessary: exported files set\n' +
+        '        // window.TOOLBOARD_EMBEDDED, and PluginLoader.getPluginUrls() already\n' +
+        '        // returns [] in that case, so no external plugin is ever fetched.\n' +
         '        dataScript.remove();\n' +
         '    } catch (e) { console.error("Failed to import embedded tool data:", e); }\n' +
         '})();\n' +
@@ -9344,13 +9937,54 @@ function openBoardManager() {
     const overlay = document.getElementById('boardManagerOverlay');
     const search = document.getElementById('boardManagerSearch');
     if (search) search.value = '';
+    closeBoardSettingsDrawer();
+    renderCurrentBoardRow();
     renderBoardList();
     overlay.classList.add('open');
     if (search) setTimeout(() => search.focus(), 50);
 }
 
 function closeBoardManager() {
+    closeBoardSettingsDrawer();
     document.getElementById('boardManagerOverlay').classList.remove('open');
+}
+
+// The board you're on, pinned above the list, with the same settings toggle the
+// rows use — so "change this board" is the first thing in the menu.
+function renderCurrentBoardRow() {
+    const el = document.getElementById('boardManagerCurrent');
+    if (!el) return;
+    const favicon = getBoardFavicon(currentBoardId);
+    el.innerHTML = '';
+
+    const strip = document.createElement('div');
+    strip.className = 'board-card-color-strip';
+    strip.style.background = getBoardColor(currentBoardId);
+
+    const emoji = document.createElement('div');
+    emoji.className = 'board-card-emoji';
+    emoji.textContent = favicon || '';
+
+    const name = document.createElement('div');
+    name.className = 'board-manager-current-name';
+    name.textContent = getBoardName(currentBoardId);
+
+    const hint = document.createElement('span');
+    hint.className = 'board-manager-current-hint';
+    hint.textContent = 'current board';
+
+    const gear = document.createElement('button');
+    gear.className = 'board-card-settings-btn' + (boardSettingsOpenFor === currentBoardId ? ' active' : '');
+    gear.dataset.boardId = currentBoardId;
+    gear.title = 'Board settings';
+    gear.textContent = '⚙';
+    gear.onclick = (e) => { e.stopPropagation(); toggleBoardSettingsDrawer(currentBoardId); };
+
+    el.appendChild(strip);
+    el.appendChild(emoji);
+    el.appendChild(name);
+    el.appendChild(hint);
+    el.appendChild(gear);
 }
 
 function renderBoardList(filter) {
@@ -9404,6 +10038,13 @@ function renderBoardList(filter) {
         renameBtn.textContent = '\u270E';
         renameBtn.onclick = (e) => { e.stopPropagation(); startInlineRename(card, board); };
 
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'board-card-settings-btn' + (boardSettingsOpenFor === board.id ? ' active' : '');
+        settingsBtn.dataset.boardId = board.id;
+        settingsBtn.title = 'Board settings';
+        settingsBtn.textContent = '\u2699';
+        settingsBtn.onclick = (e) => { e.stopPropagation(); toggleBoardSettingsDrawer(board.id); };
+
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'board-manager-delete-btn';
         deleteBtn.title = 'Delete';
@@ -9413,6 +10054,7 @@ function renderBoardList(filter) {
         deleteBtn.onclick = (e) => { e.stopPropagation(); showDeleteConfirmation(card, board); };
 
         actions.appendChild(renameBtn);
+        actions.appendChild(settingsBtn);
         actions.appendChild(deleteBtn);
 
         card.appendChild(colorStrip);
@@ -9424,6 +10066,7 @@ function renderBoardList(filter) {
             if (board.id !== currentBoardId) switchToBoard(board.id);
             closeBoardManager();
         };
+
 
         card.onkeydown = (e) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
@@ -9455,25 +10098,20 @@ function startInlineRename(card, board) {
     input.focus();
     input.select();
 
+    // Enter commits and detaches the input, which then fires blur — so both paths
+    // have to be safe to run twice.
+    let finished = false;
+
     const commit = () => {
-        const newName = input.value.trim();
-        if (newName && newName !== board.name) {
-            board.name = newName;
-            saveBoards(boards);
-            if (board.id === currentBoardId) {
-                toolboardSettings.title = newName;
-                localStorage.setItem(boardKey('toolboardSettings'), JSON.stringify(toolboardSettings));
-                document.getElementById('toolboardTitle').textContent = newName;
-                document.getElementById('toolboardTitleInput').value = newName;
-                document.title = newName + ' - Toolboard';
-                updateBoardSelectorLabel();
-            }
-        }
+        if (finished) return;
+        setBoardName(board.id, input.value);
         cleanup();
     };
 
     const cleanup = () => {
-        if (wrap.parentNode) wrap.remove();
+        if (finished) return;
+        finished = true;
+        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
         nameEl.style.display = '';
         nameEl.textContent = board.name;
         nameEl.title = board.name;
@@ -9617,6 +10255,10 @@ function switchToBoard(boardId) {
         history.replaceState(null, '', '#' + hash);
     }
 
+    // Selection and any open board menu belong to the board we just left
+    clearToolSelection();
+    closeBoardManager();
+
     // Update UI
     updateBoardSelectorLabel();
     applyToolboardSettings();
@@ -9634,15 +10276,6 @@ function switchToBoardByHash() {
 
 function deleteCurrentBoard() {
     deleteBoard(currentBoardId);
-}
-
-function renameBoardInSelector() {
-    const currentBoard = boards.find(b => b.id === currentBoardId);
-    if (currentBoard && toolboardSettings.title !== currentBoard.name) {
-        currentBoard.name = toolboardSettings.title;
-        saveBoards(boards);
-        updateBoardSelectorLabel();
-    }
 }
 
 function setupBoardManager() {

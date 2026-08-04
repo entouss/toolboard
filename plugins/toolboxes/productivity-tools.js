@@ -1668,6 +1668,71 @@
 .bnoise-status { font-size: 11px; color: var(--text-muted); text-align: center; min-height: 16px; }
 .bnoise-status.playing { color: #8e44ad; font-weight: 600; }
 
+/* Recipe Widget Styles */
+.tool-content:has(.rcp-widget) { display: flex; flex-direction: column; }
+/* --rcp-accent tints the widget's own chrome (active mode button, focus ring).
+   --rcp-border is the table rule colour, kept neutral so the recipe reads as a
+   document rather than a branded widget.
+   font-size is inherited, not fixed, so per-tool and per-board font settings reach
+   the table instead of being overridden here. */
+.rcp-widget { --rcp-accent: #2e7d32; --rcp-border: #4a4a4a; position: relative; padding: 10px; font-size: inherit; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+body.dark-mode .rcp-widget { --rcp-accent: #5cb860; --rcp-border: #8b9096; }
+.rcp-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap; }
+.rcp-mode-toggle { display: flex; gap: 0; }
+.rcp-mode-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; }
+.rcp-mode-btn:first-child { border-radius: 4px 0 0 4px; }
+.rcp-mode-btn:last-child { border-radius: 0 4px 4px 0; }
+.rcp-mode-btn.active { background: var(--rcp-accent); color: #fff; border-color: var(--rcp-accent); }
+.rcp-toolbar-spacer { flex: 1; }
+.rcp-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+.rcp-btn:hover { background: var(--table-hover); }
+.rcp-edit-container, .rcp-view-container { flex: 1; display: none; min-height: 0; flex-direction: column; }
+.rcp-edit-container.active, .rcp-view-container.active { display: flex; }
+.rcp-split-container { flex: 1; display: none; gap: 10px; min-height: 0; }
+.rcp-split-container.active { display: flex; }
+.rcp-edit-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.rcp-widget textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.5; tab-size: 4; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
+.rcp-widget textarea:focus { outline: none; border-color: var(--rcp-accent); }
+.rcp-view-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: transparent; overflow: auto; }
+.rcp-split-resizer { width: 6px; background: var(--border-color); cursor: col-resize; border-radius: 3px; flex-shrink: 0; }
+.rcp-split-resizer:hover { background: var(--rcp-accent); }
+.rcp-output { flex: 1; padding: 10px; overflow: auto; }
+/* Natural width, never wider than the pane. A percentage width here would make the
+   table stretch to fill any measuring container and break double-click auto-resize. */
+.rcp-table { border-collapse: collapse; width: auto; max-width: 100%; background: transparent; table-layout: auto; font-size: inherit; }
+/* The app zebra-stripes and hover-highlights every table. Both fight this layout,
+   where a single operation cell spans rows that would otherwise alternate — so give
+   the cells their own background and opt the rows out. */
+.rcp-table tr:nth-child(even), .rcp-table tr:hover { background: transparent; }
+.rcp-table td { border: 1px solid var(--rcp-border); padding: 5px 8px; color: inherit; vertical-align: middle; line-height: 1.35; background: transparent; }
+.rcp-table td.rcp-title { text-align: center; font-weight: 700; font-size: 1.1em; }
+.rcp-table td.rcp-prep { text-align: center; }
+/* Ingredients take the slack; operation columns shrink to their text so long step
+   descriptions wrap into a narrow column, as in the reference layout. */
+.rcp-table td.rcp-ingredient { text-align: left; width: 99%; overflow-wrap: break-word; }
+.rcp-table td.rcp-op { text-align: center; width: 1%; }
+.rcp-table td.rcp-empty { border: 1px solid var(--rcp-border); }
+.rcp-placeholder { color: var(--text-muted); font-size: 11px; padding: 12px; text-align: center; }
+.rcp-error { color: #c0392b; font-size: 11px; padding: 12px; font-family: monospace; }
+.rcp-help-text { font-size: 10px; color: var(--text-muted); padding: 8px 0; border-top: 1px solid var(--border-light); margin-top: 8px; flex-shrink: 0; }
+.rcp-help-text code { background: var(--code-bg); padding: 1px 4px; border-radius: 3px; font-family: monospace; }
+.rcp-help-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--overlay-bg); z-index: 10015; justify-content: center; align-items: center; }
+.rcp-help-modal.open { display: flex; }
+.rcp-help-content { background: var(--bg-secondary); border-radius: 8px; padding: 20px; width: 90%; max-width: 560px; max-height: 80vh; overflow-y: auto; }
+.rcp-help-content h3 { margin-bottom: 12px; color: var(--text-heading); }
+.rcp-help-content pre { background: var(--code-bg); padding: 12px; border-radius: 4px; font-size: 11px; overflow-x: auto; margin: 10px 0; line-height: 1.45; }
+.rcp-help-content p { margin: 8px 0; font-size: 12px; color: var(--text-secondary); }
+.rcp-help-content code { background: var(--code-bg); padding: 1px 4px; border-radius: 3px; font-family: monospace; }
+.rcp-help-close { float: right; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+.rcp-help-close:hover { color: var(--text-heading); }
+/* Render mode: just the recipe. Controls fade in over it on hover. */
+.rcp-widget.mode-render { padding: 0; }
+.rcp-widget.mode-render .rcp-toolbar, .rcp-widget.mode-render .rcp-help-text { display: none; }
+.rcp-widget.mode-render .rcp-view-pane { border: none; border-radius: 0; background: transparent; }
+.rcp-hover-controls { position: absolute; top: 8px; right: 8px; z-index: 10; display: none; align-items: center; gap: 5px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 6px; opacity: 0; pointer-events: none; transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.rcp-widget.mode-render .rcp-hover-controls { display: flex; }
+.rcp-widget.mode-render:hover .rcp-hover-controls, .rcp-widget.mode-render:focus-within .rcp-hover-controls { opacity: 1; pointer-events: auto; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -5484,6 +5549,427 @@ function bnoiseSetTimer(select) {
 }
 
 // =============================================
+// RECIPE
+// =============================================
+
+function rcpGetToolId(element) { return element.closest('.tool')?.dataset.tool || null; }
+function rcpGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    return (customizations[toolId]?.rcpData) || { text: '', mode: 'split' };
+}
+function rcpSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].rcpData = data;
+    saveToolCustomizations(customizations);
+}
+
+// Indentation is the tree: a node with children is an operation, a leaf is an
+// ingredient. Depth comes from an indent stack, so any consistent indent width works.
+function rcpParse(text) {
+    var result = { title: '', prep: [], roots: [], error: null };
+    var lines = String(text || '').split('\n');
+    var stack = [];
+    var indents = [];
+
+    for (var i = 0; i < lines.length; i++) {
+        var raw = lines[i].replace(/\t/g, '    ').replace(/\s+$/, '');
+        if (!raw.trim()) continue;
+
+        var indent = raw.length - raw.replace(/^ +/, '').length;
+        var body = raw.trim();
+
+        if (body.indexOf('//') === 0) continue;
+        if (body.charAt(0) === '#') { result.title = body.slice(1).trim(); continue; }
+        if (body.charAt(0) === '@') { result.prep.push(body.slice(1).trim()); continue; }
+
+        var node = { text: body, children: [] };
+        while (indents.length && indent <= indents[indents.length - 1]) {
+            indents.pop();
+            stack.pop();
+        }
+        if (!stack.length) {
+            if (indent !== 0) {
+                result.error = 'Line ' + (i + 1) + ': unexpected indentation — the first step must start at column 1.';
+                return result;
+            }
+            result.roots.push(node);
+        } else {
+            stack[stack.length - 1].children.push(node);
+        }
+        indents.push(indent);
+        stack.push(node);
+    }
+    return result;
+}
+
+// Turns the forest into positioned table cells: leaves become rows, each operation
+// spans exactly the ingredients it consumes, and leftover holes merge into rectangles.
+function rcpLayout(roots) {
+    var rows = [];
+    var cells = [];
+    var maxCol = 0;
+
+    function walk(node) {
+        if (!node.children.length) {
+            var r = rows.length;
+            rows.push(node.text);
+            node.rowStart = r;
+            node.rowEnd = r;
+            node.col = 0;
+            node.isOp = false;
+            return node;
+        }
+        node.isOp = true;
+        var start = rows.length;
+        var deepest = 0;
+        for (var i = 0; i < node.children.length; i++) {
+            var c = walk(node.children[i]);
+            if (c.isOp && c.col > deepest) deepest = c.col;
+        }
+        node.rowStart = start;
+        node.rowEnd = rows.length - 1;
+        node.col = deepest + 1;
+        if (node.col > maxCol) maxCol = node.col;
+        return node;
+    }
+    for (var i = 0; i < roots.length; i++) walk(roots[i]);
+
+    var totalCols = maxCol + 1;
+
+    // Stretch each operation rightwards until it meets its parent, so a shallow
+    // branch stays flush with a deeper sibling.
+    function emit(node, parentCol) {
+        if (!node.isOp) return;
+        cells.push({
+            text: node.text,
+            row: node.rowStart,
+            rowSpan: node.rowEnd - node.rowStart + 1,
+            col: node.col,
+            colSpan: parentCol - node.col,
+            kind: 'op'
+        });
+        for (var j = 0; j < node.children.length; j++) emit(node.children[j], node.col);
+    }
+    for (var k = 0; k < roots.length; k++) emit(roots[k], totalCols);
+
+    for (var m = 0; m < rows.length; m++) {
+        cells.push({ text: rows[m], row: m, rowSpan: 1, col: 0, colSpan: 1, kind: 'ingredient' });
+    }
+
+    var occupied = [];
+    for (var r = 0; r < rows.length; r++) occupied.push(new Array(totalCols).fill(false));
+    for (var c = 0; c < cells.length; c++) {
+        var cell = cells[c];
+        for (var rr = cell.row; rr < cell.row + cell.rowSpan; rr++) {
+            for (var cc = cell.col; cc < cell.col + cell.colSpan; cc++) occupied[rr][cc] = true;
+        }
+    }
+    for (var r2 = 0; r2 < rows.length; r2++) {
+        for (var c2 = 0; c2 < totalCols; c2++) {
+            if (occupied[r2][c2]) continue;
+            var w = 0;
+            while (c2 + w < totalCols && !occupied[r2][c2 + w]) w++;
+            // Grow down only while the hole stays exactly this wide, so a row that
+            // opens up an extra column starts a new, wider cell.
+            var h = 1;
+            outer: while (r2 + h < rows.length) {
+                for (var x = c2; x < c2 + w; x++) {
+                    if (occupied[r2 + h][x]) break outer;
+                }
+                if (c2 + w < totalCols && !occupied[r2 + h][c2 + w]) break;
+                h++;
+            }
+            for (var yy = r2; yy < r2 + h; yy++) {
+                for (var xx = c2; xx < c2 + w; xx++) occupied[yy][xx] = true;
+            }
+            cells.push({ text: '', row: r2, rowSpan: h, col: c2, colSpan: w, kind: 'empty' });
+        }
+    }
+    return { rows: rows, totalCols: totalCols, cells: cells };
+}
+
+function rcpBuildTableHtml(parsed) {
+    var layout = rcpLayout(parsed.roots);
+    var totalCols = layout.totalCols;
+    var html = '<table class="rcp-table">';
+
+    if (parsed.title) {
+        html += '<tr><td class="rcp-title" colspan="' + totalCols + '">' + escapeHtml(parsed.title) + '</td></tr>';
+    }
+    for (var p = 0; p < parsed.prep.length; p++) {
+        html += '<tr><td class="rcp-prep" colspan="' + totalCols + '">' + escapeHtml(parsed.prep[p]) + '</td></tr>';
+    }
+
+    // Bucket cells by their starting row so each <tr> emits them in column order.
+    var byRow = [];
+    for (var i = 0; i < layout.rows.length; i++) byRow.push([]);
+    layout.cells.forEach(function(cell) { byRow[cell.row].push(cell); });
+
+    for (var r = 0; r < layout.rows.length; r++) {
+        html += '<tr>';
+        byRow[r].sort(function(a, b) { return a.col - b.col; }).forEach(function(cell) {
+            var attrs = '';
+            if (cell.rowSpan > 1) attrs += ' rowspan="' + cell.rowSpan + '"';
+            if (cell.colSpan > 1) attrs += ' colspan="' + cell.colSpan + '"';
+            html += '<td class="rcp-' + cell.kind + '"' + attrs + '>' + escapeHtml(cell.text) + '</td>';
+        });
+        html += '</tr>';
+    }
+    return html + '</table>';
+}
+
+function rcpRenderTable(widget, toolId, containerSelector) {
+    var container = widget.querySelector(containerSelector);
+    if (!container) return;
+    var data = rcpGetData(toolId);
+    var parsed = rcpParse(data.text);
+
+    if (parsed.error) {
+        container.innerHTML = '<div class="rcp-error">' + escapeHtml(parsed.error) + '</div>';
+        return;
+    }
+    if (!parsed.roots.length && !parsed.prep.length && !parsed.title) {
+        container.innerHTML = '<div class="rcp-placeholder">Write your recipe on the left — indent each ingredient under the step that uses it.</div>';
+        return;
+    }
+    container.innerHTML = rcpBuildTableHtml(parsed);
+}
+
+function rcpActiveOutput(widget) {
+    var data = rcpGetData(rcpGetToolId(widget));
+    return widget.querySelector(data.mode === 'view' || data.mode === 'render'
+        ? '.rcp-view-container .rcp-output'
+        : '.rcp-split-container .rcp-output');
+}
+
+function rcpInit() {
+    document.querySelectorAll('.rcp-widget').forEach(widget => {
+        const toolId = rcpGetToolId(widget);
+        if (!toolId) return;
+        const data = rcpGetData(toolId);
+        widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
+        widget.querySelectorAll('.rcp-mode-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode));
+        rcpUpdateContainers(widget, data.mode, toolId);
+    });
+}
+
+function rcpUpdateContainers(widget, mode, toolId) {
+    const editContainer = widget.querySelector('.rcp-edit-container');
+    const splitContainer = widget.querySelector('.rcp-split-container');
+    const viewContainer = widget.querySelector('.rcp-view-container');
+    editContainer.classList.remove('active');
+    splitContainer.classList.remove('active');
+    viewContainer.classList.remove('active');
+    // Render mode reuses the view container; the class strips the surrounding chrome.
+    widget.classList.toggle('mode-render', mode === 'render');
+    if (mode === 'edit') editContainer.classList.add('active');
+    else if (mode === 'split') { splitContainer.classList.add('active'); rcpRenderTable(widget, toolId, '.rcp-split-container .rcp-output'); }
+    else { viewContainer.classList.add('active'); rcpRenderTable(widget, toolId, '.rcp-view-container .rcp-output'); }
+}
+
+function rcpOnInput(textarea) {
+    const widget = textarea.closest('.rcp-widget');
+    const toolId = rcpGetToolId(textarea);
+    if (!toolId) return;
+    const data = rcpGetData(toolId);
+    data.text = textarea.value;
+    rcpSaveData(toolId, data);
+    widget.querySelectorAll('textarea').forEach(ta => { if (ta !== textarea) ta.value = textarea.value; });
+    if (data.mode === 'split') rcpRenderTable(widget, toolId, '.rcp-split-container .rcp-output');
+}
+
+// Keep Tab inside the editor — indentation is the syntax, so losing focus mid-recipe
+// would be maddening.
+function rcpOnKeyDown(textarea, event) {
+    if (event.key !== 'Tab') return;
+    event.preventDefault();
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    textarea.value = textarea.value.slice(0, start) + '  ' + textarea.value.slice(end);
+    textarea.selectionStart = textarea.selectionEnd = start + 2;
+    rcpOnInput(textarea);
+}
+
+function rcpSetMode(btn, mode) {
+    const widget = btn.closest('.rcp-widget');
+    const toolId = rcpGetToolId(widget);
+    if (!toolId) return;
+    const data = rcpGetData(toolId);
+    data.mode = mode;
+    rcpSaveData(toolId, data);
+    widget.querySelectorAll('.rcp-mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === mode));
+    widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
+    rcpUpdateContainers(widget, mode, toolId);
+}
+
+function rcpStartResize(resizer, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var container = resizer.closest('.rcp-split-container');
+    var editPane = container.querySelector('.rcp-edit-pane');
+    function onMove(e) {
+        var rect = container.getBoundingClientRect();
+        var ratio = Math.min(0.85, Math.max(0.15, (e.clientX - rect.left) / rect.width));
+        editPane.style.flex = '0 0 ' + (ratio * 100) + '%';
+    }
+    function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+}
+
+function rcpWrapText(ctx, text, maxWidth) {
+    var words = text.split(/\s+/);
+    var lines = [];
+    var line = '';
+    for (var i = 0; i < words.length; i++) {
+        var test = line ? line + ' ' + words[i] : words[i];
+        if (line && ctx.measureText(test).width > maxWidth) {
+            lines.push(line);
+            line = words[i];
+        } else {
+            line = test;
+        }
+    }
+    if (line) lines.push(line);
+    return lines;
+}
+
+// Drawn straight onto a canvas from each cell's measured rect rather than via
+// html2canvas, which mis-sizes rowspan cells and clips their text.
+// First opaque background colour above this element, or '' if everything up the
+// chain is see-through (in which case the export keeps its alpha channel).
+function rcpEffectiveBackground(el) {
+    for (var node = el; node && node !== document.documentElement; node = node.parentElement) {
+        var c = getComputedStyle(node).backgroundColor;
+        if (!c) continue;
+        var m = c.match(/rgba?\(([^)]+)\)/);
+        if (!m) continue;
+        var parts = m[1].split(',').map(function(v) { return parseFloat(v); });
+        var alpha = parts.length > 3 ? parts[3] : 1;
+        // Only an effectively opaque layer can stand in as the backdrop. Anything
+        // see-through (including a colour mid-transition) means keep looking up.
+        if (alpha >= 0.99) return c;
+    }
+    var bodyBg = getComputedStyle(document.body).backgroundColor;
+    return /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/.test(bodyBg) ? '' : bodyBg;
+}
+
+function rcpExportPng(btn) {
+    var widget = btn.closest('.rcp-widget');
+    var output = rcpActiveOutput(widget);
+    var table = output && output.querySelector('.rcp-table');
+    if (!table) return;
+
+    // Paint whatever the table is actually sitting on. The table and its panes are
+    // transparent by design, so walk up until something opaque is found; if nothing
+    // is, leave the canvas transparent rather than inventing a white plate.
+    var bg = rcpEffectiveBackground(table);
+    var borderColor = (getComputedStyle(widget).getPropertyValue('--rcp-border') || '').trim() || '#4a4a4a';
+
+    var tableRect = table.getBoundingClientRect();
+    var scale = 2;
+    var pad = 8;
+    var canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(tableRect.width * scale);
+    canvas.height = Math.ceil(tableRect.height * scale);
+    var ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+    if (bg) {
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, tableRect.width, tableRect.height);
+    }
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = borderColor;
+
+    Array.prototype.forEach.call(table.querySelectorAll('td'), function(td) {
+        var r = td.getBoundingClientRect();
+        var x = r.left - tableRect.left;
+        var y = r.top - tableRect.top;
+        var cs = getComputedStyle(td);
+        ctx.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.round(r.width) - 1, Math.round(r.height) - 1);
+
+        var text = td.textContent.trim();
+        if (!text) return;
+        ctx.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+        // Take the cell's own colour so a per-tool font colour carries into the PNG.
+        ctx.fillStyle = cs.color;
+        var leftAligned = cs.textAlign === 'left' || cs.textAlign === 'start';
+        var lines = rcpWrapText(ctx, text, r.width - pad * 2);
+        var lineHeight = parseFloat(cs.fontSize) * 1.35;
+        var firstY = y + r.height / 2 - (lines.length - 1) * lineHeight / 2;
+        ctx.textAlign = leftAligned ? 'left' : 'center';
+        var textX = leftAligned ? x + pad : x + r.width / 2;
+        for (var i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], textX, firstY + i * lineHeight);
+        }
+    });
+
+    var a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'recipe.png';
+    a.click();
+}
+
+// Inline the styles so the table survives a paste into a doc or email.
+function rcpCopyHtml(btn) {
+    var widget = btn.closest('.rcp-widget');
+    var output = rcpActiveOutput(widget);
+    var table = output && output.querySelector('.rcp-table');
+    if (!table) return;
+
+    var cs = getComputedStyle(table.querySelector('td') || table);
+    var accent = (getComputedStyle(widget).getPropertyValue('--rcp-border') || '').trim() || '#4a4a4a';
+    var textColor = cs.color || '#1a1a1a';
+    var html = table.outerHTML
+        .replace('<table class="rcp-table"', '<table cellspacing="0" style="border-collapse:collapse;font-family:sans-serif;font-size:' + cs.fontSize + ';color:' + textColor + '"')
+        .replace(/<td class="rcp-title"/g, '<td style="border:1px solid ' + accent + ';padding:5px 8px;text-align:center;font-weight:700"')
+        .replace(/<td class="rcp-prep"/g, '<td style="border:1px solid ' + accent + ';padding:5px 8px;text-align:center"')
+        .replace(/<td class="rcp-ingredient"/g, '<td style="border:1px solid ' + accent + ';padding:5px 8px;text-align:left"')
+        .replace(/<td class="rcp-op"/g, '<td style="border:1px solid ' + accent + ';padding:5px 8px;text-align:center;vertical-align:middle"')
+        .replace(/<td class="rcp-empty"/g, '<td style="border:1px solid ' + accent + ';padding:5px 8px"');
+
+    var label = btn.textContent;
+    navigator.clipboard.writeText(html).then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = label; }, 1200);
+    });
+}
+
+function rcpShowHelp(btn) {
+    let modal = document.querySelector('.rcp-help-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.className = 'rcp-help-modal';
+        modal.innerHTML = `<div class="rcp-help-content"><span class="rcp-help-close" onclick="this.closest('.rcp-help-modal').classList.remove('open')">&times;</span><h3>Recipe Syntax</h3><p>Indentation is the recipe. <strong>A step with things indented under it is an operation; anything with nothing under it is an ingredient.</strong> Each operation's cell automatically spans exactly the ingredients it consumes.</p><p>Write it outside-in: the last thing you do goes on the top line, and everything it needs is indented beneath.</p><pre># Espresso Brownies
+@ Butter and flour an 8x8-in pan
+@ Preheat oven to 350&deg;F (170&deg;C)
+
+bake 350&deg;F (170&deg;C) 30 to 40 min
+  fold in
+    mix
+      mix
+        melt
+          4 oz (115 g) unsalted butter
+        1 cup (200 g) sugar
+        1/4 tsp. (2.5 mL) vanilla extract
+        1 shot (4 Tbs; 60 mL) espresso
+      2 large (100 g) eggs
+    1/2 cup (80 g) all-purpose flour
+    1/3 cup (80 g) cocoa powder
+    1/4 tsp. (1.3 g) baking soda
+    1/4 tsp. (1.5 g) table salt</pre><p><strong>Line prefixes:</strong></p><p><code>#</code> Title row, spanning the whole table</p><p><code>@</code> Prep row (oven, pans) — full width, shown at the top</p><p><code>//</code> Comment, not rendered</p><p><strong>Notes:</strong></p><p>Tabs or spaces both work, and any indent width is fine as long as you're consistent — each extra level of indentation is one step deeper.</p><p>Pressing <code>Tab</code> in the editor inserts two spaces instead of moving focus.</p><p>Two steps written at the left margin become two separate tracks stacked in one table — that's how you handle a sauce made alongside the main mixture.</p></div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+    }
+    modal.classList.add('open');
+}
+
+// =============================================
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
@@ -5502,7 +5988,8 @@ function bnoiseSetTimer(select) {
     var breathingFunctions = [breathingGetWidget, breathingGetToolId, breathingGetState, breathingInit, breathingToggle, breathingReset, breathingTick, breathingAdvancePhase, breathingUpdateDisplay, breathingSetPreset, breathingApplySettings, breathingToggleSettings];
     var wcFunctions = [wcBuildSearchIndex, wcGetWidget, wcGetToolId, wcGetState, wcFormatTime, wcRender, wcTick, wcAddZone, wcRemoveZone, wcSaveState, wcInit];
     var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
-    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions);
+    var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpRenderTable, rcpActiveOutput, rcpInit, rcpUpdateContainers, rcpOnInput, rcpOnKeyDown, rcpSetMode, rcpStartResize, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
+    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initPomodoro !== "undefined") return;\n' +
@@ -5551,7 +6038,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
+    tools: ['breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'recipe', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
     source: 'external'
 });
 
@@ -5984,4 +6471,61 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Productivity Tools plugin loaded (12 tools)');
+// Recipe
+PluginRegistry.registerTool({
+    id: 'recipe',
+    name: 'Recipe',
+    description: 'Write a recipe as an indented outline and render it as a Cooking-for-Engineers style table, where each step spans exactly the ingredients it uses',
+    icon: '🍳',
+    version: '1.0.0',
+    toolbox: 'productivity',
+    tags: ['recipe', 'cooking', 'food', 'table', 'kitchen', 'baking', 'ingredients'],
+    title: 'Recipe',
+    content: '<div class="rcp-widget">' +
+        '<div class="rcp-toolbar">' +
+            '<div class="rcp-mode-toggle">' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'edit\')">Edit</button>' +
+                '<button class="rcp-mode-btn active" onclick="rcpSetMode(this, \'split\')">Split</button>' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'view\')">View</button>' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'render\')" title="Recipe only, no controls">Render</button>' +
+            '</div>' +
+            '<span class="rcp-toolbar-spacer"></span>' +
+            '<button class="rcp-btn" onclick="rcpExportPng(this)" title="Download the table as a PNG">PNG</button>' +
+            '<button class="rcp-btn" onclick="rcpCopyHtml(this)" title="Copy the table as HTML">Copy</button>' +
+            '<button class="rcp-btn" onclick="rcpShowHelp(this)">? Syntax Help</button>' +
+        '</div>' +
+        '<div class="rcp-edit-container">' +
+            '<textarea spellcheck="false" placeholder="Enter recipe outline..." oninput="rcpOnInput(this)" onkeydown="rcpOnKeyDown(this, event)"></textarea>' +
+        '</div>' +
+        '<div class="rcp-split-container active">' +
+            '<div class="rcp-edit-pane">' +
+                '<textarea spellcheck="false" oninput="rcpOnInput(this)" onkeydown="rcpOnKeyDown(this, event)" placeholder="Outermost step first, ingredients indented beneath.&#10;&#10;# Espresso Brownies&#10;@ Butter and flour an 8x8-in pan&#10;@ Preheat oven to 350°F (170°C)&#10;&#10;bake 350°F (170°C) 30 to 40 min&#10;  fold in&#10;    mix&#10;      mix&#10;        melt&#10;          4 oz (115 g) unsalted butter&#10;        1 cup (200 g) sugar&#10;        1/4 tsp. (2.5 mL) vanilla extract&#10;        1 shot (60 mL) espresso&#10;      2 large (100 g) eggs&#10;    1/2 cup (80 g) all-purpose flour&#10;    1/3 cup (80 g) cocoa powder&#10;    1/4 tsp. (1.3 g) baking soda&#10;    1/4 tsp. (1.5 g) table salt"></textarea>' +
+            '</div>' +
+            '<div class="rcp-split-resizer" onmousedown="rcpStartResize(this, event)"></div>' +
+            '<div class="rcp-view-pane"><div class="rcp-output"></div></div>' +
+        '</div>' +
+        '<div class="rcp-view-container">' +
+            '<div class="rcp-view-pane"><div class="rcp-output"></div></div>' +
+        '</div>' +
+        '<div class="rcp-help-text">' +
+            'Indent ingredients under the step that uses them. <code>#</code> title | <code>@</code> prep row | <code>//</code> comment' +
+        '</div>' +
+        '<div class="rcp-hover-controls">' +
+            '<div class="rcp-mode-toggle">' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'edit\')">Edit</button>' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'split\')">Split</button>' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'view\')">View</button>' +
+                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'render\')">Render</button>' +
+            '</div>' +
+            '<button class="rcp-btn" onclick="rcpExportPng(this)" title="Download the table as a PNG">PNG</button>' +
+            '<button class="rcp-btn" onclick="rcpCopyHtml(this)" title="Copy the table as HTML">Copy</button>' +
+        '</div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'rcpInit',
+    defaultWidth: 640,
+    defaultHeight: 480,
+    source: 'external'
+});
+
+console.log('Productivity Tools plugin loaded (13 tools)');
