@@ -112,7 +112,11 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .ftree-canvas { position: absolute; transform-origin: 0 0; top: 0; left: 0; }
 .ftree-connectors { position: absolute; top: 0; left: 0; }
 .ftree-nodes { position: absolute; top: 0; left: 0; }
-.ftree-node { position: absolute; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 6px; min-width: 140px; max-width: 200px; text-align: center; padding: 6px 8px; cursor: pointer; user-select: none; transition: border-color 0.15s; box-sizing: border-box; }
+/* Height must match FTREE_NODE_H: the layout reserves that much per row and starts
+   each connector at y + FTREE_NODE_H, so a shorter box leaves a gap between the
+   node and the line dropping from it. Content is centred so one-line and
+   three-line nodes still line up. */
+.ftree-node { position: absolute; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 6px; min-width: 140px; max-width: 200px; min-height: 60px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 6px 8px; cursor: pointer; user-select: none; transition: border-color 0.15s; box-sizing: border-box; }
 .ftree-node:hover { border-color: var(--accent-color, #3498db); }
 .ftree-node-male { border-left: 4px solid #3498db; }
 .ftree-node-female { border-left: 4px solid #e84393; }
@@ -753,295 +757,358 @@ function ftreeComputeLayout(data) {
     const xPos = {};
     const sortedGens = Object.keys(genGroups).map(Number).sort((a, b) => a - b);
 
-    // First pass: assign initial x positions
-    for (const g of sortedGens) {
-        const group = genGroups[g];
-        if (g === 0 || Object.keys(xPos).length === 0) {
-            const ordered = [];
-            const added = new Set();
-            for (const pid of group) {
-                if (added.has(pid)) continue;
-                ordered.push(pid);
-                added.add(pid);
-                if (spouseOf[pid]) {
-                    for (const sid of spouseOf[pid]) {
-                        if (gen[sid] === g && !added.has(sid)) {
-                            ordered.push(sid);
-                            added.add(sid);
-                        }
-                    }
-                }
-            }
-            for (let i = 0; i < ordered.length; i++) {
-                xPos[ordered[i]] = i * (FTREE_NODE_W + FTREE_H_GAP);
-            }
-        } else {
-            const withParentX = [];
-            for (const pid of group) {
-                const parents = parentsOf[pid] || [];
-                let px = 0;
-                let count = 0;
-                const counted = new Set();
-                for (const ppid of parents) {
-                    if (xPos[ppid] !== undefined && !counted.has(ppid)) {
-                        px += xPos[ppid]; count++; counted.add(ppid);
-                    }
-                }
-                const pairKey = childPairKey[pid] || '';
-                withParentX.push({ pid, parentX: count > 0 ? px / count : Infinity, pairKey });
-            }
-            const pairAvgX = {};
-            for (const item of withParentX) {
-                if (!pairAvgX[item.pairKey]) pairAvgX[item.pairKey] = { sum: 0, count: 0 };
-                pairAvgX[item.pairKey].sum += item.parentX;
-                pairAvgX[item.pairKey].count++;
-            }
-            for (const k of Object.keys(pairAvgX)) {
-                pairAvgX[k] = pairAvgX[k].count > 0 ? pairAvgX[k].sum / pairAvgX[k].count : Infinity;
-            }
-            function hasCrossFamilySpouse(pid) {
-                const myPK = childPairKey[pid] || '';
-                if (!myPK) return false;
-                const spouses = (spouseOf[pid] || []).filter(s => gen[s] === g);
-                for (const sid of spouses) {
-                    const sPK = childPairKey[sid] || '';
-                    if (sPK && sPK !== myPK) return true;
-                }
-                return false;
-            }
-            withParentX.sort((a, b) => {
-                const pa = pairAvgX[a.pairKey] != null ? pairAvgX[a.pairKey] : Infinity;
-                const pb = pairAvgX[b.pairKey] != null ? pairAvgX[b.pairKey] : Infinity;
-                if (pa !== pb) return pa - pb;
-                if (a.pairKey !== b.pairKey) return a.pairKey < b.pairKey ? -1 : 1;
-                const aCross = hasCrossFamilySpouse(a.pid) ? 1 : 0;
-                const bCross = hasCrossFamilySpouse(b.pid) ? 1 : 0;
-                if (aCross !== bCross) return aCross - bCross;
-                if (!isFinite(a.parentX) && !isFinite(b.parentX)) return 0;
-                return a.parentX - b.parentX;
-            });
+    // ---- Tidy subtree layout ------------------------------------------------
+    // Families are laid out as whole subtrees rather than row by row. The old
+    // approach positioned each generation independently and then shoved
+    // overlapping nodes rightwards, which broke the link between a couple and
+    // their children: parents ended up thousands of pixels from their own kids.
+    // Here every subtree is packed against its left sibling using a depth
+    // profile, then the parent is centred over the span of its children — so a
+    // couple always sits above the middle of their family, however many
+    // children there are.
 
-            const deferToSpouse = new Set();
-            for (const item of withParentX) {
-                if (spouseOf[item.pid]) {
-                    for (const sid of spouseOf[item.pid]) {
-                        if (gen[sid] === gen[item.pid] && !deferToSpouse.has(item.pid)) {
-                            const myParents = (parentsOf[item.pid] || []).length;
-                            const theirParents = (parentsOf[sid] || []).length;
-                            if (myParents === 0 && theirParents > 0) {
-                                deferToSpouse.add(item.pid);
-                            } else if (myParents === 0 && theirParents === 0) {
-                                const myChildren = (childrenOf[item.pid] || []).length;
-                                const theirChildren = (childrenOf[sid] || []).length;
-                                if (myChildren < theirChildren) {
-                                    deferToSpouse.add(item.pid);
-                                } else if (myChildren === theirChildren && item.pid > sid) {
-                                    deferToSpouse.add(item.pid);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    const UNIT_GAP = FTREE_H_GAP * 2;
 
-            let curX = 0;
-            const added = new Set();
-            for (const item of withParentX) {
-                if (added.has(item.pid)) continue;
-                if (deferToSpouse.has(item.pid)) continue;
-                xPos[item.pid] = curX;
-                added.add(item.pid);
-                let spousePlaced = false;
-                if (spouseOf[item.pid]) {
-                    for (const sid of spouseOf[item.pid]) {
-                        if (gen[sid] === gen[item.pid] && !added.has(sid)) {
-                            const myPK = childPairKey[item.pid] || '';
-                            const sPK = childPairKey[sid] || '';
-                            const coupleGap = (myPK && sPK && myPK !== sPK) ? FTREE_H_GAP : FTREE_SPOUSE_GAP;
-                            xPos[sid] = curX + FTREE_NODE_W + coupleGap;
-                            added.add(sid);
-                            curX = xPos[sid] + FTREE_NODE_W + FTREE_H_GAP;
-                            spousePlaced = true;
-                        }
+    // Group each person with their spouse into a single layout unit.
+    const unitOf = {};
+    const units = [];
+    const claimed = new Set();
+    const byGen = Object.keys(persons)
+        .filter(pid => gen[pid] !== undefined)
+        .sort((a, b) => (gen[a] - gen[b]) || (a < b ? -1 : 1));
+    // Order a spouse group so it reads as a chain: someone with two spouses sits
+    // between them, rather than being paired with one and leaving the other to
+    // drift off as a separate unit.
+    const orderSpouseChain = (group) => {
+        if (group.length <= 2) return group;
+        const inGroup = new Set(group);
+        const degree = {};
+        for (const m of group) {
+            degree[m] = (spouseOf[m] || []).filter(s => inGroup.has(s)).length;
+        }
+        const start = group.find(m => degree[m] === 1) || group[0];
+        const ordered = [];
+        const used = new Set();
+        let cur = start;
+        while (cur && !used.has(cur)) {
+            ordered.push(cur);
+            used.add(cur);
+            cur = (spouseOf[cur] || []).find(s => inGroup.has(s) && !used.has(s));
+        }
+        for (const m of group) if (!used.has(m)) ordered.push(m);
+        return ordered;
+    };
+
+    for (const pid of byGen) {
+        if (claimed.has(pid)) continue;
+        // Gather everyone joined to this person by spouse links in this generation,
+        // so multiple spouses all land in one unit sitting side by side.
+        const group = [];
+        const seen = new Set([pid]);
+        const stack = [pid];
+        while (stack.length) {
+            const cur = stack.pop();
+            group.push(cur);
+            for (const s of (spouseOf[cur] || [])) {
+                if (persons[s] && gen[s] === gen[pid] && !claimed.has(s) && !seen.has(s)) {
+                    seen.add(s);
+                    stack.push(s);
+                }
+            }
+        }
+        const members = orderSpouseChain(group);
+        members.forEach(m => claimed.add(m));
+        const unit = {
+            members: members,
+            gen: gen[pid],
+            width: members.length * FTREE_NODE_W + (members.length - 1) * FTREE_SPOUSE_GAP,
+            children: [],
+            parent: null,
+            relX: 0,
+            originOffset: 0
+        };
+        members.forEach(m => { unitOf[m] = unit; });
+        units.push(unit);
+    }
+
+    // Attach each unit to one parent unit, forming a spanning forest. A couple
+    // where both spouses have parents can only hang under one of the two families;
+    // the other link becomes a long connector. Pick the side with the deeper
+    // recorded ancestry, so the longer lineage stays contiguous and only the
+    // shallower branch pays the cost — first-come-first-served used to strand
+    // whole lines on the far side of the diagram.
+    const ancestorCountCache = {};
+    const ancestorCount = (pid) => {
+        if (ancestorCountCache[pid] !== undefined) return ancestorCountCache[pid];
+        const seen = new Set([pid]);
+        const queue = [pid];
+        let n = 0;
+        while (queue.length) {
+            const cur = queue.shift();
+            for (const q of (parentsOf[cur] || [])) {
+                if (persons[q] && !seen.has(q)) { seen.add(q); n++; queue.push(q); }
+            }
+        }
+        ancestorCountCache[pid] = n;
+        return n;
+    };
+
+    for (const unit of units) {
+        const candidates = new Map();
+        for (const m of unit.members) {
+            for (const ppid of (parentsOf[m] || [])) {
+                const pu = unitOf[ppid];
+                if (!pu || pu === unit || pu.gen !== unit.gen - 1) continue;
+                const score = ancestorCount(m);
+                if (!candidates.has(pu) || candidates.get(pu) < score) {
+                    candidates.set(pu, score);
+                }
+            }
+        }
+        if (candidates.size === 0) continue;
+        let best = null, bestScore = -Infinity;
+        for (const [pu, score] of candidates) {
+            if (score > bestScore) { best = pu; bestScore = score; }
+        }
+        unit.parent = best;
+        best.children.push(unit);
+    }
+
+    // Keep siblings in a stable, sensible order: by birth year when known.
+    const birthOf = pid => {
+        const raw = persons[pid] && persons[pid].birth;
+        const yr = raw ? parseInt(String(raw).slice(0, 4), 10) : NaN;
+        return isNaN(yr) ? Infinity : yr;
+    };
+    for (const unit of units) {
+        // Where a person has several spouses, each child belongs to one of those
+        // marriages. Order the children by which spouse they descend from, so a
+        // child sits on the same side as their own parent rather than being mixed
+        // in by birth year across marriages.
+        const memberIndex = {};
+        unit.members.forEach((m, i) => { memberIndex[m] = i; });
+        const sideOf = (childUnit) => {
+            let sum = 0, n = 0;
+            for (const m of childUnit.members) {
+                for (const ppid of (parentsOf[m] || [])) {
+                    if (memberIndex[ppid] !== undefined) { sum += memberIndex[ppid]; n++; }
+                }
+            }
+            return n > 0 ? sum / n : (unit.members.length - 1) / 2;
+        };
+        const side = new Map();
+        for (const c of unit.children) { const v = sideOf(c); side.set(c, v); c.sideKey = v; }
+        unit.children.sort((a, b) => {
+            const sa = side.get(a), sb = side.get(b);
+            if (sa !== sb) return sa - sb;
+            const ba = Math.min(...a.members.map(birthOf));
+            const bb = Math.min(...b.members.map(birthOf));
+            if (ba !== bb) return ba - bb;
+            return a.members[0] < b.members[0] ? -1 : 1;
+        });
+    }
+
+    // Seat in-law families beside the branch they married into. When both spouses
+    // have parents only one set can hold the couple; the other set is left with no
+    // children of its own and would otherwise drift to wherever the global packing
+    // happened to put it — an entire diagram away from their own child. Adopting
+    // them as a sibling of the family that did keep the couple puts them one step
+    // from where they belong.
+    for (const unit of units) {
+        if (unit.parent) continue;
+        let host = null;
+        for (const m of unit.members) {
+            for (const c of (childrenOf[m] || [])) {
+                const cu = unitOf[c];
+                if (cu && cu.parent && cu.parent !== unit && cu.parent.gen === unit.gen) {
+                    host = cu.parent;
+                    break;
+                }
+            }
+            if (host) break;
+        }
+        if (!host || !host.parent) continue;
+        const siblings = host.parent.children;
+        const at = siblings.indexOf(host);
+        if (at === -1) continue;
+        unit.parent = host.parent;
+        siblings.splice(at + 1, 0, unit);
+        unit.adopted = true;
+    }
+
+
+    // Lay out a subtree, returning its left/right extent at each depth so the
+    // next sibling can be packed as tightly as its actual shape allows.
+    function layoutUnit(unit) {
+        if (unit.children.length === 0) {
+            unit.relX = 0;
+            return { left: [0], right: [unit.width] };
+        }
+        const prof = { left: [], right: [] };
+        for (let i = 0; i < unit.children.length; i++) {
+            const child = unit.children[i];
+            const cp = layoutUnit(child);
+            if (i === 0) {
+                child.originOffset = 0;
+                prof.left = cp.left.slice();
+                prof.right = cp.right.slice();
+            } else {
+                let shift = 0;
+                const shared = Math.min(prof.right.length, cp.left.length);
+                for (let d = 0; d < shared; d++) {
+                    const need = prof.right[d] + UNIT_GAP - cp.left[d];
+                    if (need > shift) shift = need;
+                }
+                child.originOffset = shift;
+                for (let d = 0; d < cp.left.length; d++) {
+                    const l = cp.left[d] + shift, r = cp.right[d] + shift;
+                    if (d < prof.right.length) {
+                        prof.right[d] = Math.max(prof.right[d], r);
+                        prof.left[d] = Math.min(prof.left[d], l);
+                    } else {
+                        prof.left[d] = l;
+                        prof.right[d] = r;
                     }
                 }
-                if (!spousePlaced) {
-                    curX += FTREE_NODE_W + FTREE_H_GAP;
-                }
             }
-            for (const item of withParentX) {
-                if (added.has(item.pid)) continue;
-                xPos[item.pid] = curX;
-                added.add(item.pid);
-                curX += FTREE_NODE_W + FTREE_H_GAP;
-            }
+        }
+        const first = unit.children[0];
+        const last = unit.children[unit.children.length - 1];
+        const firstMid = first.originOffset + first.relX + first.width / 2;
+        const lastMid = last.originOffset + last.relX + last.width / 2;
+        unit.relX = (firstMid + lastMid) / 2 - unit.width / 2;
+
+        // Re-origin so the whole subtree starts at 0.
+        const minLeft = Math.min(unit.relX, ...prof.left);
+        const dx = -minLeft;
+        unit.relX += dx;
+        for (const child of unit.children) child.originOffset += dx;
+
+        const left = [unit.relX];
+        const right = [unit.relX + unit.width];
+        for (let d = 0; d < prof.left.length; d++) {
+            left.push(prof.left[d] + dx);
+            right.push(prof.right[d] + dx);
+        }
+        return { left: left, right: right };
+    }
+
+    function placeUnit(unit, originX) {
+        let x = originX + unit.relX;
+        for (const m of unit.members) {
+            xPos[m] = x;
+            x += FTREE_NODE_W + FTREE_SPOUSE_GAP;
+        }
+        for (const child of unit.children) {
+            placeUnit(child, originX + child.originOffset);
         }
     }
 
-    // Second pass: center parents above their children
-    for (let pass = 0; pass < 5; pass++) {
-        for (const g of sortedGens) {
-            const group = genGroups[g];
-            const pairsDone = new Set();
-            for (const pid of group) {
-                const children = childrenOf[pid] || [];
-                for (const cid of children) {
-                    const pk = childPairKey[cid];
-                    if (!pk || pairsDone.has(pk)) continue;
-                    pairsDone.add(pk);
-                    const pairKids = (pairChildren[pk] || []).filter(c => xPos[c] !== undefined);
-                    if (pairKids.length === 0) continue;
-                    let minChildX = Infinity, maxChildX = -Infinity;
-                    for (const c of pairKids) {
-                        if (xPos[c] < minChildX) minChildX = xPos[c];
-                        if (xPos[c] > maxChildX) maxChildX = xPos[c];
-                    }
-                    if (minChildX === Infinity) continue;
-                    const centerX = (minChildX + maxChildX) / 2;
-                    const pp = pairParents[pk];
-                    if (pp.length >= 2 && persons[pp[0]] && persons[pp[1]] && gen[pp[0]] === gen[pp[1]]) {
-                        const pairWidth = FTREE_NODE_W * 2 + FTREE_SPOUSE_GAP;
-                        const startX = centerX - pairWidth / 2 + FTREE_NODE_W / 2;
-                        xPos[pp[0]] = startX;
-                        xPos[pp[1]] = startX + FTREE_NODE_W + FTREE_SPOUSE_GAP;
-                    } else {
-                        const spouses = (spouseOf[pid] || []).filter(s => gen[s] === g);
-                        if (spouses.length > 0) {
-                            const spouseId = spouses[0];
-                            const pairWidth = FTREE_NODE_W * 2 + FTREE_SPOUSE_GAP;
-                            const startX = centerX - pairWidth / 2 + FTREE_NODE_W / 2;
-                            const leftId = xPos[pid] <= xPos[spouseId] ? pid : spouseId;
-                            const rightId = leftId === pid ? spouseId : pid;
-                            xPos[leftId] = startX;
-                            xPos[rightId] = startX + FTREE_NODE_W + FTREE_SPOUSE_GAP;
-                        } else {
-                            xPos[pid] = centerX;
-                        }
-                    }
-                }
+    // Pack the root families side by side, tallest-first ordering preserved.
+    // Root families don't all start at the same generation — a family whose oldest
+    // known member is a grandchild begins several rows down. The occupied space is
+    // therefore tracked per absolute generation; comparing by depth-within-subtree
+    // would measure one family's top row against another's middle and let nodes
+    // land on top of each other.
+    const roots = units.filter(u => !u.parent);
+    for (const root of roots) root.profile = layoutUnit(root);
+
+    const packRoots = (order) => {
+        const forestRight = {};
+        const forestLeft = {};
+        for (const root of order) {
+            const rp = root.profile;
+            let shift = 0;
+            for (let d = 0; d < rp.left.length; d++) {
+                const g = root.gen + d;
+                if (forestRight[g] === undefined) continue;
+                const need = forestRight[g] + UNIT_GAP - rp.left[d];
+                if (need > shift) shift = need;
             }
+            for (let d = 0; d < rp.left.length; d++) {
+                const g = root.gen + d;
+                const l = rp.left[d] + shift, r = rp.right[d] + shift;
+                forestLeft[g] = forestLeft[g] === undefined ? l : Math.min(forestLeft[g], l);
+                forestRight[g] = forestRight[g] === undefined ? r : Math.max(forestRight[g], r);
+            }
+            placeUnit(root, shift);
         }
+    };
 
-        // Position children under their parents
-        for (const g of sortedGens) {
-            if (g === sortedGens[0]) continue;
-            const group = genGroups[g];
+    packRoots(roots);
 
-            const cuInUnit = new Set();
-            const cuUnits = [];
-            const cuSorted = group.slice().sort((a, b) => (xPos[a] || 0) - (xPos[b] || 0));
-            for (const pid of cuSorted) {
-                if (cuInUnit.has(pid)) continue;
-                cuInUnit.add(pid);
-                const cuSpouses = (spouseOf[pid] || []).filter(s => gen[s] === g && !cuInUnit.has(s));
-                if (cuSpouses.length > 0) {
-                    const sid = cuSpouses[0];
-                    cuInUnit.add(sid);
-                    cuUnits.push({ members: [pid, sid] });
-                } else {
-                    cuUnits.push({ members: [pid] });
+    // Order sibling branches so families joined by marriage end up near each other.
+    // Someone who marries into a distant branch otherwise leaves a connector
+    // spanning the whole diagram. Which spouse a child descends from stays the
+    // primary sort key, so the earlier ordering rules still hold; the barycentre
+    // only breaks ties between whole branches.
+    const subtreeMembers = (unit, out) => {
+        out = out || [];
+        for (const m of unit.members) out.push(m);
+        for (const c of unit.children) subtreeMembers(c, out);
+        return out;
+    };
+    for (let round = 0; round < 3; round++) {
+        let changed = false;
+        for (const unit of units) {
+            // Seat each spouse on the side their own family is on. Otherwise the two
+            // parent connectors cross over the couple — one spouse reaching right to
+            // their parents while the other reaches left to theirs.
+            if (unit.members.length > 1) {
+                const familyX = (m) => {
+                    const ps = (parentsOf[m] || []).filter(q => xPos[q] !== undefined);
+                    if (ps.length === 0) return null;
+                    return ps.reduce((sum, q) => sum + xPos[q], 0) / ps.length;
+                };
+                const head = familyX(unit.members[0]);
+                const tail = familyX(unit.members[unit.members.length - 1]);
+                if (head !== null && tail !== null && head > tail) {
+                    unit.members.reverse();
+                    changed = true;
                 }
             }
+            if (unit.children.length < 2) continue;
 
-            for (const unit of cuUnits) {
-                let parentCenterX = null;
-                let px = 0, cnt = 0;
-                const counted = new Set();
-                for (const m of unit.members) {
-                    const mParents = parentsOf[m] || [];
-                    for (const ppid of mParents) {
-                        if (xPos[ppid] !== undefined && !counted.has(ppid)) {
-                            px += xPos[ppid] + FTREE_NODE_W / 2; cnt++; counted.add(ppid);
-                        }
+            // Members may have just been reordered, so which spouse sits on which
+            // side has to be recomputed before the children are grouped by parent.
+            const memberIdx = {};
+            unit.members.forEach((m, i) => { memberIdx[m] = i; });
+            for (const c of unit.children) {
+                let sum = 0, n = 0;
+                for (const m of c.members) {
+                    for (const ppid of (parentsOf[m] || [])) {
+                        if (memberIdx[ppid] !== undefined) { sum += memberIdx[ppid]; n++; }
                     }
                 }
-                if (cnt > 0) {
-                    parentCenterX = px / cnt;
-                }
+                c.sideKey = n > 0 ? sum / n : (unit.members.length - 1) / 2;
+            }
 
-                if (parentCenterX !== null) {
-                    const unitWidth = unit.members.length === 2
-                        ? FTREE_NODE_W * 2 + FTREE_SPOUSE_GAP
-                        : FTREE_NODE_W;
-                    const newX = parentCenterX - unitWidth / 2;
-                    xPos[unit.members[0]] = newX;
-                    if (unit.members.length === 2) {
-                        xPos[unit.members[1]] = newX + FTREE_NODE_W + FTREE_SPOUSE_GAP;
+            const bary = new Map();
+            for (const c of unit.children) {
+                const inside = new Set(subtreeMembers(c));
+                let sum = 0, n = 0;
+                for (const m of inside) {
+                    const related = (parentsOf[m] || [])
+                        .concat(childrenOf[m] || [], spouseOf[m] || []);
+                    for (const q of related) {
+                        if (!persons[q] || inside.has(q) || xPos[q] === undefined) continue;
+                        sum += xPos[q];
+                        n++;
                     }
                 }
+                bary.set(c, n > 0 ? sum / n : (xPos[c.members[0]] || 0));
             }
-        }
-
-        // Fix overlaps within each generation
-        for (const g of sortedGens) {
-            const group = genGroups[g];
-            const inUnit = new Set();
-            const units = [];
-            const sorted = group.slice().sort((a, b) => (xPos[a] || 0) - (xPos[b] || 0));
-            for (const pid of sorted) {
-                if (inUnit.has(pid)) continue;
-                inUnit.add(pid);
-                const sameGenSpouses = (spouseOf[pid] || []).filter(s => gen[s] === g && !inUnit.has(s));
-                if (sameGenSpouses.length > 0) {
-                    const sid = sameGenSpouses[0];
-                    inUnit.add(sid);
-                    xPos[sid] = xPos[pid] + FTREE_NODE_W + FTREE_SPOUSE_GAP;
-                    units.push({ members: [pid, sid], x: xPos[pid] });
-                } else {
-                    units.push({ members: [pid], x: xPos[pid] });
-                }
-            }
-            const pairCenterCache = {};
-            for (const unit of units) {
-                const pk = childPairKey[unit.members[0]] || '';
-                if (pk && pairCenterCache[pk] === undefined) {
-                    const pp = pairParents[pk] || [];
-                    let cx = 0, cn = 0;
-                    for (const ppid of pp) {
-                        if (xPos[ppid] !== undefined) { cx += xPos[ppid]; cn++; }
-                    }
-                    pairCenterCache[pk] = cn > 0 ? cx / cn : unit.x;
-                }
-            }
-            units.sort((a, b) => {
-                const aPk = childPairKey[a.members[0]] || '';
-                const bPk = childPairKey[b.members[0]] || '';
-                const aPc = aPk ? (pairCenterCache[aPk] ?? a.x) : a.x;
-                const bPc = bPk ? (pairCenterCache[bPk] ?? b.x) : b.x;
-                if (aPc !== bPc) return aPc - bPc;
-                if (aPk !== bPk) return aPk < bPk ? -1 : 1;
-                return a.x - b.x;
+            const before = unit.children.slice();
+            unit.children.sort((a, b) => {
+                const sa = a.sideKey || 0, sb = b.sideKey || 0;
+                if (sa !== sb) return sa - sb;
+                return bary.get(a) - bary.get(b);
             });
-            for (let i = 1; i < units.length; i++) {
-                const prev = units[i - 1];
-                const cur = units[i];
-                const prevWidth = prev.members.length === 2
-                    ? FTREE_NODE_W * 2 + FTREE_SPOUSE_GAP
-                    : FTREE_NODE_W;
-                const prevPK = childPairKey[prev.members[0]] || '';
-                const curPK = childPairKey[cur.members[0]] || '';
-                const diffAsChildren = prevPK && curPK && prevPK !== curPK;
-                let prevChildPK = '', curChildPK = '';
-                for (const m of prev.members) {
-                    const kids = childrenOf[m] || [];
-                    if (kids.length > 0) { prevChildPK = childPairKey[kids[0]] || ''; break; }
-                }
-                for (const m of cur.members) {
-                    const kids = childrenOf[m] || [];
-                    if (kids.length > 0) { curChildPK = childPairKey[kids[0]] || ''; break; }
-                }
-                const diffAsParents = prevChildPK && curChildPK && prevChildPK !== curChildPK;
-                const gap = (diffAsChildren || diffAsParents) ? FTREE_H_GAP * 3 : FTREE_H_GAP;
-                const minX = prev.x + prevWidth + gap;
-                if (cur.x < minX) {
-                    const shift = minX - cur.x;
-                    cur.x += shift;
-                    for (const m of cur.members) {
-                        xPos[m] += shift;
-                    }
-                }
-            }
+            if (unit.children.some((c, i) => c !== before[i])) changed = true;
         }
+        if (!changed) break;
+        for (const root of roots) root.profile = layoutUnit(root);
+        packRoots(roots);
     }
 
     // Normalize x positions so minimum is 50
