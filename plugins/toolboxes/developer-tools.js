@@ -906,6 +906,74 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .cert-jks-password input { flex: 1; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 11px; background: var(--input-bg); color: var(--text-primary); }
 .cert-jks-password input:focus { outline: none; border-color: #3498db; }
 
+/* GitHub Deployment Status Widget Styles */
+.tool-content:has(.ghd-widget) { display: flex; flex-direction: column; }
+.ghd-widget { padding: 8px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 6px; }
+.ghd-header { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.ghd-header-btn { padding: 4px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
+.ghd-header-btn:hover { background: var(--table-hover); }
+.ghd-header-btn.primary { background: #3498db; border-color: #3498db; color: #fff; }
+.ghd-header-btn.primary:hover { background: #2980b9; }
+.ghd-status { flex: 1; font-size: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ghd-settings { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); flex-shrink: 0; }
+.ghd-field { display: flex; flex-direction: column; gap: 3px; }
+.ghd-field label { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.ghd-field .ghd-hint { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+.ghd-field input, .ghd-field textarea { padding: 5px 7px; border: 1px solid var(--border-color); border-radius: 3px; font-size: 11px; font-family: monospace; background: var(--input-bg); color: var(--text-primary); box-sizing: border-box; width: 100%; }
+.ghd-field input:focus, .ghd-field textarea:focus { outline: none; border-color: #3498db; }
+.ghd-field textarea { resize: vertical; min-height: 76px; }
+.ghd-settings-row { display: flex; gap: 6px; }
+.ghd-settings-row .ghd-field { flex: 1; }
+.ghd-body { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); }
+.ghd-note { padding: 10px; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.ghd-note.error { color: #e74c3c; font-family: monospace; white-space: pre-wrap; }
+.ghd-note code { font-family: monospace; color: var(--text-secondary); }
+.ghd-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; cursor: default; min-width: 0; }
+.ghd-row.ghd-clickable { cursor: pointer; }
+.ghd-row.ghd-clickable:hover { background: var(--table-hover); }
+.ghd-chev { width: 10px; flex-shrink: 0; color: var(--text-muted); font-size: 10px; text-align: center; }
+.ghd-dot { width: 15px; flex-shrink: 0; font-size: 11px; }
+.ghd-grow { flex: 1; min-width: 8px; }
+.ghd-name { color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ghd-name .ghd-owner { color: var(--text-muted); }
+.ghd-chip { font-size: 10px; font-family: monospace; padding: 0 4px; border: 1px solid var(--border-color); border-radius: 3px; color: var(--text-secondary); flex-shrink: 0; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ghd-meta { font-size: 10px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+.ghd-sha { width: 62px; text-align: right; flex-shrink: 0; font-family: monospace; font-size: 10px; }
+.ghd-sha a { color: #3498db; text-decoration: none; }
+.ghd-sha a:hover { text-decoration: underline; }
+.ghd-open { width: 14px; flex-shrink: 0; text-align: right; color: var(--text-muted); text-decoration: none; font-size: 11px; }
+.ghd-open:hover { color: #3498db; }
+.ghd-group { border-bottom: 1px solid var(--border-color); }
+.ghd-group:last-child { border-bottom: none; }
+.ghd-group-row { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-heading); background: var(--bg-secondary); }
+.ghd-repo { border-top: 1px solid var(--border-light); }
+.ghd-repo:first-child { border-top: none; }
+.ghd-repo-row .ghd-name { font-weight: 600; }
+.ghd-repo-body { padding: 0 6px 4px 20px; }
+.ghd-section-row { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.ghd-section-row:hover { color: var(--text-primary); }
+.ghd-list { border: 1px solid var(--border-color); border-radius: 4px; margin: 0 0 6px 16px; overflow: hidden; }
+.ghd-list .ghd-row { border-top: 1px solid var(--border-light); }
+.ghd-list .ghd-row:first-child { border-top: none; }
+.ghd-env { border-top: 1px solid var(--border-light); }
+.ghd-env:first-child { border-top: none; }
+.ghd-subline { padding: 0 6px 3px 38px; font-size: 11px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ghd-details { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 2px 6px 6px 38px; font-size: 11px; }
+.ghd-details dt { color: var(--text-muted); white-space: nowrap; }
+.ghd-details dd { margin: 0; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; }
+.ghd-details dd a { color: #3498db; text-decoration: none; }
+.ghd-details dd a:hover { text-decoration: underline; }
+.ghd-details dd.ghd-wide { grid-column: 2 / 3; white-space: normal; }
+.ghd-hist { margin: 0 6px 6px 30px; }
+.ghd-hist-head { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); cursor: pointer; }
+.ghd-hist-head:hover { color: var(--text-primary); }
+.ghd-hist-row { display: flex; align-items: center; gap: 6px; padding: 3px 4px; border-top: 1px solid var(--border-light); font-size: 11px; }
+.ghd-hist-row:hover { background: var(--table-hover); }
+.ghd-bar { width: 54px; height: 5px; border-radius: 3px; background: var(--border-color); flex-shrink: 0; overflow: hidden; }
+.ghd-bar-fill { display: block; height: 100%; background: #3498db; border-radius: 3px; }
+.ghd-bar-fill.slow { background: #e67e22; }
+.ghd-legend { display: flex; gap: 8px; font-size: 10px; color: var(--text-muted); flex-shrink: 0; justify-content: flex-end; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -918,7 +986,7 @@ PluginRegistry.registerToolbox({
     icon: '🛠️',
     color: '#3498db',
     version: '1.0.0',
-    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'certificate-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'hash-generator', 'html-markdown-converter', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
+    tools: ['ascii-codes', 'base64-encoder', 'case-converter', 'certificate-converter', 'code-formatter', 'cron-expression', 'diff-viewer', 'directory-structure', 'epoch-converter', 'github-deployment-status', 'hash-generator', 'html-markdown-converter', 'http-request-builder', 'ip-address-info', 'jsonpath-tester', 'jwt-decoder', 'lorem-ipsum', 'number-base-converter', 'password-generator', 'qr-code-generator', 'regex-tester', 'sql-query-explainer', 'url-parser', 'uuid-generator'],
     source: 'external'
 });
 
@@ -1985,7 +2053,63 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Developer Tools plugin loaded: 23 tools registered');
+PluginRegistry.registerTool({
+    id: 'github-deployment-status',
+    name: 'Deployment Status',
+    description: 'GitHub deployment status across repos, environments and workflows',
+    icon: '🚀',
+    version: '1.0.0',
+    toolbox: 'developer-tools',
+    tags: ['github', 'deployment', 'deploy', 'environment', 'workflow', 'actions', 'status', 'release', 'ci', 'cd'],
+    title: 'Deployment Status',
+    content: '<div class="ghd-widget">' +
+        '<div class="ghd-header">' +
+            '<button class="ghd-header-btn primary" onclick="ghdRefresh(this, true)">Refresh</button>' +
+            '<span class="ghd-status"></span>' +
+            '<button class="ghd-header-btn" onclick="ghdToggleSettings(this)">Settings</button>' +
+        '</div>' +
+        '<div class="ghd-settings">' +
+            '<div class="ghd-field">' +
+                '<label>Repositories</label>' +
+                '<div class="ghd-hint">One <code>org/repo</code> per line. End a line with a colon to open a group.</div>' +
+                '<textarea class="ghd-repos" spellcheck="false" placeholder="my-org/shared-tooling&#10;&#10;System 1:&#10;my-org/api&#10;my-org/web"></textarea>' +
+            '</div>' +
+            '<div class="ghd-field">' +
+                '<label>Personal access token</label>' +
+                '<div class="ghd-hint">Required: GitHub cannot be read from a web page without one. Needs <code>repo</code> (classic), or read access to Deployments, Environments, Contents and Actions (fine-grained). Kept in this browser under <code>ghdToken</code>, outside board data, so it is never written into an exported board.</div>' +
+                '<input type="password" class="ghd-token" autocomplete="off" spellcheck="false" placeholder="ghp_… / github_pat_…">' +
+            '</div>' +
+            '<div class="ghd-settings-row">' +
+                '<div class="ghd-field">' +
+                    '<label>GitHub host</label>' +
+                    '<div class="ghd-hint">Enterprise Server only, and only if it allows CORS from this page.</div>' +
+                    '<input type="text" class="ghd-host" spellcheck="false" placeholder="github.com">' +
+                '</div>' +
+                '<div class="ghd-field">' +
+                    '<label>Cache for (seconds)</label>' +
+                    '<div class="ghd-hint">How long a fetched repo stays fresh.</div>' +
+                    '<input type="number" class="ghd-ttl" min="0" max="3600" step="10">' +
+                '</div>' +
+            '</div>' +
+            '<div><button class="ghd-header-btn primary" onclick="ghdSaveSettings(this)">Save</button></div>' +
+        '</div>' +
+        '<div class="ghd-body"></div>' +
+        '<div class="ghd-legend">' +
+            '<span title="Success">🟩</span>' +
+            '<span title="In progress">🟦</span>' +
+            '<span title="Waiting for approval">🟨</span>' +
+            '<span title="Failed">🟥</span>' +
+            '<span title="Idle / none">⬜</span>' +
+        '</div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'ghdInit',
+    defaultWidth: 560,
+    defaultHeight: 620,
+    source: 'external'
+});
+
+console.log('Developer Tools plugin loaded: 24 tools registered');
 
 // ==================== Diff Viewer Functions ====================
 function diffGetToolId(element) {
@@ -7808,6 +7932,1314 @@ async function certCopyBase64(btn, fmt) {
     });
 }
 
+var ghdCache = {};
+
+// ==================== GitHub Deployment Status Functions ====================
+//
+// A dashboard of what is deployed where. GitHub is read through the REST API
+// with a personal access token: a page cannot borrow the browser's github.com
+// session the way a browser extension can, so a token is the only way in.
+
+// The five states everything rolls up to.
+const GHD_EMOJI = { ok: '🟩', bad: '🟥', busy: '🟦', waiting: '🟨', idle: '⬜' };
+const GHD_BUCKET_LABEL = { ok: 'Success', bad: 'Failed', busy: 'In progress', waiting: 'Waiting', idle: 'Idle' };
+
+// How bad is this repo? A broken production outranks everything, then anything
+// blocked on a human, then a deploy that is running and will resolve itself.
+const GHD_SEVERITY = { bad: 4, waiting: 3, busy: 2, ok: 1, idle: 0 };
+
+const GHD_STATE_BUCKET = {
+    success: 'ok', active: 'ok',
+    failure: 'bad', error: 'bad',
+    in_progress: 'busy', pending: 'busy', queued: 'busy',
+    waiting: 'waiting',
+    inactive: 'idle', destroyed: 'idle', unknown: 'idle'
+};
+
+const GHD_CONCLUSION_BUCKET = {
+    success: 'ok',
+    failure: 'bad', timed_out: 'bad', startup_failure: 'bad',
+    action_required: 'waiting',
+    cancelled: 'idle', skipped: 'idle', neutral: 'idle', stale: 'idle'
+};
+
+const GHD_TOKEN_KEY = 'ghdToken';
+const GHD_HISTORY_LIMIT = 10;
+const GHD_CONCURRENCY = 4;
+
+// ---------- instance plumbing ----------
+
+function ghdGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function ghdGetWidget(element) {
+    return element.closest('.ghd-widget');
+}
+
+function ghdGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const saved = (customizations[toolId] || {}).ghdData || {};
+    return {
+        reposText: saved.reposText || '',
+        host: saved.host || 'github.com',
+        cacheTtlSeconds: typeof saved.cacheTtlSeconds === 'number' ? saved.cacheTtlSeconds : 120,
+        settingsOpen: saved.settingsOpen !== false,
+        open: saved.open || {}
+    };
+}
+
+function ghdSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].ghdData = data;
+    saveToolCustomizations(customizations);
+}
+
+// The token lives outside the board's tool data on purpose: board export
+// serialises toolCustomizations, and a token stored there would be written
+// into every exported board file.
+function ghdGetToken() {
+    try { return localStorage.getItem(GHD_TOKEN_KEY) || ''; } catch (e) { return ''; }
+}
+
+function ghdSetToken(value) {
+    try {
+        if (value) localStorage.setItem(GHD_TOKEN_KEY, value);
+        else localStorage.removeItem(GHD_TOKEN_KEY);
+    } catch (e) { /* storage unavailable; the tool still works for this session */ }
+}
+
+// Per-instance results, held in memory for the life of the page.
+function ghdState(toolId) {
+    if (!ghdCache[toolId]) ghdCache[toolId] = { results: {}, history: {}, loading: false, token: '' };
+    ghdCache[toolId].token = ghdGetToken();
+    return ghdCache[toolId];
+}
+
+// ---------- small helpers ----------
+
+function ghdEsc(str) {
+    return String(str === null || str === undefined ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/** Run tasks with at most `limit` in flight, so a big board can't flood GitHub. */
+async function ghdMapLimit(items, limit, worker) {
+    const queue = items.slice();
+    const runners = [];
+    for (let i = 0; i < Math.min(limit, queue.length); i++) {
+        runners.push((async function() {
+            while (queue.length) {
+                const item = queue.shift();
+                await worker(item);
+            }
+        })());
+    }
+    await Promise.all(runners);
+}
+
+function ghdTimeAgo(iso) {
+    if (!iso) return '';
+    const then = new Date(iso).getTime();
+    if (isNaN(then)) return '';
+    const seconds = Math.round((Date.now() - then) / 1000);
+    if (seconds < 45) return 'just now';
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.round(hours / 24);
+    if (days < 30) return days + 'd ago';
+    const months = Math.round(days / 30);
+    if (months < 12) return months + 'mo ago';
+    return Math.round(months / 12) + 'y ago';
+}
+
+/** Spelled-out month, because 7/8/2026 means two different days to two readers. */
+function ghdFormatDate(iso) {
+    if (!iso) return '';
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function ghdDurationMs(from, to) {
+    if (!from || !to) return null;
+    const start = new Date(from).getTime();
+    const end = new Date(to).getTime();
+    if (isNaN(start) || isNaN(end) || end < start) return null;
+    return end - start;
+}
+
+function ghdFormatDuration(ms) {
+    if (ms === null || ms === undefined) return '';
+    const seconds = Math.round(ms / 1000);
+    if (seconds < 60) return seconds + 's';
+    const minutes = Math.floor(seconds / 60);
+    const rest = seconds % 60;
+    if (minutes < 60) return rest ? minutes + 'm ' + rest + 's' : minutes + 'm';
+    const hours = Math.floor(minutes / 60);
+    return hours + 'h ' + (minutes % 60) + 'm';
+}
+
+function ghdShortSha(sha) {
+    return sha ? String(sha).slice(0, 7) : '';
+}
+
+/** A labelled concept plus its raw JSON, for a tooltip. */
+function ghdConcept(name, lines, json) {
+    const parts = [name].concat((lines || []).filter(Boolean));
+    if (json) parts.push('', json);
+    return parts.join('\n');
+}
+
+/** JSON for a tooltip: empty values dropped, and capped so it stays readable. */
+function ghdJsonSnippet(value) {
+    const pruned = ghdPrune(value);
+    if (!pruned) return '';
+    let text;
+    try { text = JSON.stringify(pruned, null, 2); } catch (e) { return ''; }
+    if (!text) return '';
+    return text.length > 1600 ? text.slice(0, 1600) + '\n…' : text;
+}
+
+function ghdPrune(value) {
+    if (Array.isArray(value)) {
+        const list = value.map(ghdPrune).filter(function(v) { return v !== undefined; });
+        return list.length ? list : undefined;
+    }
+    if (value && typeof value === 'object') {
+        const out = {};
+        Object.keys(value).forEach(function(key) {
+            const pruned = ghdPrune(value[key]);
+            if (pruned !== undefined) out[key] = pruned;
+        });
+        return Object.keys(out).length ? out : undefined;
+    }
+    if (value === null || value === undefined || value === '') return undefined;
+    return value;
+}
+
+// ---------- states ----------
+
+function ghdBucketOf(state) {
+    if (!state) return 'idle';
+    const key = String(state).trim().toLowerCase().replace(/[\s-]+/g, '_');
+    return GHD_STATE_BUCKET[key] || 'idle';
+}
+
+function ghdMostSevere(buckets) {
+    let worst = 'idle';
+    buckets.forEach(function(bucket) {
+        if (GHD_SEVERITY[bucket] > GHD_SEVERITY[worst]) worst = bucket;
+    });
+    return worst;
+}
+
+function ghdStateLabel(state) {
+    if (!state) return 'None';
+    return String(state).replace(/_/g, ' ').replace(/^./, function(c) { return c.toUpperCase(); });
+}
+
+/** A run or job with no conclusion is still going — unless it is blocked on an
+ *  approval, which its status says and its conclusion cannot. */
+function ghdJobBucket(item) {
+    if (!item.conclusion) return item.status === 'waiting' ? 'waiting' : 'busy';
+    return GHD_CONCLUSION_BUCKET[item.conclusion] || 'idle';
+}
+
+// ---------- configuration ----------
+
+/**
+ * Parse the repositories box. A line ending in a colon opens a group; repos
+ * above the first such line stay ungrouped. Repo URLs contain colons but never
+ * end with one, so the two cannot be confused.
+ */
+function ghdParseRepoList(text) {
+    const groups = [];
+    let current = null;
+    String(text || '').split('\n').forEach(function(raw) {
+        const line = raw.trim();
+        if (!line) return;
+        const header = line.match(/^(.+?)\s*:$/);
+        if (header) {
+            current = { name: header[1].trim(), repos: [] };
+            groups.push(current);
+            return;
+        }
+        const parsed = ghdParseRepo(line);
+        if (!parsed) return;
+        if (!current) {
+            current = { name: null, repos: [] };
+            groups.unshift(current);
+        }
+        const key = parsed.owner + '/' + parsed.repo;
+        if (current.repos.indexOf(key) === -1) current.repos.push(key);
+    });
+    return groups.filter(function(group) { return group.repos.length; });
+}
+
+function ghdFlattenGroups(groups) {
+    const seen = [];
+    groups.forEach(function(group) {
+        group.repos.forEach(function(key) {
+            if (seen.indexOf(key) === -1) seen.push(key);
+        });
+    });
+    return seen;
+}
+
+function ghdParseRepo(entry) {
+    const cleaned = String(entry || '').trim()
+        .replace(/^https?:\/\/[^/]+\//, '')
+        .replace(/\.git$/, '')
+        .replace(/^\/+|\/+$/g, '');
+    const m = cleaned.match(/^([\w.-]+)\/([\w.-]+)/);
+    return m ? { owner: m[1], repo: m[2] } : null;
+}
+
+function ghdWebBase(data) {
+    return 'https://' + (data.host || 'github.com');
+}
+
+function ghdApiBase(data) {
+    const host = data.host || 'github.com';
+    return host === 'github.com' ? 'https://api.github.com' : 'https://' + host + '/api/v3';
+}
+
+function ghdRepoUrl(data, owner, repo) {
+    return ghdWebBase(data) + '/' + owner + '/' + repo;
+}
+
+// ---------- REST ----------
+
+function ghdError(message, status, path) {
+    const err = new Error(message);
+    err.status = status;
+    err.path = path;
+    return err;
+}
+
+async function ghdApi(data, path) {
+    const token = ghdGetToken();
+    if (!token) throw ghdError('No personal access token configured', 0, path);
+
+    let resp;
+    try {
+        resp = await fetch(ghdApiBase(data) + path, {
+            headers: {
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+    } catch (e) {
+        throw ghdError('Could not reach ' + ghdApiBase(data) + ' — the host may not allow requests from this page (CORS).', 0, path);
+    }
+
+    if (!resp.ok) {
+        let detail = '';
+        try {
+            const body = await resp.json();
+            detail = body && body.message ? ' — ' + body.message : '';
+        } catch (e) { /* no JSON body */ }
+        throw ghdError('HTTP ' + resp.status + detail, resp.status, path);
+    }
+    return resp.json();
+}
+
+/** The fine-grained permission an endpoint needs, for the error hint. */
+function ghdPermissionFor(path) {
+    if (path.indexOf('/actions/') !== -1) return 'Actions: Read-only';
+    if (path.indexOf('/environments') !== -1) return 'Environments: Read-only';
+    if (path.indexOf('/deployments') !== -1) return 'Deployments: Read-only';
+    return 'Contents: Read-only';
+}
+
+/** What to change about the token, given how GitHub said no. */
+function ghdPermissionHint(err) {
+    if (!err || !err.status) return '';
+    const permission = ghdPermissionFor(err.path || '');
+    if (err.status === 404) {
+        // GitHub answers "no access" with 404, not 403, so a missing repo and an
+        // unauthorised one look identical from here.
+        return 'The token cannot see the repository, or it does not exist. A classic token needs the "repo" scope; a fine-grained one needs access to this repository plus "' + permission + '".';
+    }
+    if (err.status === 403) {
+        return 'Forbidden. The token needs "' + permission + '", and if the organisation uses SAML SSO the token must be authorised for it.';
+    }
+    if (err.status === 401) return 'The token was rejected. It may be expired or mistyped.';
+    if (err.status === 429) return 'Rate limited. Raise the cache duration or wait for the limit to reset.';
+    return '';
+}
+
+// ---------- describing what GitHub returns ----------
+
+/** Whether a log URL points at one job rather than the whole run. GitHub spells
+ *  that path segment in the singular: /actions/runs/<run>/job/<job>. */
+function ghdIsJobUrl(url) {
+    return /\/actions\/runs\/\d+\/job\/\d+/.test(String(url || ''));
+}
+
+function ghdRunIdFromUrl(url) {
+    const m = String(url || '').match(/\/actions\/runs\/(\d+)/);
+    return m ? m[1] : null;
+}
+
+/**
+ * One deployment, flattened from the deployment and its statuses.
+ *
+ * GitHub appends an `inactive` status once a later deployment supersedes this
+ * one. That says nothing about whether it worked, so the outcome is the most
+ * recent status that is something else — and that is the one carrying the log
+ * URL back to the Actions run.
+ */
+function ghdDescribeDeployment(data, owner, repo, deployment, statuses) {
+    const repoUrl = ghdRepoUrl(data, owner, repo);
+    const list = (statuses || []).slice().sort(function(a, b) {
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+    const latest = list[0] || null;
+    let status = null;
+    for (let i = 0; i < list.length; i++) {
+        if (list[i] && list[i].state !== 'inactive') { status = list[i]; break; }
+    }
+    if (!status) status = latest;
+
+    const payload = deployment.payload && typeof deployment.payload === 'object' ? deployment.payload : {};
+    const logUrl = status ? (status.log_url || status.target_url || null) : null;
+    const runId = ghdRunIdFromUrl(logUrl);
+
+    const d = {
+        id: deployment.id ? String(deployment.id) : null,
+        environment: deployment.environment || '',
+        sha: deployment.sha || null,
+        creator: deployment.creator && deployment.creator.login ? deployment.creator.login : null,
+        createdAt: deployment.created_at || null,
+        updatedAt: (status && status.created_at) || deployment.updated_at || deployment.created_at || null,
+        description: deployment.description || (status && status.description) || null,
+        state: status ? status.state : null,
+        bucket: status ? ghdBucketOf(status.state) : 'idle',
+        superseded: Boolean(latest && latest.state === 'inactive' && status !== latest),
+        logUrl: logUrl,
+        runId: runId,
+        runUrl: runId ? repoUrl + '/actions/runs/' + runId : null,
+        jobUrl: logUrl && ghdIsJobUrl(logUrl) ? logUrl : null,
+        version: ghdReadPayload(payload, ['version', 'app_version', 'release', 'tag']),
+        image: ghdReadPayload(payload, ['image', 'container_image', 'docker_image', 'imageUri']),
+        workflowName: null,
+        job: null,
+        commitUrl: deployment.sha ? repoUrl + '/commit/' + deployment.sha : null,
+        environmentUrl: deployment.environment ? repoUrl + '/deployments/' + encodeURIComponent(deployment.environment) : repoUrl + '/deployments',
+        durationMs: null,
+        rawJson: null
+    };
+
+    d.durationMs = ghdDurationMs(d.createdAt, d.updatedAt);
+    d.versionUrl = d.version ? repoUrl + '/releases/tag/' + encodeURIComponent(d.version) : null;
+    d.imageUrl = ghdImageUrl(d.image, owner, repo);
+    d.rawJson = ghdJsonSnippet({
+        deployment: {
+            id: deployment.id,
+            environment: deployment.environment,
+            sha: deployment.sha,
+            creator: d.creator,
+            created_at: deployment.created_at,
+            description: deployment.description,
+            payload: payload
+        },
+        latest_status: status ? {
+            state: status.state,
+            description: status.description,
+            created_at: status.created_at,
+            log_url: status.log_url,
+            environment_url: status.environment_url
+        } : null,
+        superseded_by_inactive: d.superseded || undefined
+    });
+    return d;
+}
+
+/**
+ * Find a key anywhere in the deploy payload, shallowest first — tools nest the
+ * version under wildly different parents, but the shallowest match is the one
+ * that means what it says.
+ */
+function ghdReadPayload(payload, keys) {
+    const queue = [payload];
+    while (queue.length) {
+        const node = queue.shift();
+        if (!node || typeof node !== 'object') continue;
+        for (let i = 0; i < keys.length; i++) {
+            const value = node[keys[i]];
+            if (typeof value === 'string' && value.trim()) return value.trim();
+            if (typeof value === 'number') return String(value);
+        }
+        Object.keys(node).forEach(function(key) {
+            const value = node[key];
+            if (value && typeof value === 'object') queue.push(value);
+        });
+    }
+    return null;
+}
+
+/** Where an image reference can be opened: ghcr.io under this repo, or Docker Hub. */
+function ghdImageUrl(image, owner, repo) {
+    if (!image) return null;
+    const name = String(image).split('@')[0].split(':')[0];
+    if (name.indexOf('ghcr.io/') === 0) {
+        const parts = name.slice('ghcr.io/'.length).split('/');
+        if (parts.length >= 2) return 'https://github.com/' + parts[0] + '/' + repo + '/pkgs/container/' + parts.slice(1).join('%2F');
+    }
+    if (name.indexOf('/') !== -1 && name.indexOf('.') === -1) return 'https://hub.docker.com/r/' + name;
+    return null;
+}
+
+function ghdDescribeJob(job) {
+    return {
+        id: job.id ? String(job.id) : null,
+        name: job.name || '',
+        workflowName: job.workflow_name || null,
+        status: job.status || null,
+        conclusion: job.conclusion || null,
+        bucket: ghdJobBucket(job),
+        startedAt: job.started_at || null,
+        completedAt: job.completed_at || null,
+        durationMs: ghdDurationMs(job.started_at, job.completed_at),
+        url: job.html_url || null,
+        runId: job.run_id ? String(job.run_id) : null,
+        rawJson: ghdJsonSnippet({
+            job: {
+                id: job.id,
+                name: job.name,
+                workflow_name: job.workflow_name,
+                run_id: job.run_id,
+                status: job.status,
+                conclusion: job.conclusion,
+                started_at: job.started_at,
+                completed_at: job.completed_at,
+                steps: (job.steps || []).map(function(step) {
+                    return { name: step.name, status: step.status, conclusion: step.conclusion };
+                })
+            }
+        })
+    };
+}
+
+function ghdNormalizeRun(run) {
+    return {
+        id: String(run.id),
+        workflowId: run.workflow_id ? String(run.workflow_id) : null,
+        workflowName: run.name || null,
+        headSha: run.head_sha || null,
+        displayTitle: run.display_title || null,
+        status: run.status || null,
+        conclusion: run.conclusion || null,
+        event: run.event || null,
+        createdAt: run.created_at || null,
+        url: run.html_url || null,
+        bucket: ghdJobBucket(run),
+        rawJson: ghdJsonSnippet({
+            run: {
+                id: run.id,
+                name: run.name,
+                workflow_id: run.workflow_id,
+                event: run.event,
+                status: run.status,
+                conclusion: run.conclusion,
+                head_sha: run.head_sha,
+                run_number: run.run_number,
+                created_at: run.created_at
+            }
+        })
+    };
+}
+
+function ghdNormalizeWorkflow(workflow) {
+    return {
+        id: workflow.id ? String(workflow.id) : null,
+        name: workflow.name || null,
+        path: workflow.path || null,
+        // The last segment addresses the workflow on the web: /actions/workflows/ci.yml
+        file: workflow.path ? workflow.path.split('/').pop() : null,
+        state: workflow.state || null,
+        rawJson: ghdJsonSnippet({
+            workflow: {
+                id: workflow.id,
+                name: workflow.name,
+                path: workflow.path,
+                state: workflow.state,
+                updated_at: workflow.updated_at
+            }
+        })
+    };
+}
+
+/**
+ * The workflows the repo defines, each carrying its latest run.
+ *
+ * The list is what the repo defines, not what happened to run recently. A run's
+ * `name` is the run's own title — a `run-name:` can make every run of one
+ * workflow read differently — so names come from the definition and runs are
+ * joined on workflow_id. Ordered by how recently each ran; never-run last.
+ */
+function ghdSummariseWorkflows(workflows, runs) {
+    const latest = {};
+    (runs || []).forEach(function(run) {
+        // Runs come back newest first, so the first sighting is the latest run.
+        if (run.workflowId && !latest[run.workflowId]) latest[run.workflowId] = run;
+    });
+    return workflows.map(function(workflow) {
+        const run = (workflow.id && latest[workflow.id]) || null;
+        return Object.assign({}, workflow, {
+            run: run,
+            bucket: run ? run.bucket : 'idle',
+            lastRunAt: run ? run.createdAt : null
+        });
+    }).sort(function(a, b) {
+        if (a.lastRunAt && b.lastRunAt) return a.lastRunAt < b.lastRunAt ? 1 : -1;
+        if (a.lastRunAt || b.lastRunAt) return a.lastRunAt ? -1 : 1;
+        return (a.name || '').localeCompare(b.name || '');
+    });
+}
+
+/**
+ * Which job in a run did the deploying — the one a past deployment should link
+ * to. A run has build, test and deploy jobs; the interesting one names the
+ * environment, or failed, or ran last.
+ */
+function ghdPickDeployJob(jobs, deployment) {
+    if (!jobs || !jobs.length) return null;
+    const environment = deployment && deployment.environment;
+    if (environment) {
+        const named = jobs.filter(function(job) {
+            return job.name.toLowerCase().indexOf(environment.toLowerCase()) !== -1;
+        })[0];
+        if (named) return named;
+    }
+    if (deployment && deployment.bucket === 'bad') {
+        const failed = jobs.filter(function(job) { return job.bucket === 'bad'; })[0];
+        if (failed) return failed;
+    }
+    return jobs[jobs.length - 1];
+}
+
+/** Which run deployed this — a run naming the environment beats one that merely shares the commit. */
+function ghdPickRunForDeployment(runs, deployment) {
+    if (!deployment || !deployment.sha) return null;
+    const candidates = runs.filter(function(run) { return run.headSha === deployment.sha; });
+    if (!candidates.length) return null;
+    const environment = deployment.environment;
+    if (environment) {
+        const named = candidates.filter(function(run) {
+            return ((run.workflowName || '') + ' ' + (run.displayTitle || '')).toLowerCase()
+                .indexOf(environment.toLowerCase()) !== -1;
+        })[0];
+        if (named) return named;
+    }
+    return candidates[0];
+}
+
+// ---------- loading ----------
+
+async function ghdLoadRepo(data, owner, repo) {
+    const key = owner + '/' + repo;
+    const base = { key: key, owner: owner, repo: repo, fetchedAt: Date.now() };
+    try {
+        const envData = await ghdApi(data, '/repos/' + owner + '/' + repo + '/environments?per_page=100');
+        const names = (envData.environments || []).map(function(env) { return env.name; })
+            .sort(function(a, b) { return a.localeCompare(b); });
+
+        const environments = names.map(function(name) { return { name: name, latest: null }; });
+        await ghdMapLimit(environments, GHD_CONCURRENCY, async function(env) {
+            env.latest = await ghdFetchLatest(data, owner, repo, env.name);
+        });
+
+        const workflows = await ghdLoadWorkflows(data, owner, repo, environments);
+        const rolled = ghdRollUp(environments);
+        return Object.assign({}, base, {
+            environments: environments,
+            workflows: workflows,
+            bucket: rolled.bucket,
+            updatedAt: rolled.updatedAt,
+            error: null,
+            errorHint: null
+        });
+    } catch (err) {
+        return Object.assign({}, base, {
+            environments: [],
+            workflows: [],
+            bucket: 'idle',
+            updatedAt: null,
+            error: err.message || String(err),
+            errorHint: ghdPermissionHint(err)
+        });
+    }
+}
+
+/** The current deployment of one environment, with the statuses that explain it. */
+async function ghdFetchLatest(data, owner, repo, environment) {
+    const query = 'environment=' + encodeURIComponent(environment) + '&per_page=1';
+    const deployments = await ghdApi(data, '/repos/' + owner + '/' + repo + '/deployments?' + query);
+    if (!deployments.length) return null;
+    const deployment = deployments[0];
+    // Ten statuses, not one: the newest can be an `inactive` marker that hides
+    // the real outcome and carries no log URL.
+    const statuses = await ghdApi(data, '/repos/' + owner + '/' + repo + '/deployments/' + deployment.id + '/statuses?per_page=10');
+    return ghdDescribeDeployment(data, owner, repo, deployment, statuses);
+}
+
+/**
+ * The repo's workflows with their latest runs, and — from the same runs — the
+ * name of the workflow behind each environment's current deployment. Best
+ * effort: both are decoration, and a failure here must not cost the deployments.
+ */
+async function ghdLoadWorkflows(data, owner, repo, environments) {
+    let workflows = [];
+    let runs = [];
+    try {
+        const results = await Promise.all([
+            ghdApi(data, '/repos/' + owner + '/' + repo + '/actions/workflows?per_page=100'),
+            ghdApi(data, '/repos/' + owner + '/' + repo + '/actions/runs?per_page=100')
+        ]);
+        workflows = (results[0].workflows || []).map(ghdNormalizeWorkflow);
+        runs = (results[1].workflow_runs || []).map(ghdNormalizeRun);
+    } catch (e) {
+        return [];
+    }
+
+    const repoUrl = ghdRepoUrl(data, owner, repo);
+    const byId = {};
+    workflows.forEach(function(workflow) { if (workflow.id) byId[workflow.id] = workflow; });
+
+    environments.forEach(function(env) {
+        const latest = env.latest;
+        if (!latest || !latest.sha || latest.workflowName) return;
+        // When the deployment already names its run, that run is the answer.
+        // Matching by commit instead can land on a CI run that merely shares the
+        // sha, which is then contradicted the moment the environment is expanded.
+        const run = latest.runId
+            ? runs.filter(function(candidate) { return candidate.id === latest.runId; })[0] || null
+            : ghdPickRunForDeployment(runs, latest);
+        if (!run) return;
+        // The workflow's name, not the run's title, so the environment and the
+        // workflows list above it say the same thing.
+        latest.workflowName = (byId[run.workflowId] && byId[run.workflowId].name) || run.workflowName;
+        if (!latest.runId) {
+            latest.runId = run.id;
+            latest.runUrl = repoUrl + '/actions/runs/' + run.id;
+        }
+    });
+
+    return ghdSummariseWorkflows(workflows, runs).map(function(workflow) {
+        return Object.assign({}, workflow, {
+            // The workflow's own page — every run of it, which is what the name
+            // in the list refers to.
+            url: workflow.file ? repoUrl + '/actions/workflows/' + encodeURIComponent(workflow.file) : null
+        });
+    });
+}
+
+/** Past deployments for one environment. Fetched only when it is expanded. */
+async function ghdLoadHistory(data, owner, repo, environment) {
+    const query = 'environment=' + encodeURIComponent(environment) + '&per_page=' + GHD_HISTORY_LIMIT;
+    const raw = await ghdApi(data, '/repos/' + owner + '/' + repo + '/deployments?' + query);
+    const deployments = new Array(raw.length);
+    await ghdMapLimit(raw.map(function(d, i) { return { d: d, i: i }; }), GHD_CONCURRENCY, async function(entry) {
+        const statuses = await ghdApi(data, '/repos/' + owner + '/' + repo + '/deployments/' + entry.d.id + '/statuses?per_page=10');
+        deployments[entry.i] = ghdDescribeDeployment(data, owner, repo, entry.d, statuses);
+    });
+    await ghdAttachJobLinks(data, owner, repo, deployments);
+    return deployments;
+}
+
+/**
+ * Point each past deployment at the job that deployed it — the equivalent of
+ * "View logs" in the ... menu on GitHub's own deployments page.
+ */
+async function ghdAttachJobLinks(data, owner, repo, deployments) {
+    const runIds = [];
+    deployments.forEach(function(deployment) {
+        if (deployment && deployment.runId && runIds.indexOf(deployment.runId) === -1) runIds.push(deployment.runId);
+    });
+    if (!runIds.length) return;
+
+    const jobsByRun = {};
+    await ghdMapLimit(runIds, GHD_CONCURRENCY, async function(runId) {
+        try {
+            const body = await ghdApi(data, '/repos/' + owner + '/' + repo + '/actions/runs/' + runId + '/jobs?per_page=100&filter=latest');
+            jobsByRun[runId] = (body.jobs || []).map(ghdDescribeJob);
+        } catch (e) {
+            jobsByRun[runId] = [];
+        }
+    });
+
+    deployments.forEach(function(deployment) {
+        if (!deployment || !deployment.runId) return;
+        const jobs = jobsByRun[deployment.runId] || [];
+        const job = ghdPickDeployJob(jobs, deployment);
+        if (!job) return;
+        deployment.job = job;
+        if (job.url) deployment.jobUrl = job.url;
+        if (!deployment.workflowName) deployment.workflowName = job.workflowName;
+    });
+}
+
+/** The repo's status: the worst of its environments, and the most recent change. */
+function ghdRollUp(environments) {
+    const buckets = [];
+    let updatedAt = null;
+    environments.forEach(function(env) {
+        const latest = env.latest;
+        buckets.push(latest ? latest.bucket : 'idle');
+        if (latest && latest.updatedAt && (!updatedAt || latest.updatedAt > updatedAt)) updatedAt = latest.updatedAt;
+    });
+    return { bucket: ghdMostSevere(buckets), updatedAt: updatedAt };
+}
+
+// ---------- rendering ----------
+
+function ghdInit() {
+    document.querySelectorAll('.ghd-widget').forEach(function(widget) {
+        if (widget.dataset.ghdInited) return;
+        widget.dataset.ghdInited = '1';
+        const toolId = ghdGetToolId(widget);
+        if (!toolId) return;
+        const data = ghdGetData(toolId);
+        ghdFillSettings(widget, data);
+        const panel = widget.querySelector('.ghd-settings');
+        if (panel) panel.style.display = data.settingsOpen ? '' : 'none';
+        ghdRender(widget);
+        if (ghdParseRepoList(data.reposText).length && ghdGetToken()) ghdRefresh(widget, false);
+    });
+}
+
+function ghdFillSettings(widget, data) {
+    const repos = widget.querySelector('.ghd-repos');
+    const token = widget.querySelector('.ghd-token');
+    const host = widget.querySelector('.ghd-host');
+    const ttl = widget.querySelector('.ghd-ttl');
+    if (repos) repos.value = data.reposText;
+    if (token) token.value = ghdGetToken();
+    if (host) host.value = data.host;
+    if (ttl) ttl.value = data.cacheTtlSeconds;
+}
+
+function ghdToggleSettings(btn) {
+    const widget = ghdGetWidget(btn);
+    const toolId = ghdGetToolId(widget);
+    const data = ghdGetData(toolId);
+    const panel = widget.querySelector('.ghd-settings');
+    if (!panel) return;
+    data.settingsOpen = panel.style.display === 'none';
+    panel.style.display = data.settingsOpen ? '' : 'none';
+    if (data.settingsOpen) ghdFillSettings(widget, data);
+    ghdSaveData(toolId, data);
+}
+
+function ghdSaveSettings(btn) {
+    const widget = ghdGetWidget(btn);
+    const toolId = ghdGetToolId(widget);
+    const data = ghdGetData(toolId);
+    const repos = widget.querySelector('.ghd-repos');
+    const token = widget.querySelector('.ghd-token');
+    const host = widget.querySelector('.ghd-host');
+    const ttl = widget.querySelector('.ghd-ttl');
+
+    if (repos) {
+        // Write the parsed form back, so a save shows what was understood.
+        data.reposText = ghdFormatRepoList(ghdParseRepoList(repos.value));
+        repos.value = data.reposText;
+    }
+    if (host) data.host = (host.value || '').trim() || 'github.com';
+    if (ttl) {
+        const seconds = parseInt(ttl.value, 10);
+        data.cacheTtlSeconds = isNaN(seconds) ? 120 : Math.max(0, Math.min(3600, seconds));
+        ttl.value = data.cacheTtlSeconds;
+    }
+    if (token) ghdSetToken(token.value.trim());
+
+    data.settingsOpen = false;
+    ghdSaveData(toolId, data);
+    const panel = widget.querySelector('.ghd-settings');
+    if (panel) panel.style.display = 'none';
+
+    // Settings changed, so nothing already fetched can be trusted.
+    const state = ghdState(toolId);
+    state.results = {};
+    state.history = {};
+    ghdRender(widget);
+    ghdRefresh(widget, true);
+}
+
+/** Render groups back to the textarea, so a save shows what was kept. */
+function ghdFormatRepoList(groups) {
+    return groups.map(function(group) {
+        return group.name ? group.name + ':\n' + group.repos.join('\n') : group.repos.join('\n');
+    }).join('\n\n');
+}
+
+function ghdSetStatus(widget, text) {
+    const status = widget.querySelector('.ghd-status');
+    if (status) status.textContent = text;
+}
+
+async function ghdRefresh(el, force) {
+    const widget = ghdGetWidget(el);
+    const toolId = ghdGetToolId(widget);
+    if (!toolId) return;
+    const data = ghdGetData(toolId);
+    const state = ghdState(toolId);
+    if (state.loading) return;
+
+    const repos = ghdFlattenGroups(ghdParseRepoList(data.reposText)).map(ghdParseRepo).filter(Boolean);
+    if (!repos.length || !ghdGetToken()) { ghdRender(widget); return; }
+
+    state.loading = true;
+    if (force) { state.results = {}; state.history = {}; }
+    ghdSetStatus(widget, 'Loading ' + repos.length + ' repositor' + (repos.length === 1 ? 'y' : 'ies') + '…');
+    ghdRender(widget);
+
+    const freshAfter = Date.now() - data.cacheTtlSeconds * 1000;
+    let failures = 0;
+    await ghdMapLimit(repos, GHD_CONCURRENCY, async function(repo) {
+        const key = repo.owner + '/' + repo.repo;
+        const cached = state.results[key];
+        if (cached && !cached.error && cached.fetchedAt > freshAfter) return;
+        state.results[key] = await ghdLoadRepo(data, repo.owner, repo.repo);
+        if (state.results[key].error) failures++;
+        ghdRender(widget);
+    });
+
+    state.loading = false;
+    ghdSetStatus(widget, 'Updated ' + ghdFormatDate(new Date().toISOString()) +
+        (failures ? ' · ' + failures + ' failed' : ''));
+    ghdRender(widget);
+}
+
+function ghdIsOpen(data, key, fallback) {
+    const value = data.open[key];
+    return value === undefined ? Boolean(fallback) : Boolean(value);
+}
+
+/** Store only deviations from the default, so defaults can change later. */
+function ghdSetOpen(toolId, key, value, fallback) {
+    const data = ghdGetData(toolId);
+    if (Boolean(value) === Boolean(fallback)) delete data.open[key];
+    else data.open[key] = Boolean(value);
+    ghdSaveData(toolId, data);
+    return data;
+}
+
+function ghdToggle(el) {
+    const widget = ghdGetWidget(el);
+    const toolId = ghdGetToolId(widget);
+    const key = el.dataset.ghdKey;
+    if (!toolId || !key) return;
+    const fallback = el.dataset.ghdFallback === '1';
+    const data = ghdGetData(toolId);
+    ghdSetOpen(toolId, key, !ghdIsOpen(data, key, fallback), fallback);
+    ghdRender(widget);
+}
+
+/**
+ * What being expanded costs. Driven from the rendered state rather than from
+ * the click, so a board reopened with an environment already expanded fetches
+ * what it needs instead of sitting on "Loading…" forever.
+ */
+function ghdLoadPending(widget, ctx) {
+    Object.keys(ctx.data.open).forEach(function(key) {
+        if (!ctx.data.open[key]) return;
+        if (key.indexOf('h:') === 0) ghdEnsureHistory(widget, ctx, key.slice(2));
+        else if (key.indexOf('e:') === 0) ghdEnsureJob(widget, ctx, key.slice(2));
+    });
+}
+
+/** "owner/repo#environment" -> the pieces everything below needs. */
+function ghdSplitEnvKey(envKey) {
+    const cut = envKey.indexOf('#');
+    if (cut === -1) return null;
+    const repoKey = envKey.slice(0, cut);
+    const parsed = ghdParseRepo(repoKey);
+    return parsed ? { repoKey: repoKey, owner: parsed.owner, repo: parsed.repo, environment: envKey.slice(cut + 1) } : null;
+}
+
+/** Past deployments for an expanded environment, fetched once. */
+async function ghdEnsureHistory(widget, ctx, historyKey) {
+    const state = ctx.state;
+    if (state.history[historyKey]) return;
+    const parts = ghdSplitEnvKey(historyKey);
+    if (!parts) return;
+
+    state.history[historyKey] = { loading: true, deployments: [], error: null };
+    try {
+        const deployments = await ghdLoadHistory(ctx.data, parts.owner, parts.repo, parts.environment);
+        state.history[historyKey] = { loading: false, deployments: deployments, error: null };
+    } catch (err) {
+        state.history[historyKey] = {
+            loading: false,
+            deployments: [],
+            error: (err.message || String(err)) + (ghdPermissionHint(err) ? '\n\n' + ghdPermissionHint(err) : '')
+        };
+    }
+    ghdRender(widget);
+}
+
+/**
+ * The job that deployed an environment's current deployment — which job it was
+ * only becomes worth a request once someone expands the environment to ask.
+ */
+async function ghdEnsureJob(widget, ctx, envKey) {
+    const parts = ghdSplitEnvKey(envKey);
+    if (!parts) return;
+    const result = ctx.state.results[parts.repoKey];
+    if (!result || result.error) return;
+    const env = (result.environments || []).filter(function(e) { return e.name === parts.environment; })[0];
+    const d = env && env.latest;
+    if (!d || d.job || d.jobPending || !d.runId) return;
+
+    d.jobPending = true;
+    try {
+        const body = await ghdApi(ctx.data, '/repos/' + parts.owner + '/' + parts.repo + '/actions/runs/' + d.runId + '/jobs?per_page=100&filter=latest');
+        const jobs = (body.jobs || []).map(ghdDescribeJob);
+        const job = ghdPickDeployJob(jobs, d);
+        if (job) {
+            d.job = job;
+            if (job.url) d.jobUrl = job.url;
+            if (!d.workflowName) d.workflowName = job.workflowName;
+        }
+    } catch (e) {
+        // The deployment still reads fine without naming its job.
+    }
+    ghdRender(widget);
+}
+
+function ghdRender(widget) {
+    const toolId = ghdGetToolId(widget);
+    const body = widget.querySelector('.ghd-body');
+    if (!toolId || !body) return;
+
+    const data = ghdGetData(toolId);
+    const state = ghdState(toolId);
+    const groups = ghdParseRepoList(data.reposText);
+
+    if (!groups.length) {
+        body.innerHTML = '<div class="ghd-note">No repositories yet. Open <b>Settings</b> and add them as <code>org/repo</code>, one per line.</div>';
+        return;
+    }
+    if (!ghdGetToken()) {
+        body.innerHTML = '<div class="ghd-note">A personal access token is required. A page cannot borrow your github.com session the way a browser extension can, so GitHub is read through its REST API instead. Add a token under <b>Settings</b>.</div>';
+        return;
+    }
+
+    const ctx = { toolId: toolId, data: data, state: state };
+    body.innerHTML = groups.map(function(group, index) {
+        return ghdRenderGroup(ctx, group, index);
+    }).join('');
+    ghdLoadPending(widget, ctx);
+}
+
+function ghdRenderGroup(ctx, group, index) {
+    const results = group.repos.map(function(key) { return ctx.state.results[key] || null; });
+    const inner = group.repos.map(function(key) {
+        return ghdRenderRepo(ctx, key, ctx.state.results[key] || null);
+    }).join('');
+
+    // An unnamed group is just the repos listed above the first heading.
+    if (!group.name) return '<div class="ghd-group">' + inner + '</div>';
+
+    const key = 'g:' + index + ':' + group.name;
+    const open = ghdIsOpen(ctx.data, key, true);
+    const bucket = ghdMostSevere(results.map(function(result) { return result ? result.bucket : 'idle'; }));
+    const tooltip = ghdConcept('GROUP — repositories you have listed together', [
+        group.name,
+        'Rolled up from ' + group.repos.length + ' repositor' + (group.repos.length === 1 ? 'y' : 'ies') + ':',
+        'the worst state among them is ' + GHD_BUCKET_LABEL[bucket] + '.'
+    ]);
+
+    return '<div class="ghd-group">' +
+        '<div class="ghd-row ghd-clickable ghd-group-row" data-ghd-key="' + ghdEsc(key) + '" data-ghd-fallback="1" onclick="ghdToggle(this)" title="' + ghdEsc(tooltip) + '">' +
+            '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
+            '<span class="ghd-dot">' + GHD_EMOJI[bucket] + '</span>' +
+            '<span class="ghd-name">' + ghdEsc(group.name) + '</span>' +
+            '<span class="ghd-grow"></span>' +
+            '<span class="ghd-meta">' + group.repos.length + ' repo' + (group.repos.length === 1 ? '' : 's') + '</span>' +
+        '</div>' +
+        (open ? inner : '') +
+    '</div>';
+}
+
+function ghdRenderRepo(ctx, key, result) {
+    const parsed = ghdParseRepo(key);
+    const open = ghdIsOpen(ctx.data, 'r:' + key, false);
+    const bucket = result ? result.bucket : 'idle';
+    const envCount = result && result.environments ? result.environments.length : 0;
+    const repoUrl = ghdRepoUrl(ctx.data, parsed.owner, parsed.repo);
+
+    let meta;
+    if (!result) meta = 'loading…';
+    else if (result.error) meta = 'error';
+    else {
+        meta = envCount + ' env' + (envCount === 1 ? '' : 's');
+        if (result.updatedAt) meta += ' · ' + ghdTimeAgo(result.updatedAt);
+    }
+
+    let tooltip;
+    if (!result) tooltip = 'Loading…';
+    else if (result.error) tooltip = [result.error, result.errorHint].filter(Boolean).join('\n\n');
+    else tooltip = ghdConcept('REPOSITORY', [
+        key,
+        'Rolled up from ' + envCount + ' environment' + (envCount === 1 ? '' : 's') + ':',
+        'the worst state among them is ' + GHD_BUCKET_LABEL[bucket] + '.'
+    ]);
+
+    let inner = '';
+    if (open) {
+        if (!result) inner = '<div class="ghd-note">Loading…</div>';
+        else if (result.error) inner = '<div class="ghd-note error">' + ghdEsc(result.error) + (result.errorHint ? '\n\n' + ghdEsc(result.errorHint) : '') + '</div>';
+        else if (!envCount) inner = '<div class="ghd-note">No environments.</div>';
+        else {
+            inner = ghdRenderWorkflows(ctx, key, result) +
+                result.environments.map(function(env) { return ghdRenderEnv(ctx, key, env); }).join('');
+        }
+        inner = '<div class="ghd-repo-body">' + inner + '</div>';
+    }
+
+    return '<div class="ghd-repo">' +
+        '<div class="ghd-row ghd-clickable ghd-repo-row" data-ghd-key="' + ghdEsc('r:' + key) + '" onclick="ghdToggle(this)" title="' + ghdEsc(tooltip) + '">' +
+            '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
+            '<span class="ghd-dot">' + GHD_EMOJI[bucket] + '</span>' +
+            '<span class="ghd-name"><span class="ghd-owner">' + ghdEsc(parsed.owner) + '/</span>' + ghdEsc(parsed.repo) + '</span>' +
+            '<span class="ghd-grow"></span>' +
+            '<span class="ghd-meta">' + ghdEsc(meta) + '</span>' +
+            ghdLink(repoUrl + '/deployments', "Open the repository's deployments") +
+        '</div>' +
+        inner +
+    '</div>';
+}
+
+function ghdLink(url, tooltip) {
+    if (!url) return '<span class="ghd-open"></span>';
+    return '<a class="ghd-open" href="' + ghdEsc(url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="' + ghdEsc(tooltip) + '">↗</a>';
+}
+
+/**
+ * The repo's workflows, each with its latest run. Collapsed by default: this is
+ * context for the deployments below it, not the thing you came to see.
+ */
+function ghdRenderWorkflows(ctx, key, result) {
+    const workflows = result.workflows || [];
+    if (!workflows.length) return '';
+    const openKey = 'w:' + key;
+    const open = ghdIsOpen(ctx.data, openKey, false);
+
+    let rows = '';
+    if (open) {
+        rows = '<div class="ghd-list">' + workflows.map(function(workflow) {
+            return '<div class="ghd-row" title="' + ghdEsc(ghdWorkflowTooltip(workflow)) + '">' +
+                '<span class="ghd-chev"></span>' +
+                '<span class="ghd-dot">' + GHD_EMOJI[workflow.bucket] + '</span>' +
+                '<span class="ghd-name">' + ghdEsc(workflow.name || workflow.file || 'Unnamed workflow') + '</span>' +
+                '<span class="ghd-grow"></span>' +
+                '<span class="ghd-meta">' + ghdEsc(ghdWorkflowMeta(workflow)) + '</span>' +
+                ghdLink(workflow.url, "Open this workflow's runs") +
+            '</div>';
+        }).join('') + '</div>';
+    }
+
+    return '<div class="ghd-row ghd-clickable ghd-section-row" data-ghd-key="' + ghdEsc(openKey) + '" onclick="ghdToggle(this)" title="Every workflow this repository defines in .github/workflows">' +
+            '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
+            '<span class="ghd-name">Workflows</span>' +
+            '<span class="ghd-grow"></span>' +
+            '<span class="ghd-meta">' + workflows.length + '</span>' +
+            '<span class="ghd-open"></span>' +
+        '</div>' + rows;
+}
+
+/** What the workflow last did, or that it hasn't. */
+function ghdWorkflowMeta(workflow) {
+    const disabled = workflow.state && workflow.state !== 'active';
+    const run = workflow.run;
+    return [
+        disabled ? 'disabled' : null,
+        run ? run.event : 'never run',
+        run ? ghdTimeAgo(run.createdAt) : null
+    ].filter(Boolean).join(' · ');
+}
+
+function ghdWorkflowTooltip(workflow) {
+    const lines = [
+        'Name: ' + (workflow.name || 'unnamed'),
+        workflow.path ? 'File: ' + workflow.path : null,
+        workflow.state ? 'State: ' + ghdStateLabel(workflow.state) : null
+    ];
+    const run = workflow.run;
+    if (!run) {
+        lines.push("No run among this repository's 100 most recent.");
+        return ghdConcept('WORKFLOW — an automation the repo defines in .github/workflows', lines, workflow.rawJson);
+    }
+    lines.push(
+        'LATEST RUN — one execution of this workflow:',
+        'Status: ' + ghdStateLabel(run.status) + ' — where the run is in its lifecycle',
+        'Conclusion: ' + (run.conclusion ? ghdStateLabel(run.conclusion) : 'not finished yet') + ' — how it ended'
+    );
+    if (run.event) lines.push('Triggered by: ' + run.event);
+    if (run.createdAt) lines.push('Started: ' + ghdFormatDate(run.createdAt));
+    return ghdConcept('WORKFLOW — an automation the repo defines in .github/workflows', lines,
+        [workflow.rawJson, run.rawJson].filter(Boolean).join('\n'));
+}
+
+function ghdRenderEnv(ctx, key, env) {
+    const openKey = 'e:' + key + '#' + env.name;
+    const open = ghdIsOpen(ctx.data, openKey, false);
+    const d = env.latest;
+    const bucket = d ? d.bucket : 'idle';
+    const parsed = ghdParseRepo(key);
+    const envUrl = ghdRepoUrl(ctx.data, parsed.owner, parsed.repo) + '/deployments/' + encodeURIComponent(env.name);
+
+    const meta = d ? [ghdTimeAgo(d.updatedAt), d.creator ? '@' + d.creator : null].filter(Boolean).join(' · ') : 'never deployed';
+    // What is on it, in the row itself: the version if the deploy names one,
+    // otherwise the image. Never the commit — that has its own column.
+    const subtitle = d ? (d.version || d.image) : null;
+    const sha = d && d.sha
+        ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="' + ghdEsc(ghdConcept('COMMIT — the code that was deployed', [d.sha])) + '">' + ghdEsc(ghdShortSha(d.sha)) + '</a>'
+        : '';
+
+    let inner = '';
+    if (open) {
+        inner = d
+            ? ghdRenderDetails(ctx, key, env, d)
+            : '<div class="ghd-note">Nothing has been deployed to this environment.</div>';
+    }
+
+    return '<div class="ghd-env">' +
+        '<div class="ghd-row ghd-clickable" data-ghd-key="' + ghdEsc(openKey) + '" onclick="ghdToggle(this)" title="' + ghdEsc(ghdEnvTooltip(env, d)) + '">' +
+            '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
+            '<span class="ghd-dot">' + GHD_EMOJI[bucket] + '</span>' +
+            '<span class="ghd-name">' + ghdEsc(env.name) + '</span>' +
+            (subtitle ? '<span class="ghd-chip">' + ghdEsc(subtitle) + '</span>' : '') +
+            '<span class="ghd-grow"></span>' +
+            '<span class="ghd-meta">' + ghdEsc(meta) + '</span>' +
+            '<span class="ghd-sha">' + sha + '</span>' +
+            ghdLink(envUrl, 'Open this environment on GitHub') +
+        '</div>' +
+        (d && d.workflowName ? '<div class="ghd-subline" title="' + ghdEsc(ghdConcept('WORKFLOW — the workflow whose run produced this deployment', [d.workflowName])) + '">' + ghdEsc(d.workflowName) + '</div>' : '') +
+        inner +
+    '</div>';
+}
+
+function ghdEnvTooltip(env, d) {
+    if (!d) return ghdConcept('ENVIRONMENT — a named deploy target, with its own protection rules', [env.name, 'No deployments.']);
+    return ghdConcept('ENVIRONMENT — a named deploy target, with its own protection rules', [
+        env.name,
+        'Current deployment: ' + GHD_BUCKET_LABEL[d.bucket] + (d.superseded ? ' (since superseded by a newer deployment)' : ''),
+        d.updatedAt ? 'Updated: ' + ghdFormatDate(d.updatedAt) : null
+    ]);
+}
+
+function ghdRenderDetails(ctx, key, env, d) {
+    const rows = [];
+    const add = function(label, value, wide) {
+        if (!value) return;
+        rows.push('<dt>' + ghdEsc(label) + '</dt><dd' + (wide ? ' class="ghd-wide"' : '') + '>' + value + '</dd>');
+    };
+
+    add('Status', GHD_EMOJI[d.bucket] + ' ' + ghdEsc(ghdStateLabel(d.state) || GHD_BUCKET_LABEL[d.bucket]) +
+        (d.superseded ? ' <span class="ghd-meta">(superseded)</span>' : ''));
+    add('Updated', ghdEsc(ghdFormatDate(d.updatedAt)));
+    add('Triggered by', d.creator ? ghdEsc('@' + d.creator) : '');
+    add('Commit', d.sha ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener">' + ghdEsc(ghdShortSha(d.sha)) + '</a>' : '');
+    add('Took', ghdEsc(ghdFormatDuration(d.durationMs)));
+    add('Version', d.version ? (d.versionUrl ? '<a href="' + ghdEsc(d.versionUrl) + '" target="_blank" rel="noopener">' + ghdEsc(d.version) + '</a>' : ghdEsc(d.version)) : '');
+    add('Image', d.image ? (d.imageUrl ? '<a href="' + ghdEsc(d.imageUrl) + '" target="_blank" rel="noopener">' + ghdEsc(d.image) + '</a>' : ghdEsc(d.image)) : '', true);
+    add('Workflow', d.workflowName
+        ? (d.runUrl ? '<a href="' + ghdEsc(d.runUrl) + '" target="_blank" rel="noopener" title="' + ghdEsc(ghdConcept('WORKFLOW RUN — one execution of a workflow', ['Run ' + d.runId])) + '">' + ghdEsc(d.workflowName) + '</a>' : ghdEsc(d.workflowName))
+        : '', true);
+    if (d.job) {
+        const jobText = ghdEsc(d.job.name) + (d.job.durationMs !== null ? ' <span class="ghd-meta">' + ghdEsc(ghdFormatDuration(d.job.durationMs)) + '</span>' : '');
+        add('Job', '<span title="' + ghdEsc(ghdJobTooltip(d.job)) + '">' +
+            (d.jobUrl ? '<a href="' + ghdEsc(d.jobUrl) + '" target="_blank" rel="noopener">' + jobText + '</a>' : jobText) + '</span>', true);
+    }
+    add('Description', ghdEsc(d.description), true);
+
+    return '<dl class="ghd-details" title="' + ghdEsc(ghdConcept('DEPLOYMENT — a request to deploy one commit to one environment', [], d.rawJson)) + '">' +
+        rows.join('') + '</dl>' + ghdRenderHistory(ctx, key, env);
+}
+
+function ghdJobTooltip(job) {
+    return ghdConcept('JOB — one job inside that workflow run; a job is where the steps run', [
+        'Name: ' + job.name,
+        'Status: ' + ghdStateLabel(job.status) + ' — where the job is in its lifecycle',
+        'Conclusion: ' + (job.conclusion ? ghdStateLabel(job.conclusion) : 'not finished yet') + ' — how it ended',
+        job.startedAt ? 'Started: ' + ghdFormatDate(job.startedAt) : null,
+        job.durationMs !== null ? 'Took: ' + ghdFormatDuration(job.durationMs) : null
+    ], job.rawJson);
+}
+
+function ghdRenderHistory(ctx, key, env) {
+    const historyKey = key + '#' + env.name;
+    const openKey = 'h:' + historyKey;
+    const open = ghdIsOpen(ctx.data, openKey, false);
+    const entry = ctx.state.history[historyKey];
+
+    const head = '<div class="ghd-hist-head" data-ghd-key="' + ghdEsc(openKey) + '" onclick="ghdToggle(this)">' +
+        '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
+        '<span>Past Deployments</span>' +
+        '<span class="ghd-grow"></span>' +
+        '<span class="ghd-meta">' + (entry && entry.deployments.length ? entry.deployments.length : '') + '</span>' +
+    '</div>';
+
+    if (!open) return '<div class="ghd-hist">' + head + '</div>';
+    if (!entry || entry.loading) return '<div class="ghd-hist">' + head + '<div class="ghd-note">Loading…</div></div>';
+    if (entry.error) return '<div class="ghd-hist">' + head + '<div class="ghd-note error">' + ghdEsc(entry.error) + '</div></div>';
+    if (!entry.deployments.length) return '<div class="ghd-hist">' + head + '<div class="ghd-note">No past deployments.</div></div>';
+
+    // Each duration is shown against the slowest of the ten, so an outlier is
+    // obvious without reading the numbers.
+    const durations = entry.deployments.map(function(d) { return d.job && d.job.durationMs !== null ? d.job.durationMs : d.durationMs; });
+    const known = durations.filter(function(ms) { return typeof ms === 'number'; }).sort(function(a, b) { return a - b; });
+    const slowest = known.length ? known[known.length - 1] : 0;
+    const median = known.length ? known[Math.floor(known.length / 2)] : 0;
+
+    const rows = entry.deployments.map(function(d, index) {
+        const ms = durations[index];
+        const width = slowest && typeof ms === 'number' ? Math.max(3, Math.round((ms / slowest) * 100)) : 0;
+        const slow = median && typeof ms === 'number' && ms > median * 1.5;
+        const bar = typeof ms === 'number'
+            ? '<span class="ghd-bar" title="' + ghdEsc(ghdFormatDuration(ms) + ' — against the slowest of the last ' + entry.deployments.length) + '"><span class="ghd-bar-fill' + (slow ? ' slow' : '') + '" style="width:' + width + '%"></span></span>'
+            : '<span class="ghd-bar"></span>';
+        const name = d.job ? d.job.name : (d.workflowName || ghdStateLabel(d.state));
+        return '<div class="ghd-hist-row" title="' + ghdEsc(ghdHistoryTooltip(d)) + '">' +
+            '<span class="ghd-dot">' + GHD_EMOJI[d.bucket] + '</span>' +
+            '<span class="ghd-name">' + ghdEsc(name) + '</span>' +
+            '<span class="ghd-grow"></span>' +
+            '<span class="ghd-meta">' + ghdEsc([ghdTimeAgo(d.updatedAt), d.creator ? '@' + d.creator : null].filter(Boolean).join(' · ')) + '</span>' +
+            bar +
+            '<span class="ghd-sha">' + (d.sha ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener">' + ghdEsc(ghdShortSha(d.sha)) + '</a>' : '') + '</span>' +
+            ghdLink(d.jobUrl || d.runUrl, 'Open the job that ran this deployment') +
+        '</div>';
+    }).join('');
+
+    return '<div class="ghd-hist">' + head + rows + '</div>';
+}
+
+function ghdHistoryTooltip(d) {
+    const lines = [
+        'Environment: ' + d.environment,
+        'Status: ' + ghdStateLabel(d.state) + (d.superseded ? ' (later superseded)' : ''),
+        d.updatedAt ? 'Updated: ' + ghdFormatDate(d.updatedAt) : null,
+        d.creator ? 'Triggered by: @' + d.creator : null,
+        d.workflowName ? 'Workflow: ' + d.workflowName : null,
+        d.job ? 'Job: ' + d.job.name + (d.job.durationMs !== null ? ' · ' + ghdFormatDuration(d.job.durationMs) : '') : null,
+        d.version ? 'Version: ' + d.version : null,
+        d.image ? 'Image: ' + d.image : null
+    ];
+    return ghdConcept('DEPLOYMENT — a request to deploy one commit to one environment', lines, d.rawJson);
+}
+
 // The injected script only defines things if they don't already exist (for exported HTML)
 (function injectScriptsForExport() {
     if (document.getElementById('developer-tools-scripts')) return;
@@ -7883,7 +9315,23 @@ async function certCopyBase64(btn, fmt) {
         certHandleFile, certDownloadPem, certDownloadDer, certDownloadJks,
         certNameRows, certNameShort, certEscHtml, certSetStatus, certToggleDownloads,
         certDetectKeyType, certKeyInfo, certBuildAsn1, certParsePkcs1ToKeyDer, certParseEc1ToKeyDer,
-        certJksEncryptKey, certJksDecryptKey, certDownloadPemBundle, certCopyBase64
+        certJksEncryptKey, certJksDecryptKey, certDownloadPemBundle, certCopyBase64,
+        ghdGetToolId, ghdGetWidget, ghdGetData, ghdSaveData, ghdGetToken,
+        ghdSetToken, ghdState, ghdEsc, ghdMapLimit, ghdTimeAgo,
+        ghdFormatDate, ghdDurationMs, ghdFormatDuration, ghdShortSha, ghdConcept,
+        ghdJsonSnippet, ghdPrune, ghdBucketOf, ghdMostSevere, ghdStateLabel,
+        ghdJobBucket, ghdParseRepoList, ghdFlattenGroups, ghdParseRepo, ghdWebBase,
+        ghdApiBase, ghdRepoUrl, ghdError, ghdApi, ghdPermissionFor,
+        ghdPermissionHint, ghdIsJobUrl, ghdRunIdFromUrl, ghdDescribeDeployment, ghdReadPayload, ghdImageUrl,
+        ghdDescribeJob, ghdNormalizeRun, ghdNormalizeWorkflow, ghdSummariseWorkflows, ghdPickDeployJob,
+        ghdPickRunForDeployment, ghdLoadRepo, ghdFetchLatest, ghdLoadWorkflows, ghdLoadHistory,
+        ghdAttachJobLinks, ghdRollUp, ghdInit, ghdFillSettings, ghdToggleSettings,
+        ghdSaveSettings, ghdFormatRepoList, ghdSetStatus, ghdRefresh, ghdIsOpen,
+        ghdSetOpen, ghdToggle, ghdLoadPending, ghdSplitEnvKey, ghdEnsureHistory,
+        ghdEnsureJob, ghdRender, ghdRenderGroup,
+        ghdRenderRepo, ghdLink, ghdRenderWorkflows, ghdWorkflowMeta, ghdWorkflowTooltip,
+        ghdRenderEnv, ghdEnvTooltip, ghdRenderDetails, ghdJobTooltip, ghdRenderHistory,
+        ghdHistoryTooltip
     ];
 
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
@@ -7892,6 +9340,15 @@ async function certCopyBase64(btn, fmt) {
         'var epochIntervalId = null;\n' +
         'var hmcAutoConvertTimer = null;\n' +
         'var certParsedCache = {};\n' +
+        'var ghdCache = {};\n' +
+        'window.GHD_EMOJI = ' + JSON.stringify(GHD_EMOJI) + ';\n' +
+        'window.GHD_BUCKET_LABEL = ' + JSON.stringify(GHD_BUCKET_LABEL) + ';\n' +
+        'window.GHD_SEVERITY = ' + JSON.stringify(GHD_SEVERITY) + ';\n' +
+        'window.GHD_STATE_BUCKET = ' + JSON.stringify(GHD_STATE_BUCKET) + ';\n' +
+        'window.GHD_CONCLUSION_BUCKET = ' + JSON.stringify(GHD_CONCLUSION_BUCKET) + ';\n' +
+        'window.GHD_TOKEN_KEY = ' + JSON.stringify(GHD_TOKEN_KEY) + ';\n' +
+        'window.GHD_HISTORY_LIMIT = ' + JSON.stringify(GHD_HISTORY_LIMIT) + ';\n' +
+        'window.GHD_CONCURRENCY = ' + JSON.stringify(GHD_CONCURRENCY) + ';\n' +
         'window.CERT_OID_MAP = ' + JSON.stringify(CERT_OID_MAP) + ';\n' +
         'window.LOREM_WORDS = ' + JSON.stringify(LOREM_WORDS) + ';\n' +
         'window.LOREM_FIRST_SENTENCE = ' + JSON.stringify(LOREM_FIRST_SENTENCE) + ';\n' +
@@ -7913,4 +9370,4 @@ async function certCopyBase64(btn, fmt) {
     (document.body || document.head).appendChild(script);
 })();
 
-console.log('Developer Tools plugin loaded: 23 tools');
+console.log('Developer Tools plugin loaded: 24 tools');
