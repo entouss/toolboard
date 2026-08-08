@@ -908,7 +908,7 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 
 /* GitHub Deployment Status Widget Styles */
 .tool-content:has(.ghd-widget) { display: flex; flex-direction: column; }
-.ghd-widget { padding: 8px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 6px; }
+.ghd-widget { container-type: inline-size; padding: 8px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 6px; }
 .ghd-header { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .ghd-header-btn { padding: 4px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
 .ghd-header-btn:hover { background: var(--table-hover); }
@@ -957,13 +957,19 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .ghd-list .ghd-row:first-child { border-top: none; }
 .ghd-env { border-top: 1px solid var(--border-light); }
 .ghd-env:first-child { border-top: none; }
-.ghd-subline { padding: 0 6px 3px 38px; font-size: 11px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ghd-details { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 2px 6px 6px 38px; font-size: 11px; }
+.ghd-wf { flex: 0 1 200px; min-width: 0; font-size: 11px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.ghd-details { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 2px 10px; padding: 2px 6px 6px 38px; font-size: 11px; align-items: baseline; }
 .ghd-details dt { color: var(--text-muted); white-space: nowrap; }
 .ghd-details dd { margin: 0; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; }
 .ghd-details dd a { color: #3498db; text-decoration: none; }
 .ghd-details dd a:hover { text-decoration: underline; }
-.ghd-details dd.ghd-wide { grid-column: 2 / 3; white-space: normal; }
+.ghd-details dt.ghd-wide-label { grid-column: 1; }
+.ghd-details dd.ghd-wide { grid-column: 2 / -1; white-space: normal; }
+/* Narrow again — a tool window can be dragged back down to popup width. */
+@container (max-width: 620px) {
+  .ghd-details { grid-template-columns: auto minmax(0, 1fr); }
+  .ghd-wf { flex-basis: 120px; }
+}
 .ghd-hist { margin: 0 6px 6px 30px; }
 .ghd-hist-head { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); cursor: pointer; }
 .ghd-hist-head:hover { color: var(--text-primary); }
@@ -2104,7 +2110,7 @@ PluginRegistry.registerTool({
     '</div>',
     contentType: 'html',
     onInit: 'ghdInit',
-    defaultWidth: 560,
+    defaultWidth: 900,
     defaultHeight: 620,
     source: 'external'
 });
@@ -9122,13 +9128,24 @@ function ghdRenderEnv(ctx, key, env) {
             '<span class="ghd-name">' + ghdEsc(env.name) + '</span>' +
             (subtitle ? '<span class="ghd-chip">' + ghdEsc(subtitle) + '</span>' : '') +
             '<span class="ghd-grow"></span>' +
+            ghdWorkflowCell(d) +
             '<span class="ghd-meta">' + ghdEsc(meta) + '</span>' +
             '<span class="ghd-sha">' + sha + '</span>' +
             ghdLink(envUrl, 'Open this environment on GitHub') +
         '</div>' +
-        (d && d.workflowName ? '<div class="ghd-subline" title="' + ghdEsc(ghdConcept('WORKFLOW — the workflow whose run produced this deployment', [d.workflowName])) + '">' + ghdEsc(d.workflowName) + '</div>' : '') +
         inner +
     '</div>';
+}
+
+/**
+ * The workflow behind a deployment, as its own column. A tool window is far
+ * wider than the extension popup that first had to stack this onto a second
+ * line, so it reads across instead of down.
+ */
+function ghdWorkflowCell(d) {
+    if (!d || !d.workflowName) return '<span class="ghd-wf"></span>';
+    return '<span class="ghd-wf" title="' + ghdEsc(ghdConcept('WORKFLOW — the workflow whose run produced this deployment', [d.workflowName])) + '">' +
+        ghdEsc(d.workflowName) + '</span>';
 }
 
 function ghdEnvTooltip(env, d) {
@@ -9144,7 +9161,8 @@ function ghdRenderDetails(ctx, key, env, d) {
     const rows = [];
     const add = function(label, value, wide) {
         if (!value) return;
-        rows.push('<dt>' + ghdEsc(label) + '</dt><dd' + (wide ? ' class="ghd-wide"' : '') + '>' + value + '</dd>');
+        rows.push('<dt' + (wide ? ' class="ghd-wide-label"' : '') + '>' + ghdEsc(label) + '</dt>' +
+            '<dd' + (wide ? ' class="ghd-wide"' : '') + '>' + value + '</dd>');
     };
 
     add('Status', GHD_EMOJI[d.bucket] + ' ' + ghdEsc(ghdStateLabel(d.state) || GHD_BUCKET_LABEL[d.bucket]) +
@@ -9211,11 +9229,12 @@ function ghdRenderHistory(ctx, key, env) {
         const bar = typeof ms === 'number'
             ? '<span class="ghd-bar" title="' + ghdEsc(ghdFormatDuration(ms) + ' — against the slowest of the last ' + entry.deployments.length) + '"><span class="ghd-bar-fill' + (slow ? ' slow' : '') + '" style="width:' + width + '%"></span></span>'
             : '<span class="ghd-bar"></span>';
-        const name = d.job ? d.job.name : (d.workflowName || ghdStateLabel(d.state));
+        const name = d.job ? d.job.name : ghdStateLabel(d.state);
         return '<div class="ghd-hist-row" title="' + ghdEsc(ghdHistoryTooltip(d)) + '">' +
             '<span class="ghd-dot">' + GHD_EMOJI[d.bucket] + '</span>' +
             '<span class="ghd-name">' + ghdEsc(name) + '</span>' +
             '<span class="ghd-grow"></span>' +
+            ghdWorkflowCell(d) +
             '<span class="ghd-meta">' + ghdEsc([ghdTimeAgo(d.updatedAt), d.creator ? '@' + d.creator : null].filter(Boolean).join(' · ')) + '</span>' +
             bar +
             '<span class="ghd-sha">' + (d.sha ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener">' + ghdEsc(ghdShortSha(d.sha)) + '</a>' : '') + '</span>' +
@@ -9330,7 +9349,7 @@ function ghdHistoryTooltip(d) {
         ghdSetOpen, ghdToggle, ghdLoadPending, ghdSplitEnvKey, ghdEnsureHistory,
         ghdEnsureJob, ghdRender, ghdRenderGroup,
         ghdRenderRepo, ghdLink, ghdRenderWorkflows, ghdWorkflowMeta, ghdWorkflowTooltip,
-        ghdRenderEnv, ghdEnvTooltip, ghdRenderDetails, ghdJobTooltip, ghdRenderHistory,
+        ghdRenderEnv, ghdWorkflowCell, ghdEnvTooltip, ghdRenderDetails, ghdJobTooltip, ghdRenderHistory,
         ghdHistoryTooltip
     ];
 
