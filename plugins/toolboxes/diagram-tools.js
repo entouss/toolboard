@@ -644,6 +644,15 @@ function ftreeComputeLayout(data) {
         }
     }
 
+    // Snapshot the recorded parents before spouse inference adds step-parents.
+    // Seating a spouse next to their own family needs the blood link only —
+    // averaging in an inferred parent just points at the couple's midpoint and
+    // makes both seatings score identically.
+    const recordedParentsOf = {};
+    for (const cid of Object.keys(parentsOf)) {
+        recordedParentsOf[cid] = parentsOf[cid].slice();
+    }
+
     // Infer implied parent-child from spouse
     for (const childId of Object.keys(parentsOf)) {
         if (parentsOf[childId].length === 1) {
@@ -1056,14 +1065,23 @@ function ftreeComputeLayout(data) {
             // their parents while the other reaches left to theirs.
             if (unit.members.length > 1) {
                 const familyX = (m) => {
-                    const ps = (parentsOf[m] || []).filter(q => xPos[q] !== undefined);
+                    const ps = (recordedParentsOf[m] || []).filter(q => xPos[q] !== undefined);
                     if (ps.length === 0) return null;
                     return ps.reduce((sum, q) => sum + xPos[q], 0) / ps.length;
                 };
-                const head = familyX(unit.members[0]);
-                const tail = familyX(unit.members[unit.members.length - 1]);
-                if (head !== null && tail !== null && head > tail) {
-                    unit.members.reverse();
+                // Score the seating by how far each spouse ends up from their own
+                // parents and flip if the mirror image is closer. A spouse with no
+                // visible parents — none recorded, or collapsed out of view —
+                // simply scores nothing, so the connected spouse decides.
+                const baseX = xPos[unit.members[0]] || 0;
+                const slotX = (i) => baseX + i * (FTREE_NODE_W + FTREE_SPOUSE_GAP);
+                const seatingCost = (order) => order.reduce((sum, m, i) => {
+                    const a = familyX(m);
+                    return a === null ? sum : sum + Math.abs(slotX(i) - a);
+                }, 0);
+                const mirrored = unit.members.slice().reverse();
+                if (seatingCost(mirrored) < seatingCost(unit.members)) {
+                    unit.members = mirrored;
                     changed = true;
                 }
             }
