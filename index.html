@@ -1660,6 +1660,52 @@ main#toolboard {
     font-weight: normal;
 }
 
+/* The same panel serves one tool or many. Bulk mode drops the rows that identify a
+   single tool (title) or act on one (edit, duplicate, export, delete). */
+.tool-settings .ts-bulk-only { display: none; }
+.tool-settings.bulk .ts-single-only { display: none; }
+.tool-settings.bulk .ts-bulk-only { display: block; }
+.tool-settings.bulk .ts-scope { display: flex; }
+
+.ts-scope {
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.ts-scope button {
+    flex: 1;
+    padding: 4px 0;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.ts-scope button.active {
+    background: #3498db;
+    border-color: #3498db;
+    color: #fff;
+}
+
+.ts-undo-btn {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.ts-undo-btn:disabled {
+    color: var(--text-muted);
+    cursor: default;
+}
+
 .tool-settings-header {
     display: flex;
     justify-content: space-between;
@@ -3091,6 +3137,7 @@ tr:hover {
         <div class="header-section header-section-notes">
             <button id="addToolBtn" class="header-settings-btn" title="Add Tool">+</button>
             <button id="minimizeAllBtn" class="header-settings-btn" title="Minimize/Maximize All">&#8211;</button>
+            <button id="allToolsSettingsBtn" class="header-settings-btn" title="Settings for All Tools">&#8942;</button>
             <button id="deleteAllBtn" class="header-settings-btn" title="Delete All Tools">&times;</button>
         </div>
         <div class="header-section header-section-page">
@@ -3304,11 +3351,12 @@ tr:hover {
     <div id="toolSettingsOverlay" class="tool-settings-overlay">
         <div class="tool-settings">
             <div class="tool-settings-header">
-                <h3>Tool Settings</h3>
+                <h3 id="toolSettingsHeading">Tool Settings</h3>
                 <button class="tool-settings-close">&times;</button>
             </div>
-            <label>Title</label>
-            <input type="text" id="toolSettingsTitleInput" class="title-input" placeholder="Tool title">
+            <div id="toolSettingsScope" class="ts-bulk-only ts-scope"></div>
+            <label class="ts-single-only">Title</label>
+            <input type="text" id="toolSettingsTitleInput" class="title-input ts-single-only" placeholder="Tool title">
             <label>Color</label>
             <div class="color-picker-row" id="toolSettingsColorPicker"></div>
             <label>Background</label>
@@ -3379,6 +3427,14 @@ tr:hover {
                 <span id="toolSettingsPaddingLabel" style="font-size:11px;min-width:38px;text-align:right;">15px</span>
                 <button id="toolSettingsPaddingReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
             </div>
+            <label>Zoom</label>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <input type="range" id="toolSettingsZoom" min="25" max="400" step="5" value="100" style="flex:1;cursor:pointer;">
+                <button id="toolSettingsZoomOut" title="Zoom out" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:13px;line-height:1;padding:1px 6px;color:var(--text-primary);">&minus;</button>
+                <button id="toolSettingsZoomIn" title="Zoom in" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:13px;line-height:1;padding:1px 6px;color:var(--text-primary);">+</button>
+                <span id="toolSettingsZoomLabel" style="font-size:11px;min-width:38px;text-align:right;">100%</span>
+                <button id="toolSettingsZoomReset" title="Reset to 100%" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
+            </div>
             <label>Text Align</label>
             <div id="toolSettingsTextAlign" style="display:flex;gap:4px;">
                 <button data-align="" class="align-btn active" style="flex:1;padding:3px 0;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:11px;background:var(--bg-tertiary);color:var(--text-primary);">Auto</button>
@@ -3395,15 +3451,16 @@ tr:hover {
             <label style="display:flex;align-items:center;gap:6px;margin:2px 0 8px;cursor:pointer;font-size:12px;">
                 <input type="checkbox" id="toolSettingsNoShadow"> No shadow
             </label>
-            <button class="edit-content-btn" id="toolSettingsEditBtn">Edit Content</button>
-            <button class="duplicate-tool-btn" id="toolSettingsDuplicateBtn">Duplicate Tool</button>
-            <button class="copy-tool-btn" id="toolSettingsCopyBtn">Copy Tool</button>
-            <button class="copy-tool-btn" id="toolSettingsCutBtn">Cut Tool</button>
-            <button class="copy-tool-btn" id="toolSettingsPasteBtn">Paste Tool</button>
-            <button class="export-tool-btn" id="toolSettingsExportBtn">Export as HTML</button>
-            <button class="export-png-btn" id="toolSettingsExportPngBtn">Export as PNG</button>
-            <button class="send-to-back-btn" id="toolSettingsSendToBackBtn">Send to Back</button>
-            <button class="delete-tool-btn" id="toolSettingsDeleteBtn">Hide Tool</button>
+            <button class="edit-content-btn ts-single-only" id="toolSettingsEditBtn">Edit Content</button>
+            <button class="duplicate-tool-btn ts-single-only" id="toolSettingsDuplicateBtn">Duplicate Tool</button>
+            <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyBtn">Copy Tool</button>
+            <button class="copy-tool-btn ts-single-only" id="toolSettingsCutBtn">Cut Tool</button>
+            <button class="copy-tool-btn ts-single-only" id="toolSettingsPasteBtn">Paste Tool</button>
+            <button class="export-tool-btn ts-single-only" id="toolSettingsExportBtn">Export as HTML</button>
+            <button class="export-png-btn ts-single-only" id="toolSettingsExportPngBtn">Export as PNG</button>
+            <button class="send-to-back-btn ts-single-only" id="toolSettingsSendToBackBtn">Send to Back</button>
+            <button class="delete-tool-btn ts-single-only" id="toolSettingsDeleteBtn">Hide Tool</button>
+            <button class="ts-undo-btn ts-bulk-only" id="toolSettingsUndoBtn" disabled>Undo Changes</button>
         </div>
     </div>
 
@@ -4886,7 +4943,59 @@ function setupResponsiveLayout() {
 }
 
 // Setup tool minimize and settings controls
+// currentSettingsToolId is the single tool whose identity-and-action rows are live
+// (title, duplicate, export, delete). It is null in bulk mode.
 let currentSettingsToolId = null;
+// The tools the appearance controls write to. One tool is just the one-element
+// case, so both modes run through exactly the same handlers.
+let settingsTargetIds = [];
+// toolCustomizations as they stood when the bulk panel opened, so a bulk edit is
+// always reversible in one click.
+let settingsBulkSnapshot = null;
+
+const SETTINGS_MIXED = ' mixed';
+
+// Assigned by setupToolControls, which owns the panel's element references.
+let openToolSettingsFor = null;
+
+function settingsIsBulk() {
+    return currentSettingsToolId === null && settingsTargetIds.length > 0;
+}
+
+// Every appearance control mutates through here: it guarantees the customizations
+// object exists, applies to each target, and saves once.
+function eachSettingsTarget(fn) {
+    settingsTargetIds.forEach(id => {
+        toolCustomizations[id] = toolCustomizations[id] || {};
+        fn(id, toolCustomizations[id], document.querySelector(`.tool[data-tool="${id}"]`));
+    });
+    if (settingsTargetIds.length) {
+        saveToolCustomizations(toolCustomizations);
+        if (settingsIsBulk()) {
+            const undo = document.getElementById('toolSettingsUndoBtn');
+            if (undo) undo.disabled = false;
+        }
+    }
+}
+
+// The value shared by every target, or SETTINGS_MIXED when they disagree. Blank and
+// missing both count as "unset" so a tool that never had the property reads the same
+// as one that was reset.
+function commonSettingValue(key, unset) {
+    let seen = unset;
+    let first = true;
+    for (const id of settingsTargetIds) {
+        const raw = (toolCustomizations[id] || {})[key];
+        const value = (raw === undefined || raw === null || raw === '') ? unset : raw;
+        if (first) { seen = value; first = false; }
+        else if (value !== seen) return SETTINGS_MIXED;
+    }
+    return seen;
+}
+
+function allToolIdsOnBoard() {
+    return [...document.querySelectorAll('.tool')].map(t => t.getAttribute('data-tool'));
+}
 
 function setupToolControls() {
     const toolboard = document.getElementById('toolboard');
@@ -4903,6 +5012,11 @@ function setupToolControls() {
     const settingsPadding = document.getElementById('toolSettingsPadding');
     const settingsPaddingLabel = document.getElementById('toolSettingsPaddingLabel');
     const settingsPaddingReset = document.getElementById('toolSettingsPaddingReset');
+    const settingsZoom = document.getElementById('toolSettingsZoom');
+    const settingsZoomLabel = document.getElementById('toolSettingsZoomLabel');
+    const settingsZoomIn = document.getElementById('toolSettingsZoomIn');
+    const settingsZoomOut = document.getElementById('toolSettingsZoomOut');
+    const settingsZoomReset = document.getElementById('toolSettingsZoomReset');
     const settingsTextAlign = document.getElementById('toolSettingsTextAlign');
     const settingsFrameless = document.getElementById('toolSettingsFrameless');
     const settingsNoBorder = document.getElementById('toolSettingsNoBorder');
@@ -5037,14 +5151,140 @@ function setupToolControls() {
         }
     });
 
+    const settingsPanel = settingsOverlay.querySelector('.tool-settings');
+    const settingsHeading = document.getElementById('toolSettingsHeading');
+    const settingsScope = document.getElementById('toolSettingsScope');
+    const settingsUndoBtn = document.getElementById('toolSettingsUndoBtn');
+
+    // Fills every control from the targets: the shared value when they agree,
+    // "Mixed" when they don't. Nothing is written back — opening the panel and
+    // closing it leaves the board untouched.
+    function populateSettingsPanel() {
+        const mixed = SETTINGS_MIXED;
+
+        const paintSwatches = (picker, value) => {
+            picker.querySelectorAll('.color-swatch').forEach(s => {
+                s.classList.toggle('selected', value !== mixed && s.getAttribute('data-color') === value);
+            });
+        };
+        paintSwatches(settingsColorPicker, commonSettingValue('color', null));
+        paintSwatches(settingsBgColorPicker, commonSettingValue('bgColor', ''));
+        paintSwatches(settingsFontColorPicker, commonSettingValue('fontColor', ''));
+
+        // Font family: a temporary option carries the "Mixed" state so the select
+        // doesn't have to lie by showing one target's font.
+        const mixedOpt = settingsFontFamily.querySelector('option[value="__mixed__"]');
+        if (mixedOpt) mixedOpt.remove();
+        const family = commonSettingValue('fontFamily', '');
+        const customName = commonSettingValue('customFontName', '');
+        if (family === mixed || customName === mixed) {
+            const opt = document.createElement('option');
+            opt.value = '__mixed__';
+            opt.textContent = 'Mixed';
+            settingsFontFamily.insertBefore(opt, settingsFontFamily.firstChild);
+            settingsFontFamily.value = '__mixed__';
+            settingsCustomFont.value = '';
+            settingsCustomFont.placeholder = 'Mixed — type a Google Font to set all';
+        } else {
+            settingsCustomFont.placeholder = 'Or type any Google Font name...';
+            if (customName) {
+                settingsFontFamily.value = '';
+                settingsCustomFont.value = customName;
+            } else {
+                settingsFontFamily.value = family;
+                settingsCustomFont.value = '';
+            }
+        }
+
+        const fontSize = commonSettingValue('fontSize', '');
+        settingsFontSize.value = (fontSize && fontSize !== mixed) ? parseInt(fontSize) : 12;
+        settingsFontSizeLabel.textContent = fontSize === mixed ? 'Mixed' : (fontSize || 'default');
+
+        const padding = commonSettingValue('padding', '');
+        settingsPadding.value = (padding && padding !== mixed) ? parseInt(padding) : 15;
+        settingsPaddingLabel.textContent = padding === mixed ? 'Mixed' : (padding || 'default');
+
+        syncToolZoomUI();
+
+        const align = commonSettingValue('textAlign', '');
+        settingsTextAlign.querySelectorAll('.align-btn').forEach(b => {
+            b.classList.toggle('active', align !== mixed && b.getAttribute('data-align') === align);
+        });
+
+        // Checkboxes go indeterminate rather than picking a side when targets differ.
+        [[settingsFrameless, 'frameless'], [settingsNoBorder, 'noBorder'], [settingsNoShadow, 'noShadow']]
+            .forEach(([box, key]) => {
+                const v = commonSettingValue(key, false);
+                box.indeterminate = v === mixed;
+                box.checked = v === mixed ? false : !!v;
+            });
+    }
+
+    // Bulk mode offers a scope switch whenever a selection exists, so "the three I
+    // picked" and "everything on the board" are both one click away.
+    function renderSettingsScope() {
+        if (!settingsIsBulk()) { settingsScope.innerHTML = ''; return; }
+        const all = allToolIdsOnBoard();
+        const selected = [...selectedToolIds].filter(id => all.includes(id));
+        if (!selected.length) { settingsScope.innerHTML = ''; return; }
+        const onSelection = settingsTargetIds.length === selected.length &&
+            selected.every(id => settingsTargetIds.includes(id));
+        settingsScope.innerHTML =
+            '<button data-scope="selected"' + (onSelection ? ' class="active"' : '') + '>Selected (' + selected.length + ')</button>' +
+            '<button data-scope="all"' + (onSelection ? '' : ' class="active"') + '>All (' + all.length + ')</button>';
+        settingsScope.querySelectorAll('button').forEach(b => {
+            b.addEventListener('click', () => {
+                settingsTargetIds = b.dataset.scope === 'selected' ? selected : all;
+                settingsHeading.textContent = describeSettingsTargets();
+                renderSettingsScope();
+                populateSettingsPanel();
+            });
+        });
+    }
+
+    function describeSettingsTargets() {
+        const n = settingsTargetIds.length;
+        const all = allToolIdsOnBoard();
+        const isAll = n === all.length;
+        return (isAll ? 'All Tools' : 'Selected Tools') + ' (' + n + ')';
+    }
+
+    // Entry point for both modes. Pass a single id for the per-tool panel, or a list
+    // for the bulk panel.
+    openToolSettingsFor = function (ids, singleId) {
+        settingsTargetIds = ids.filter(id => document.querySelector(`.tool[data-tool="${id}"]`));
+        if (!settingsTargetIds.length) {
+            showToolToast('No tools on this board');
+            return;
+        }
+        currentSettingsToolId = singleId || null;
+        settingsPanel.classList.toggle('bulk', !singleId);
+
+        if (singleId) {
+            settingsBulkSnapshot = null;
+            refreshClipboardMenuLabels(singleId);
+            const content = getToolContent(singleId);
+            settingsTitleInput.value = (toolCustomizations[singleId] || {}).title || content.title;
+            settingsDeleteBtn.textContent = customTools.includes(singleId) ? 'Delete Tool' : 'Hide Tool';
+            settingsHeading.textContent = 'Tool Settings';
+            settingsScope.innerHTML = '';
+        } else {
+            settingsBulkSnapshot = JSON.parse(JSON.stringify(toolCustomizations));
+            settingsUndoBtn.disabled = true;
+            settingsHeading.textContent = describeSettingsTargets();
+            renderSettingsScope();
+        }
+
+        populateSettingsPanel();
+        settingsOverlay.classList.add('open');
+    };
+
     // Settings button - open modal
     toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.settings-btn')) {
             e.stopPropagation();
             const tool = e.target.closest('.tool');
             const toolId = tool.getAttribute('data-tool');
-            currentSettingsToolId = toolId;
-            refreshClipboardMenuLabels(toolId);
 
             // Bring tool to front
             let highestZ = 0;
@@ -5057,77 +5297,42 @@ function setupToolControls() {
             positions[toolId] = positions[toolId] || {};
             positions[toolId].z = maxZ;
 
-            // Populate modal with current tool settings
-            const custom = toolCustomizations[toolId] || {};
-            const content = getToolContent(toolId);
-            const displayTitle = custom.title || content.title;
-            const headerColor = custom.color || null;
-            const isCustomTool = customTools.includes(toolId);
-
-            settingsTitleInput.value = displayTitle;
-            settingsDeleteBtn.textContent = isCustomTool ? 'Delete Tool' : 'Hide Tool';
-
-            // Update color picker selection
-            settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => {
-                s.classList.toggle('selected', s.getAttribute('data-color') === headerColor);
-            });
-
-            // Update background color picker selection
-            const bgColor = custom.bgColor || '';
-            settingsBgColorPicker.querySelectorAll('.color-swatch').forEach(s => {
-                s.classList.toggle('selected', s.getAttribute('data-color') === bgColor);
-            });
-
-            // Update font color picker selection
-            const fontColor = custom.fontColor || '';
-            settingsFontColorPicker.querySelectorAll('.color-swatch').forEach(s => {
-                s.classList.toggle('selected', s.getAttribute('data-color') === fontColor);
-            });
-
-            // Update font selects
-            if (custom.customFontName) {
-                settingsFontFamily.value = '';
-                settingsCustomFont.value = custom.customFontName;
-            } else {
-                settingsFontFamily.value = custom.fontFamily || '';
-                settingsCustomFont.value = '';
-            }
-            if (custom.fontSize) {
-                settingsFontSize.value = parseInt(custom.fontSize);
-                settingsFontSizeLabel.textContent = custom.fontSize;
-            } else {
-                settingsFontSize.value = 12;
-                settingsFontSizeLabel.textContent = 'default';
-            }
-
-            if (custom.padding != null) {
-                settingsPadding.value = parseInt(custom.padding);
-                settingsPaddingLabel.textContent = custom.padding;
-            } else {
-                settingsPadding.value = 15;
-                settingsPaddingLabel.textContent = 'default';
-            }
-
-            // Update text align buttons
-            const currentAlign = custom.textAlign || '';
-            settingsTextAlign.querySelectorAll('.align-btn').forEach(b => {
-                b.classList.toggle('active', b.getAttribute('data-align') === currentAlign);
-            });
-
-            // Update checkboxes
-            settingsFrameless.checked = !!custom.frameless;
-            settingsNoBorder.checked = !!custom.noBorder;
-            settingsNoShadow.checked = !!custom.noShadow;
-
-            // Open modal
-            settingsOverlay.classList.add('open');
+            openToolSettingsFor([toolId], toolId);
         }
+    });
+
+    // Header ⋮ — the all-tools twin of the per-tool ⋮. Honours a selection when
+    // there is one, since that is almost always what the user means.
+    const allToolsBtn = document.getElementById('allToolsSettingsBtn');
+    if (allToolsBtn) {
+        allToolsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const all = allToolIdsOnBoard();
+            const selected = [...selectedToolIds].filter(id => all.includes(id));
+            openToolSettingsFor(selected.length ? selected : all, null);
+        });
+    }
+
+    // Restores every customization to the moment the bulk panel opened. A full
+    // re-render is the only way to be sure classes, colours and fonts all revert.
+    settingsUndoBtn.addEventListener('click', () => {
+        if (!settingsBulkSnapshot) return;
+        toolCustomizations = JSON.parse(JSON.stringify(settingsBulkSnapshot));
+        saveToolCustomizations(toolCustomizations);
+        renderToolboard();
+        settingsUndoBtn.disabled = true;
+        settingsTargetIds = settingsTargetIds.filter(id => document.querySelector(`.tool[data-tool="${id}"]`));
+        populateSettingsPanel();
+        showToolToast('Reverted');
     });
 
     // Close modal
     function closeSettingsModal() {
         settingsOverlay.classList.remove('open');
         currentSettingsToolId = null;
+        settingsTargetIds = [];
+        settingsBulkSnapshot = null;
+        settingsPanel.classList.remove('bulk');
     }
 
     settingsCloseBtn.addEventListener('click', closeSettingsModal);
@@ -5139,110 +5344,48 @@ function setupToolControls() {
         }
     });
 
-    // Color swatch click in modal
-    settingsColorPicker.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('color-swatch') || !currentSettingsToolId) return;
-        e.stopPropagation();
-        const toolId = currentSettingsToolId;
-        const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-        const header = tool.querySelector('.tool-header');
-
-        if (e.target.classList.contains('swatch-custom')) {
+    // The three colour rows differ only in which property they write and where the
+    // colour lands on the tool, so they share one implementation across both modes.
+    function wireColorRow(picker, key, label, paint) {
+        picker.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('color-swatch') || !settingsTargetIds.length) return;
             e.stopPropagation();
-            const originalColor = (toolCustomizations[toolId] || {}).color || '';
-            window._toolLink = {
-                type: 'color',
-                label: 'Tool Header Color',
-                preview: (hex) => { header.style.background = hex; },
-                commit: (hex) => {
-                    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-                    toolCustomizations[toolId].color = hex;
-                    saveToolCustomizations(toolCustomizations);
-                    settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                },
-                revert: () => { header.style.background = originalColor; },
-            };
-            openToolPickerPopup(e.target, 'color');
-            return;
-        }
 
-        const color = e.target.getAttribute('data-color');
-        header.style.background = color;
-        settingsColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-        e.target.classList.add('selected');
-        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-        toolCustomizations[toolId].color = color;
-        saveToolCustomizations(toolCustomizations);
+            if (e.target.classList.contains('swatch-custom')) {
+                const targets = settingsTargetIds.slice();
+                const originals = targets.map(id => (toolCustomizations[id] || {})[key] || '');
+                window._toolLink = {
+                    type: 'color',
+                    label: label,
+                    preview: (hex) => targets.forEach(id => paint(id, hex)),
+                    commit: (hex) => {
+                        eachSettingsTarget((id, c) => { c[key] = hex; paint(id, hex); });
+                        picker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                    },
+                    revert: () => targets.forEach((id, i) => paint(id, originals[i])),
+                };
+                openToolPickerPopup(e.target, 'color');
+                return;
+            }
+
+            const color = e.target.getAttribute('data-color');
+            picker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+            e.target.classList.add('selected');
+            eachSettingsTarget((id, c) => { c[key] = color; paint(id, color); });
+        });
+    }
+
+    wireColorRow(settingsColorPicker, 'color', 'Tool Header Color', (id, hex) => {
+        const header = document.querySelector(`.tool[data-tool="${id}"] .tool-header`);
+        if (header) header.style.background = hex || '';
     });
-
-    // Background color swatch click in modal
-    settingsBgColorPicker.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('color-swatch') || !currentSettingsToolId) return;
-        e.stopPropagation();
-        const toolId = currentSettingsToolId;
-        const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-
-        if (e.target.classList.contains('swatch-custom')) {
-            e.stopPropagation();
-            const originalBg = (toolCustomizations[toolId] || {}).bgColor || '';
-            window._toolLink = {
-                type: 'color',
-                label: 'Tool Background',
-                preview: (hex) => { tool.style.background = hex; },
-                commit: (hex) => {
-                    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-                    toolCustomizations[toolId].bgColor = hex;
-                    saveToolCustomizations(toolCustomizations);
-                    settingsBgColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                },
-                revert: () => { tool.style.background = originalBg || ''; },
-            };
-            openToolPickerPopup(e.target, 'color');
-            return;
-        }
-
-        const color = e.target.getAttribute('data-color');
-        tool.style.background = color || '';
-        settingsBgColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-        e.target.classList.add('selected');
-        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-        toolCustomizations[toolId].bgColor = color;
-        saveToolCustomizations(toolCustomizations);
+    wireColorRow(settingsBgColorPicker, 'bgColor', 'Tool Background', (id, hex) => {
+        const tool = document.querySelector(`.tool[data-tool="${id}"]`);
+        if (tool) tool.style.background = hex || '';
     });
-
-    // Font color swatch click in modal
-    settingsFontColorPicker.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('color-swatch') || !currentSettingsToolId) return;
-        e.stopPropagation();
-        const toolId = currentSettingsToolId;
-        const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-
-        if (e.target.classList.contains('swatch-custom')) {
-            e.stopPropagation();
-            const originalFont = (toolCustomizations[toolId] || {}).fontColor || '';
-            window._toolLink = {
-                type: 'color',
-                label: 'Tool Font Color',
-                preview: (hex) => { tool.style.color = hex; },
-                commit: (hex) => {
-                    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-                    toolCustomizations[toolId].fontColor = hex;
-                    saveToolCustomizations(toolCustomizations);
-                    settingsFontColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                },
-                revert: () => { tool.style.color = originalFont || ''; },
-            };
-            openToolPickerPopup(e.target, 'color');
-            return;
-        }
-
-        const color = e.target.getAttribute('data-color');
-        tool.style.color = color || '';
-        settingsFontColorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-        e.target.classList.add('selected');
-        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-        toolCustomizations[toolId].fontColor = color;
-        saveToolCustomizations(toolCustomizations);
+    wireColorRow(settingsFontColorPicker, 'fontColor', 'Tool Font Color', (id, hex) => {
+        const tool = document.querySelector(`.tool[data-tool="${id}"]`);
+        if (tool) tool.style.color = hex || '';
     });
 
     // Title input change in modal
@@ -5265,15 +5408,14 @@ function setupToolControls() {
 
     // Font family change in modal
     settingsFontFamily.addEventListener('change', (e) => {
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            settingsCustomFont.value = '';
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].fontFamily = e.target.value;
-            toolCustomizations[toolId].customFontName = '';
-            saveToolCustomizations(toolCustomizations);
-            applyToolFont(toolId);
-        }
+        if (e.target.value === '__mixed__') return;
+        settingsCustomFont.value = '';
+        settingsCustomFont.placeholder = 'Or type any Google Font name...';
+        eachSettingsTarget((id, c) => {
+            c.fontFamily = e.target.value;
+            c.customFontName = '';
+            applyToolFont(id);
+        });
     });
 
     // Custom font input in modal
@@ -5281,22 +5423,22 @@ function setupToolControls() {
     settingsCustomFont.addEventListener('input', (e) => {
         clearTimeout(toolFontDebounce);
         toolFontDebounce = setTimeout(() => {
-            if (!currentSettingsToolId) return;
-            const toolId = currentSettingsToolId;
             const fontName = e.target.value.trim();
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
             if (fontName) {
                 loadGoogleFont(fontName);
-                const fontValue = "'" + fontName + "', sans-serif";
                 settingsFontFamily.value = '';
-                toolCustomizations[toolId].fontFamily = fontValue;
-                toolCustomizations[toolId].customFontName = fontName;
-            } else {
-                toolCustomizations[toolId].fontFamily = settingsFontFamily.value;
-                toolCustomizations[toolId].customFontName = '';
             }
-            saveToolCustomizations(toolCustomizations);
-            applyToolFont(toolId);
+            const fallback = settingsFontFamily.value === '__mixed__' ? '' : settingsFontFamily.value;
+            eachSettingsTarget((id, c) => {
+                if (fontName) {
+                    c.fontFamily = "'" + fontName + "', sans-serif";
+                    c.customFontName = fontName;
+                } else {
+                    c.fontFamily = fallback;
+                    c.customFontName = '';
+                }
+                applyToolFont(id);
+            });
         }, 400);
     });
 
@@ -5304,97 +5446,72 @@ function setupToolControls() {
     settingsFontSize.addEventListener('input', (e) => {
         const px = e.target.value + 'px';
         settingsFontSizeLabel.textContent = px;
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].fontSize = px;
-            saveToolCustomizations(toolCustomizations);
-            applyToolFont(toolId);
-        }
+        eachSettingsTarget((id, c) => { c.fontSize = px; applyToolFont(id); });
     });
     settingsFontSizeReset.addEventListener('click', () => {
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].fontSize = '';
-            saveToolCustomizations(toolCustomizations);
-            applyToolFont(toolId);
-            settingsFontSize.value = 12;
-            settingsFontSizeLabel.textContent = 'default';
-        }
+        eachSettingsTarget((id, c) => { c.fontSize = ''; applyToolFont(id); });
+        settingsFontSize.value = 12;
+        settingsFontSizeLabel.textContent = 'default';
     });
 
     // Padding slider in modal
     settingsPadding.addEventListener('input', (e) => {
         const px = e.target.value + 'px';
         settingsPaddingLabel.textContent = px;
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].padding = px;
-            saveToolCustomizations(toolCustomizations);
-            applyToolPadding(toolId);
-        }
+        eachSettingsTarget((id, c) => { c.padding = px; applyToolPadding(id); });
     });
     settingsPaddingReset.addEventListener('click', () => {
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            delete toolCustomizations[toolId].padding;
-            saveToolCustomizations(toolCustomizations);
-            applyToolPadding(toolId);
-            settingsPadding.value = 15;
-            settingsPaddingLabel.textContent = 'default';
-        }
+        eachSettingsTarget((id, c) => { delete c.padding; applyToolPadding(id); });
+        settingsPadding.value = 15;
+        settingsPaddingLabel.textContent = 'default';
+    });
+
+    // Zoom controls in modal. Unlike Font Size, this scales the whole content —
+    // tables, diagrams, images — not just the text. The slider sets one shared
+    // value; +/- nudge each tool from wherever it already is, so a mixed set stays
+    // relative instead of collapsing to a single zoom.
+    settingsZoom.addEventListener('input', (e) => {
+        const z = parseInt(e.target.value, 10) / 100;
+        eachSettingsTarget((id, c) => { applyZoomToCustom(c, id, z); });
+        syncToolZoomUI();
+    });
+    settingsZoomIn.addEventListener('click', () => {
+        eachSettingsTarget((id, c) => { applyZoomToCustom(c, id, getToolZoom(id) + TOOL_ZOOM_STEP); });
+        syncToolZoomUI();
+    });
+    settingsZoomOut.addEventListener('click', () => {
+        eachSettingsTarget((id, c) => { applyZoomToCustom(c, id, getToolZoom(id) - TOOL_ZOOM_STEP); });
+        syncToolZoomUI();
+    });
+    settingsZoomReset.addEventListener('click', () => {
+        eachSettingsTarget((id, c) => { applyZoomToCustom(c, id, 1); });
+        syncToolZoomUI();
     });
 
     // Text align buttons in modal
     settingsTextAlign.addEventListener('click', (e) => {
         const btn = e.target.closest('.align-btn');
-        if (!btn || !currentSettingsToolId) return;
+        if (!btn) return;
         settingsTextAlign.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const toolId = currentSettingsToolId;
         const align = btn.getAttribute('data-align');
-        toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-        toolCustomizations[toolId].textAlign = align;
-        saveToolCustomizations(toolCustomizations);
-        applyToolTextAlign(toolId);
+        eachSettingsTarget((id, c) => { c.textAlign = align; applyToolTextAlign(id); });
     });
 
-    // Frameless mode toggle in modal
-    settingsFrameless.addEventListener('change', (e) => {
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-            tool.classList.toggle('frameless', e.target.checked);
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].frameless = e.target.checked;
-            saveToolCustomizations(toolCustomizations);
-        }
-    });
-
-    settingsNoBorder.addEventListener('change', (e) => {
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-            tool.classList.toggle('no-border', e.target.checked);
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].noBorder = e.target.checked;
-            saveToolCustomizations(toolCustomizations);
-        }
-    });
-
-    settingsNoShadow.addEventListener('change', (e) => {
-        if (currentSettingsToolId) {
-            const toolId = currentSettingsToolId;
-            const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
-            tool.classList.toggle('no-shadow', e.target.checked);
-            toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-            toolCustomizations[toolId].noShadow = e.target.checked;
-            saveToolCustomizations(toolCustomizations);
-        }
-    });
+    // Frame / border / shadow toggles. Clicking an indeterminate box resolves the
+    // whole set to whatever it lands on.
+    function wireToolFlag(box, key, className) {
+        box.addEventListener('change', (e) => {
+            box.indeterminate = false;
+            eachSettingsTarget((id, c, tool) => {
+                c[key] = e.target.checked;
+                if (tool) tool.classList.toggle(className, e.target.checked);
+            });
+        });
+    }
+    wireToolFlag(settingsFrameless, 'frameless', 'frameless');
+    wireToolFlag(settingsNoBorder, 'noBorder', 'no-border');
+    wireToolFlag(settingsNoShadow, 'noShadow', 'no-shadow');
 
     // Edit content button in modal
     settingsEditBtn.addEventListener('click', (e) => {
@@ -6374,6 +6491,7 @@ function applyToolboardSettings() {
 
     // Re-apply tool-specific fonts (they override board settings)
     applyAllToolFonts();
+    applyAllToolZooms();
 }
 
 function loadGoogleFont(fontName) {
@@ -6437,6 +6555,86 @@ function applyToolPadding(toolId) {
         content.style.padding = custom.padding || '';
     }
 }
+
+// Per-tool content zoom. Scales everything inside .tool-content — text, tables,
+// diagrams, images — where Font Size only scales text. CSS `zoom` is used rather
+// than a transform because it participates in layout: the content box still fills
+// the tool exactly, so `overflow: auto` keeps giving correct scrollbars.
+const TOOL_ZOOM_MIN = 0.25;
+const TOOL_ZOOM_MAX = 4;
+const TOOL_ZOOM_STEP = 0.1;
+
+function clampToolZoom(z) {
+    return Math.max(TOOL_ZOOM_MIN, Math.min(TOOL_ZOOM_MAX, Math.round(z * 100) / 100));
+}
+
+function getToolZoom(toolId) {
+    const z = parseFloat((toolCustomizations[toolId] || {}).zoom);
+    return (z && isFinite(z)) ? clampToolZoom(z) : 1;
+}
+
+function applyToolZoom(toolId) {
+    const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+    if (!tool) return;
+    const content = tool.querySelector('.tool-content');
+    if (!content) return;
+    const z = getToolZoom(toolId);
+    content.style.zoom = z === 1 ? '' : z;
+}
+
+// Keeps the settings panel's slider/label honest when zoom changes from elsewhere
+// (the wheel gesture, the +/- buttons), reading from whichever tools the panel is
+// targeting. Reads "Mixed" when they disagree.
+function syncToolZoomUI() {
+    const slider = document.getElementById('toolSettingsZoom');
+    const label = document.getElementById('toolSettingsZoomLabel');
+    if (!slider || !label || !settingsTargetIds.length) return;
+    const zooms = settingsTargetIds.map(getToolZoom);
+    const shared = zooms.every(z => z === zooms[0]) ? zooms[0] : null;
+    slider.value = Math.round((shared === null ? 1 : shared) * 100);
+    label.textContent = shared === null ? 'Mixed' : Math.round(shared * 100) + '%';
+}
+
+// Writes zoom into an already-owned customizations object. The caller saves, which
+// is what lets a bulk change write once instead of once per tool.
+function applyZoomToCustom(custom, toolId, zoom) {
+    const z = clampToolZoom(zoom);
+    if (z === 1) delete custom.zoom;
+    else custom.zoom = z;
+    applyToolZoom(toolId);
+    return z;
+}
+
+function setToolZoom(toolId, zoom) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    const z = applyZoomToCustom(toolCustomizations[toolId], toolId, zoom);
+    saveToolCustomizations(toolCustomizations);
+    if (settingsTargetIds.includes(toolId)) syncToolZoomUI();
+    return z;
+}
+
+function applyAllToolZooms() {
+    document.querySelectorAll('.tool').forEach(tool => {
+        applyToolZoom(tool.getAttribute('data-tool'));
+    });
+}
+
+// Ctrl/Cmd + wheel (and trackpad pinch, which arrives as a ctrlKey wheel event)
+// zooms the tool under the cursor. Capture phase with stopPropagation so tools
+// that own their own wheel handler — the family tree viewport, the Mermaid canvas —
+// don't also zoom their internal view on the same gesture.
+document.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    const content = e.target instanceof Element ? e.target.closest('.tool-content') : null;
+    if (!content) return;
+    const tool = content.closest('.tool');
+    if (!tool) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const toolId = tool.getAttribute('data-tool');
+    const next = getToolZoom(toolId) * (e.deltaY < 0 ? 1.1 : 1 / 1.1);
+    showToolToast('Zoom ' + Math.round(setToolZoom(toolId, next) * 100) + '%');
+}, { capture: true, passive: false });
 
 function applyToolTextAlign(toolId) {
     const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
@@ -6615,6 +6813,7 @@ function renderBoardSettingsDrawer(boardId) {
                 updateBoardSetting(boardId, { fontFamily: fontSelect.value, customFontName: '' });
             }
             applyAllToolFonts();
+            applyAllToolZooms();
         }, 400);
     });
 
@@ -6626,12 +6825,14 @@ function renderBoardSettingsDrawer(boardId) {
         sizeLabel.textContent = px;
         updateBoardSetting(boardId, { fontSize: px });
         applyAllToolFonts();
+        applyAllToolZooms();
     });
     drawer.querySelector('.bs-font-size-reset').addEventListener('click', () => {
         sizeInput.value = 12;
         sizeLabel.textContent = 'default';
         updateBoardSetting(boardId, { fontSize: '' });
         applyAllToolFonts();
+        applyAllToolZooms();
     });
 }
 
@@ -6818,6 +7019,9 @@ function createTool(toolId) {
         }
         if (custom.textAlign) {
             toolContent.style.textAlign = custom.textAlign;
+        }
+        if (custom.zoom) {
+            toolContent.style.zoom = clampToolZoom(parseFloat(custom.zoom));
         }
     }
 
@@ -7366,8 +7570,11 @@ function autoFitToolContent(tool, skipAnimation = false) {
 
     // Measure natural dimensions with reasonable bounds
     const isFrameless = tool.classList.contains('frameless');
-    const newWidth = Math.max(isFrameless ? 50 : 200, Math.min(600, content.scrollWidth + (isFrameless ? 0 : 30)));
-    const newHeight = Math.max(isFrameless ? 10 : 120, Math.min(500, content.scrollHeight + (isFrameless ? 0 : header.offsetHeight + 20)));
+    // scrollWidth/scrollHeight come back in the content's own zoomed coordinate
+    // space, so scale them into board pixels before sizing the tool.
+    const zoom = getToolZoom(toolId);
+    const newWidth = Math.max(isFrameless ? 50 : 200, Math.min(600, content.scrollWidth * zoom + (isFrameless ? 0 : 30)));
+    const newHeight = Math.max(isFrameless ? 10 : 120, Math.min(500, content.scrollHeight * zoom + (isFrameless ? 0 : header.offsetHeight + 20)));
 
     // Restore overflow
     content.style.overflow = '';
@@ -7441,7 +7648,9 @@ function autoResizeTool(tool, handleType) {
             // For cropped image viewer: keep current width (height will be derived from ratio)
             newWidth = tool.offsetWidth;
         } else {
-            newWidth = Math.max(150, Math.min(800, content.scrollWidth + 30));
+            // scrollWidth/scrollHeight are reported in the content's own zoomed
+            // coordinate space, so scale them back into board pixels.
+            newWidth = Math.max(150, Math.min(800, content.scrollWidth * getToolZoom(toolId) + 30));
         }
     }
     if (autoHeight) {
@@ -7457,7 +7666,7 @@ function autoResizeTool(tool, handleType) {
             const isFrameless = tool.classList.contains('frameless');
             // The height was released above, so the content box now reports its true
             // natural height (padding included) whether the widget stretches or not.
-            const naturalH = content.scrollHeight;
+            const naturalH = content.scrollHeight * getToolZoom(toolId);
             newHeight = Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8)));
         }
     }
@@ -8941,6 +9150,45 @@ function drawWatermark(canvas, scale) {
     ctx.restore();
 }
 
+// html2canvas doesn't implement the CSS `zoom` property — it lays the clone out at
+// the zoomed metrics but paints text at 1x, so a zoomed tool exports with the words
+// scattered. Swap zoom for an equivalent scale transform in the clone, which
+// html2canvas does support. Sizes come from the live element so the scaled result
+// lands on exactly the box the tool occupies on screen.
+function unzoomClonedTools(clonedDoc) {
+    clonedDoc.querySelectorAll('.tool-content').forEach(clone => {
+        const z = parseFloat(clone.style.zoom);
+        if (!z || z === 1) return;
+        const tool = clone.closest('.tool');
+        const toolId = tool && tool.getAttribute('data-tool');
+        const live = toolId && document.querySelector(`.tool[data-tool="${toolId}"] .tool-content`);
+        if (!live) return;
+        const rect = live.getBoundingClientRect();
+        const pad = getComputedStyle(live).padding;
+
+        // The clip box has to stay at the tool's real on-screen size, otherwise
+        // html2canvas clips the scaled children at the pre-transform width. So the
+        // outer element keeps its device-space box and a new inner layer, sized in
+        // the content's own (unzoomed) space, carries the padding and the scale.
+        const layer = clonedDoc.createElement('div');
+        layer.style.cssText =
+            'box-sizing:border-box;padding:' + pad + ';' +
+            'width:' + (rect.width / z) + 'px;height:' + (rect.height / z) + 'px;' +
+            'transform-origin:top left;' +
+            'transform:scale(' + z + ') translate(' + (-live.scrollLeft) + 'px,' + (-live.scrollTop) + 'px);';
+        while (clone.firstChild) layer.appendChild(clone.firstChild);
+        clone.appendChild(layer);
+
+        clone.style.zoom = '';
+        clone.style.flex = '0 0 auto';
+        clone.style.boxSizing = 'border-box';
+        clone.style.padding = '0';
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.overflow = 'hidden';
+    });
+}
+
 function captureAndDownloadPNG() {
     const boardTitle = getBoardName(currentBoardId) || 'toolboard';
     const safeTitle = boardTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase();
@@ -8973,7 +9221,8 @@ function captureAndDownloadPNG() {
                 el.classList.contains('resize-handle') ||
                 el.classList.contains('board-context-menu') ||
                 el.classList.contains('tool-toast')
-            )
+            ),
+            onclone: unzoomClonedTools
         }).then(canvas => {
             drawWatermark(canvas, 2);
             // Download the image
@@ -9570,6 +9819,21 @@ function setupToolSelection() {
         item.onclick = () => { closeBoardContextMenu(); pasteTools(); };
         menu.appendChild(item);
 
+        // Second way into the all-tools panel, for when the header isn't where the
+        // user is looking.
+        const all = allToolIdsOnBoard();
+        const selected = [...selectedToolIds].filter(id => all.includes(id));
+        const settingsItem = document.createElement('button');
+        settingsItem.textContent = selected.length
+            ? 'Settings for ' + selected.length + ' Selected'
+            : 'Settings for All Tools';
+        settingsItem.disabled = !all.length;
+        settingsItem.onclick = () => {
+            closeBoardContextMenu();
+            openToolSettingsFor(selected.length ? selected : all, null);
+        };
+        menu.appendChild(settingsItem);
+
         menu.style.left = e.clientX + 'px';
         menu.style.top = e.clientY + 'px';
         document.body.appendChild(menu);
@@ -9866,7 +10130,8 @@ async function exportToolAsPng(toolId) {
             scale: 2, // Higher resolution
             logging: false,
             useCORS: true,
-            allowTaint: true
+            allowTaint: true,
+            onclone: unzoomClonedTools
         });
 
         // Restore original styles
