@@ -959,6 +959,14 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .ghd-env { border-top: 1px solid var(--border-light); }
 .ghd-env:first-child { border-top: none; }
 .ghd-wf { flex: 0 1 200px; min-width: 0; font-size: 11px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+/* Environments are few and line up, so they keep a fixed column. In the list
+   rows the workflow is what tells one row from the next, so it takes the width
+   its name needs and the row gives way around it — capped at half the row, past
+   which a name is long enough to be worth truncating after all. */
+.ghd-hist-row .ghd-wf, .ghd-list .ghd-wf { flex: 0 0 auto; max-width: 50%; }
+.ghd-branch { flex: 0 1 auto; min-width: 0; max-width: 180px; font-size: 10px; font-family: monospace; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.ghd-branch a { color: var(--text-secondary); text-decoration: none; }
+.ghd-branch a:hover { color: #3498db; text-decoration: underline; }
 .ghd-details { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 2px 10px; padding: 2px 6px 6px 38px; font-size: 11px; align-items: baseline; }
 .ghd-details dt { color: var(--text-muted); white-space: nowrap; }
 .ghd-details dd { margin: 0; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; }
@@ -8286,15 +8294,33 @@ function ghdPermissionHint(err) {
 
 // ---------- describing what GitHub returns ----------
 
-/** Whether a log URL points at one job rather than the whole run. GitHub spells
- *  that path segment in the singular: /actions/runs/<run>/job/<job>. */
+/** The job a log URL points at, when it addresses one job rather than the whole
+ *  run. GitHub spells that path segment in the singular:
+ *  /actions/runs/<run>/job/<job>. */
+function ghdJobIdFromUrl(url) {
+    const m = String(url || '').match(/\/actions\/runs\/\d+\/job\/(\d+)/);
+    return m ? m[1] : null;
+}
+
 function ghdIsJobUrl(url) {
-    return /\/actions\/runs\/\d+\/job\/\d+/.test(String(url || ''));
+    return Boolean(ghdJobIdFromUrl(url));
 }
 
 function ghdRunIdFromUrl(url) {
     const m = String(url || '').match(/\/actions\/runs\/(\d+)/);
     return m ? m[1] : null;
+}
+
+/**
+ * A deployment's ref is whatever the deploy passed: a branch, a tag, or a bare
+ * commit. Only a name is worth showing beside the commit — a ref that is the sha
+ * again says nothing the commit column isn't already saying.
+ */
+function ghdBranchOf(ref, sha) {
+    if (!ref) return null;
+    const name = String(ref).replace(/^refs\/(heads|tags)\//, '').trim();
+    if (!name || name === sha || /^[0-9a-f]{7,40}$/i.test(name)) return null;
+    return name;
 }
 
 /**
@@ -8325,6 +8351,7 @@ function ghdDescribeDeployment(data, owner, repo, deployment, statuses) {
         id: deployment.id ? String(deployment.id) : null,
         environment: deployment.environment || '',
         sha: deployment.sha || null,
+        ref: deployment.ref || null,
         creator: deployment.creator && deployment.creator.login ? deployment.creator.login : null,
         createdAt: deployment.created_at || null,
         updatedAt: (status && status.created_at) || deployment.updated_at || deployment.created_at || null,
@@ -8347,6 +8374,8 @@ function ghdDescribeDeployment(data, owner, repo, deployment, statuses) {
     };
 
     d.durationMs = ghdDurationMs(d.createdAt, d.updatedAt);
+    d.branch = ghdBranchOf(d.ref, d.sha);
+    d.branchUrl = d.branch ? repoUrl + '/tree/' + encodeURIComponent(d.branch) : null;
     d.versionUrl = d.version ? repoUrl + '/releases/tag/' + encodeURIComponent(d.version) : null;
     d.imageUrl = ghdImageUrl(d.image, owner, repo);
     d.rawJson = ghdJsonSnippet({
@@ -8354,6 +8383,7 @@ function ghdDescribeDeployment(data, owner, repo, deployment, statuses) {
             id: deployment.id,
             environment: deployment.environment,
             sha: deployment.sha,
+            ref: deployment.ref,
             creator: d.creator,
             created_at: deployment.created_at,
             description: deployment.description,
@@ -8443,6 +8473,7 @@ function ghdNormalizeRun(run) {
         workflowId: run.workflow_id ? String(run.workflow_id) : null,
         workflowName: run.name || null,
         headSha: run.head_sha || null,
+        branch: run.head_branch || null,
         displayTitle: run.display_title || null,
         status: run.status || null,
         conclusion: run.conclusion || null,
@@ -8460,6 +8491,7 @@ function ghdNormalizeRun(run) {
                 status: run.status,
                 conclusion: run.conclusion,
                 head_sha: run.head_sha,
+                head_branch: run.head_branch,
                 run_number: run.run_number,
                 created_at: run.created_at
             }
@@ -8516,12 +8548,28 @@ function ghdSummariseWorkflows(workflows, runs) {
 }
 
 /**
- * Which job in a run did the deploying — the one a past deployment should link
- * to. A run has build, test and deploy jobs; the interesting one names the
- * environment, or failed, or ran last.
+ * Which job in a run did the deploying — the one a deployment is named after and
+ * links to.
+ *
+ * When the deployment status's log URL addresses a job, GitHub has already
+ * answered and nothing needs guessing. Otherwise a run's build, test and deploy
+ * jobs all look alike from here, so only an unambiguous answer is worth taking:
+ * a run with a single job, a job that names the environment, or the one job that
+ * failed under a deployment that failed.
+ *
+ * Falling back to the run's last job, as this used to, meant several deployments
+ * sharing a run were all named after the same unrelated job — a past deployment
+ * would claim a job that had nothing to do with it. No name at all is better:
+ * the row then says what the deployment did and links to the run.
  */
 function ghdPickDeployJob(jobs, deployment) {
     if (!jobs || !jobs.length) return null;
+    const jobId = ghdJobIdFromUrl(deployment && deployment.logUrl);
+    if (jobId) {
+        const exact = jobs.filter(function(job) { return job.id === jobId; })[0];
+        if (exact) return exact;
+    }
+    if (jobs.length === 1) return jobs[0];
     const environment = deployment && deployment.environment;
     if (environment) {
         const named = jobs.filter(function(job) {
@@ -8530,10 +8578,10 @@ function ghdPickDeployJob(jobs, deployment) {
         if (named) return named;
     }
     if (deployment && deployment.bucket === 'bad') {
-        const failed = jobs.filter(function(job) { return job.bucket === 'bad'; })[0];
-        if (failed) return failed;
+        const failed = jobs.filter(function(job) { return job.bucket === 'bad'; });
+        if (failed.length === 1) return failed[0];
     }
-    return jobs[jobs.length - 1];
+    return null;
 }
 
 /** Which run deployed this — a run naming the environment beats one that merely shares the commit. */
@@ -8633,6 +8681,7 @@ async function ghdLoadActions(data, owner, repo, environments) {
         // workflows list above it agree about which workflow ran.
         run.workflowLabel = (byId[run.workflowId] && byId[run.workflowId].name) || run.workflowName;
         run.commitUrl = run.headSha ? repoUrl + '/commit/' + run.headSha : null;
+        run.branchUrl = run.branch ? repoUrl + '/tree/' + encodeURIComponent(run.branch) : null;
     });
 
     environments.forEach(function(env) {
@@ -8706,7 +8755,8 @@ async function ghdAttachJobLinks(data, owner, repo, deployments) {
         const job = ghdPickDeployJob(jobs, deployment);
         if (!job) return;
         deployment.job = job;
-        if (job.url) deployment.jobUrl = job.url;
+        // Never over the job the deployment status itself named.
+        if (!deployment.jobUrl && job.url) deployment.jobUrl = job.url;
         if (!deployment.workflowName) deployment.workflowName = job.workflowName;
     });
 }
@@ -8931,7 +8981,7 @@ async function ghdEnsureJob(widget, ctx, envKey) {
         const job = ghdPickDeployJob(jobs, d);
         if (job) {
             d.job = job;
-            if (job.url) d.jobUrl = job.url;
+            if (!d.jobUrl && job.url) d.jobUrl = job.url;
             if (!d.workflowName) d.workflowName = job.workflowName;
         }
     } catch (e) {
@@ -9127,6 +9177,7 @@ function ghdRenderRuns(ctx, key, result) {
                 '<span class="ghd-grow"></span>' +
                 '<span class="ghd-wf">' + ghdEsc(run.workflowLabel || '') + '</span>' +
                 '<span class="ghd-meta">' + ghdEsc([run.event, ghdTimeAgo(run.createdAt)].filter(Boolean).join(' · ')) + '</span>' +
+                ghdBranchCell(run.branch, run.branchUrl) +
                 '<span class="ghd-sha">' + sha + '</span>' +
                 ghdLink(run.url, 'Open this run') +
             '</div>';
@@ -9138,6 +9189,7 @@ function ghdRunTooltip(run) {
     return ghdConcept('WORKFLOW RUN — one execution of a workflow', [
         run.workflowLabel ? 'Workflow: ' + run.workflowLabel : null,
         run.runNumber ? 'Run number: #' + run.runNumber : null,
+        run.branch ? 'Branch: ' + run.branch : null,
         'Status: ' + ghdStateLabel(run.status) + ' — where the run is in its lifecycle',
         'Conclusion: ' + (run.conclusion ? ghdStateLabel(run.conclusion) : 'not finished yet') + ' — how it ended',
         run.event ? 'Triggered by: ' + run.event : null,
@@ -9191,7 +9243,7 @@ function ghdRenderEnv(ctx, key, env) {
     // otherwise the image. Never the commit — that has its own column.
     const subtitle = d ? (d.version || d.image) : null;
     const sha = d && d.sha
-        ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="' + ghdEsc(ghdConcept('COMMIT — the code that was deployed', [d.sha])) + '">' + ghdEsc(ghdShortSha(d.sha)) + '</a>'
+        ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="' + ghdEsc(ghdConcept('COMMIT — the code that was deployed', [d.sha, d.branch ? 'On branch ' + d.branch : null])) + '">' + ghdEsc(ghdShortSha(d.sha)) + '</a>'
         : '';
 
     let inner = '';
@@ -9210,6 +9262,7 @@ function ghdRenderEnv(ctx, key, env) {
             '<span class="ghd-grow"></span>' +
             ghdWorkflowCell(d) +
             '<span class="ghd-meta">' + ghdEsc(meta) + '</span>' +
+            ghdBranchCell(d && d.branch, d && d.branchUrl) +
             '<span class="ghd-sha">' + sha + '</span>' +
             ghdLink(envUrl, 'Open this environment on GitHub') +
         '</div>' +
@@ -9226,6 +9279,16 @@ function ghdWorkflowCell(d) {
     if (!d || !d.workflowName) return '<span class="ghd-wf"></span>';
     return '<span class="ghd-wf" title="' + ghdEsc(ghdConcept('WORKFLOW — the workflow whose run produced this deployment', [d.workflowName])) + '">' +
         ghdEsc(d.workflowName) + '</span>';
+}
+
+/** The branch a commit came from, as its own column beside the commit. */
+function ghdBranchCell(branch, url) {
+    if (!branch) return '<span class="ghd-branch"></span>';
+    const tooltip = ghdEsc(ghdConcept('BRANCH — the ref this commit was taken from', [branch]));
+    const label = ghdEsc(branch);
+    return '<span class="ghd-branch" title="' + tooltip + '">' +
+        (url ? '<a href="' + ghdEsc(url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + label + '</a>' : label) +
+        '</span>';
 }
 
 function ghdEnvTooltip(env, d) {
@@ -9250,6 +9313,7 @@ function ghdRenderDetails(ctx, key, env, d) {
     add('Updated', ghdEsc(ghdFormatDate(d.updatedAt)));
     add('Triggered by', d.creator ? ghdEsc('@' + d.creator) : '');
     add('Commit', d.sha ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener">' + ghdEsc(ghdShortSha(d.sha)) + '</a>' : '');
+    add('Branch', d.branch ? (d.branchUrl ? '<a href="' + ghdEsc(d.branchUrl) + '" target="_blank" rel="noopener">' + ghdEsc(d.branch) + '</a>' : ghdEsc(d.branch)) : '');
     add('Took', ghdEsc(ghdFormatDuration(d.durationMs)));
     add('Version', d.version ? (d.versionUrl ? '<a href="' + ghdEsc(d.versionUrl) + '" target="_blank" rel="noopener">' + ghdEsc(d.version) + '</a>' : ghdEsc(d.version)) : '');
     add('Image', d.image ? (d.imageUrl ? '<a href="' + ghdEsc(d.imageUrl) + '" target="_blank" rel="noopener">' + ghdEsc(d.image) + '</a>' : ghdEsc(d.image)) : '', true);
@@ -9317,6 +9381,7 @@ function ghdRenderHistory(ctx, key, env) {
             ghdWorkflowCell(d) +
             '<span class="ghd-meta">' + ghdEsc([ghdTimeAgo(d.updatedAt), d.creator ? '@' + d.creator : null].filter(Boolean).join(' · ')) + '</span>' +
             bar +
+            ghdBranchCell(d.branch, d.branchUrl) +
             '<span class="ghd-sha">' + (d.sha ? '<a href="' + ghdEsc(d.commitUrl) + '" target="_blank" rel="noopener">' + ghdEsc(ghdShortSha(d.sha)) + '</a>' : '') + '</span>' +
             ghdLink(d.jobUrl || d.runUrl, 'Open the job that ran this deployment') +
         '</div>';
@@ -9328,6 +9393,7 @@ function ghdRenderHistory(ctx, key, env) {
 function ghdHistoryTooltip(d) {
     const lines = [
         'Environment: ' + d.environment,
+        d.branch ? 'Branch: ' + d.branch : null,
         'Status: ' + ghdStateLabel(d.state) + (d.superseded ? ' (later superseded)' : ''),
         d.updatedAt ? 'Updated: ' + ghdFormatDate(d.updatedAt) : null,
         d.creator ? 'Triggered by: @' + d.creator : null,
@@ -9421,7 +9487,8 @@ function ghdHistoryTooltip(d) {
         ghdJsonSnippet, ghdPrune, ghdBucketOf, ghdMostSevere, ghdStateLabel,
         ghdJobBucket, ghdParseRepoList, ghdFlattenGroups, ghdParseRepo, ghdWebBase,
         ghdApiBase, ghdRepoUrl, ghdError, ghdApi, ghdPermissionFor,
-        ghdPermissionHint, ghdIsJobUrl, ghdRunIdFromUrl, ghdDescribeDeployment, ghdReadPayload, ghdImageUrl,
+        ghdPermissionHint, ghdJobIdFromUrl, ghdIsJobUrl, ghdRunIdFromUrl, ghdBranchOf,
+        ghdDescribeDeployment, ghdReadPayload, ghdImageUrl,
         ghdDescribeJob, ghdNormalizeRun, ghdNormalizeWorkflow, ghdSummariseWorkflows, ghdPickDeployJob,
         ghdPickRunForDeployment, ghdLoadRepo, ghdFetchLatest, ghdLoadActions, ghdLoadHistory,
         ghdAttachJobLinks, ghdRollUp, ghdInit, ghdFillSettings, ghdToggleSettings,
@@ -9430,7 +9497,7 @@ function ghdHistoryTooltip(d) {
         ghdEnsureJob, ghdRender, ghdRenderGroup,
         ghdRenderRepo, ghdLink, ghdSection, ghdRenderWorkflows, ghdWorkflowMeta, ghdWorkflowTooltip,
         ghdRenderDeployments, ghdRenderRuns, ghdRunTooltip,
-        ghdRenderEnv, ghdWorkflowCell, ghdEnvTooltip, ghdRenderDetails, ghdJobTooltip, ghdRenderHistory,
+        ghdRenderEnv, ghdWorkflowCell, ghdBranchCell, ghdEnvTooltip, ghdRenderDetails, ghdJobTooltip, ghdRenderHistory,
         ghdHistoryTooltip
     ];
 
