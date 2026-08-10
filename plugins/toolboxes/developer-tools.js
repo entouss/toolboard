@@ -946,6 +946,8 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .ghd-group { border-bottom: 1px solid var(--border-color); }
 .ghd-group:last-child { border-bottom: none; }
 .ghd-group-row { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-heading); background: var(--bg-secondary); }
+/* One level in, which lines a repository's chevron up with its group's dot. */
+.ghd-group-body { padding-left: 16px; }
 .ghd-repo { border-top: 1px solid var(--border-light); }
 .ghd-repo:first-child { border-top: none; }
 .ghd-repo-row .ghd-name { font-weight: 600; }
@@ -7982,6 +7984,7 @@ const GHD_TOKEN_KEY = 'ghdToken';
 const GHD_HISTORY_LIMIT = 10;
 const GHD_RUN_LIMIT = 10;
 const GHD_CONCURRENCY = 4;
+const GHD_POLL_MS = 60000;
 
 // ---------- instance plumbing ----------
 
@@ -8029,7 +8032,7 @@ function ghdSetToken(value) {
 
 // Per-instance results, held in memory for the life of the page.
 function ghdState(toolId) {
-    if (!ghdCache[toolId]) ghdCache[toolId] = { results: {}, history: {}, loading: false, token: '' };
+    if (!ghdCache[toolId]) ghdCache[toolId] = { results: {}, history: {}, loading: false, token: '', poll: null };
     ghdCache[toolId].token = ghdGetToken();
     return ghdCache[toolId];
 }
@@ -8787,6 +8790,12 @@ function ghdInit() {
         if (panel) panel.style.display = data.settingsOpen ? '' : 'none';
         ghdRender(widget);
         if (ghdParseRepoList(data.reposText).length && ghdGetToken()) ghdRefresh(widget, false);
+
+        // Re-rendering the board builds a fresh widget for the same tool, so the
+        // timer is replaced rather than added to.
+        const state = ghdState(toolId);
+        clearInterval(state.poll);
+        state.poll = setInterval(function() { ghdPollTick(toolId); }, GHD_POLL_MS);
     });
 }
 
@@ -8860,7 +8869,19 @@ function ghdSetStatus(widget, text) {
     if (status) status.textContent = text;
 }
 
-async function ghdRefresh(el, force) {
+/**
+ * Fetch the listed repositories.
+ *
+ * `force` means ignore the cache duration, not start from nothing: what is
+ * already on screen stays there for the whole refresh and survives a failure.
+ * Wiping first, as this used to, meant a refresh that GitHub refused — an
+ * expired token, a rate limit, a dropped connection — emptied a board that had
+ * been perfectly readable a second earlier.
+ *
+ * `onlyKeys` narrows the fetch to some of the repositories, which is how the
+ * poll touches only what is still running.
+ */
+async function ghdRefresh(el, force, onlyKeys) {
     const widget = ghdGetWidget(el);
     const toolId = ghdGetToolId(widget);
     if (!toolId) return;
@@ -8870,27 +8891,85 @@ async function ghdRefresh(el, force) {
 
     const repos = ghdFlattenGroups(ghdParseRepoList(data.reposText)).map(ghdParseRepo).filter(Boolean);
     if (!repos.length || !ghdGetToken()) { ghdRender(widget); return; }
+    const wanted = onlyKeys
+        ? repos.filter(function(repo) { return onlyKeys.indexOf(repo.owner + '/' + repo.repo) !== -1; })
+        : repos;
+    if (!wanted.length) return;
 
     state.loading = true;
-    if (force) { state.results = {}; state.history = {}; }
-    ghdSetStatus(widget, 'Loading ' + repos.length + ' repositor' + (repos.length === 1 ? 'y' : 'ies') + '…');
+    ghdSetStatus(widget, onlyKeys
+        ? 'Checking ' + wanted.length + ' in progress…'
+        : 'Loading ' + wanted.length + ' repositor' + (wanted.length === 1 ? 'y' : 'ies') + '…');
     ghdRender(widget);
 
     const freshAfter = Date.now() - data.cacheTtlSeconds * 1000;
     let failures = 0;
-    await ghdMapLimit(repos, GHD_CONCURRENCY, async function(repo) {
+    await ghdMapLimit(wanted, GHD_CONCURRENCY, async function(repo) {
         const key = repo.owner + '/' + repo.repo;
         const cached = state.results[key];
-        if (cached && !cached.error && cached.fetchedAt > freshAfter) return;
-        state.results[key] = await ghdLoadRepo(data, repo.owner, repo.repo);
-        if (state.results[key].error) failures++;
+        if (!force && cached && !cached.error && cached.fetchedAt > freshAfter) return;
+        const result = await ghdLoadRepo(data, repo.owner, repo.repo);
+        if (result.error) failures++;
+        // Keep the last good data and hang the error off it, so a failed refresh
+        // reports itself without taking the repository away.
+        state.results[key] = result.error && cached && !cached.error
+            ? Object.assign({}, cached, { error: result.error, errorHint: result.errorHint })
+            : result;
+        if (!result.error) ghdMarkHistoryStale(state, key);
         ghdRender(widget);
     });
 
     state.loading = false;
-    ghdSetStatus(widget, 'Updated ' + ghdFormatDate(new Date().toISOString()) +
-        (failures ? ' · ' + failures + ' failed' : ''));
+    // Nothing was updated when nothing came back, and the data on screen is now
+    // older than the timestamp would suggest.
+    const when = ghdFormatDate(new Date().toISOString());
+    ghdSetStatus(widget, failures === wanted.length
+        ? 'Refresh failed · ' + when
+        : 'Updated ' + when + (failures ? ' · ' + failures + ' failed' : ''));
     ghdRender(widget);
+}
+
+/**
+ * Past deployments belong to the environments that were just refetched, so they
+ * are due a refetch too. Marked rather than dropped: the rows stay on screen
+ * until their replacements arrive, and stay if the replacements never do.
+ */
+function ghdMarkHistoryStale(state, repoKey) {
+    Object.keys(state.history).forEach(function(historyKey) {
+        if (historyKey.indexOf(repoKey + '#') === 0) state.history[historyKey].stale = true;
+    });
+}
+
+/** Whether a repository has anything still running — the only reason to poll. */
+function ghdIsRunning(result) {
+    if (!result) return false;
+    const busy = function(item) { return item && item.bucket === 'busy'; };
+    return (result.environments || []).some(function(env) { return busy(env.latest); }) ||
+        (result.runs || []).some(busy);
+}
+
+/**
+ * Keep a running deployment up to date without being asked. Only repositories
+ * with something in flight are refetched, so a settled board costs nothing and
+ * the polling stops on its own the moment the last run finishes.
+ */
+function ghdPollTick(toolId) {
+    const state = ghdCache[toolId];
+    if (!state) return;
+    const tool = document.querySelector('.tool[data-tool="' + toolId + '"]');
+    const widget = tool ? tool.querySelector('.ghd-widget') : null;
+    if (!widget) {
+        // The tool is gone from the board; so is any reason to keep a timer.
+        clearInterval(state.poll);
+        state.poll = null;
+        return;
+    }
+    // A board nobody is looking at does not need to stay current.
+    if (document.hidden || state.loading) return;
+    const running = Object.keys(state.results).filter(function(key) {
+        return ghdIsRunning(state.results[key]);
+    });
+    if (running.length) ghdRefresh(widget, true, running);
 }
 
 function ghdIsOpen(data, key, fallback) {
@@ -8940,22 +9019,31 @@ function ghdSplitEnvKey(envKey) {
     return parsed ? { repoKey: repoKey, owner: parsed.owner, repo: parsed.repo, environment: envKey.slice(cut + 1) } : null;
 }
 
-/** Past deployments for an expanded environment, fetched once. */
+/**
+ * Past deployments for an expanded environment. Fetched once, then again only
+ * once a refresh has marked them stale — and through both, the rows already
+ * fetched stay on screen rather than blinking back to "Loading…" or vanishing
+ * into an error.
+ */
 async function ghdEnsureHistory(widget, ctx, historyKey) {
     const state = ctx.state;
-    if (state.history[historyKey]) return;
+    const previous = state.history[historyKey];
+    if (previous && !previous.stale) return;
     const parts = ghdSplitEnvKey(historyKey);
     if (!parts) return;
+    const kept = previous ? previous.deployments : [];
 
-    state.history[historyKey] = { loading: true, deployments: [], error: null };
+    // Cleared synchronously, so a re-render mid-fetch does not start a second one.
+    state.history[historyKey] = { loading: true, deployments: kept, error: null, stale: false };
     try {
         const deployments = await ghdLoadHistory(ctx.data, parts.owner, parts.repo, parts.environment);
-        state.history[historyKey] = { loading: false, deployments: deployments, error: null };
+        state.history[historyKey] = { loading: false, deployments: deployments, error: null, stale: false };
     } catch (err) {
         state.history[historyKey] = {
             loading: false,
-            deployments: [],
-            error: (err.message || String(err)) + (ghdPermissionHint(err) ? '\n\n' + ghdPermissionHint(err) : '')
+            deployments: kept,
+            error: (err.message || String(err)) + (ghdPermissionHint(err) ? '\n\n' + ghdPermissionHint(err) : ''),
+            stale: false
         };
     }
     ghdRender(widget);
@@ -9041,7 +9129,10 @@ function ghdRenderGroup(ctx, group, index) {
             '<span class="ghd-grow"></span>' +
             '<span class="ghd-meta">' + group.repos.length + ' repo' + (group.repos.length === 1 ? '' : 's') + '</span>' +
         '</div>' +
-        (open ? inner : '') +
+        // Indented, so a repository reads as belonging to the group above it
+        // rather than sitting beside it. Ungrouped repos are at the top level
+        // and stay there.
+        (open ? '<div class="ghd-group-body">' + inner + '</div>' : '') +
     '</div>';
 }
 
@@ -9052,30 +9143,43 @@ function ghdRenderRepo(ctx, key, result) {
     const envCount = result && result.environments ? result.environments.length : 0;
     const repoUrl = ghdRepoUrl(ctx.data, parsed.owner, parsed.repo);
 
+    // An error alongside data is a refresh that failed over data that is still
+    // good; an error with nothing behind it is all this repository has to say.
+    const kept = Boolean(result && result.error && envCount);
+
     let meta;
     if (!result) meta = 'loading…';
-    else if (result.error) meta = 'error';
+    else if (result.error && !kept) meta = 'error';
     else {
         meta = envCount + ' env' + (envCount === 1 ? '' : 's');
         if (result.updatedAt) meta += ' · ' + ghdTimeAgo(result.updatedAt);
+        if (kept) meta += ' · refresh failed';
     }
 
+    const errorText = result ? [result.error, result.errorHint].filter(Boolean).join('\n\n') : '';
     let tooltip;
     if (!result) tooltip = 'Loading…';
-    else if (result.error) tooltip = [result.error, result.errorHint].filter(Boolean).join('\n\n');
+    else if (result.error && !kept) tooltip = errorText;
     else tooltip = ghdConcept('REPOSITORY', [
         key,
         'Rolled up from ' + envCount + ' environment' + (envCount === 1 ? '' : 's') + ':',
-        'the worst state among them is ' + GHD_BUCKET_LABEL[bucket] + '.'
+        'the worst state among them is ' + GHD_BUCKET_LABEL[bucket] + '.',
+        kept ? '\nThe last refresh failed, so this is the last data fetched:\n' + errorText : null
     ]);
 
     let inner = '';
     if (open) {
+        const failure = result && result.error
+            ? '<div class="ghd-note error">' +
+                (kept ? 'The last refresh failed. Showing the last data fetched.\n\n' : '') +
+                ghdEsc(errorText) + '</div>'
+            : '';
         if (!result) inner = '<div class="ghd-note">Loading…</div>';
-        else if (result.error) inner = '<div class="ghd-note error">' + ghdEsc(result.error) + (result.errorHint ? '\n\n' + ghdEsc(result.errorHint) : '') + '</div>';
+        else if (result.error && !kept) inner = failure;
         else {
             // A repo with no environments still has workflows and runs worth seeing.
-            inner = ghdRenderWorkflows(ctx, key, result) +
+            inner = failure +
+                ghdRenderWorkflows(ctx, key, result) +
                 ghdRenderDeployments(ctx, key, result) +
                 ghdRenderRuns(ctx, key, result);
         }
@@ -9355,9 +9459,13 @@ function ghdRenderHistory(ctx, key, env) {
     '</div>';
 
     if (!open) return '<div class="ghd-hist">' + head + '</div>';
-    if (!entry || entry.loading) return '<div class="ghd-hist">' + head + '<div class="ghd-note">Loading…</div></div>';
-    if (entry.error) return '<div class="ghd-hist">' + head + '<div class="ghd-note error">' + ghdEsc(entry.error) + '</div></div>';
+    if (!entry || (!entry.deployments.length && entry.loading)) return '<div class="ghd-hist">' + head + '<div class="ghd-note">Loading…</div></div>';
+    if (entry.error && !entry.deployments.length) return '<div class="ghd-hist">' + head + '<div class="ghd-note error">' + ghdEsc(entry.error) + '</div></div>';
     if (!entry.deployments.length) return '<div class="ghd-hist">' + head + '<div class="ghd-note">No past deployments.</div></div>';
+    // A refetch that failed leaves the rows it could not replace.
+    const failure = entry.error
+        ? '<div class="ghd-note error">The last refresh failed. Showing the last data fetched.\n\n' + ghdEsc(entry.error) + '</div>'
+        : '';
 
     // Each duration is shown against the slowest of the ten, so an outlier is
     // obvious without reading the numbers.
@@ -9387,7 +9495,7 @@ function ghdRenderHistory(ctx, key, env) {
         '</div>';
     }).join('');
 
-    return '<div class="ghd-hist">' + head + rows + '</div>';
+    return '<div class="ghd-hist">' + head + failure + rows + '</div>';
 }
 
 function ghdHistoryTooltip(d) {
@@ -9492,7 +9600,8 @@ function ghdHistoryTooltip(d) {
         ghdDescribeJob, ghdNormalizeRun, ghdNormalizeWorkflow, ghdSummariseWorkflows, ghdPickDeployJob,
         ghdPickRunForDeployment, ghdLoadRepo, ghdFetchLatest, ghdLoadActions, ghdLoadHistory,
         ghdAttachJobLinks, ghdRollUp, ghdInit, ghdFillSettings, ghdToggleSettings,
-        ghdSaveSettings, ghdFormatRepoList, ghdSetStatus, ghdRefresh, ghdIsOpen,
+        ghdSaveSettings, ghdFormatRepoList, ghdSetStatus, ghdRefresh, ghdMarkHistoryStale,
+        ghdIsRunning, ghdPollTick, ghdIsOpen,
         ghdSetOpen, ghdToggle, ghdLoadPending, ghdSplitEnvKey, ghdEnsureHistory,
         ghdEnsureJob, ghdRender, ghdRenderGroup,
         ghdRenderRepo, ghdLink, ghdSection, ghdRenderWorkflows, ghdWorkflowMeta, ghdWorkflowTooltip,
@@ -9517,6 +9626,7 @@ function ghdHistoryTooltip(d) {
         'window.GHD_HISTORY_LIMIT = ' + JSON.stringify(GHD_HISTORY_LIMIT) + ';\n' +
         'window.GHD_RUN_LIMIT = ' + JSON.stringify(GHD_RUN_LIMIT) + ';\n' +
         'window.GHD_CONCURRENCY = ' + JSON.stringify(GHD_CONCURRENCY) + ';\n' +
+        'window.GHD_POLL_MS = ' + JSON.stringify(GHD_POLL_MS) + ';\n' +
         'window.CERT_OID_MAP = ' + JSON.stringify(CERT_OID_MAP) + ';\n' +
         'window.LOREM_WORDS = ' + JSON.stringify(LOREM_WORDS) + ';\n' +
         'window.LOREM_FIRST_SENTENCE = ' + JSON.stringify(LOREM_FIRST_SENTENCE) + ';\n' +
