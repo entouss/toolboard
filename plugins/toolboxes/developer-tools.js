@@ -955,6 +955,7 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .ghd-list { border: 1px solid var(--border-color); border-radius: 4px; margin: 0 0 6px 16px; overflow: hidden; }
 .ghd-list .ghd-row { border-top: 1px solid var(--border-light); }
 .ghd-list .ghd-row:first-child { border-top: none; }
+.ghd-envs { border: 1px solid var(--border-color); border-radius: 4px; margin: 0 0 6px 16px; overflow: hidden; }
 .ghd-env { border-top: 1px solid var(--border-light); }
 .ghd-env:first-child { border-top: none; }
 .ghd-wf { flex: 0 1 200px; min-width: 0; font-size: 11px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
@@ -7971,6 +7972,7 @@ const GHD_CONCLUSION_BUCKET = {
 
 const GHD_TOKEN_KEY = 'ghdToken';
 const GHD_HISTORY_LIMIT = 10;
+const GHD_RUN_LIMIT = 10;
 const GHD_CONCURRENCY = 4;
 
 // ---------- instance plumbing ----------
@@ -8445,6 +8447,7 @@ function ghdNormalizeRun(run) {
         status: run.status || null,
         conclusion: run.conclusion || null,
         event: run.event || null,
+        runNumber: run.run_number ? String(run.run_number) : null,
         createdAt: run.created_at || null,
         url: run.html_url || null,
         bucket: ghdJobBucket(run),
@@ -8564,11 +8567,12 @@ async function ghdLoadRepo(data, owner, repo) {
             env.latest = await ghdFetchLatest(data, owner, repo, env.name);
         });
 
-        const workflows = await ghdLoadWorkflows(data, owner, repo, environments);
+        const actions = await ghdLoadActions(data, owner, repo, environments);
         const rolled = ghdRollUp(environments);
         return Object.assign({}, base, {
             environments: environments,
-            workflows: workflows,
+            workflows: actions.workflows,
+            runs: actions.runs,
             bucket: rolled.bucket,
             updatedAt: rolled.updatedAt,
             error: null,
@@ -8578,6 +8582,7 @@ async function ghdLoadRepo(data, owner, repo) {
         return Object.assign({}, base, {
             environments: [],
             workflows: [],
+            runs: [],
             bucket: 'idle',
             updatedAt: null,
             error: err.message || String(err),
@@ -8599,11 +8604,13 @@ async function ghdFetchLatest(data, owner, repo, environment) {
 }
 
 /**
- * The repo's workflows with their latest runs, and — from the same runs — the
- * name of the workflow behind each environment's current deployment. Best
- * effort: both are decoration, and a failure here must not cost the deployments.
+ * Everything the repo's Actions tab knows: its workflows with their latest
+ * runs, the most recent runs in their own right, and — from those same runs —
+ * the name of the workflow behind each environment's current deployment. Best
+ * effort: all of it is decoration, and a failure here must not cost the
+ * deployments.
  */
-async function ghdLoadWorkflows(data, owner, repo, environments) {
+async function ghdLoadActions(data, owner, repo, environments) {
     let workflows = [];
     let runs = [];
     try {
@@ -8614,12 +8621,19 @@ async function ghdLoadWorkflows(data, owner, repo, environments) {
         workflows = (results[0].workflows || []).map(ghdNormalizeWorkflow);
         runs = (results[1].workflow_runs || []).map(ghdNormalizeRun);
     } catch (e) {
-        return [];
+        return { workflows: [], runs: [] };
     }
 
     const repoUrl = ghdRepoUrl(data, owner, repo);
     const byId = {};
     workflows.forEach(function(workflow) { if (workflow.id) byId[workflow.id] = workflow; });
+
+    runs.forEach(function(run) {
+        // The workflow's own name, not the run's title, so a run and the
+        // workflows list above it agree about which workflow ran.
+        run.workflowLabel = (byId[run.workflowId] && byId[run.workflowId].name) || run.workflowName;
+        run.commitUrl = run.headSha ? repoUrl + '/commit/' + run.headSha : null;
+    });
 
     environments.forEach(function(env) {
         const latest = env.latest;
@@ -8640,13 +8654,16 @@ async function ghdLoadWorkflows(data, owner, repo, environments) {
         }
     });
 
-    return ghdSummariseWorkflows(workflows, runs).map(function(workflow) {
-        return Object.assign({}, workflow, {
-            // The workflow's own page — every run of it, which is what the name
-            // in the list refers to.
-            url: workflow.file ? repoUrl + '/actions/workflows/' + encodeURIComponent(workflow.file) : null
-        });
-    });
+    return {
+        workflows: ghdSummariseWorkflows(workflows, runs).map(function(workflow) {
+            return Object.assign({}, workflow, {
+                // The workflow's own page — every run of it, which is what the
+                // name in the list refers to.
+                url: workflow.file ? repoUrl + '/actions/workflows/' + encodeURIComponent(workflow.file) : null
+            });
+        }),
+        runs: runs.slice(0, GHD_RUN_LIMIT)
+    };
 }
 
 /** Past deployments for one environment. Fetched only when it is expanded. */
@@ -9006,10 +9023,11 @@ function ghdRenderRepo(ctx, key, result) {
     if (open) {
         if (!result) inner = '<div class="ghd-note">Loading…</div>';
         else if (result.error) inner = '<div class="ghd-note error">' + ghdEsc(result.error) + (result.errorHint ? '\n\n' + ghdEsc(result.errorHint) : '') + '</div>';
-        else if (!envCount) inner = '<div class="ghd-note">No environments.</div>';
         else {
+            // A repo with no environments still has workflows and runs worth seeing.
             inner = ghdRenderWorkflows(ctx, key, result) +
-                result.environments.map(function(env) { return ghdRenderEnv(ctx, key, env); }).join('');
+                ghdRenderDeployments(ctx, key, result) +
+                ghdRenderRuns(ctx, key, result);
         }
         inner = '<div class="ghd-repo-body">' + inner + '</div>';
     }
@@ -9033,18 +9051,33 @@ function ghdLink(url, tooltip) {
 }
 
 /**
+ * A collapsible section of a repository — Workflows, Deployments, Actions. The
+ * rows are built only when the section is open, so a collapsed section costs
+ * nothing to render.
+ */
+function ghdSection(ctx, openKey, label, count, tooltip, fallback, renderRows) {
+    const open = ghdIsOpen(ctx.data, openKey, fallback);
+    return '<div class="ghd-row ghd-clickable ghd-section-row" data-ghd-key="' + ghdEsc(openKey) + '"' +
+            (fallback ? ' data-ghd-fallback="1"' : '') +
+            ' onclick="ghdToggle(this)" title="' + ghdEsc(tooltip) + '">' +
+            '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
+            '<span class="ghd-name">' + ghdEsc(label) + '</span>' +
+            '<span class="ghd-grow"></span>' +
+            '<span class="ghd-meta">' + count + '</span>' +
+            '<span class="ghd-open"></span>' +
+        '</div>' + (open ? renderRows() : '');
+}
+
+/**
  * The repo's workflows, each with its latest run. Collapsed by default: this is
  * context for the deployments below it, not the thing you came to see.
  */
 function ghdRenderWorkflows(ctx, key, result) {
     const workflows = result.workflows || [];
     if (!workflows.length) return '';
-    const openKey = 'w:' + key;
-    const open = ghdIsOpen(ctx.data, openKey, false);
-
-    let rows = '';
-    if (open) {
-        rows = '<div class="ghd-list">' + workflows.map(function(workflow) {
+    return ghdSection(ctx, 'w:' + key, 'Workflows', workflows.length,
+        'Every workflow this repository defines in .github/workflows', false, function() {
+        return '<div class="ghd-list">' + workflows.map(function(workflow) {
             return '<div class="ghd-row" title="' + ghdEsc(ghdWorkflowTooltip(workflow)) + '">' +
                 '<span class="ghd-chev"></span>' +
                 '<span class="ghd-dot">' + GHD_EMOJI[workflow.bucket] + '</span>' +
@@ -9054,15 +9087,62 @@ function ghdRenderWorkflows(ctx, key, result) {
                 ghdLink(workflow.url, "Open this workflow's runs") +
             '</div>';
         }).join('') + '</div>';
-    }
+    });
+}
 
-    return '<div class="ghd-row ghd-clickable ghd-section-row" data-ghd-key="' + ghdEsc(openKey) + '" onclick="ghdToggle(this)" title="Every workflow this repository defines in .github/workflows">' +
-            '<span class="ghd-chev">' + (open ? '▾' : '›') + '</span>' +
-            '<span class="ghd-name">Workflows</span>' +
-            '<span class="ghd-grow"></span>' +
-            '<span class="ghd-meta">' + workflows.length + '</span>' +
-            '<span class="ghd-open"></span>' +
-        '</div>' + rows;
+/**
+ * Every environment the repo deploys to, with what is on each right now.
+ * Expanded by default: this is the thing you came to see.
+ */
+function ghdRenderDeployments(ctx, key, result) {
+    const environments = result.environments || [];
+    return ghdSection(ctx, 'd:' + key, 'Deployments', environments.length,
+        'Every environment this repository deploys to, showing its current deployment', true, function() {
+        if (!environments.length) return '<div class="ghd-note">No environments.</div>';
+        return '<div class="ghd-envs">' + environments.map(function(env) {
+            return ghdRenderEnv(ctx, key, env);
+        }).join('') + '</div>';
+    });
+}
+
+/**
+ * The repo's most recent workflow runs, newest first. Where the workflows
+ * section says what each workflow last did, this says what the repository has
+ * been doing lately, whichever workflow did it. Free: these runs are already
+ * fetched to name the workflow behind each deployment.
+ */
+function ghdRenderRuns(ctx, key, result) {
+    const runs = result.runs || [];
+    if (!runs.length) return '';
+    return ghdSection(ctx, 'a:' + key, 'Actions', runs.length,
+        'The ' + GHD_RUN_LIMIT + ' most recent workflow runs, newest first', false, function() {
+        return '<div class="ghd-list">' + runs.map(function(run) {
+            const sha = run.headSha && run.commitUrl
+                ? '<a href="' + ghdEsc(run.commitUrl) + '" target="_blank" rel="noopener">' + ghdEsc(ghdShortSha(run.headSha)) + '</a>'
+                : '';
+            return '<div class="ghd-row" title="' + ghdEsc(ghdRunTooltip(run)) + '">' +
+                '<span class="ghd-chev"></span>' +
+                '<span class="ghd-dot">' + GHD_EMOJI[run.bucket] + '</span>' +
+                '<span class="ghd-name">' + ghdEsc(run.displayTitle || run.workflowLabel || 'Run') + '</span>' +
+                '<span class="ghd-grow"></span>' +
+                '<span class="ghd-wf">' + ghdEsc(run.workflowLabel || '') + '</span>' +
+                '<span class="ghd-meta">' + ghdEsc([run.event, ghdTimeAgo(run.createdAt)].filter(Boolean).join(' · ')) + '</span>' +
+                '<span class="ghd-sha">' + sha + '</span>' +
+                ghdLink(run.url, 'Open this run') +
+            '</div>';
+        }).join('') + '</div>';
+    });
+}
+
+function ghdRunTooltip(run) {
+    return ghdConcept('WORKFLOW RUN — one execution of a workflow', [
+        run.workflowLabel ? 'Workflow: ' + run.workflowLabel : null,
+        run.runNumber ? 'Run number: #' + run.runNumber : null,
+        'Status: ' + ghdStateLabel(run.status) + ' — where the run is in its lifecycle',
+        'Conclusion: ' + (run.conclusion ? ghdStateLabel(run.conclusion) : 'not finished yet') + ' — how it ended',
+        run.event ? 'Triggered by: ' + run.event : null,
+        run.createdAt ? 'Started: ' + ghdFormatDate(run.createdAt) : null
+    ], run.rawJson);
 }
 
 /** What the workflow last did, or that it hasn't. */
@@ -9343,12 +9423,13 @@ function ghdHistoryTooltip(d) {
         ghdApiBase, ghdRepoUrl, ghdError, ghdApi, ghdPermissionFor,
         ghdPermissionHint, ghdIsJobUrl, ghdRunIdFromUrl, ghdDescribeDeployment, ghdReadPayload, ghdImageUrl,
         ghdDescribeJob, ghdNormalizeRun, ghdNormalizeWorkflow, ghdSummariseWorkflows, ghdPickDeployJob,
-        ghdPickRunForDeployment, ghdLoadRepo, ghdFetchLatest, ghdLoadWorkflows, ghdLoadHistory,
+        ghdPickRunForDeployment, ghdLoadRepo, ghdFetchLatest, ghdLoadActions, ghdLoadHistory,
         ghdAttachJobLinks, ghdRollUp, ghdInit, ghdFillSettings, ghdToggleSettings,
         ghdSaveSettings, ghdFormatRepoList, ghdSetStatus, ghdRefresh, ghdIsOpen,
         ghdSetOpen, ghdToggle, ghdLoadPending, ghdSplitEnvKey, ghdEnsureHistory,
         ghdEnsureJob, ghdRender, ghdRenderGroup,
-        ghdRenderRepo, ghdLink, ghdRenderWorkflows, ghdWorkflowMeta, ghdWorkflowTooltip,
+        ghdRenderRepo, ghdLink, ghdSection, ghdRenderWorkflows, ghdWorkflowMeta, ghdWorkflowTooltip,
+        ghdRenderDeployments, ghdRenderRuns, ghdRunTooltip,
         ghdRenderEnv, ghdWorkflowCell, ghdEnvTooltip, ghdRenderDetails, ghdJobTooltip, ghdRenderHistory,
         ghdHistoryTooltip
     ];
@@ -9367,6 +9448,7 @@ function ghdHistoryTooltip(d) {
         'window.GHD_CONCLUSION_BUCKET = ' + JSON.stringify(GHD_CONCLUSION_BUCKET) + ';\n' +
         'window.GHD_TOKEN_KEY = ' + JSON.stringify(GHD_TOKEN_KEY) + ';\n' +
         'window.GHD_HISTORY_LIMIT = ' + JSON.stringify(GHD_HISTORY_LIMIT) + ';\n' +
+        'window.GHD_RUN_LIMIT = ' + JSON.stringify(GHD_RUN_LIMIT) + ';\n' +
         'window.GHD_CONCURRENCY = ' + JSON.stringify(GHD_CONCURRENCY) + ';\n' +
         'window.CERT_OID_MAP = ' + JSON.stringify(CERT_OID_MAP) + ';\n' +
         'window.LOREM_WORDS = ' + JSON.stringify(LOREM_WORDS) + ';\n' +
