@@ -7315,6 +7315,24 @@ function setupResizing() {
     const toolboard = document.getElementById('toolboard');
 
     // Double-click/double-tap on resize handle for auto-resize
+    // Hovering a tool expands its header and squeezes the content, which can raise a
+    // scrollbar inside a widget's scroll pane. Give the panes a chance to drop it
+    // again on the way out; mouseout is used because mouseleave doesn't bubble to
+    // the board, and relatedTarget tells us the pointer really left the tool.
+    //
+    // The wait matters: the header collapses over a 0.2s transition, so relaxing
+    // straight away would measure a pane that is still squeezed and change nothing.
+    let relaxTimer = null;
+    toolboard.addEventListener('mouseout', (e) => {
+        const tool = e.target.closest && e.target.closest('.tool');
+        if (!tool) return;
+        if (e.relatedTarget && tool.contains(e.relatedTarget)) return;
+        clearTimeout(relaxTimer);
+        relaxTimer = setTimeout(() => {
+            if (tool.isConnected && !tool.matches(':hover')) relaxToolScrollers(tool);
+        }, 260);
+    });
+
     toolboard.addEventListener('dblclick', (e) => {
         const handle = e.target.closest('.resize-handle');
         if (!handle) return;
@@ -7570,11 +7588,9 @@ function autoFitToolContent(tool, skipAnimation = false) {
 
     // Measure natural dimensions with reasonable bounds
     const isFrameless = tool.classList.contains('frameless');
-    // scrollWidth/scrollHeight come back in the content's own zoomed coordinate
-    // space, so scale them into board pixels before sizing the tool.
-    const zoom = getToolZoom(toolId);
-    const newWidth = Math.max(isFrameless ? 50 : 200, Math.min(600, content.scrollWidth * zoom + (isFrameless ? 0 : 30)));
-    const newHeight = Math.max(isFrameless ? 10 : 120, Math.min(500, content.scrollHeight * zoom + (isFrameless ? 0 : header.offsetHeight + 20)));
+    const natural = naturalContentSize(content, toolId);
+    const newWidth = Math.ceil(Math.max(isFrameless ? 50 : 200, Math.min(600, natural.width + (isFrameless ? 0 : 30))));
+    const newHeight = Math.ceil(Math.max(isFrameless ? 10 : 120, Math.min(500, natural.height + (isFrameless ? 0 : header.offsetHeight + 20))));
 
     // Restore overflow
     content.style.overflow = '';
@@ -7607,6 +7623,58 @@ function autoFitToolContent(tool, skipAnimation = false) {
 }
 
 // Auto-resize tool to fit content
+// Natural size of a tool's content in board pixels, for auto-fitting the tool
+// around it. Call only while the tool's width/height are released to 'auto'.
+//
+// getBoundingClientRect is the primary measurement because it keeps the fraction
+// that scrollWidth/scrollHeight round away. That fraction matters: sizing a tool
+// from the rounded value can leave it a sliver shorter than its own content, which
+// is never enough to raise a scrollbar on its own but is enough to keep one alive
+// once something else — the header expanding on hover — has raised it. The result
+// was a scrollbar that appeared on hover and then stayed after the cursor left.
+//
+// scrollWidth/Height remain as a floor, for content that overflows its box even
+// when the size is auto, scaled out of the content's own zoomed coordinate space.
+function naturalContentSize(content, toolId) {
+    const rect = content.getBoundingClientRect();
+    const zoom = getToolZoom(toolId);
+    return {
+        width: Math.max(rect.width, content.scrollWidth * zoom),
+        height: Math.max(rect.height, content.scrollHeight * zoom),
+    };
+}
+
+// Let a tool's scroll panes re-decide whether they need a scrollbar at all.
+//
+// Chrome's classic scrollbars take real width, unlike the overlay ones that float
+// above the content, and that makes overflow bistable. With no scrollbar a pane is
+// wider, its rows wrap onto fewer lines and the content fits. With one it is
+// narrower, the rows rewrap taller and the content overflows — which keeps the
+// scrollbar justified. Both states hold on their own, so once something tips a pane
+// into the second it stays there: the header expanding on hover was enough, and the
+// bar was still sitting there after the cursor left.
+//
+// Collapsing overflow to hidden for one layout drops the bar, letting the content
+// reflow to its wider, shorter shape; restoring it re-evaluates from that state, so
+// a pane that genuinely fits comes back clean and one that doesn't keeps its bar.
+// Scroll offsets are preserved so nothing jumps under the cursor.
+function relaxToolScrollers(tool) {
+    tool.querySelectorAll('*').forEach(el => {
+        const overflowY = getComputedStyle(el).overflowY;
+        if (overflowY !== 'auto' && overflowY !== 'scroll') return;
+        if (el.scrollHeight <= el.clientHeight) return;
+
+        const top = el.scrollTop;
+        const left = el.scrollLeft;
+        const prior = el.style.overflow;
+        el.style.overflow = 'hidden';
+        el.offsetHeight; // force the no-scrollbar layout
+        el.style.overflow = prior;
+        el.scrollTop = top;
+        el.scrollLeft = left;
+    });
+}
+
 function autoResizeTool(tool, handleType) {
     const toolId = tool.getAttribute('data-tool');
     const content = tool.querySelector('.tool-content');
@@ -7648,9 +7716,7 @@ function autoResizeTool(tool, handleType) {
             // For cropped image viewer: keep current width (height will be derived from ratio)
             newWidth = tool.offsetWidth;
         } else {
-            // scrollWidth/scrollHeight are reported in the content's own zoomed
-            // coordinate space, so scale them back into board pixels.
-            newWidth = Math.max(150, Math.min(800, content.scrollWidth * getToolZoom(toolId) + 30));
+            newWidth = Math.ceil(Math.max(150, Math.min(800, naturalContentSize(content, toolId).width + 30)));
         }
     }
     if (autoHeight) {
@@ -7666,8 +7732,8 @@ function autoResizeTool(tool, handleType) {
             const isFrameless = tool.classList.contains('frameless');
             // The height was released above, so the content box now reports its true
             // natural height (padding included) whether the widget stretches or not.
-            const naturalH = content.scrollHeight * getToolZoom(toolId);
-            newHeight = Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8)));
+            const naturalH = naturalContentSize(content, toolId).height;
+            newHeight = Math.ceil(Math.max(100, Math.min(750, naturalH + (isFrameless ? 0 : header.offsetHeight + 8))));
         }
     }
 
@@ -7689,9 +7755,18 @@ function autoResizeTool(tool, handleType) {
         tool.style.height = currentHeight;
     }
 
-    // Remove transition after animation
+    // Remove transition after animation, then settle any nested scroll pane that is
+    // still a fraction of a pixel short. Done after the animation so the measurement
+    // isn't taken mid-transition.
     setTimeout(() => {
         tool.style.transition = '';
+        if (autoHeight && !hasCropRatio) {
+            const settled = settleNestedScrollers(tool, newHeight, 750);
+            if (settled !== newHeight && positions[toolId]) {
+                positions[toolId].height = settled;
+                savePositions(positions);
+            }
+        }
     }, 200);
 
     // Save new dimensions
@@ -7705,6 +7780,47 @@ function autoResizeTool(tool, handleType) {
         rotation: existing.rotation || 0
     };
     savePositions(positions);
+}
+
+// Grow a tool until nothing inside it overflows any more.
+//
+// Sizing the tool to its content isn't the end of the story when a widget has its
+// own scroll pane: the recipe view pane sits two levels below .tool-content, and its
+// table lands on a fractional height once the content is zoomed. scrollHeight is an
+// integer so it reports no overflow at all, but the browser still counts the
+// fraction — not enough to raise a scrollbar by itself, yet enough to keep one alive
+// once the header expanding on hover has raised it. That is the scrollbar that
+// stayed behind after the cursor left.
+//
+// Measure the real painted extent of every scroller's children against its own box
+// and take up the slack. A couple of passes is plenty; each one settles the deepest
+// offender and the ones above it were already sized around it.
+function settleNestedScrollers(tool, startHeight, maxHeight) {
+    let height = startHeight;
+    for (let pass = 0; pass < 3; pass++) {
+        tool.offsetHeight; // flush layout before measuring
+        let worst = 0;
+        tool.querySelectorAll('*').forEach(el => {
+            const cs = getComputedStyle(el);
+            if (cs.overflowY !== 'auto' && cs.overflowY !== 'scroll') return;
+            const rect = el.getBoundingClientRect();
+            if (!rect.height) return;
+            let bottom = -Infinity;
+            for (const child of el.children) {
+                const cr = child.getBoundingClientRect();
+                if (cr.height || cr.width) bottom = Math.max(bottom, cr.bottom);
+            }
+            if (bottom === -Infinity) return;
+            const padBottom = parseFloat(cs.paddingBottom) || 0;
+            worst = Math.max(worst, bottom + padBottom - rect.bottom);
+        });
+        if (worst <= 0.01) break;
+        const next = Math.ceil(height + worst);
+        if (next > maxHeight || next === height) break;
+        height = next;
+        tool.style.height = height + 'px';
+    }
+    return height;
 }
 
 // Snapping for resize operations
