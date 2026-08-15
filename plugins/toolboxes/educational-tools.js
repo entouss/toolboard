@@ -310,6 +310,7 @@
     --map-learned:#bcd9b8; --map-selected:#f39c12; --map-right:#27ae60; --map-wrong:#e74c3c;
     --map-label:#5a5346; --map-ghost:rgba(155,89,182,0.55); --map-ghost-stroke:#8e44ad;
     --map-capital:#b03a2e; --map-capital-on:#c0392b; --map-halo:rgba(255,255,255,0.7);
+    --map-hint-cold:#4a6fa5; --map-hint-warm:#e08a1e; --map-hint-hot:#27ae60;
     display:flex; flex-direction:column; gap:6px; padding:8px; box-sizing:border-box;
     flex:1; min-height:0; width:100%; font-size:12px;
 }
@@ -318,6 +319,7 @@ body.dark-mode .map-widget {
     --map-learned:#3f6048; --map-selected:#f39c12; --map-right:#2ecc71; --map-wrong:#e74c3c;
     --map-label:#dfe4ec; --map-ghost:rgba(155,89,182,0.6); --map-ghost-stroke:#c39bd3;
     --map-capital:#e8705f; --map-capital-on:#ff8a75; --map-halo:rgba(12,20,32,0.7);
+    --map-hint-cold:#7fa3d6; --map-hint-warm:#f0a842; --map-hint-hot:#2ecc71;
 }
 .tool-content:has(.map-widget) { display:flex; flex-direction:column; }
 .map-toolbar { display:flex; align-items:center; gap:5px; flex-wrap:wrap; flex-shrink:0; }
@@ -362,6 +364,13 @@ body.dark-mode .map-widget {
 .map-tip-flag { font-size:32px; line-height:1; }
 .map-tip-capital { font-size:14px; color:var(--text-muted); }
 .map-tooltip.show { opacity:1; }
+/* The arrow is the pointer while a hint is on, so it centres on the cursor and
+   its colour carries the distance: cold far away, hot on top of the answer. */
+.map-svg.hinting { cursor:none; }
+.map-arrow { position:absolute; pointer-events:none; opacity:0; color:var(--map-hint-cold); line-height:0; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transform:translate(-50%,-50%) rotate(var(--map-arrow-turn,0deg)); transition:color 0.15s, opacity 0.1s; }
+.map-arrow.show { opacity:1; }
+.map-arrow.warm { color:var(--map-hint-warm); }
+.map-arrow.hot { color:var(--map-hint-hot); }
 .map-zoom { position:absolute; right:6px; bottom:6px; display:flex; flex-direction:column; gap:3px; }
 .map-zoom .map-btn { width:24px; padding:2px 0; text-align:center; }
 .map-panel { flex-shrink:0; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; min-height:18px; color:var(--text-primary); }
@@ -3604,6 +3613,8 @@ const MAP_HIT_PX = 16;  // click tolerance around a country too small to hit
 const MAP_LABEL_PX = 10;      // label size on screen, whatever the zoom
 const MAP_LABEL_PAD = 6;      // room a name needs beyond its own size to be drawn
 const MAP_HALO_PX = 2.5;      // width of the halo behind a label, on screen
+const MAP_HINT_HOT_PX = 70;   // this close to the answer, the hint arrow goes hot
+const MAP_HINT_WARM_PX = 230; // and this close, warm
 const MAP_CAPITAL_PX = 2.6;   // radius of a capital's dot on screen
 
 // Robinson is defined by a table rather than a formula: a multiplier for the
@@ -3882,6 +3893,7 @@ function mapGetData(toolId) {
         region: MAP_REGIONS[saved.region] ? saved.region : 'world',
         projection: projection,
         mode: saved.mode === 'quiz' ? 'quiz' : 'explore',
+        hint: Boolean(saved.hint),
         selected: saved.selected || null,
         comparing: Boolean(saved.comparing),
         compare: saved.compare || null,
@@ -4208,7 +4220,11 @@ function mapPaint(widget, data) {
         // country on screen would answer every question before it was asked.
         svg.classList.toggle('quiz', Boolean(quizzing));
         svg.classList.toggle('comparing', Boolean(data.comparing) && data.mode === 'explore');
+        // The arrow replaces the pointer rather than trailing it, so the real one
+        // is hidden while the hint is on.
+        svg.classList.toggle('hinting', Boolean(quizzing && data.hint));
     }
+    if (!quizzing || !data.hint) { mapHideArrow(widget); mapHideTooltip(widget); }
     widget.querySelectorAll('.map-country').forEach(function(path) {
         const iso = path.getAttribute('data-iso');
         const entry = data.progress[iso];
@@ -4261,6 +4277,8 @@ function mapQuizPanel(data) {
         '<span class="map-hint">' + quiz.asked.length + ' / ' + MAP_ROUND + '</span>' +
         score +
         '<span class="map-spacer"></span>' +
+        '<button class="map-btn map-hint-btn' + (data.hint ? ' active' : '') +
+            '" onclick="mapToggleHint(this)" title="Turn the pointer into an arrow that points at the answer, and warms as you close in">Hint</button>' +
         '<button class="map-btn" onclick="mapQuizSkip(this)">Skip</button>';
 }
 
@@ -4298,7 +4316,14 @@ function mapBindStage(widget, toolId) {
 
     svg.addEventListener('pointermove', function(e) {
         if (runtime.ghost) { mapDragGhost(widget, runtime.ghost, e); return; }
-        if (!runtime.drag) { mapTooltip(widget, e); return; }
+        if (!runtime.drag) {
+            const data = mapGetData(toolId);
+            if (data.mode !== 'quiz') { mapTooltip(widget, e, false); return; }
+            mapUpdateArrow(widget, data, e);
+            if (data.hint) mapTooltip(widget, e, true);
+            else mapHideTooltip(widget);
+            return;
+        }
         const info = mapClientToUser(svg, e.clientX, e.clientY);
         if (!info || !info.scale) return;
         const dx = (e.clientX - runtime.drag.x) / info.scale;
@@ -4337,7 +4362,7 @@ function mapBindStage(widget, toolId) {
     };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', function() { runtime.drag = null; svg.classList.remove('dragging'); });
-    svg.addEventListener('pointerleave', function() { mapHideTooltip(widget); });
+    svg.addEventListener('pointerleave', function() { mapHideTooltip(widget); mapHideArrow(widget); });
 
     svg.addEventListener('wheel', function(e) {
         e.preventDefault();
@@ -4371,13 +4396,17 @@ function mapIsoAt(e) {
     return el ? el.getAttribute('data-iso') : null;
 }
 
-function mapTooltip(widget, e) {
+/**
+ * Name whatever is under the pointer.
+ *
+ * `hinting` is the assisted quiz: the name is help the round is already offering,
+ * but the capital is not, and the tooltip has to clear the hint arrow standing
+ * where the cursor would be. Outside a hint, a quiz shows no tooltip at all —
+ * naming countries would answer the question being asked.
+ */
+function mapTooltip(widget, e, hinting) {
     const tip = widget.querySelector('.map-tooltip');
     if (!tip) return;
-    // In a quiz the tooltip would name the country the question is asking for,
-    // which is the reason the labels are hidden too.
-    const svg = widget.querySelector('.map-svg');
-    if (svg && svg.classList.contains('quiz')) { mapHideTooltip(widget); return; }
     const iso = mapIsoAt(e);
     if (!iso) { mapHideTooltip(widget); return; }
     const country = mapCountry(mapIndexOf(iso));
@@ -4386,7 +4415,7 @@ function mapTooltip(widget, e) {
     tip.innerHTML = '<span class="map-tip-name">' +
             (country.iso2 ? '<span class="map-tip-flag">' + mapFlag(country.iso2) + '</span>' : '') +
             escapeHtml(country.name) + '</span>' +
-        (country.capital ? '<span class="map-tip-capital">◉ ' + escapeHtml(country.capital) + '</span>' : '');
+        (country.capital && !hinting ? '<span class="map-tip-capital">◉ ' + escapeHtml(country.capital) + '</span>' : '');
     // Measured after the content is in, then kept inside the stage: above the
     // cursor by preference, below it when there is no room above, and never
     // hanging off either side.
@@ -4395,13 +4424,66 @@ function mapTooltip(widget, e) {
     const y = e.clientY - stage.top;
     const w = tip.offsetWidth;
     const h = tip.offsetHeight;
+    const gap = hinting ? 30 : 14;   // clear of the arrow, which stands on the cursor
     tip.style.left = Math.max(4, Math.min(stage.width - w - 4, x - w / 2)) + 'px';
-    tip.style.top = (y - h - 14 >= 4 ? y - h - 14 : Math.min(stage.height - h - 4, y + 20)) + 'px';
+    tip.style.top = (y - h - gap >= 4 ? y - h - gap : Math.min(stage.height - h - 4, y + gap + 6)) + 'px';
 }
 
 function mapHideTooltip(widget) {
     const tip = widget.querySelector('.map-tooltip');
     if (tip) tip.classList.remove('show');
+}
+
+/**
+ * The hint arrow: the pointer itself, aimed at the country being asked for.
+ *
+ * Aimed in screen space rather than by bearing, because the answer to "which way
+ * do I go" is the direction the country appears in, and on a flattened map those
+ * two are not the same thing. How far away it is shows as the arrow's colour, so
+ * the hint says warmer and colder without ever saying where.
+ */
+function mapUpdateArrow(widget, data, e) {
+    const arrow = widget.querySelector('.map-arrow');
+    if (!arrow) return;
+    const quiz = data.quiz;
+    if (!data.hint || data.mode !== 'quiz' || !quiz || quiz.done || !quiz.target) { mapHideArrow(widget); return; }
+    const country = mapCountry(mapIndexOf(quiz.target));
+    const svg = widget.querySelector('.map-svg');
+    if (!country || !svg) { mapHideArrow(widget); return; }
+
+    const projection = mapProjectionOf(data.projection);
+    const ctm = svg.getScreenCTM();
+    if (!ctm) { mapHideArrow(widget); return; }
+    const at = new DOMPoint(mapProjectX(projection, country.lon, country.lat),
+        mapProjectY(projection, country.lat)).matrixTransform(ctm);
+
+    const dx = at.x - e.clientX;
+    const dy = at.y - e.clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const stage = widget.querySelector('.map-stage').getBoundingClientRect();
+    arrow.style.left = (e.clientX - stage.left) + 'px';
+    arrow.style.top = (e.clientY - stage.top) + 'px';
+    // Below a pixel or two the angle is noise, so the arrow keeps the way it last
+    // pointed rather than spinning on the spot.
+    if (distance > 3) arrow.style.setProperty('--map-arrow-turn', (Math.atan2(dy, dx) * 180 / Math.PI) + 'deg');
+    arrow.classList.toggle('hot', distance <= MAP_HINT_HOT_PX);
+    arrow.classList.toggle('warm', distance > MAP_HINT_HOT_PX && distance <= MAP_HINT_WARM_PX);
+    arrow.classList.add('show');
+}
+
+function mapHideArrow(widget) {
+    const arrow = widget.querySelector('.map-arrow');
+    if (arrow) arrow.classList.remove('show');
+}
+
+function mapToggleHint(btn) {
+    const widget = mapGetWidget(btn);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    data.hint = !data.hint;
+    mapSaveData(toolId, data);
+    if (!data.hint) mapHideArrow(widget);
+    mapRender(widget);
 }
 
 function mapClick(widget, toolId, e) {
@@ -4653,7 +4735,7 @@ function mapResetProgress(btn) {
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
     var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
-    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
+    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
     var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
 
     var code = '(function() {\n' +
@@ -4695,6 +4777,7 @@ function mapResetProgress(btn) {
         'window.MAP_TRIES = ' + MAP_TRIES + '; window.MAP_HIT_PX = ' + MAP_HIT_PX + ';\n' +
         'window.MAP_LABEL_PX = ' + MAP_LABEL_PX + '; window.MAP_LABEL_PAD = ' + MAP_LABEL_PAD + ';\n' +
         'window.MAP_HALO_PX = ' + MAP_HALO_PX + ';\n' +
+        'window.MAP_HINT_HOT_PX = ' + MAP_HINT_HOT_PX + '; window.MAP_HINT_WARM_PX = ' + MAP_HINT_WARM_PX + ';\n' +
         'window.MAP_CAPITAL_PX = ' + MAP_CAPITAL_PX + ';\n' +
         'window.mapGeometryCache = null; window.mapPathCache = {}; window.mapExtentCache = {};\n' +
         'window.mapIso3Index = null; window.mapRuntime = {};\n' +
@@ -5294,6 +5377,11 @@ PluginRegistry.registerTool({
         '<div class="map-stage">' +
             '<svg class="map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>' +
             '<div class="map-tooltip"></div>' +
+            '<div class="map-arrow">' +
+                '<svg viewBox="0 0 24 24" width="36" height="36">' +
+                    '<path d="M23 12 L4.5 21 L9.5 12 L4.5 3 Z" fill="currentColor" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>' +
+                '</svg>' +
+            '</div>' +
             '<div class="map-zoom">' +
                 '<button class="map-btn" onclick="mapZoomBtn(this, 0.7)" title="Zoom in">+</button>' +
                 '<button class="map-btn" onclick="mapZoomBtn(this, 1.4)" title="Zoom out">−</button>' +
