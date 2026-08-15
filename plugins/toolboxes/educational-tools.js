@@ -301,6 +301,54 @@
 .tl-event-actions { display:flex; gap:2px; opacity:0; transition:opacity 0.15s; float:right; }
 .tl-event:hover .tl-event-actions { opacity:1; }
 
+/* World Map Widget Styles */
+/* Map colours are their own variables rather than the shared ones: land, ocean
+   and border have to stay distinguishable from each other in both themes, which
+   --bg-* cannot promise. */
+.map-widget {
+    --map-ocean:#cfe6f2; --map-land:#e5dfd1; --map-land-hover:#d3cab4; --map-stroke:#98a3a8;
+    --map-learned:#bcd9b8; --map-selected:#f39c12; --map-right:#27ae60; --map-wrong:#e74c3c;
+    display:flex; flex-direction:column; gap:6px; padding:8px; box-sizing:border-box;
+    flex:1; min-height:0; width:100%; font-size:12px;
+}
+body.dark-mode .map-widget {
+    --map-ocean:#16283a; --map-land:#3a465c; --map-land-hover:#4d5c78; --map-stroke:#20293a;
+    --map-learned:#3f6048; --map-selected:#f39c12; --map-right:#2ecc71; --map-wrong:#e74c3c;
+}
+.tool-content:has(.map-widget) { display:flex; flex-direction:column; }
+.map-toolbar { display:flex; align-items:center; gap:5px; flex-wrap:wrap; flex-shrink:0; }
+.map-btn { padding:3px 9px; border:1px solid var(--border-color); background:var(--bg-tertiary); color:var(--text-primary); cursor:pointer; font-size:11px; border-radius:4px; }
+.map-btn:hover { background:var(--table-hover); }
+.map-btn.active { background:#3498db; border-color:#3498db; color:#fff; }
+.map-select, .map-search { padding:3px 6px; border:1px solid var(--border-color); border-radius:4px; background:var(--input-bg); color:var(--text-primary); font-size:11px; }
+.map-search { width:120px; }
+.map-spacer { flex:1; }
+.map-stat { font-size:10px; color:var(--text-muted); white-space:nowrap; }
+.map-stage { position:relative; flex:1; min-height:60px; border:1px solid var(--border-color); border-radius:4px; overflow:hidden; background:var(--map-ocean); }
+.map-svg { display:block; width:100%; height:100%; cursor:grab; touch-action:none; }
+.map-svg.dragging { cursor:grabbing; }
+.map-country { fill:var(--map-land); stroke:var(--map-stroke); stroke-width:0.35; vector-effect:non-scaling-stroke; }
+.map-svg:not(.quiz) .map-country:hover { fill:var(--map-land-hover); }
+.map-country.learned { fill:var(--map-learned); }
+.map-country.selected { fill:var(--map-selected); }
+.map-country.right { fill:var(--map-right); }
+.map-country.wrong { fill:var(--map-wrong); }
+.map-tooltip { position:absolute; pointer-events:none; padding:2px 6px; border-radius:3px; background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-color); font-size:11px; white-space:nowrap; opacity:0; transform:translate(-50%,-140%); }
+.map-tooltip.show { opacity:1; }
+.map-zoom { position:absolute; right:6px; bottom:6px; display:flex; flex-direction:column; gap:3px; }
+.map-zoom .map-btn { width:24px; padding:2px 0; text-align:center; }
+.map-panel { flex-shrink:0; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; min-height:18px; color:var(--text-primary); }
+.map-panel .map-flag { font-size:16px; }
+.map-panel .map-title { font-weight:600; }
+.map-panel dl { display:flex; gap:8px; flex-wrap:wrap; margin:0; font-size:11px; color:var(--text-muted); }
+.map-panel dt { display:inline; }
+.map-panel dd { display:inline; margin:0 0 0 3px; color:var(--text-secondary); }
+.map-prompt { font-size:13px; }
+.map-prompt b { color:var(--text-heading); }
+.map-hint { font-size:11px; color:var(--text-muted); }
+.map-progress { flex:0 0 90px; height:5px; border-radius:3px; background:var(--border-color); overflow:hidden; }
+.map-progress span { display:block; height:100%; background:#3498db; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -3314,6 +3362,862 @@ function tlLoadEraPreset(btn) {
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
+// ==================== World Map Functions ====================
+
+// Natural Earth 110m (public domain): ne_110m_admin_0_countries for the shapes and
+// facts, ne_110m_populated_places_simple for the capitals. Coordinates are kept as
+// coordinates rather than as SVG paths so the map is not welded to one projection.
+//
+// To rebuild: take both files from github.com/nvkelso/natural-earth-vector under
+// geojson/, round coordinates to 2 decimals, drop repeated points and rings of
+// under four points, then encode as described above MAP_GEOMETRY. Capitals join on
+// adm0_a3 — a dozen do not match, and in several more Natural Earth names the
+// largest or historical city rather than the capital, so the capitals here are
+// corrected by hand and a rebuild must not overwrite them blindly.
+
+// [iso2, iso3, name, continent, subregion, population, capital, labelLon, labelLat]
+// Longitudes and latitudes throughout are integer hundredths of a degree.
+const MAP_COUNTRIES = [
+    ["FJ","FJI","Fiji","Oceania","Melanesia",889953,"Suva",17798,-1783],
+    ["TZ","TZA","Tanzania","Africa","Eastern Africa",58005463,"Dodoma",3496,-605],
+    ["EH","ESH","W. Sahara","Africa","Northern Africa",603253,"Laayoune",-1263,2397],
+    ["CA","CAN","Canada","North America","Northern America",37589262,"Ottawa",-10191,6032],
+    ["US","USA","United States of America","North America","Northern America",328239523,"Washington,  D.C.",-9748,3954],
+    ["KZ","KAZ","Kazakhstan","Asia","Central Asia",18513930,"Astana",6869,4905],
+    ["UZ","UZB","Uzbekistan","Asia","Central Asia",33580650,"Tashkent",6401,4169],
+    ["PG","PNG","Papua New Guinea","Oceania","Melanesia",8776109,"Port Moresby",14391,-570],
+    ["ID","IDN","Indonesia","Asia","South-Eastern Asia",270625568,"Jakarta",10189,-95],
+    ["AR","ARG","Argentina","South America","South America",44938712,"Buenos Aires",-6417,-3350],
+    ["CL","CHL","Chile","South America","South America",18952038,"Santiago",-7232,-3815],
+    ["CD","COD","Dem. Rep. Congo","Africa","Middle Africa",86790567,"Kinshasa",2346,-186],
+    ["SO","SOM","Somalia","Africa","Eastern Africa",10192317,"Mogadishu",4519,357],
+    ["KE","KEN","Kenya","Africa","Eastern Africa",52573973,"Nairobi",3791,55],
+    ["SD","SDN","Sudan","Africa","Northern Africa",42813238,"Khartoum",2926,1633],
+    ["TD","TCD","Chad","Africa","Middle Africa",15946876,"N'Djamena",1865,1514],
+    ["HT","HTI","Haiti","North America","Caribbean",11263077,"Port-au-Prince",-7222,1926],
+    ["DO","DOM","Dominican Rep.","North America","Caribbean",10738958,"Santo Domingo",-7065,1910],
+    ["RU","RUS","Russia","Europe","Eastern Europe",144373535,"Moscow",4469,5825],
+    ["BS","BHS","Bahamas","North America","Caribbean",389482,"Nassau",-7715,2640],
+    ["FK","FLK","Falkland Is.","South America","South America",3398,"Stanley",-5874,-5161],
+    ["NO","NOR","Norway","Europe","Northern Europe",5347896,"Oslo",968,6136],
+    ["GL","GRL","Greenland","North America","Northern America",56225,"Nuuk",-3934,7432],
+    ["TF","ATF","Fr. S. Antarctic Lands","Seven seas (open ocean)","Seven seas (open ocean)",140,"Port-aux-Français",6912,-4930],
+    ["TL","TLS","Timor-Leste","Asia","South-Eastern Asia",1293119,"Dili",12585,-880],
+    ["ZA","ZAF","South Africa","Africa","Southern Africa",58558270,"Pretoria",2367,-2971],
+    ["LS","LSO","Lesotho","Africa","Southern Africa",2125268,"Maseru",2825,-2948],
+    ["MX","MEX","Mexico","North America","Central America",127575529,"Mexico City",-10229,2392],
+    ["UY","URY","Uruguay","South America","South America",3461734,"Montevideo",-5597,-3296],
+    ["BR","BRA","Brazil","South America","South America",211049527,"Brasília",-4956,-1210],
+    ["BO","BOL","Bolivia","South America","South America",11513100,"Sucre",-6459,-1667],
+    ["PE","PER","Peru","South America","South America",32510453,"Lima",-7290,-1298],
+    ["CO","COL","Colombia","South America","South America",50339443,"Bogota",-7317,337],
+    ["PA","PAN","Panama","North America","Central America",4246439,"Panama City",-8035,872],
+    ["CR","CRI","Costa Rica","North America","Central America",5047561,"San José",-8408,1007],
+    ["NI","NIC","Nicaragua","North America","Central America",6545502,"Managua",-8507,1267],
+    ["HN","HND","Honduras","North America","Central America",9746117,"Tegucigalpa",-8689,1479],
+    ["SV","SLV","El Salvador","North America","Central America",6453553,"San Salvador",-8889,1369],
+    ["GT","GTM","Guatemala","North America","Central America",16604026,"Guatemala City",-9050,1498],
+    ["BZ","BLZ","Belize","North America","Central America",390353,"Belmopan",-8871,1720],
+    ["VE","VEN","Venezuela","South America","South America",28515829,"Caracas",-6460,718],
+    ["GY","GUY","Guyana","South America","South America",782766,"Georgetown",-5894,512],
+    ["SR","SUR","Suriname","South America","South America",581363,"Paramaribo",-5591,414],
+    ["FR","FRA","France","Europe","Western Europe",67059887,"Paris",255,4670],
+    ["EC","ECU","Ecuador","South America","South America",17373662,"Quito",-7819,-126],
+    ["PR","PRI","Puerto Rico","North America","Caribbean",3193694,"San Juan",-6648,1823],
+    ["JM","JAM","Jamaica","North America","Caribbean",2948279,"Kingston",-7732,1814],
+    ["CU","CUB","Cuba","North America","Caribbean",11333483,"Havana",-7798,2133],
+    ["ZW","ZWE","Zimbabwe","Africa","Eastern Africa",14645468,"Harare",2993,-1891],
+    ["BW","BWA","Botswana","Africa","Southern Africa",2303697,"Gaborone",2418,-2210],
+    ["NA","NAM","Namibia","Africa","Southern Africa",2494530,"Windhoek",1711,-2058],
+    ["SN","SEN","Senegal","Africa","Western Africa",16296364,"Dakar",-1478,1514],
+    ["ML","MLI","Mali","Africa","Western Africa",19658031,"Bamako",-204,1869],
+    ["MR","MRT","Mauritania","Africa","Western Africa",4525696,"Nouakchott",-974,1959],
+    ["BJ","BEN","Benin","Africa","Western Africa",11801151,"Porto-Novo",235,1032],
+    ["NE","NER","Niger","Africa","Western Africa",23310715,"Niamey",950,1745],
+    ["NG","NGA","Nigeria","Africa","Western Africa",200963599,"Abuja",750,944],
+    ["CM","CMR","Cameroon","Africa","Middle Africa",25876380,"Yaoundé",1247,459],
+    ["TG","TGO","Togo","Africa","Western Africa",8082366,"Lomé",106,881],
+    ["GH","GHA","Ghana","Africa","Western Africa",30417856,"Accra",-104,772],
+    ["CI","CIV","Côte d'Ivoire","Africa","Western Africa",25716544,"Yamoussoukro",-557,749],
+    ["GN","GIN","Guinea","Africa","Western Africa",12771246,"Conakry",-1002,1062],
+    ["GW","GNB","Guinea-Bissau","Africa","Western Africa",1920922,"Bissau",-1452,1216],
+    ["LR","LBR","Liberia","Africa","Western Africa",4937374,"Monrovia",-946,645],
+    ["SL","SLE","Sierra Leone","Africa","Western Africa",7813215,"Freetown",-1176,862],
+    ["BF","BFA","Burkina Faso","Africa","Western Africa",20321378,"Ouagadougou",-136,1267],
+    ["CF","CAF","Central African Rep.","Africa","Middle Africa",4745185,"Bangui",2091,699],
+    ["CG","COG","Congo","Africa","Middle Africa",5380508,"Brazzaville",1590,14],
+    ["GA","GAB","Gabon","Africa","Middle Africa",2172579,"Libreville",1184,-44],
+    ["GQ","GNQ","Eq. Guinea","Africa","Middle Africa",1355986,"Malabo",899,233],
+    ["ZM","ZMB","Zambia","Africa","Eastern Africa",17861030,"Lusaka",2640,-1466],
+    ["MW","MWI","Malawi","Africa","Eastern Africa",18628747,"Lilongwe",3361,-1339],
+    ["MZ","MOZ","Mozambique","Africa","Eastern Africa",30366036,"Maputo",3784,-1394],
+    ["SZ","SWZ","eSwatini","Africa","Southern Africa",1148130,"Mbabane",3147,-2653],
+    ["AO","AGO","Angola","Africa","Middle Africa",31825295,"Luanda",1798,-1218],
+    ["BI","BDI","Burundi","Africa","Eastern Africa",11530580,"Gitega",2992,-333],
+    ["IL","ISR","Israel","Asia","Western Asia",9053300,"Jerusalem",3485,3091],
+    ["LB","LBN","Lebanon","Asia","Western Asia",6855713,"Beirut",3599,3413],
+    ["MG","MDG","Madagascar","Africa","Eastern Africa",26969307,"Antananarivo",4670,-1863],
+    ["PS","PSE","Palestine","Asia","Western Asia",4685306,"Ramallah",3529,3205],
+    ["GM","GMB","Gambia","Africa","Western Africa",2347706,"Banjul",-1500,1364],
+    ["TN","TUN","Tunisia","Africa","Northern Africa",11694719,"Tunis",901,3369],
+    ["DZ","DZA","Algeria","Africa","Northern Africa",43053054,"Algiers",281,2740],
+    ["JO","JOR","Jordan","Asia","Western Asia",10101694,"Amman",3638,3081],
+    ["AE","ARE","United Arab Emirates","Asia","Western Asia",9770529,"Abu Dhabi",5455,2347],
+    ["QA","QAT","Qatar","Asia","Western Asia",2832067,"Doha",5114,2524],
+    ["KW","KWT","Kuwait","Asia","Western Asia",4207083,"Kuwait City",4731,2941],
+    ["IQ","IRQ","Iraq","Asia","Western Asia",39309783,"Baghdad",4326,3309],
+    ["OM","OMN","Oman","Asia","Western Asia",4974986,"Muscat",5734,2212],
+    ["VU","VUT","Vanuatu","Oceania","Melanesia",299882,"Port Vila",16691,-1537],
+    ["KH","KHM","Cambodia","Asia","South-Eastern Asia",16486542,"Phnom Penh",10450,1265],
+    ["TH","THA","Thailand","Asia","South-Eastern Asia",69625582,"Bangkok",10107,1546],
+    ["LA","LAO","Laos","Asia","South-Eastern Asia",7169455,"Vientiane",10253,1943],
+    ["MM","MMR","Myanmar","Asia","South-Eastern Asia",54045420,"Naypyidaw",9580,2157],
+    ["VN","VNM","Vietnam","Asia","South-Eastern Asia",96462106,"Hanoi",10539,2172],
+    ["KP","PRK","North Korea","Asia","Eastern Asia",25666161,"Pyongyang",12644,3989],
+    ["KR","KOR","South Korea","Asia","Eastern Asia",51709098,"Seoul",12813,3638],
+    ["MN","MNG","Mongolia","Asia","Eastern Asia",3225167,"Ulaanbaatar",10415,4600],
+    ["IN","IND","India","Asia","Southern Asia",1366417754,"New Delhi",7936,2269],
+    ["BD","BGD","Bangladesh","Asia","Southern Asia",163046161,"Dhaka",8968,2421],
+    ["BT","BTN","Bhutan","Asia","Southern Asia",763092,"Thimphu",9004,2754],
+    ["NP","NPL","Nepal","Asia","Southern Asia",28608710,"Kathmandu",8364,2830],
+    ["PK","PAK","Pakistan","Asia","Southern Asia",216565318,"Islamabad",6855,2933],
+    ["AF","AFG","Afghanistan","Asia","Southern Asia",38041754,"Kabul",6650,3416],
+    ["TJ","TJK","Tajikistan","Asia","Central Asia",9321018,"Dushanbe",7259,3820],
+    ["KG","KGZ","Kyrgyzstan","Asia","Central Asia",6456900,"Bishkek",7453,4167],
+    ["TM","TKM","Turkmenistan","Asia","Central Asia",5942089,"Ashgabat",5868,3986],
+    ["IR","IRN","Iran","Asia","Southern Asia",82913906,"Tehran",5493,3217],
+    ["SY","SYR","Syria","Asia","Western Asia",17070135,"Damascus",3828,3501],
+    ["AM","ARM","Armenia","Asia","Western Asia",2957731,"Yerevan",4480,4046],
+    ["SE","SWE","Sweden","Europe","Northern Europe",10285453,"Stockholm",1902,6586],
+    ["BY","BLR","Belarus","Europe","Eastern Europe",9466856,"Minsk",2842,5382],
+    ["UA","UKR","Ukraine","Europe","Eastern Europe",44385155,"Kyiv",3214,4972],
+    ["PL","POL","Poland","Europe","Eastern Europe",37970874,"Warsaw",1949,5199],
+    ["AT","AUT","Austria","Europe","Western Europe",8877067,"Vienna",1413,4752],
+    ["HU","HUN","Hungary","Europe","Eastern Europe",9769949,"Budapest",1945,4709],
+    ["MD","MDA","Moldova","Europe","Eastern Europe",2657637,"Chișinău",2849,4743],
+    ["RO","ROU","Romania","Europe","Eastern Europe",19356544,"Bucharest",2497,4573],
+    ["LT","LTU","Lithuania","Europe","Northern Europe",2786844,"Vilnius",2409,5510],
+    ["LV","LVA","Latvia","Europe","Northern Europe",1912789,"Riga",2546,5707],
+    ["EE","EST","Estonia","Europe","Northern Europe",1326590,"Tallinn",2587,5872],
+    ["DE","DEU","Germany","Europe","Western Europe",83132799,"Berlin",968,5096],
+    ["BG","BGR","Bulgaria","Europe","Eastern Europe",6975761,"Sofia",2516,4251],
+    ["GR","GRC","Greece","Europe","Southern Europe",10716322,"Athens",2173,3949],
+    ["TR","TUR","Turkey","Asia","Western Asia",83429615,"Ankara",3451,3935],
+    ["AL","ALB","Albania","Europe","Southern Europe",2854191,"Tirana",2011,4065],
+    ["HR","HRV","Croatia","Europe","Southern Europe",4067500,"Zagreb",1637,4581],
+    ["CH","CHE","Switzerland","Europe","Western Europe",8574832,"Bern",746,4672],
+    ["LU","LUX","Luxembourg","Europe","Western Europe",619896,"Luxembourg",608,4973],
+    ["BE","BEL","Belgium","Europe","Western Europe",11484055,"Brussels",480,5079],
+    ["NL","NLD","Netherlands","Europe","Western Europe",17332850,"Amsterdam",561,5242],
+    ["PT","PRT","Portugal","Europe","Southern Europe",10269417,"Lisbon",-827,3961],
+    ["ES","ESP","Spain","Europe","Southern Europe",47076781,"Madrid",-346,4009],
+    ["IE","IRL","Ireland","Europe","Northern Europe",4941444,"Dublin",-780,5308],
+    ["NC","NCL","New Caledonia","Oceania","Melanesia",287800,"Nouméa",16508,-2106],
+    ["SB","SLB","Solomon Is.","Oceania","Melanesia",669823,"Honiara",15917,-803],
+    ["NZ","NZL","New Zealand","Oceania","Australia and New Zealand",4917000,"Wellington",17279,-3976],
+    ["AU","AUS","Australia","Oceania","Australia and New Zealand",25364307,"Canberra",13405,-2413],
+    ["LK","LKA","Sri Lanka","Asia","Southern Asia",21803000,"Sri Jayawardenepura Kotte",8070,758],
+    ["CN","CHN","China","Asia","Eastern Asia",1397715000,"Beijing",10634,3250],
+    ["TW","TWN","Taiwan","Asia","Eastern Asia",23568378,"Taipei",12087,2365],
+    ["IT","ITA","Italy","Europe","Southern Europe",60297396,"Rome",1108,4473],
+    ["DK","DNK","Denmark","Europe","Northern Europe",5818553,"København",902,5597],
+    ["GB","GBR","United Kingdom","Europe","Northern Europe",66834405,"London",-212,5440],
+    ["IS","ISL","Iceland","Europe","Northern Europe",361313,"Reykjavík",-1867,6478],
+    ["AZ","AZE","Azerbaijan","Asia","Western Asia",10023318,"Baku",4721,4040],
+    ["GE","GEO","Georgia","Asia","Western Asia",3720382,"Tbilisi",4374,4187],
+    ["PH","PHL","Philippines","Asia","South-Eastern Asia",108116615,"Manila",12247,1120],
+    ["MY","MYS","Malaysia","Asia","South-Eastern Asia",31949777,"Kuala Lumpur",11384,253],
+    ["BN","BRN","Brunei","Asia","South-Eastern Asia",433285,"Bandar Seri Begawan",11455,445],
+    ["SI","SVN","Slovenia","Europe","Southern Europe",2087946,"Ljubljana",1492,4606],
+    ["FI","FIN","Finland","Europe","Northern Europe",5520314,"Helsinki",2728,6325],
+    ["SK","SVK","Slovakia","Europe","Eastern Europe",5454073,"Bratislava",1905,4873],
+    ["CZ","CZE","Czechia","Europe","Eastern Europe",10669709,"Prague",1538,4988],
+    ["ER","ERI","Eritrea","Africa","Eastern Africa",6081196,"Asmara",3829,1579],
+    ["JP","JPN","Japan","Asia","Eastern Asia",126264931,"Tokyo",13844,3614],
+    ["PY","PRY","Paraguay","South America","South America",7044636,"Asunción",-6015,-2167],
+    ["YE","YEM","Yemen","Asia","Western Asia",29161922,"Sanaa",4587,1533],
+    ["SA","SAU","Saudi Arabia","Asia","Western Asia",34268528,"Riyadh",4470,2381],
+    ["AQ","ATA","Antarctica","Antarctica","Antarctica",4490,"",3589,-7984],
+    ["","-99","N. Cyprus","Asia","Western Asia",326000,"",3369,3522],
+    ["CY","CYP","Cyprus","Asia","Western Asia",1198575,"Nicosia",3308,3491],
+    ["MA","MAR","Morocco","Africa","Northern Africa",36471769,"Rabat",-719,3165],
+    ["EG","EGY","Egypt","Africa","Northern Africa",100388073,"Cairo",2945,2619],
+    ["LY","LBY","Libya","Africa","Northern Africa",6777452,"Tripoli",1801,2664],
+    ["ET","ETH","Ethiopia","Africa","Eastern Africa",112078730,"Addis Ababa",3909,803],
+    ["DJ","DJI","Djibouti","Africa","Eastern Africa",973560,"Djibouti",4250,1198],
+    ["","-99","Somaliland","Africa","Eastern Africa",5096159,"",4673,944],
+    ["UG","UGA","Uganda","Africa","Eastern Africa",44269594,"Kampala",3295,197],
+    ["RW","RWA","Rwanda","Africa","Eastern Africa",12626950,"Kigali",3010,-190],
+    ["BA","BIH","Bosnia and Herz.","Europe","Southern Europe",3301000,"Sarajevo",1807,4409],
+    ["MK","MKD","North Macedonia","Europe","Southern Europe",2083459,"Skopje",2156,4156],
+    ["RS","SRB","Serbia","Europe","Southern Europe",6944975,"Belgrade",2079,4419],
+    ["ME","MNE","Montenegro","Europe","Southern Europe",622137,"Podgorica",1914,4280],
+    ["XK","-99","Kosovo","Europe","Southern Europe",1794248,"",2086,4259],
+    ["TT","TTO","Trinidad and Tobago","North America","Caribbean",1394973,"Port-of-Spain",-6092,1100],
+    ["SS","SSD","S. Sudan","Africa","Eastern Africa",11062113,"Juba",3039,723]
+];
+
+// One country per '|', one ring per ';', and within a ring a run of ',' separated
+// base62 zigzag deltas: dLon,dLat,dLon,dLat… from the previous point. Decoded once
+// per page by mapGeometry().
+const MAP_GEOMETRY = "JWo,z1,A,Bl,CF,x,CD,r,b,BM,Bm,q,BA,K,B4,BA;JQm,4d,w,g,BI,7,j,Br,CB,d,Bx,a,T,Ba,BO,BG,Be,Z;JV9,zr,b,Bj,R,N,A,Bk,q,K|BvW,DF,i,X,Ls,Gl,O,B3,Em,DP,Bf,D9,M,B1,CE,BL,G,1,5,B7,M,BB,N,Bj,BI,CB,BU,DN,BM,t,Cl,B3,Dh,BR,B7,E,BL,9,CP,F,3,b,D3,4,Cb,R,5,EY,BH,Bg,p,2,DL,m,B1,8,CD,i,BT,i,BX,y,Bv,EE,B3,By,p,B2,U,Bq,l,C8,BU,K,BM,BK,BQ,Bq,w,q,D,BE,r,s,N,BS,6,Y,M,B4,BT,B0,BI,Y,Di,F,Gi,Q|b9,BbO,A,P,D,n,D,E5,Kl,K,G,IR,DB,T,z,Bp,m,Ep,Mp,A,r,BF,I,BW,E,A,HQ,Q,Y,BK,BU,Bc,BE,Ec,Ee,De,Bg,EE,BA,O,BE,Cg,Cs,W,BK,b,Bc,A,BE,u,CA,G,H,Bu,e,A|GYR,CiE,b,A,GR,DK,CT,Ba,F3,BU,Bx,C2,c,B8,EJ,BY,l,Ck,D3,CW,H,Bo,By,Bk,H,CC,Ff,CC,DT,Dq,CD,CU,C7,Bc,CL,BU,Bv,Bq,DP,BF,DJ,Bx,C3,CG,CR,Ba,DJ,4,DN,G,C,SW,A,L8,GC,x,FE,Bj,DY,T,Cy,BW,D6,BA,Ew,Z,E0,BY,FS,y,CM,BV,Ca,u,s,Bg,CO,V,Fc,C5,EU,CM,a,Cd,D8,g,BO,8,D4,N,E6,BX,Hi,BN,Ea,j,DK,O,EW,Bp,Eh,Bn,Fy,r,Is,Y,Cu,i,Dc,B7,Dg,Bo,DT,BW,CE,BG,D6,K,Ck,U,Cm,x,DO,Bv,Dm,Q,Fs,Bd,FA,g,Es,H,Z,CA,C2,k,FA,BH,D,DF,CE,Ck,Cm,H,Bc,DQ,Dd,CA,Dx,BS,Q,Di,Dy,CW,EQ,h,DQ,Bb,EY,Dp,C3,Bl,GA,p,A,DV,ES,Ci,D2,CF,9,Cb,DI,CL,DW,CU,CW,Cw,M,Di,Ek,P,Ew,f,EU,Bn,M,Bl,CZ,Bv,CQ,Bt,b,Bl,GT,CR,Eh,f,DV,8,9,Bn,DH,Cv,7,BZ,Dv,CN,En,P,Cj,BX,P,CH,Dv,Z,D9,Cp,Df,Dn,BR,Cj,L,Dv,Es,j,Be,DB,Be,Cd,Eg,m,GA,BZ,DO,BP,CU,Bh,EC,5,Da,BX,FU,N,Dg,T,j,Cz,BA,DP,CW,Dn,Ey,DF,Ce,BC,Bu,DU,Br,FG,CT,Bs,FK,Bg,Do,CQ,By,CO,R,CK,CN,Cu,D7,Ca,Dy,DY,BZ,C6,BH,FC,CQ,u,Fg,3,DU,V,Cq,0,DA,BF,D8,B3,BA,BR,Fu,R,H,Ct,BE,EF,C8,h,CU,B5,Eq,By,DE,Di,CK,Bg,Cg,C5,EM,EH,Di,D3,BT,CD,ES,Bz,C4,B3,FI,z,CG,BD,BQ,Cv,Cg,b,BS,BP,Q,Dn,CX,BP,CV,BJ,FT,BL,EF,Cp,Fd,h,G5,q,E1,C,DX,P,Ct,CV,EH,Bb,Ep,ET,Dt,C9,Cs,i,FM,EO,Gw,Cq,Ey,U,C2,Bl,DF,CL,BC,Df,BE,Cb,EM,Bn,FU,c,DO,Do,O,CX,CG,BL,EB,CH,HJ,B7,DP,BT,Dl,CV,Cd,O,J,Cu,Fk,Co,FL,H,Dl,Z,CH,By,A,Ea,Bb,4,CL,h,BH,0,Cd,Cd,BB,Cf,BJ,Bf,BX,f,BD,L,X,z,F7,A,E5,D,Bd,l,DZ,CV,b,R,BD,BR,C9,A,DL,A,Bd,h,g,p,S,9,F,X,EP,Bl,DV,h,Dv,Bt,z,A,BH,e,X,e,E,U,s,BI,Bg,Bw,6,B4,p,Cy,r,C6,DX,Bg,Y,i,f,a,3,A,p,g,L,u,p,V,1,G,M,U,x,U,V,0,Cf,BC,Cn,BE,DL,BQ,DD,BK,C3,5,BF,D,D9,0,Cn,b,DJ,BA,DT,g,CR,M,BB,i,l,Bw,BH,D,A,BP,Gr,A,LD,A,K9,A,Jr,A,Jr,A,Jh,A,J1,A,DL,A,Jl,A,JL,A;EW7,DPc,CY,Be,Ea,D,F,n,Dx,Bx,CR,E,t,2;EJX,Dw0,Dj,Bs,K,BK,Bi,O,HY,X,Fi,Bx,S,3,Db,G,Df,E,Dj,d,7,M;ELH,DOS,BQ,8,BU,H,y,p,BR,Bt,Bb,S,1,8,I,O;E19,D32,Bx,BR,Er,Q,D5,0,Bs,Bc,Eo,2,Cy,BJ,BM,BD;E2t,ECE,Bf,H,GD,O,3,2,Gg,D,CQ,n,Z,X;FCH,EGG,D0,BJ,3,BL,Ex,r,Cn,u,BZ,BO,R,BU,EK,J,B4,N;EkX,D18,FN,a,Il,BC,BJ,Bw,Z,Bk,DP,Ba,Gr,Y,Dv,BA,BM,BU,Gq,N,Dk,BD,GU,A,Cy,BF,v,BP,Ds,t,CC,x,EW,J,Es,T,FI,s,Gk,Q,FO,P,Dc,BN,u,BX,CD,1,Ez,t,EJ,Y,JR,f,Gn,F;Fw5,EEG,Ei,f,BH,9,GB,7,Ex,BC,Cm,BC,Es,U;Fv7,EGM,EM,p,D7,n,FX,A,C,c,DU,8,Bu,L;C3X,Cpi,Bt,CD,CL,C1,CI,BG,CK,r,BJ,BJ,C0,5,Bg,y,DM,BB,BB,CX,CQ,i,a,Bt,BA,CB,BX,C1,Bd,J,CJ,m,s,Co,5,Y,Dv,Cz,B7,I,CS,Bg,DH,w,Df,N,GR,G,f,8,CA,BI,BZ,2,Cs,B8,DU,FI,CA,B0,Cy,BG,Be,J,n,3;EWl,DYC,Dg,BH,Ds,BB,S,Bj,CW,Q,CU,BF,C3,BD,FD,w,Bz,Bc,DN,Bt,El,Br,BJ,B4,EX,V,Cy,Bm,a,Cg,BG,C8,CU,R,k,Bb,Bq,e,B2,1;EGH,DvY,DE,BS,HI,Bp,Ec,Bh,a,Bb,GA,u,DW,CF,Hw,BR,C0,BV,DC,DB,F7,Bh,Hm,CH,FI,t,Eo,C9,FE,P,BB,CR,Fr,Dv,D9,BY,FF,DG,EN,b,Z,B1,DY,B3,EY,Bf,BU,3,CG,DN,BH,CV,EH,4,IF,Ck,Ei,Cz,DW,B7,g,BJ,Iv,BS,G5,B2,D7,Bk,BI,4,Ez,Bo,Er,Bk,C,7,JV,h,Cv,BG,CI,CY,GE,E,Go,Y,BF,BK,BI,Bm,EK,DI,5,Bc,BP,BG,E7,Bi,Gj,BG,CE,0,Db,CA,C1,M,Cj,BG,Bt,9,F3,b,Lt,u,G1,6,FP,e,Cr,BI,DW,Be,El,A,BD,DS,Ce,C2,DU,BU,IU,0,CX,CF,Ci,CD,C8,Cm,IK,BU,Fi,DV,f,CJ,GY,6;E41,D1I,Gs,H,GK,x,Ez,C3,D3,p,Dd,Cb,Dr,I,CB,C0,C,Bm,Bq,BW,DO,2;GYT,D7i,Fc,CY,Go,CG,E6,D,Ea,e,d,Cf,Cf,BJ,DB,L,GB,BZ,FL,f,EX,s;G4H,CyU,DG,Q,9,Dr,Cy,Cl,BT,A,B7,Be,BN,Be,Bn,BA,n,Ba,M,BC,Bg,b;FeT,EHy,GU,b,Is,BN,Ce,Bj,BQ,BV,FR,W,FV,BC,HN,I,DI,8,D5,w,P,BO;Gab,Cge,Bn,d,FV,Be,7,BI,C5,BI,l,4,DV,k,BP,Bw,Q,u,DY,t,B8,f,DC,V,BG,BJ,Bm,Bh,DO,BX,BU,Bx;GUF,D2K,Em,r,IO,L,DK,7,Dc,BX,EF,1,H5,CR,EB,CR,A,Bb,If,Bj,Bt,Ba,Hd,Bs,BY,BW,CO,CW,Cy,CI,DL,B8,K4,g;Flz,D6q,C2,g,DY,J,k,Bl,B9,Bh,K7,h,IJ,BZ,E5,H,b,BE,Gs,Ba,Ol,Z,Eh,k,EY,DK,DE,4,JE,BH,Fu,B5,Fm,R,En,DG,C8,BK,DU,X,BG,Bj,BQ,BJ;Fhn,Dxu,Dm,BV,CC,DJ,BA,CT,FY,Bl,F0,Bj,X,Bb,FT,R,CE,BP,BH,BN,F1,g,Fj,2,Dv,N,GF,BH,IL,f,Fv,T,Bv,Bg,Eb,2,C3,X,D9,Ci,CK,W,E8,i,Ei,L,EM,k,GP,u,G5,R,Ej,E,Bt,BM,He,BS,FB,D,Fn,0,Cs,Ca,CO,BS,Io,B6,DS,n,Bn,Bh,HM,BA,Ee,Bp,Do,Bo,C6,BF,Co,DL,Bm,BW,CT,DS,C0,e,DO,h;FOB,Dwi,Dj,CG,Dy,Bi,D2,r,Fu,a,0,7,DB,Bj,E2,BZ,l,C5,FT,BR,DH,S,CP,BO,ID,Ce,E,BC,Gk,Z;Fh3,Dza,EU,I,Cc,t,C1,CJ,FD,CQ,BG,c;FHv,D9e,Cc,Bf,I,Br,Bf,CZ,FV,V,Dd,g,E,B2,FT,R,P,Cg,De,H,E2,BG,Eg,N,Q,a;E9v,EMA,CQ,BA,DS,O,Bb,u,Hg,K,EI,Bv,Fa,r,FS,n,Ci,CJ,D4,BD,Ed,9,F9,Cb,Fr,P,Gt,Y,Dd,BU,C,BK,Ci,2,F3,D,Dl,BG,CD,Bc,CO,Ba;Evd,EQK,Ey,o,Dw,G,GU,g,Eu,BM,EA,L,De,5,Cc,Bu,EQ,g,Fw,W,J2,I,Bs,X,JU,i,G8,N,HA,N,Im,R,G6,b,F4,3,J,3,H3,BZ,Hz,p,C7,v,HC,C,Hn,B9,FR,5,Fh,Cp,Gp,j,CF,p,Jx,X,Ec,Z,CP,l,Cq,Bl,DF,BJ,FB,5,Bh,BR,Eh,9,c,v,Fg,I,E,x,In,B7,Ib,2,Jf,f,Ez,Y,GH,K,b,Bi,F8,u,Bl,CU,B8,O,Im,BZ,EZ,CE,FP,m,Cm,BQ,Fs,w,6,BI,El,BQ,BX,Bo,Iy,J,Ci,X,FC,BK,HR,Y,LT,N,Ft,BG,Cr,BS,Dx,6,t,BG;D4p,Dfi,CH,7,Dn,L,z,Bk,BY,By,C6,c,Ci,5,C,BZ,Z,d;FAh,DmK,B8,BP,CB,BJ,EX,8,Cn,X,Eb,Bc,C0,BA,CQ,BY,Da,5,B6,l,8,n;DWJ,Ck2,BI,S,EO,z,DS,BX,G,l,Bj,F,EN,BA,DB,Bg;DUf,Cbu,BI,Bl,CU,b,DA,E,Bl,BV,BN,N,EH,BW,z,BG,BO,BA|GYR,CiE,JK,A,Jk,A,DK,A,J0,A,Jg,A,Jq,A,Jq,A,K8,A,LC,A,Gq,A,A,BO,BG,C,k,Bx,BA,j,CQ,N,DS,h,DI,BB,Cm,a,D8,1,BE,C,C2,4,DC,BL,DK,BR,Cm,BF,Ce,BD,U,1,w,V,N,V,0,H,o,U,K,v,o,h,2,A,e,b,Z,j,DW,Bh,q,C7,o,Cz,7,B5,Bh,Bx,t,BJ,F,V,W,f,BG,f,y,A,Du,Bs,DU,g,EO,Bk,E,W,T,8,h,o,Bc,g,DK,A,C8,A,BC,BQ,a,Q,DY,CU,Bc,k,E4,C,F6,A,W,y,BC,K,BW,e,BI,Be,BA,Ce,Cc,Cc,BG,1,CK,g,Ba,5,A,Eb,CG,Bz,k,BF,Dd,Bj,DV,BJ,Db,9,Bt,B5,h,t,D,Bt,BE,Bt,BU,H,V,BM,8,v,T,5,CL,h,Bj,C,CZ,j,BZ,L,B5,L,Cr,7,Eu,m,8,n,Eh,9,CF,A,G,Y,BB,5,8,J,t,CV,CX,Cf,P,0,t,K,BF,y,q,Bv,y,l,C,BP,BD,BP,Bz,Cl,T,I,BA,CM,Bp,BO,Z,Cq,n,BZ,q,CF,CJ,g,CO,BD,I,DF,6,P,U,BJ,c,DP,CD,CZ,DX,9,CH,B3,Bn,P,Bp,BN,d,BF,Dj,CH,Bz,Bj,Bj,B5,f,CT,k,CP,BE,Cx,Ba,CT,C,BZ,Bg,Dv,H,CL,J,BR,z,B9,9,b,Bl,Y,h,Ba,BP,u,Bt,Cw,Bh,Ce,f,BQ,q,CI,5,Bw,Ch,Cs,BR,e,DR,Bd,l,K,Bj,Be,CD,y,Dp,b,C3,W,Cd,N,BV,h,k,3,F,BT,q,p,n,b,BN,e,BN,n,CX,G,Cb,Bs,Cz,b,CX,u,CB,P,Ct,v,C7,CZ,DN,BZ,Bx,Bj,v,Bd,D,CP,K,Bj,m,BH,BR,H,CT,s,Ch,BA,5,Bg,t,CQ,B5,B0,BJ,B4,Bn,CM,CR,BS,Cp,F,CD,Cj,Cr,8,Br,8,z,Bw,BF,Bq,B5,Ba,Bp,BC,BN,BI,Fl,A,A,BV,Cj,A,Gb,D,HX,CS,E3,Bk,S,m,EH,X,Dr,P,j,Bo,CF,B0,Bh,Y,X,6,Bz,K,BL,2,DB,U,z,g,Z,Bw,DJ,DO,Ct,Ee,I,u,Bb,BE,Ch,Cs,d,Co,Bt,Bu,s,Cq,H,Cw,BD,Ce,BQ,DC,Y,C6,Y,C4,l,EU,BD,Cw,7,Be,Y,o,Eq,BH,Bs,DD,y,0,h,Co,BH,Co;IFT,BCw,k,T,g,b,y,BJ,F,N,BR,r,BD,h,f,h,z,c,G,4,h,BK,K,W,i,i,P,m,M,U,O,F,BQ,j;IHP,BE8,R,Z,BF,P,l,q,X,Q,D,O,U,Q,BI,T,0,h;IJr,BGU,H,X,Bv,G,Q,Y,Bk,J;INx,BIE,S,P,6,BF,N,N,P,E,BJ,G,Z,u,J,I,0,c;ISH,BJo,E,v,X,V,BH,m,K,O,e,U,u,H;IpB,DIw,Ck,T,S,BP,B9,h,CJ,m,B9,2,DM,i;H8T,DBA,CK,P,BW,BB,Cz,Bh,DP,BR,Bp,0,f,Bg,C6,BK,Bs,e;HUz,Dm2,A,L9,D,SX,DM,H,DI,5,CQ,Bb,C2,CH,DI,Bw,DO,BE,Bu,Br,CK,BV,C6,Bd,CC,CV,DS,Dr,Fe,CD,G,CD,Bz,Bl,Bx,BO,C1,BC,5,Cy,EL,Cm,Bv,DC,DH,O,FJ,E,Dx,6,Gr,DW,DH,m,Fn,BI,Ef,R,GX,Be,Dz,BW,Dl,r,o,CP,Bx,P,Dv,p,C1,BH,Dl,r,d,B2,Bc,DM,Da,8,3,y,EJ,Bx,CN,CL,Ep,CT,CW,Bl,DD,CT,Df,BX,DP,BB,z,Bb,FD,Br,BB,Bh,Dx,BX,CP,O,DB,5,DT,BH,Cr,BF,Fj,7,f,i,Dg,Bg,DK,BA,Dc,Bu,EA,Y,Bk,BU,Ee,B6,s,o,CY,BI,i,Cc,Bo,B4,Dt,9,BF,i,Bv,BN,CH,Bo,3,BL,BP,Bm,DP,BT,B9,A,R,B6,k,BK,CH,BK,EN,n,Ct,Bg,CP,w,A,By,Cf,BY,BQ,B0,Cm,By,BK,Bq,Cm,O,CM,h,Cm,Bi,CW,R,Cc,BA,n,Bc,Bz,k,CY,BQ,B9,D,Db,t,BB,t,Cj,s,Ej,X,Ev,w,BX,BS,EF,B2,Eg,BW,HO,Bk,Co,A,d,Bn,Gy,I,Cn,CA,D9,BO,CT,Bm,DH,BW,Eb,BC,By,Bq,Fs,I,EE,Bc,w,Bk,DS,Bg,DK,Y,GG,Ba,C8,P,E8,Bu,E2,r,CW,Bd,Ba,m,Fc,N,N,v,E6,j,DS,U,Gy,BD,GM,T,Ce,b,ES,g,E4,9,De,d;I59,DTu,CA,n,CA,U,Cm,1,DM,b,R,X,Cd,r,Cd,q,BP,m,C1,N,x,S,M,BM|Ehy,Ciu,Cd,CJ,Cr,T,L,DR,Bz,Bd,GZ,BE,CV,Fx,Bp,t,GZ,BT,C4,Fn,CP,1,Q,B1,CB,e,Bn,BK,Ex,U,FX,G,BL,X,En,BW,Bz,r,h,B5,FV,BI,CH,f,v,BZ,B1,n,ER,CR,Bb,CT,BN,D,3,Bi,EJ,G,p,Co,Bl,A,Q,DQ,D3,CW,Fh,R,Dz,f,DF,C6,Cp,BM,FB,CU,n,S,IT,B5,I,L5,Bp,L,CR,Cg,CN,4,Dr,p,Bb,BH,L,y,w,BU,n,BI,Dv,BG,Bd,C4,Bx,y,H,BE,DI,V,I,CY,Cu,g,Cy,f,k,DI,l,CA,DP,L,Cv,y,Dv,Bb,DB,r,Bp,g,U,Bq,CD,CI,CZ,F,Cv,CK,B0,Cc,7,q,Ck,Dg,DU,B3,Y,CY,Gq,De,FC,G,HG,CP,D0,BV,Da,BW,FG,E,EI,Bp,6,6,Ei,J,y,Bg,FP,CO,DG,Bk,n,2,DG,0,CV,CM,Be,BI,ME,BG,Bk,y,IE,BM,C4,BW,Fy,t,BA,DX,DW,y,EK,BH,R,Bx,DE,M,IG,DC,BL,BB,EG,Ch,HO,IN,Bs,Bs,Ec,B3,Em,0,By,l,Bi,B3,CQ,n,BW,BZ,EK,c,Bs,CB|C4i,CJQ,J,L4,IS,B4,m,T,FA,CV,Co,BN,DE,C7,Dy,e,Fg,Q,D2,CX,R,DR,Bk,A,o,Cp,EI,H,2,Bj,BM,C,Ba,CS,EQ,CQ,B0,m,8,V,Ct,CH,CY,BP,CS,y,D0,Br,EL,CV,Cd,S,BV,F,d,4,q,Be,EV,v,BD,CF,Bh,Bz,Ct,K,1,Bb,CY,x,q,CZ,Bz,DT,Cb,s,Bz,A,G,B8,ET,BY,DZ,Bk,CH,Bg,Dt,CO,Bl,DU,BF,m,Df,L,BR,q,V,Ci,EX,Bs,Ct,B3,Cx,BH,i,Bp,Dp,D|HU0,IZ,Fm,CP,F6,B1,CO,Bp,By,Bp,e,B5,FY,B9,w,Bt,C9,X,s,CL,C2,CH,CG,Db,B2,G,J,Bb,Ce,j,9,n,Da,BX,X,7,CJ,P,z,0,Cx,W,DR,e,Cf,CE,B1,Bw,Br,Cy,EP,Ba,Ct,7,B9,BF,Y,CX,Ch,BJ,Bz,i,DX,I,D,Kg,F,Kg;H6Y,Lz,BO,BD,Y,Br,BB,3,n,B4,v,BQ,Bf,BE,B1,BW,CV,8,4,w,Bu,5,BG,t,BW,x,BS,BX;H2E,S1,Bx,x,Bp,x,Bt,A,Cp,6,B1,4,Q,BA,C4,d,Bw,O,e,Bi,c,G,U,Bt,B0,O,4,BI,By,BI,X,B4,B6,E,o,h,F,Bz,BH,B9,Br,R,h,5;IDO,RP,8,v,Bk,CD,Bg,BH,d,5,5,V,BZ,BO,Bb,CE,t,Cc,c,U,W,9|HU0,IZ,E,Kh,C,Kh,C3,Co,DR,o,z,5,EH,H,BY,Cm,CC,4,1,Dg,Bj,Cs,GR,Cs,Cr,S,E1,C8,7,Bj,BR,T,t,BK,D,Ba,Cd,Bk,De,BK,CS,F,R,2,Ev,A,BR,B4,C5,m,BX,Bk,EW,w,Bo,BE,FM,BV,e,BN,4,FP,DW,B7,Cq,Da,Ds,B8,C2,A,Cu,BJ,Ca,BL,Dc,n;GfI,cr,U,p,E,9,CH,Cb,Cx,t,Z,Y,S,BG,BY,B8,DM,BS;G86,WR,V,Cc,k,BK,q,BE,u,7,D,Bh,Bp,CP;GIQ,NW,B1,C7,CY,DD,j,Bf,Dm,DB,D1,Z,BF,CN,I,C5,DH,CP,H,DN,BP,E7,f,BI,Dr,Bd,BR,B8,CT,M,Bn,BC,D1,BL,BN,Bk,CH,N,Cr,Y,f,EU,Bn,4,Bj,Cu,d,C0,Y,C8,B4,CK,i,CL,CM,B1,CG,q,CE,R,B2,Bo,Bi,S,DE,5,Cm,q,Bo,Ee,BQ,BI,BI,Dq,Ds,A,Cw,j;GtU,JD,Di,7,BK,Cf,Ct,BU,Cr,S,B1,P,CP,I,w,Bw,D8,I;GlQ,MP,CP,k,n,BY,DQ,K,y,BF,BP,BF;Goq,HA,O,Bv,B4,T,U,BV,L,Cz,Br,U,f,B9,BU,Bt,5,Z,BT,CC,9,EI,o,Ck,BE,BK;GYi,C0,Ds,I,DM,CU,i,t,Cl,DN,Cb,n,DJ,m,FX,L,C1,d,d,Cd,C4,C3,Bu,Bc,GA,BG,R,Bf,Bb,e,BZ,B5,C1,BP,DC,EL,l,BH,C4,Dt,D,CJ,Bt,7,BR,BI,Bi,Co,DL,BR,z,4,a,BO,CV,B4,O,DI,CJ,9,Q,Dx,I,En,CD,d,BZ,6,4,C8,f,DI,BX,A,BB,CO,BU,CG,c,Ck,Bo,E0,q,BW,Cu,CY,Cg,9,EE,b;GQE,hH,ET,CQ,DA,o,Bs,BB,BI,9,N,3,BX,F;GTa,bj,CK,Q,C2,BM,d,Bz,E3,5,ET,Y,A,BM,Ck,o,CA,9;GJe,a9,CA,Q,y,BZ,Dv,p,CP,b,Bv,C,BG,B0,Bw,C,2,BI,BK,1;Fn8,Ut,a,BL,GM,V,s,BU,F8,Bj,BM,CF,E0,n,D8,B5,Dt,BP,Dj,BS,C5,H,DX,Q,DB,k,Dv,BO,CZ,U,BV,b,F5,BW,j,BY,C7,O,CM,DE,D6,L,Ck,BT,BW,P;Faq,Df,i,CR,BI,Bz,CW,T,Bk,CD,z,ED,J,E9,Dl,F,Ct,Cq,EL,Co,BX,B8,Cd,Cm,Bn,Ca,Cd,Eg,C1,Cq,7,Cw,BN,Cg,C5,CC,Br,Cw,Cd,By,DX,Di,T,Bo,CG,J,E8,n,C2,DL,Ce,CN,Bw,BX,DE,Dd,DS,F,Cs,CN,B2,Ct,Cc,Bf,BT,Cn,B0,BJ,BK,F|DjZ,Ctz,BO,Bf,Bm,Cb,EM,B7,Eg,z,Bd,Bn,DF,L,Bp,BI,B7,G,Dd,A,A,HM;C95,Bjf,x,Cl,3,DT,C,DP,t,t,R,CH,P,Br,EG,Cx,b,CP,CA,BZ,L,Bl,DH,EJ,Ex,Bv,Gf,r,Dj,U,q,B5,p,Cb,k,Bp,B7,BJ,DT,d,DH,BM,BR,1,c,DP,CM,9,Bu,BC,8,Br,C9,BB,Cl,CD,f,DP,x,Bv,DD,A,Ch,Bp,7,Cb,DK,CX,DG,r,BJ,C3,Dz,B1,CH,Dx,C7,BR,BV,Bh,BC,DX,CK,B3,BX,K,DB,g,Hx,a,BX,B2,E,Ca,CL,N,BJ,BK,T,Da,Ce,Ba,BC,CE,Z,Bm,Bs,Cw,BM,EQ,X,B4,Ba,m,X,BM,Bf,o,BE,BW,Bf,BO,v,Du,BS,o,j,D6,w,DS,2,C2,B6,BM,BB,DI,A,C8,Cc,CG,H,Cs,B0,DK,C,C8,1,k,Bh,Fi,CA,DU,T,DI,BI,C6,CI,DC,CQ,CA,7,BQ,o,BC,H,FY,Dg,Bk,BG,DW,Z,y,Cs,C6,EO,z,B2,CV,BQ,Cm,Dq,J,g,t,F6,FR,Co,f,D6,CZ,DU,BR,e,Bb,DN,E5,DQ,5,Dm,f,Ci,g,C6,Ce,g,C0,Bm,m,Bm,B1,F,Cl,Ct,Bx,CL,BV,Dp,DJ,EV,Eb|DjZ,Ctz,A,HN,Dc,A,B6,H,BF,BT,Cx,BB,Bl,G,B5,Q,CX,8,DZ,e,ED,Bw,DV,Bu,Eb,Dm,Co,r,Ei,CL,EQ,BJ,Bq,Bc,BC,CO,C8,BU,CU,Z;Dmf,4t,Bk,CN,a,CV,Bs,BZ,BD,DH,Bu,Dn,BQ,Ed,CU,a,Y,z,BH,DX,Dh,Bl,G,FZ,p,BD,6,BR,CR,CB,CJ,DD,BJ,C7,S,DJ,CB,DV,Bg,Fj,0,l,D,C9,B1,DL,G,Ct,Cd,CH,A,C9,BA,DJ,B7,BN,3,C3,x,DT,i,D7,BT,p,u,Dv,Be,BP,BF,BX,Be,p,W,BN,Bb,n,W,B5,BN,ER,Bt,Cx,Y,Bn,BD,CF,Cf,Bb,S,Db,BI,BL,CK,M,F,Cb,BW,B3,Hw,b,DA,h,C3,C,Bj,z,C7,BL,h,DB,BX,H,Dp,BE,Dr,CO,ED,B2,BB,CC,4,B4,Bn,CI,b,Fg,BY,DG,DY,Ce,E3,6,DE,C2,BG,FW,Dk,BJ,Bq,Gq,CL,0,BB,ED,CD,e,BA,Em,BG,F8,Be,CM,7,DK,R,Dm,BW,I,CA,FM,CO,FK,BW,Ey,v,E0,8,Co,Z,EA,B2,D6,m,GO,BC,Gs,BA,HO,P,FQ,r,Ei,Bo,0,2,Bo|Bgo,Oh,k,C9,V,Br,o,B3,B2,Bz,Bu,EF,BR,U,EX,j,3,Z,5,CD,s,Bd,j,Dz,b,DP,2,l,CQ,BR,4,k,Q,Df,Cf,C,BV,Bw,BL,BY,Cf,c,v,Bq,B9,BB,Cl,c,BF,Bc,CF,S,Bh,F,L,BA,BJ,E,Bd,M,CB,f,Bb,G,x,T,K,D0,BF,BM,R,B8,e,B6,p,BQ,F,CC,D7,D,S,BK,Bp,A,L,l,CB,J,z,B3,f,z,Bz,c,BF,d,CJ,R,BP,Bq,v,BE,7,B6,x,CY,Jh,E,BL,Z,5,C,BX,b,d,BA,0,W,G,BY,g,0,BM,q,0,V,BG,BO,Bu,D,O,5,BM,l,B4,CC,B2,Bi,0,BC,J,Cq,Ba,DI,Be,Bo,CG,Bk,Y,BC,E,BK,i,BI,N,B0,a,C0,m,CC,8,Bs,M,B6,S,CQ,BQ,Bo,Bu,BC,Co,BH,CE,BN,CW,V,Ca,n,6,B6,c,Q,Be,V,Dk,Bm,BS,r,BC,G,e,w,BM,S,Ca,X,CE,F,BE,U,B8,Cp,Bc,Z,2,i,Be,P,By,q,u,BZ,C0,CJ,N,Dx,BS,d,BD,BJ,BP,3,BP,Br,r,Bf,N,Cn,v,BP,D,Cb,7,5,J,B7,b,P,V,Bx,0,Bd,M,D5|CKK,Fb,B7,Co,D,Lu,C0,Dq,2,BA,CE,E,C2,CS,EM,I,JI,Jq,CQ,Cs,Bc,B8,A,Bq,A,DQ,A,BU,C,E,BC,E,Be,e,Bs,U,Bg,BG,BO,A,E,3,T,B3,C,Bt,t,BL,5,Df,Bj,Dn,CB,EJ,Cx,Et,Cv,Dn,Dz,EZ,DP,Cn,Ez,DP,DB,Cd,Dj,D5,v,Bt,t,v|CCc,PH,En,DO,P,B2,Lt,Gk,j,W,D,Da,6,BU,Bk,CI,BM,CW,Bb,Dq,Z,Bo,Bh,CO,B8,B6,CM,CI,Bq,j,A,Bz,BG,BF,CQ,A,EE,Cv,BC,D,u,G,s,Z,CK,R,6,BW,C8,BW,BS,BH,CO,A,C1,Dr,C,Lv,B6,Cp,CT,BT,x,BX,BP,P,d,CT,BD,BT,p,CL,BT,BF|BRQ,ai,Cd,Ba,BJ,4,P,BC,i,BU,D,BU,B1,CA,Z,BY,E,w,BN,8,D,B2,r,BQ,BJ,N,U,BM,0,BU,Z,BW,BE,8,r,w,2,B8,Bc,CY,Cy,P,L,My,C,BW,Ds,A,A,Gc,M8,A,Mg,A,My,A,BC,DL,t,l,c,DV,BM,D3,BO,x,Bw,BN,Bp,B1,CX,j,BD,9,V,CL,BZ,Ev,W,BT,h,Cx,BV,DL,B7,Bn,BZ,Cd,V,BV,Bh,5,9,DZ,C,C5,D,Cg,d,E,E,Bm,Z,BI,Bp,BQ,Z,CU,Y,CY,Bh,O,P,v,B7,L,w,7,S,B7,Bx,Bx,Bn,CV,Bp,V,Ct,B2,BP,r,V,7,Br,n,H,p,DP,A,d,o,CV,I,BL,j,3,Q,Br,B4,j,2,CV,d,5,Bf,z,C3,BJ,n,9,X,CM,BR|BO4,BBK,K,Mz,Cz,O,Bd,CZ,3,B9,q,x,BF,9,Y,BX,1,BV,V,BN,BI,M,q,BR,C,B3,BM,9,F,x,CD,j,Bp,BT,CV,Dh,DD,Bh,DJ,M,5,T,U,BJ,Br,BJ,BZ,BR,ED,BP,z,s,j,E,l,z,Cr,R,g,2,BD,CO,d,BW,Bb,i,B5,B2,s,Bg,Be,V,4,O,By,D,Bx,C6,I,CK,P,CI,BR,CE,U,Bg,CH,E,C,CG,BX,BM,BY,EO,EI,DE,K,EM,BQ,Gi,q,BY,BV,BG,F,BC,BN,0,z,FA,DQ,Bw,M2,GL,M2,GN|DtV,BBk,S,Bv,R,BP,z,j,0,9,F,5,CJ,i,Bh,N,B9,O,Bh,n,Bv,BA,S,BC,C8,b,Cc,R,BK,s,Bf,BY,C,BO,CF,g,u,4,B8,L,Cy,h|DtV,6M,E,4,1,8,y,i,Q,BO,T,Bu,Y,i,Cg,A,B6,1,0,G,k,BL,Bw,E,H,7,Ba,J,Bk,BN,BN,BT,Bh,q,Bf,J,BF,K,l,l,BR,P,f,y,BF,f,BT,CN,1,g,L,4|JSi,DrW,EG,BW,A,CP,Dj,L,j,BC;CiY,CZq,Bd,B5,DJ,j,DP,DV,C6,DF,V,CL,Dg,Dz,B5,BT,j,1,Bd,O,CN,B8,7,G,CB,u,BB,BU,DB,q,B9,h,j,m,Eb,Bi,Ev,g,Ct,i,Z,Z,EJ,Cu,Dr,BO,Cx,B2,CU,g,Cq,Cs,Bz,BS,Ew,BS,H,s,C5,h,I,Bc,Bo,4,DI,O,g,BE,v,Bw,BU,Bs,D,6,Ex,BE,B3,D,CB,Be,Cd,f,EH,BI,E,m,BL,Ba,Cl,K,R,BA,y,o,CF,B0,DV,V,BB,K,z,v,BN,I,z,CE,v,BE,m,U,Ck,J,BQ,s,5,2,CN,i,M,k,BV,m,CB,CG,q,2,V,Bg,DJ,w,Bt,Z,d,y,DZ,y,BD,B4,T,Bi,Bj,u,BY,BC,9,DA,CS,B2,f,k,Dq,Bw,DZ,Bg,G4,EI,DA,B2,BO,Bo,Ex,CM,BS,CG,C5,Ca,CM,Cw,Dx,Do,DA,Cc,E7,CI,c,CQ,Cm,U,Fe,BS,DU,BI,FU,B9,Iy,x,MM,Dp,Ce,Bh,O,CL,Dl,Br,FT,3,OZ,Cc,CZ,b,FQ,CX,O,Bf,M,DV,EK,9,Cg,1,a,Bi,B7,BY,CE,BO,Hw,CB,Cu,w,CN,CY,Hg,DK,DA,N,DA,BJ,B2,CO,Cr,B4,Bk,B6,CZ,CA,JC,BD,B0,Bz,EF,Z,A,Bz,Ci,BH,E8,q,y,CE,Gu,Bi,LQ,Cw,Ca,L,DL,B9,EA,V,CS,BG,GE,G,Ew,BU,Dq,B7,Dq,CI,DZ,B2,Bq,BE,Jg,9,Ee,BD,Lq,Dr,CK,Bs,DT,Bq,F,s,D5,S,BE,Bi,Bv,Cg,H,BC,F8,C4,CI,C6,CY,o,Ii,1,q,Bz,DF,Cn,CA,BD,BC,CR,v,Eb,Dk,B9,BZ,CL,GV,El,Dq,f,BS,BK,Di,0,2,Bk,Cw,Bi,B3,B0,Bg,CI,Dj,Q,x,By,Ck,DO,EN,Co,Fw,CK,v,CS,Bm,E,Bq,Bx,BR,DH,Dc,n,Bf,CU,Fa,BS,Gq,K,F8,B1,C3,Cq,V,Dc,Fm,o,Hw,J,G8,a,Cn,Bq,Du,CI,Ds,E,GQ,Bm,Ig,a,BE,4,Ie,S,Co,t,HO,Bs,F6,F,4,BY,DE,BY,Hm,BU,Fi,BF,EZ,x,HS,h,2,Bl,C6,w,Jc,D,HQ,Bl,Ck,BN,x,Br,Dl,9,If,Bx,Cb,9,EA,d,Ew,z,C4,m,Bo,CF,Ba,y,FK,g,KW,h,w,Bh,Ne,f,M,Ce,G0,l,FK,C,FM,Bt,Be,CF,B5,BX,EE,Cj,FE,BT,DG,DY,FM,Bd,Fe,2,GQ,BB,CW,4,FS,d,CV,DA,EQ,BY,dI,CH,Cu,B5,Ic,Cf,NC,m,Ga,h,Cq,BX,Z,CX,D8,5,EU,o,Fs,G,GG,p,GI,W,Fm,C3,EA,BC,Cn,CE,Ba,Bc,KS,5,Gs,M,JS,Bj,Eg,Bb,A,M1,D,D,EJ,Bb,EN,Q,C4,Bt,B6,Cr,Be,3,Y,BV,1,3,GD,s,JB,Cb,C3,Z,E7,CR,Er,B9,BN,Bf,En,CO,Ib,Ch,Bd,BM,DH,BZ,EV,c,BD,CJ,D3,DJ,G,BT,Dq,t,b,Et,DB,J,BZ,Cr,BW,BZ,Fp,Br,BJ,Dr,Ez,x,9,DT,Ep,DB,BN,CO,BZ,Es,Bz,HK,Bi,Ee,Cu,B4,K,Bg,FA,u,Fw,EC,Fi,DU,Fy,Ck,Ck,Ei,D5,R,B7,Cr,IN,Dj,Cp,D8,IV,BH,IF,FZ,Co,CB,HN,1,E9,V,O,CU,FD,g,EB,Bn,J1,k,Kn,9,Kd,GT,MX,Hn,FE,b,Bk,CB,DI,t,CE,Bk,Di,N,Eq,Dj,G,Cv,Ch,DP,T,D1,Bd,FL,E3,Er,BF,CP,EZ,Dx,EV,Dt,CH,B5,ET,B5,CD,D,CD,Bi,EV,CX,h,BF,d,k,D,Bm,Bo,G,e,Dy,1,Cw,Cu,BI,D6,l,CK,DK,BG,Dg,BQ,BM,Bs,C4,FX,9,Cx,BR,E5,A,BV,DC,Dz,CS,Fn,BC,BN,DK,BJ,B8,BP,BY,B9,DQ,C1,BM,E1,8,ER,H,ED,l,Cp,Bn,Bw,v,C,Bz,Bz,BD,C5,Db,C,Bb,Ej,CD,D3,BO,D1,R,Bt,BE,B7,W,Et,CT,ER,h,C9,z,EF,g,C9,D,B9,Bo,DL,Bi,DP,c,EH,b,DD,n,El,BW,n,Ca,Dz,0,C7,W,Dn,BW,DV,DX,BS,B5,DJ,CP,Er,y,DN,G,CL,Bg,DZ,E,Cz,8,E5,Bh,GJ,Cx,Db,j,BR,T,Bt,CA,EL,d,BX,BY,CR,m,Bj,B2,Bz,k,En,1,Ed,B2,Bt,Bt,HP,IM,EH,Cg,BK,BA,IH,DD,DF,N,Q,Bw,EL,BG,DX,z,BB,DW,Fz,s,C5,BX,IF,BN,Bl,z,MF,BH,Bf,BJ,CU,CN,DH,1,m,3,DH,Bl,FO,CP,z,Bh,Ej,I,7,7,EJ,Bo,FH,F,Db,BX,D1,BU,HH,CO,FD,H,Gr,Df,Z,CZ,DV,B2,Cl,Dh,6,r,B1,Cd,Cu,CL,CY,E,CC,CJ,V,Br,Bo,h;E2g,ENW,G8,u,GQ,Bn,Hc,DJ,z,C5,HD,Z,JB,4,FX,BQ,Cd,CS,Eb,o,IY,CM;FVu,EHu,IK,B1,7,BT,SN,BR,F2,EO,Cq,Y,Ca,P;HN0,D7m,Ig,L,Lq,Bt,Cj,CZ,L5,G,FV,x,Gb,CG,Bu,CO,EQ,m;HsI,D5E,IG,3,Dt,BR,FL,S,GB,BQ,w,BE,GA,f;HRK,Dyq,DE,BS,EC,S,Ek,BP,Y,3,E3,A,Gn,W,l,K;CUq,EL8,GS,k,E4,C,o,3,B2,w,DC,i,Ew,t,BP,f,EX,b,C5,R,d,h,Dv,j,Dh,w,B0,BA,HL,G;BLU,CzQ,F7,F,D9,Y,u,Ba,Ec,BC,DY,j,Ba,h,X,5,Q,z;Cwm,Dz4,Hs,C0,3,Bc,HO,Bs,Ko,CE,Ku,m,Fg,BM,GS,a,CO,BT,CL,BB,Lb,Bl,J3,Bj,KB,DF,Ez,DL,FF,DH,o,Cr,GM,Cp,B7,T,Kh,a,3,Bc,F1,0,d,Bu,DS,s,J,Bu,Ga,Cw,C9,Y;HbA,CxO,BI,DH,F,DL,BU,DR,DO,Ft,Ex,BE,B9,Er,DI,DT,F,CR,Cd,B6,CJ,Cf,l,Cs,W,DI,Z,De,w,Cc,I,ES,B5,DM,S,EY,DA,Be,BT,Bg,Ba,c,0,CL;JGT,Dey,R,CD,CK,x,v,CU,Iu,f,GU,DB,DN,Bb,FT,V,F,DL,BV,r,DB,G,Cd,BI,ET,6,v,Ba,DR,g,Dr,b,Bv,BI,q,BM,D1,x,Bc,Bh,B1,BX,A,M0,H4,Cd,Ic,DN;JSb,Dqq,EP,N,A,CO,a,I,Cu,A,Eo,7,R,d,DV,x;Bt2,CYS,0,y,CS,r,BC,J,a,p,e,H,C,T,Bk,x,DS,M,p,BL,Dh,j,EZ,B3,Bx,o,s,Bg,Dj,8,k,m,DG,BE,f,Y|EGx,BYa,Bg,Q,CI,H,G,1,Dh,h,P,BM;EC7,BZO,Ci,Bd,j,CT,n,a,E,Bq,Bd,BS,A,W;EEP,BTU,8,J,BI,Cr,C,B3,z,L,z,B2,BP,6,s,CC|DLb,CrR,D2,B6,Cu,z,B6,BS,Ck,Bd,9,BJ,EX,9,Bd,BI,Cv,Bd,Bn,Bc|w0,EJA,BO,BI,Eu,G,EE,BJ,Km,CZ,IH,BT,Bz,CX,C1,n,Bh,Cr,D5,J,G7,B8,C6,BK,E1,4,GT,Cu,Ch,Cg,Iy,BK,Bw,BJ,Ek,C;BmU,DmY,Ff,BT,Cn,V,BY,CS,EL,BQ,FB,BF,Bl,CZ,DF,Bb,Df,w,EN,L,Dn,Bs,B5,1,CB,J,f,CJ,GH,g,1,Bz,DH,A,CJ,CT,DP,Dl,FB,Eh,BK,BH,BJ,BT,DN,E,CH,DD,M,ET,CE,Bp,BF,Dx,Cr,CP,Bb,B1,CL,B8,GZ,Dv,ET,v,Ed,Bo,BL,Dc,BD,Hc,C8,CE,Ig,Cs,GY,DW,F4,Ee,Hu,GO,Fa,Ca,I0,EE,HG,Ba,FS,N,E6,Cq,F2,J,Fy,o,KE,CZ,EJ,1,Dg,CD;Baa,EKQ,Ez,Bv,JX,Z,Jf,i,l,2,Ep,E,Dh,Be,J8,4,Eq,x,DQ,8,IK,z,GU,BJ;BRu,EDI,HN,BV,Fr,w,CO,0,B9,BA,Gq,o,BS,BN,Eo,v|Ca1,ESi,Ky,B6,LU,L,EI,BM,LY,U,Zw,b,UK,Cj,F7,BR,MX,J,RX,V,Bm,l,La,W,Ju,BH,GQ,8,Cq,BL,Dj,B3,IO,BM,Po,BQ,Jq,n,By,BZ,NL,CT,Bz,v,KV,j,He,L,Dx,CX,Cl,CH,G,Dl,D2,CH,FF,L,FT,BB,F8,Bt,u,Cv,Dd,T,EM,Cx,HL,R,Du,BT,BF,BL,Ej,f,Eh,A,EE,CN,C,Bd,GZ,BW,Bp,3,EW,z,EO,B9,BO,Cn,Fx,n,Cf,BQ,D9,B0,BG,CN,Dv,Br,Ie,L,Ec,L,Ip,Cz,Ix,Cj,Jb,BH,Dl,D,DV,BP,Ef,Db,G7,CR,CP,J,EV,z,En,v,Cx,CB,D,CR,Bp,CJ,FR,Cl,BS,Ch,Bd,Cr,Bp,DJ,Ej,N,Ev,Cm,Gd,C,DJ,Bw,CL,DI,Fl,EC,Bp,CG,d,C4,Ed,C8,BK,CY,CL,BI,DM,Dw,E0,BM,BS,BW,q,Cg,Dr,BL,Bx,d,C5,f,D7,BE,P,CM,BQ,Bs,DA,E,Gk,3,Fj,CC,C3,BI,DP,d,Cr,w,Dk,DC,B9,BM,Cj,CO,D3,Da,EJ,BQ,C,BW,Ip,B2,G1,Q,In,L,H3,P,Dv,BC,Fn,CC,Ic,BA,Gg,M,Nz,0,HT,BS,c,BQ,MO,Bi,Ly,Bi,BQ,BM,It,BK,Cy,BS,LK,CO,Es,W,BX,Bc,Ho,0,J4,g,J6,C,Dg,BB,Ii,Bw,Hs,BP,Eg,P,Gs,BF,Hr,Bu,c,BY|DkY,Cg1,CE,BD,DE,Z,G,n,5,Bf,E7,N,H,Bs,e,BU,O,q|GfI,cr,Y,u,Cw,u,CO,G,BC,a,BO,b,BN,3,DX,Bb,Ct,5,F,8,V,o|0s,BeN,Bi,Bm,BS,5,i,BX,Bc,R,CA,n,Bu,Q,C2,Bo,C,L4,2,f,B4,DF,T,B9,s,BJ,CU,U,Bm,Bc,Bg,8,w,Bi,Bk,u,BW,Z,Bi,5,Co,L,CC,u,W,BC,i,Bg,Bw,Q,8,BO,BE,CK,C4,CY,Ei,CY,BU,D,Bi,j,BG,Y,Bs,V,Bi,Ej,0,CT,l,Dl,S,BL,Bp,k,7,P,T,7,3,BP,C,BH,B4,Bx,B4,W,o,Bc,Cc,D,z,CX,Z,Cr,1,Bd,CN,Bp,n,d,BZ,Bp,5,Bp,Bz,CV,Dp,DV,CT,B7,Cd,Bf,DX,BP,Bp,N,b,3,B9,c,Bl,n,Dh,o,B7,b,BX,M,DV,BT,Cv,h,CB,BP,Bd,F,BZ,BK,BF,E,Bb,Ba,J,d,d,2,C,B4,BD,CK,BC,k,H,Ce,CH,DA,Bp,Cu,CV,EM;Bfe,Bfb,Bb,BA,Bh,p,Bv,BR,Bt,CF,Ca,Cf,BK,U,k,BC,By,g,i,BE,BA,Bi,BJ,8|Bfe,Bfb,BI,9,BB,Bj,j,BF,Bz,h,l,BD,BL,V,Cb,Ce,Bs,CE,Bu,BQ,Bg,o,Ba,BB|GF1,Bq8,Dq,O,EG,W,T,n,E2,Bl,HW,CT,Ga,C,Ci,A,A,BU,Fk,A,BM,BJ,Bo,BD,B4,Bb,BE,Br,y,Bx,Bq,9,Cq,9,CC,Ci,Co,E,CQ,BT,Bm,CN,BI,B5,B4,B1,s,CR,4,Bh,Cg,BB,CS,t,BQ,G,BR,C1,j,CV,R,EV,T,Bl,i,Bv,BA,Bl,o,Cf,CI,Cb,w,B1,BQ,Bl,Da,3,BU,BX,C0,4,Cc,U,Ca,k,CC,k,CE,BS,w,B4,Q,Cs,i,6,CM,0,Da,u,C0,H,B8,Q,w,r,J,Bj,Bt,B5,x,B9,k,l,f,BZ,z,Ch,z,0,r,F,n,D,BL,B9,l,Y,Z,J,C,f,DB,C,DB,A,A,B1,Bd,A,BM,BF,BM,v,W,t,g,N,F,BH,EL,A,Bj,Cp,c,n,X,v,H,7,Dp,De,Br,BC,Cn,0,Bz,P,Cl,BP,Bp,V,CR,2,Cb,m,DD,Be,Cb,c,Dp,Be,Ct,Bi,z,2,Bz,M,DT,BA,BX,Be,Dd,B0,Bn,CC,x,Bi,BE,U,V,6,u,0,A,BG,BF,Bc,T,BS,BH,Bm,C1,DO,DR,Cg,Bj,CA,Cx,BU,l,w,e,CA,Bp,w,B5,Bi,z,CQ,Bv,Q,B3,Bs,Bh,Bi,J,BC,Bv,Ca,BJ,Ce,C,BO,CV,BS,BH,L,B1,4,h,BV,i,Bj,U,Cb,BG,BV,CY,CP,i,v,e,R,a,BH,k,E,o,CH,8,z,s,BL,CA,Bp,BG,DB,6,Bb,4,Bf,K,Bt,Bk,H,BS,Bf,BK,Bd,F,j,BX,BN,l,A,3,B8,CH,B0,CV,Bi,Bp,0,G,CW,f,Bu,Bj,BA,CN,Bc,d,b,z,0,CB,w,B5,B2,Q,Q,BU,N,BM,BO,I,Bc,Cf,CS,B5,4,BN,CA,BN,CI,Bf,Ck,BV,C4|C95,Bjf,CG,W,DQ,Cf,BM,G,DU,CF,Cg,Bz,B2,CN,Bb,Bh,4,B1,Bb,CD,Dp,Bx,CX,o,Bx,X,C9,BY,CN,H,B9,Bw,Q,CG,s,s,D,DO,2,DS,w,Ck|CwL,Bu7,5,B0,Ba,Bg,B3,CM,Ch,By,DV,CE,BN,H,DR,Ce,CH,X,EU,Ea,Do,DI,CK,BU,Cs,Bw,E,Ck,Bn,B0,Bn,n,o,B2,c,B4,A,Bw,BL,k,BP,h,BN,I,Z,BQ,T,C6,n,8,CL,2,BV,n,Db,m,O,EY,9,Bw,BC,q,V,B0,2,Ba,k,Ci,v,CA,Bx,4,X,BQ,e,B2,GN,I,BP,Dw,6,C,D,BY,p,8,J,B0,B3,8,CD,D,BX,6,CL,o,BT,BM,Dn,i,Df,C2,Q,CK,Z,BQ,U,Ca,EP,j,Br,BP,C1,BT,t,9,Br,H,CZ,S,Bz,j,Bf,W,O,E4,Cp,B5,C1,G,BP,Bs,CL,M,q,BY,Bx,B8,BX,C4,2,k,A,BW,B6,6,V,Bu,0,BI,O,Bg,Dq,CM,Co,m,c,e,C4,L,Bc,I0,E,Ba,h,B0,Bb,BK,A,CW,B0,i,o,X,G,BQ,B3,U,F,CA,GS,F,BE,BI,4,BD,m,B5,m,Y,Bw,Bt,Cg,O,o,BA,CY,u,BU,g,Y,BY,CS,4,L,q,Cv,S,d,CC,I,CK,Bd,0,m,S,CY,b,Ck,z,6,w,CS,e,Dm,BO,BM,BO,b,4,Bq,I,u,v,b,Bb,BG,f,u,Bf,5,BJ,f,Cv,y,Bp,O,Bf,CA,Bh,Bk,L,W,m,BC,K,Bc,i,BC,2,By,T,w,I,Bu,R,S,o,h,o,U,6,BS,T,Bg,U,B2,r,BY,p,BA,2,u,L,a,5,Bi,O,BO,BO,BA,CY,B4,C8,BG,I,y,Bx,By,Fp,Bu,h,E,CP,Cb,Cr,BA,9,Fs,h,I,DP,Cc,CI,EC,BL,FW,B9,Bk,B5,h,Bx,Du,BA,GS,Bt,Ey,I,Ew,Cr,EI,Dn,Ce,7,Cu,J,BK,BB,BG,EJ,i,B7,BT,FX,Bp,CH,Ej,Ef,CD,Dp,CZ,Cz,z,F,5,CX,O,GF,5,E9,X,CJ,BB,BR,l,EV,DR,EN,j,DX,Cn,BZ,x,B7,Df,A,FH,BP,CR,Bd,Dn,7,Dz,Cl,Cv,DN,d,CZ,i,Bz,n,DR,v,Bj,CR,Bx,Dl,Fr,C1,Cl,CN,Bh,Bd,DF,CJ,B1|DmT,jV,CY,T,Bq,G,s,8,C0,BS,Bq,BO,EO,i,V,Cb,Y,BR,R,CL,De,C3,Dm,j,BS,BN,CK,p,BW,7,CC,C,B2,9,I,B1,o,9,C,BZ,7,D,BO,Dx,GM,J,f,B3,W,BR,Bw,5,u,CB,l,Cj,3,Bb,U,B1,BD,r,D,BA,DD,Bo,C9,E,Fp,7,Bj,C1,F,Bv,BT,D3,h,s,Dr,I,BR,Cn,B3,CU,EP,y,Ct,C7,CV,b,BR,Ec,Bv,Dm,BC,DG,Bt,BY,b,CU,Bl,CM,CC,De,BZ,Cs,u,BG,l,BM,BQ,Bm,E,Cu,K,CQ,q,BG,Cx,FM|Dnd,N3,C5,K,d,f,Cp,n,Dr,CN,P,Bh,1,BJ,U,Bv,B7,7,A,BX,3,l,BW,C5,Bw,B9,r,BZ,CK,N,BO,Bt,C0,H,Co,B4,P,E5,Be,X,By,i,Cw,FN,r,BH,L,CR,F,Cv,BR,Bn,k,BN,v,BH,BY,Ct,CD,Df,3,Bp,Bp,1,DR,B2,R,BU,GZ,DO,Fz,Dg,Cf,CA,BV,Cq,g,4,Cv,EQ,DL,F6,DF,Ga,BV,Be,BB,CY,Ch,CG,CT,BS,BC,Bc,Bj,DE,BA,CQ,Ck,CE,Y,BX,7,x,G,BN,BU,Q,BU,V,BU,Bp,B0,BU,m,CM,B8,Cy,D2,BQ,Di,DY,BA,CG,d,Cc,0,S,CK,Bh,BC,Bh,Be,1,B4,DZ,CY,Z,By,0,BK,j,B6,Q,Cc,Bh,CF,DR,8,H,Bm,Bt|Ddv,EC,n,Z,n,B4,5,BC,BF,BJ,GT,E,E,CB,B2,V,H,BR,p,W,B1,j,A,CX,Ba,BL,g,B1,F,Bb,Bd,I1,Bn,Bs,9,G,CE,DQ,Cd,Bg,B7,R,BL,i,Bz,1,CZ,Y,B5,DY,Bf,0,BD,Bg,CL,Bg,1,T,BZ,u,Bl,BG,7,h,Ct,c,z,BY,n,F,DP,B0,b,BA,BM,Q,J,Bm,u,BK,Bm,O,BW,CC,BO,Bq,BN,w,m,B2,t,C6,q,2,h,Cs,BT,Bs,a,Bk,BC,P,m,8,v,B2,Y,e,Bo,H,Ca,CQ,BW,U,C,BE,k,Cu,B0,Be,CC,E,Q,q,Ci,R,Cg,Bm,BQ,u,Bk,Bi,BI,N,0,3,n,BF,CF,j,1,Bn,BP,7,9,BN,Z,CT,3,B5,Bo,N,a,Bf,s,t,Q,BV,Z,BN,I,r,w,R,w,BJ,EK,U,B2,b,CQ,Cx,BS,W,CU,N,B0,Y,BK,j,l,Bv,t,BH,R,CV,o,CJ,4,9,I,t,Bp,Bn,BK,t,2,BJ,8,DP|EBh,b8,Z,f,u,B3,n,9,BD,O,b,Bl,BF,6,t,Bu,y,2,1,O,l,BE,Bn,4,Bb,P,p,BJ,BT,z,t,H,V,r,Bi,Bv,5,b,d,f,Bh,L,j,B6,b,j,BF,M,p,BS,BV,O,1,W,BZ,A,H,t,Z,g,M,m,Q,q,J,k,e,Y,r,c,A,BU,BO,S,BK,BL,F,r,BS,L,U,Q,2,x,Bk,O,BY,y,B8,o,BG,8,Bw,N,J,V,By,H,Ba,j,BE,9,BO,5|EST,e2,BP,T,A,BV,q,d,f,Z,I,l,R,r,N,n,Bv,s,p,q,W,i,H,s,5,w,BR,o,BJ,a,N,6,3,k,O,7,p,x,v,2,BD,U,d,o,C,BA,a,BA,5,e,u,m,e,a,CI,3,u,a,BA,R,i,r,6,N,w,q,0,Bv,BO,BV,Bg,BX|EV3,jS,x,r,7,M,j,q,BB,Q,v,b,CJ,2,f,b,BJ,BA,Bh,BU,t,BE,BX,BC,Bn,Bc,W,e,i,f,O,O,BA,K,a,s,e,C,H,Bk,w,G,q,D,q,2,8,p,U,Y,m,Y,BG,2,E,q,U,D,a,w,U,G,i,f,o,L,s,a,y,A,BI,a,c,c,BG,F,R,V,L,t,U,BN,v,BH,X,BT,H,Bb,K,1,G,Bd,h,V,T,BZ,O,1,r,1,K,3,e,h|EUP,wY,BH,E,d,d,BJ,b,z,A,t,b,p,K,j,e,V,H,b,x,V,C,F,r,BH,3,n,Z,V,Z,9,o,r,3,r,C,x,H,G,Bl,f,D,b,t,BB,L,j,BC,9,Q,O,BU,d,U,r,O,BZ,X,J,a,9,g,t,o,7,Q,o,0,R,m,Q,o,Bg,4,Bc,BO,W,J,s,i,4,E,U,R,e,K,Bg,T,Be,E,BC,W,Y,Y,BC,N,w,N,0,E,o,S,Bc,d,g,F,BA,n,6,v,BK,f,0,3|EoP,ug,6,R,s,p,8,h,I,b,BY,W,q,P,c,V,P,BV,X,v,B3,C,BL,U,BX,o,Bx,M,7,s,I,c,BG,y,m,W,N,Y,w,M|Exh,u4,G,6,W,u,d,m,Bi,Co,EK,A,E,BG,h,M,X,s,BN,u,BN,BE,Bc,A,A,B0,DA,A,DA,D,D,Cj,R,Dp,8,A,BE,l,Q,e,6,b,Bd,BP,Bh,5,R,p,Q,n,p,1,x,N,M,Z,n,X,BH,z,J,d,Bp,i,CB,E,Bf,o,Bv,BU|Enj,5c,D,e,Y,I,k,Z,BK,B8,m,C,A,f,m,A,D,3,j,Bb,S,f,V,BL,M,T,Z,Bp,n,1,l,J,p,BH,9,A,Q,Do,C,Ci|DJ5,Qw,a,5,BN,BP,Dn,BP,CT,f,7,x,Cl,y,CZ,a,n,T,Bc,1,J,CL,c,CD,Cu,T,K,r,CT,5,Z,BZ,BV,h,CZ,v,p,BB,Ch,P,Bx,Bs,9,DO,3,BI,BL,s,Bo,Bm,J,s,5,8,p,CI,Q,CU,s,BG,k,Bu,BL,i,B1,Z,CV,M,BT,X,CR,Cw,B3,a,EL,V,x,BI,x,Q,J,q,Y,BM,R,BU,t,s,b,Be,Bp,M,2,B4,Y,CS,8,BM,BO,6,0,Bm,CE,i,H,x,B5,Z,BE,Bd,D,Br,Bb,B3,BM,Cl,Ba,O,s,CU,BB,BI,L,Cc,EA,BU,b,Bg,BI,BA,BK,CR,CQ,F,CG,Bx,I,BH,C2,A,Dc,U,B0,Bd,Ce,Z,By,BA,C,y,EA,M,D2,E,Cv,9,BG,Bh,Ck,R,Cc,Bl,g,Cl,Bq,E,BQ,v,Cj,B5,T,BL,BG,BP,x,l,CB,h,E,Bh,3,3,CM,Cd|C6Z,GI,x,J,Bz,S,BD,3,Bd,j,BD,L,X,n,Bl,K,CB,Bg,P,Be,z,Bo,e,Cu,4,BI,v,Be,BH,e,a,Ba,v,u,Br,J,CN,Cc,2,2,F,Bg,CA,g,w,k,BH,BO,S,BK,Ci,B4,CI,BN,CA,CH,G,Br,BM,F,Bu,Bl,BQ,BJ,h,C5,B7,1,K,v,l,Br,Ba,CX,BC,A,a,Bz,B8,Cz|Cz3,Hc,B3,q,Bh,V,BT,S,V,7,g,p,T,p,Bv,Q,B9,Cy,b,By,BD,A,Bb,CW,k,Bq,L,u,B6,0,g,C4,D2,p,W,k,Cm,Q,Dc,3,Br,Cx,Q,CP,BQ,B5,j,BZ,T,Bf,z,BX|Cqp,Na,B5,C9,BB,CZ,BP,BP,Bj,P,b,4,v,K,BB,3,BZ,o,y,BW,S,Be,i,BY,BR,B4,R,CO,Bq,Cw,BG,X,CY,x,Da,Ct,g,BV;T8,Cji,Bg,1,Eo,l,Bp,CP,Z,CT,5,j,Bd,S,G,z,CX,Bz,F,Bf,Bi,g,BG,Bb,J,5,8,BP,BJ,9,0,Ch,Bu,Z,X,Bb,C7,Bz,GX,2,Et,BD,X,B9,Dv,b,Dp,Be,BL,t,F7,Bc,BT,BQ,Bq,B6,m,Ga,DX,DY,CX,Bo,E7,BO,V,CW,EK,s,Fa,1,BB,Dq,DC,BZ,Hg,Cg,8,Co,Cy,o,e,BJ,Be,F,Bg,BT,CQ,Bh,Bo,Q,Cy,Bf,u,T,6,E;cO,CNg,CE,BO,i,Cx,BF,Cf,Bd,o,x,CM,q,BM|D5J,f,c,Cd,BB,CH,Dj,DZ,D3,BR,B9,Cz,n,CN,B1,BV,BV,Bo,BV,U,BV,R,H,BM,6,w,Z,BW,Bs,CY,t,Ba,BP,Bh,B7,Ba,q,4,j,C6,BI,e,k,CC,BO,CE,P,BU,Bw,q,CM,BS,DO,B1,m,E,y,BZ,Cs,d,6,g,Bk,BH,BY,v|Dbz,7s,Bo,R,k,p,1,z,Cb,A,B3,H,N,BW,c,e,Co,D|ECP,7o,CK,T,Bs,x,i,3,CR,F,BB,j,Bz,g,B1,BM,Y,s,BW,O,u,H|ERZ,BMy,Cy,P,Cg,D,DC,BH,BS,BN,DA,W,BK,v,Cs,CB,CC,Bd,BE,C,B4,p,P,5,CY,L,Ca,BV,Z,v,CJ,b,CL,L,CP,Q,Ep,T,CK,Bw,BT,0,CH,O,BH,6,x,B0,Bz,J,DD,2,9,q,EN,e,BJ,o,BM,y,DL,K,CT,Br,BX,F,d,x,Bn,X,BX,U,Bq,8,s,BM,Bc,s,Bo,m,Cc,U,w,W|Bmm,BJx,Bt,U,BH,Z,Bj,i,BV,C,CF,Bc,Cf,e,7,CE,D,BI,BX,W,Dr,Di,BB,B2,p,i,BR,Ck,Dm,X,BE,X,BE,E,By,CG,Cy,Co,BK,Q,Y,BI,B0,BS,Ca,a,O,BN,Cq,E,Bg,r,q,z,Bi,P,Bq,BD,A,EH,p,CP,J,Cb,g,9,X,B3,f,V,3,CV,DZ,Dp|Bg6,BJR,Ej,CZ,C5,CZ,BF,CL,9,BP,Bx,R,j,Bh,X,BD,CD,v,Cp,K,Bj,4,BX,Y,Bl,v,x,Bj,Bh,9,Bn,Bd,CV,V,t,BI,S,B8,B5,DE,3,e,A,Ja,DK,I,G,Le,Ca,G,E8,BI,BO,BV,CE,BQ,8,A,By,u,k,R,BQ,Cl,o,j,BA,B3,Dq,Dj,BW,X,C,BJ,6,CF,Ce,f,CE,Bd|BCM,BR5,D,L5,C3,Bp,Bv,R,CB,m,Bd,Q,j,BW,BT,4,Bj,Bn,CZ,Cc,BR,CW,t,DI,z,CW,BF,E8,F,D0,b,Bw,BR,BU,Br,Cq,Br,D2,t,CA,Cp,DK,N,Ce,Bk,m,B4,i,CG,H,B6,Bd,e,O,NE,I,CQ,Bj,Hy,d,F6,BU,Cm,s,CG,L,BS,v,A,R,Bz,v,9,A,CF,BR,BP,BU,E9,BJ,Cb,H,H,Lf,DL,J,A,Jb|15,r0,BX,Cg,Bn,BK,Ba,m,Bk,CQ,w,Bq,BG,BC,Bm,T,Bi,s,By,C,Bi,9,CI,1,B8,CZ,CI,CN,K,CD,m,B1,BO,5,Q,BR,J,BB,f,L,Bv,Q,R,Z,t,F,CV,y,Bj,C,F9,I,3,X,BF,G,Bt,j,h,Ce,C6,F,w,c,k,C,BM,u,BY,r,BY,F,Ba,u,r,4,BF,h,BB,A,BR,y,BD,F,t,x,Dh,H|lJ,oI,I,BA,R,BQ,BP,4,n,B0,L,CC,BG,k,g,B4,BC,E,CQ,5,By,o,BQ,P,e,u,M6,C,s,CQ,j,a,Bj,N4,Bj,N6,E6,C,K2,HD,K2,HD,w,Bh,CA,5,Bg,j,C,CD,Dk,U,A,Hd,Bx,CL,R,B9,C3,h,EZ,T,BN,BJ,CH,J,CF,D,z,o,Bx,f,DB,BV,n,BB,Ch,Bd,b,1,BX,p,Bl,a,3,x,f,CP,Cj,Cr,E,BF,3,BZ,O,B3,BX,f,v,Z,h,BW,5,X,l,E,l,7,Cf,C,5,e,b,T,BB,4,M,8,b,Y,r,V,I,BE,o,y,BV,BW,Z,4,t,s,p,E,x,d,BD,b,5,t,BX,Q,5,0,j,G,1,b,h,A,L,BK|3D,BFu,q,BE,Mo,A,n,Eo,y,Bo,DA,S,H,IQ,Kk,L,C,E4,MI,H1,E7,D,Bi,N7,Bi,N5,i,b,t,CR,M7,D,f,v,BR,O,Bz,p,CR,4,BD,F,h,B5,BH,l,CJ,CM,B9,CY,CJ,0,Bj,8,Bz,D,Bj,t,Bn,S,BH,BD,T,Bs,4,Bm,Y,DC,X,DM,Z,Bk,U,Bm,1,Bi,Br,BY|Iq,UM,Cp,Z,z,CO,I,Ha,p,o,H,Bm,BJ,BI,BB,6,a,Bs,BG,W,q,Ba,Bk,S,q,8,BG,6,BK,C,Cc,B3,J,BF,u,B7,p,BT,W,3,Bl,CB,BB,9,n,CD,G,CF,N,FN|v4,BLu,y,FB,BM,1,E,BD,BU,BH,r,BZ,BR,Gj,L,EN,EJ,DF,BZ,EP,BW,BN,D,CH,CG,F,V,Bh,7,N,H,BD,l,F,CN,Di,x,I,Ch,Bz,Cf,6,Bv,M,7,d,B5,G,B5,BZ,Bp,F,D5,Bo,Bh,x,Bp,E,BN,BM,DR,BO,Dd,Z,1,t,d,B1,7,BV,P,C3,Cd,B2,BL,D,BH,7,G,CO,Dv,s,H,Bk,Bz,CG,b,Bc,O,Bk,CG,I,BM,BI,EY,S,C2,g,Q,B8,Bw,CK,A,Hc,Ei,Ba,JU,GW,LE,GI,FG,BZ,By,Bx,CS,BM|Iq,UM,M,FM,H,CE,m,CC,BA,8,Bk,CA,X,2,o,BS,v,B6,I,BE,O,C2,6,BU,c,B0,0,s,Dc,Y,DQ,BP,BM,BN,Bo,F,Bg,w,D4,Bp,Bo,E,B4,BY,B4,H,6,c,Bu,N,Ce,7,Cg,By,w,J,CM,Dj,k,E,BS,BR,X,n,L,BF,Cv,Cf,1,CF,d,Br,r,t,r,CR,Bt,BV,h,Bp,t,BT,T,BX,CP,BH,Bz,BW,BP,F,B7,B5,7,D,Bh,DH,1,CT,DX,BL,BP,K,BP,t,Cl,E,Bv,CC,BF,CU,CR,CI,Cd,D,C1,A|uw,pe,BQ,CF,O,CJ,J,CL,Bw,C7,Bz,C,5,P,Bf,U,t,Bh,B4,B3,Ba,j,c,BX,BC,CP,h,3,Bn,DR,x,l,R,Ch,U,BX,R,9,Bg,Br,S,BL,BM,Bp,Bc,BF,K,Bd,U,7,P,Bv,Cj,u,Cn,2,EF,I,b,K,B5,b,B9,c,Bh,P,FR,E,e,Ci,BT,CI,Bd,i,r,Bc,z,e,C,2,0,CS,Bg,DG,6,C,B6,B4,BO,E,By,BX,CO,BG,S,BW,s,BS,g,Bo,Bs,BU,q,CQ,q,s,c,Bq,0,CE,Cu,Ce,K,BE,W,m,BT,BQ,G,BC,6,M|C4,je,b,Bt,BA,7,BI,BJ,G,Bn,o,p,J,Hb,y,CP,Cn,r,t,BI,3,CC,R,Bm,s,C4,z,BM,T,Ci,A,CU,BX,Bq,O,BA,C0,F|E,ji,P,BB,BW,Br,A,CV,S,Cj,y,BN,t,C5,Q,Bn,2,CD,s,BJ,FF,B5,Bx,BH,C5,7,C5,4,K,BS,BZ,Cw,0,Do,BW,Cs,3,Ek,b,Cc,E,By,Fm,K,Ba,P,BC,g,Be,R|Z5,g6,a,S,4,f,Ce,D,k,6,k,F,4,W,g,BX,u,Y,BW,e,Bc,t,i,BF,Bc,r,BI,y,Bg,I,CM,1,2,El,BX,Ct,1,Dp,BY,Cx,L,BT,Bd,D,CR,o,CF,D,Dz,l,CR,5,DN,BN,n,E,O,Cq,U,Y,H,BS,BX,BW,BD,M,7,4,q,Ba,V,Bk,K,6,g,A,M,BY,R,o,U,c,BM,Y,z,Ck,v,BU,Q,BG,o,Q|sN,om,Bi,D,CU,z,s,E,Q,Y,Bu,R,e,K,K,BL,g,A,0,a,i,H,4,1,BW,R,4,s,BC,a,w,c,o,F,s,t,Y,5,BU,BX,p,z,J,BF,q,U,a,Z,N,9,BA,5,p,R,R,BH,u,BV,y,Cl,BN,Z,V,d,Q,p,N,BZ,h,A,5,E,r,BT,5,A,n,s,M,BS,BX,B8,1,X,r,F,5,N,E,BM,h,0,G,6,t,BW,5,BK,Cl,A,v,n,5,F,j,t,X,5,Bv,Bb,Bb,B4,BP,BS,1,a,z,m,X,Bc,f,s,7,g,Ba,Bk,BA,F,0,i,s,A,g,a,T,BE,W,W,E,BG|1z,n6,Bs,i,BE,H,2,W,F8,J,F,BH,X,X,S,BF,h,b,t,A,1,j,BB,E,Bb,Bl,Bt,BW,BZ,M,t,6,A,e,9,q,P,q|bP,Yy,L,7,U,Bl,r,Bb,6,5,BC,N,BW,BX,G,BT,V,Z,P,Cr,1,A,DV,Bg,C7,Cc,Cx,Bw,CL,CG,w,BC,K,6,Bc,Bu,Bg,Bg,q,E,0,W,BW,B9,N,BT,m,t,4,A,q,BS,4,F|qv,cs,Bu,Ba,W,4,i,s,4,E,u,m,Ck,A,4,BL,s,BX,H,7,g,1,F,BN,4,M,Bh,Bh,Bd,Bv,L,7,x,BD,3,O,CV,BS,Br,Bu,j,BK,b,CY|Rb,hc,P,B2,2,BY,F,BE,Ci,Cq,e,CO,2,w,Bk,b,BW,o,a,0,Cg,Bc,m,BA,DA,BU,Bw,e,y,p,CE,C,P,Bl,a,Bd,By,CH,G,Bl,Du,t,H,CP,r,9,Bl,T,r,Bb,BH,X,C1,E,Bf,Q,BD,h,Bb,O,Fn,L,F,Bz,a,Cd,CN,0,Bh,J,BJ,z,Bd,q,j,BE,Bd,s|BaS,Q2,BF,V,CF,E,Cb,W,BN,T,f,x,BD,H,BT,q,Dl,Bn,Bf,U,d,R,7,B7,Cb,m,CX,U,CF,BM,Cp,BG,Bv,BD,BR,Bp,T,CR,CF,M,CN,i,B5,Bt,Bt,DB,V,6,L,Bc,Bd,BE,BN,Bo,T,BK,Bh,Bq,Q,8,V,BW,Q,Cg,w,k,Bm,DQ,Cq,Q,k,y,i,F,y,t,EC,BO,BY,BQ,Bq,BI,V,BI,4,S,DI,N,DC,Bg,CU,Dg,Bo,BS,CC,i,Y,BZ,B0,CB,C,BV,j,BV,O,BD,BI,5,Cc,Bb,Bu,BT,C,BF,CM,Br,BU,BZ,0,B7,CY,BT,g,BD|7g,LS,N,B7,9,Bt,n,CD,b,C1,M,B1,j,BJ,F,BL,Z,BD,CH,Bl,Bf,Bp,Bb,DJ,I,Cr,1,BD,B3,Bj,B5,CD,BN,k,P,4,Bv,C,BH,BP,1,U,BP,BG,9,j,BV,BZ,Cp,Da,Ce,Bw,BP,CI,BG,0,CM,Y,Q,Ba,Bs,Bj,C0,J,BA,Bg,a,CK,X,Cg,Bj,B4,Ba,Du,z,o,Cb,T,5,Bq,Q,Ba,EE,J,Cm,3,Ci,v,O,Bu,Bs,DA,B4,Bs,CM,j,CE,N|kY,HS,Bg,O,B8,d,B4,a,a,L,R,Bb,4,Br,Ca,S,y,p,Bb,Dv,Bi,B5,W,Ch,b,CL,BB,Bh,C1,I,Bt,Bi,R,Bb,CN,Z,BH,1,BO,CJ,Cf,Bx,DT,DQ,CJ,Cq,B9,DU,G,BE,s,BC,w,CW,o,CY,BG,M,Es,D,D,D2|fI,HW,FQ,F,C,D3,Et,C,BH,N,l,e,BG,Dm|BlK,a5,BW,z,BS,j,CC,j,B0,9,Bg,Bd,0,Cv,j,3,r,Cn,o,Cr,BD,BH,9,DB,Bq,1,Jx,Cr,S,CT,Cb,b,B1,BT,Z,BJ,BL,R,Cz,Cp,Bz,CH,BF,F,BF,W,Dn,W,l,Q,A,Q,BT,u,CH,K,Cn,t,CJ,CA,CL,Co,I,KQ,Gu,D,T,BG,e,BO,l,Bg,Y,Bi,X,BA,BI,F,K,BB,Bg,E,CE,T,BE,Bd,Ck,d,B8,BA,u,Br,Ce,d,BK,BZ,BU,Bx,Ce,D,R,De,5,l,CR,BQ,3,k,a,DO,i,Dy,t,Bc,4,CC,2,Y,EW,i,BQ,V|Brq,dx,DK,n,o,3,BG,Bh,4,EZ,5,Cd,4,EN,BI,C,BK,BD,BW,CV,Q,EL,BZ,r,BB,CP,CH,CA,P,CQ,q,Bg,N,BS,BT,y,3,T,B3,Bi,Br,0,8,DA,BC,BG,p,Cq,q,Cm,i,2,1,Cu,Bh,Bc|Bxe,lL,Ca,Q,D2,5,2,a,CO,E,BK,8,B6,F,Dg,BQ,Ck,B2,g,Bd,J,DN,Y,C1,I,FD,k,Bl,9,CV,BR,CP,CF,CB,C7,BP,Dp,Bl,Dp,Dd,BP,l,CR,CT,BV,v,T,CV,Bi,Cb,m,B5,E,9,i,K,H,DL,h,Bh,w,j,f,BV,BX,BL,Cp,BH,D5,Bv,Bb,BN,S,BX,0,P,T,Br,Cd,C,R,Ba,f,Bc,T,BK,k,Dk,1,CS,Bj,Ei,DY,Do,2,CU,e,U,W,B2,h,8,I,Ca,o,CO,A,EG,Br,BC,Bj,O,r,y,Bh,q,Cr,F,P,BM,T,CS,Jw,Cq,B2,Bj,2,S,BS,z,M,BT,r,Bh,O,CR,CG,CB,BA,CO,BY,q,R,EK,BX,CU,BL,BC,BJ,D,5,EM,4,Cc|Bpc,BYP,p,Bd,B5,X,B5,Bw,D,BG,2,BO,S,6,6,O,Bo,l,e,Bd,Q,Bb|p6,Pb,BN,r,h,1,H,BZ,1,X,3,Ca,BU,BY,8,i,BO,BH;nu,Tr,BW,a,4,D,BK,Y,Jg,F,w,CZ,6,B7,u,BF,BO,Br,CI,Q,BE,c,By,d,e,y,y,B2,CA,I,K,k,Bo,A,T,BL,D6,C,E,CD,o,BR,f,B7,Q,B9,BE,BN,L,D1,w,S,Ba,H,CA,e,Bc,N,W,BB,Z,Bj,k,Bh,f,BP,S,BH,Gv,C,J,KR,CK,Cp,CI,CB,F7,BV,Hz,c,CR,Bi,NF,J,f,P,B7,Bc,CH,G,B5,j,Bl,n,T,CC,c,C0,BG,C6,M,BY,BC,C4,w,BU,B0,CI,BC,Ba,W,CY,L,B0,9,BK,3,B6,x,B6,K,q,BA,BS,BB,DG,p,CK,Bn,CE,S,m|BkS,Hx,M,BT,q,t,C,BF,x,r,BR,Br,BN,BL,BV,L,N,D4,1,Bc,B8,R,BA,B0,Bs,N|B1O,Brg,j,BD,BN,c,r,CJ,0,Z,1,b,J,3,Bg,c,E,BR,Bn,FL,V,0,Bx,Es,6,BE,P,M,0,Be,q,Cc,c,y,G,C,BE,A,S,i,2,E,E,BV,d,f,E,D|B1i,BtW,3,F,T,j,BF,A,BI,Co,Bm,CQ,E,G,Bc,L,g,BR,Bv,BP,z,Bv|Cjy,oP,2,BZ,y,CJ,g,D3,0,Bh,V,Bj,l,7,BH,B4,n,9,m,CZ,T,BZ,3,v,N,Ct,BT,Dx,Bl,Ed,CB,GH,BP,Ef,Bd,Dv,Cp,x,Cz,BX,B3,y,Cj,BK,5,Bs,N,C2,BJ,Ci,V,CU,k,CU,Be,k,C,BE,Bg,Cc,S,CC,v,Bi,n,CC,R,C8,BI,By,c,CC,Bk,I,By,q,BM,k,Ba,C,B0,B0,Cq,CA,8,Bm,d,BY,BW,Z,By,CO,C,B6,BE,Bc,BI,BZ|B0M,Bnk,Bh,d,I,2,0,a,1,Y,q,CI,BM,d,A,B9,f,7|15,r0,Dg,G,s,w,BC,E,BQ,z,BA,A,BE,g,q,5,Bb,v,BZ,E,BZ,q,BN,v,l,D,x,d,C7,E,a,Ba|ek,Bjw,BX,Fw,CB,BU,D,w,Cp,B4,T,Cc,CA,By,w,Co,h,DE,o,Bq,Dg,BS,CQ,Z,H,Bp,Cu,BM,O,n,Bn,Bl,D,Bf,BI,z,b,Cz,CJ,Bn,m,Bv,Bq,F,y,Bj,BO,f,N,Cf,Bl,7,9,BD,CP,BP,W,BX,T,BX,Bl,v|cB,BaY,C,m,A,O,A,Dy,FM,CY,DO,e,Co,2,BO,Bm,Dw,BS,I,CY,B2,Q,Bc,BM,EO,i,m,BQ,3,q,BH,Da,N,B8,BP,CE,DG,Bu,De,k,CC,BU,DI,BA,Fc,i,FW,S,Bm,f,DC,BQ,Dc,C,BU,v,CM,M,p,Br,g,DF,x,Cp,CB,Bz,S,Cd,Co,B5,C,x,CA,BV,BW,Fx,BE,C3,K,Bf,l,Cp,Q,Bd,b,Bx,S,CD,BT,BX,B4,CV,I,BZ,BI,Bz,Bg,k,Ci,Bf,Ba,CD,LF,GJ,JV,GX,Ej,Bb,Dl,V,D,CC,Bh,i,CB,4,x,Bg,K3,HC,K3,HC,MJ,H0|B0q,Bqe,i,BC,Dk,BT,GU,Dc,BU,D7,p,f,Gd,Bn,DO,DP,BF,j,j,BH,Cd,b,x,BL,BZ,BB,Dl,g,J,c,Bm,FK,F,BQ,e,6,A,B8|CqY,BQO,k,I,G,3,Ci,g,Co,H,B8,H,CM,CM,Ca,CE,CC,CA,m,BJ,c,Cj,Bp,A,T,CH,k,d,Bd,p,A,BV,9,BV,F,BT,p,r,Jt,Bm,BP,DQ,J,w|Cn4,BR0,P,CW,2,Bs,4,U,8,BB,E,B3,t,B5,5,P,9,m|Ceu,Bis,q,Bd,T,t,BE,Cd,CT,F,z,Bg,C3,U,CW,DG,CK,R|CCc,Bpu,BV,D6,HK,DW,BM,D4,T,CW,Bw,y,Bo,CA,BY,g,Du,b,BI,1,Bi,i,CG,D1,CI,9,O,B5,Bn,BH,v,Ch,CO,DF,D6,Bx,Bq,Cd,h,CX,BA,C,C,Bv,By,Br,B7,K,CL,Q,CX,DH,GB,Q,JH,Ge,Ez,CQ,D3,2|C2G,BLQ,E,BS,8,BU,A,BU,Bc,o,l,c,S,CG,Bo,A,Bc,CN,Bw,BL,CY,b,B4,l,Bc,B3,2,BF,BK,b,A,t,BN,B7,h,5,BX,BD,BN,CN,Bf,K,p,x,h,Bn,Y,CL,V,b,Bf,C,CB,BP,V,Bj,v,r,CB,A,BR,z,A,BT,Bj,5,Bx,S,CL,BF,Bf,N,BF,CQ,Ch,FU,Jq,DO,CK,Gc,Bf,CS;C5e,BU6,n,BI,6,BG,a,T,V,BV,b,n|Ira,zR,CA,B3,BD,b,BH,Ba,I,2;IqC,yj,d,4,F,Cc,Bi,9,g,Cn,3,a,r,N|FU4,nU,v,D2,CE,Cs,EK,m,DC,f,Co,BR,Be,CO,C0,BN,u,CJ,Z,D3,Fb,Cf,Ba,B9,DZ,P,Cz,BT,Cr,c,BV,Bq,Bp,DW|Fda,uC,DD,e,EL,n,CF,Ct,u,D3,C3,Be,Cx,F,e,Cg,C1,A,R,Dj,Bv,Et,BF,C3,O,CV,CG,H,BU,C7,k,Cz,By,B1,B6,Z,Bq,Br,BF,BV,CJ,Z,P,Bo,Cp,Ba,j,l,BT,BQ,j,Bk,Bt,B0,Bl,Bg,h,B5,n,By,W,CA,6,DG,Bk,DU,Bw,DA,BR,C6,C,Bg,X,By,CL,Ci,x,Bm,BI,m,BK,Cy,BV,CI,CD,CW,Bj,C0,BW,k,Bc,De,CS,I,B2,Ba,B2,u,BY,BB,M,B7,CK,L,x,DZ,E,C5,DY,B6,8,l,B4,G,o,BI,Cc,P,Cc,Cn,M,DN,Cm,Cz,L,Cv,BD,Bd|FkY,ty,C1,BM,Bf,CP,Cp,BQ,BC,Bc,K,Cu,Cn,Cy,N,DM,Cd,Cm,Cd,O,p,BJ,B5,H,9,k,DZ,B7,F,C4,w,DY,CL,K,N,B6,BZ,BA,q,BM,Cu,CG,S,x,Bs,H,f,Ds,Bq,c,B2,Ch,Bc,C7,EA,D,BO,Cz,CF,3,5,BJ,D0,B7,Cs,Dz,CC,C3,Ca,CP,y,CT,l,DP|FM8,BD2,B3,v,B3,Bb,CT,J,Bd,Df,BX,l,Bi,C1,CC,CX,BU,CJ,BL,Cz,BJ,n,w,Bn,CK,Cj,W,Bz,D,Bh,BQ,C7,Bx,DB,Bl,DV,T,Ca,8,Cc,BF,B4,Q,Dg,BV,Bq,BD,D2,l,EE,Bb,Cq,CH,Bn,Dr,CV,Bz,S,CB,w,BG,EA,r,DA,Ch,Du,Y,BK,B3,a,CT,Cm,P,Cm,BI,h,E,CU,Bm,w,X,BW,u,BG,I,DW,Cg,v,Ba,Cq,K,Bi,By,Cs,J,B0,EM,CO,CS,l,R,CA,BI,k,P,BO,B2,Q,BG,B5,BY,x,G,Cf,J,Cp,DF,Ct,Z,Dz,Da,g,w,C9,CC,n,7,Cr,CY,BP,Ba,l,CW,6,G,BV,Cv,CH,r,BN|Fai,h0,Cy,BS,DY,O,Bb,B8,Fa,Ce,Y,D2,v,CI,k,DO,z,CS,Cb,CO,CD,C2,Ct,Dy,D1,B6,4,BI,CE,2,BP,Cy,EB,C,Bd,C6,B3,Cg,Bu,y,Ci,D,DK,Y,Cu,Bs,Bi,BN,C8,n,h,B1,Bg,BV,DQ,1,ET,Cv,Ct,DF,t,CP,Ce,Db,DA,EN,C6,CB,B8,Cl,Be,F9,d,Fr,Cr,CJ,Dt,CH,Cn,Cr,ED,DB,BL,CE,4,CM,Cb,B0|Gxa,CMw,c,l,BP,M,BZ,BH,9,BH,I,CV,Br,t,l,j,BP,9,CJ,h,Bb,3,H,Bb,X,X,BQ,h,B0,Bb,d,x,BZ,P,CT,J,BR,Bf,Bb,I,P,T,Bj,m,Z,n,7,R,J,m,1,S,3,g,4,Ba,u,Y,T,k,0,Bu,P,g,B3,W,Bh,2,Cm,CE,Di,Bu,CO,CS,Bg,BD,Cy,H,h,Bq,FA,BY,BQ,B0,CG,B5|GjA,B7w,O,S,Ba,J,BQ,Be,CS,I,BY,O,c,w,Cw,Dz,y,CH,C,Dt,BP,Bx,C5,n,Cl,BV,C5,T,Z,Bu,m,Ca,Bb,DY,CY,g,CP,Cw|EjE,CjC,Da,i,GI,Cw,E4,Bg,Cy,9,DY,F,CK,Bh,DM,H,Eq,z,DI,CO,BT,B4,DU,DW,Dm,BX,C6,X,Dy,1,m,Cb,Ek,BX,DC,m,EG,a,DO,d,DK,Bj,B8,Bp,C8,C,EE,h,C8,y,EQ,g,Es,CS,B6,X,Bs,BF,D0,Q,Bl,Cd,CR,DN,y,BV,B0,Y,DM,f,Cc,BM,Cm,BD,C4,CR,X,BL,Cj,Y,Er,d,CR,5,CX,CJ,E7,BR,DP,Bt,DT,o,B1,S,Br,CF,BC,BR,g,BF,CR,BF,CV,Bv,Dx,BJ,E1,J,FN,BJ,Dx,Bt,Bb,BA,D5,A,Ex,B6,DL,e,ET,d,Gr,u,Dj,F,B5,B4,Bd,C8,CB,W,D5,CC,EX,c,Dz,i,BL,BY,BO,Dw,CP,Ck,En,BO,Ct,Bs,1,CQ|FD8,BdK,O,BP,BJ,l,Q,CB,CT,k,EN,CP,I,B1,Bz,Ct,L,Bj,Bb,Cr,Ch,u,J,DX,v,BH,W,BX,Bn,x,Br,FI,5,D,h,CD,Bx,Bo,BA,B0,Bc,M,Be,Cu,B3,i,DB,F,DF,c,T,CQ,Bh,I,Cl,Ba,BJ,CN,CU,Bt,CB,BN,v,BN,CA,3,j,B7,BI,Cb,e,Cp,d,BN,CN,C,D9,p,K,Cd,Bt,B5,Ep,CL,Dn,Dz,Cb,CD,DP,CH,A,Bf,Bn,z,C5,BL,Bh,L,7,Cd,o,EN,M,Cr,BZ,DF,A,Ff,Br,L,Bd,Cd,8,BF,C7,7,BH,CN,BT,5,DF,DA,Bf,Eg,BP,DQ,BJ,Bg,Bv,DG,x,EC,l,CC,C7,Ea,BV,GQ,9,EI,A,D4,n,DC,Er,B7,CT,Y,EP,D4,Bi,BK,7,BQ,Dx,Cu,CI,CK,HG,A,p,Cw,Bz,Bm,X,Ce,CJ,Bc,Dk,DY,Du,R,DW,DY,CC,DS,DI,DO,D,CS,Cu,B2,Cn,Bk,BJ,CM,BJ,C0,Bk,BY,E4,z,Dk,e,DI,Cs,Dc,Dx,V,Cn,BS,Br,H,Bp,CV,c,4,Dj,DK,CF,Ee,CR,CD,Bd,BR,DD,DI,BN,DC,Bl,EM,B1,Ec,b,B0,Bn,Ce,V,D4,v,Cq,C,W,BS,b,CE,Q,BY,B8,q,Q,Cj,G,p,C4,BP,CC,g,Cu,P,Cm,G,O,B8,BT,BC,Ck,a,C6,CY,Du,CE,Cq,z,CU,BW,Bg,CB,BH,BX,De,f|Ey6,BJG,F,CV,BJ,g,O,Cn,7,Bq,L,Bo,p,Bi,BV,B4,C9,I,S,BX,BD,Bx,BX,o,f,l,5,W,BR,S,f,Co,BJ,Ca,i,B6,CB,2,u,BM,CA,BM,CV,Bs,BI,CM,Ck,Bb,Bg,J,S,CR,DE,d,DA,E,B2,j,Bf,Cv,Bd,N,BB,B1,Bw,Bp,g,CC,4,C,Bq,FJ|Evy,Bbk,BS,BD,P,B9,Cn,H,Cv,O,CD,h,C5,BO,H,o,CK,CY,Bu,0,CS,x,Bs,F,Ba,3|EkQ,Bb6,R,BZ,a,CF,X,BT,Cr,D,D5,u,Cf,U,B1,Bm,Ed,a,EN,B0,DD,Bk,DJ,BM,BQ,DC,CC,Bc,BW,w,Ck,9,DQ,CJ,By,d,BE,Bj,Cg,p,Cm,Bb,Do,v,Dw,T|EDG,B0e,DJ,Ct,Dl,f,E5,y,Bl,BZ,BI,C1,BI,CN,Cm,Bl,Cv,B3,C,CT,DJ,DP,CD,DT,DX,DZ,Dv,Q,Dl,DZ,CI,Bd,W,Cf,By,Bn,o,Cx,HH,A,CJ,CL,CZ,y,7,CU,Ch,Ce,F7,n,FP,F,Ej,d,BM,Du,Eq,Bq,T,Be,Bh,g,H,C0,DH,Ba,BT,B6,Bn,Bs,Fa,Bp,DO,e,B6,b,o,s,CQ,T,EM,BW,G,Cu,By,By,CY,A,W,4,Ce,a,BM,T,BQ,4,N,B6,BY,B8,CC,y,BR,CI,DE,H,4,BK,J,BO,Bk,BW,X,Bm,x,BW,B4,Ba,Dc,q,Ds,Y,Bo,k,B2,W,CY,Bf,6,Cf,FU,BV|Dck,B6g,By,A,Ca,t,BA,Z,CU,BC,BG,n,BC,Be,B6,F,e,e,W,BS,BY,BI,Bu,v,X,BB,8,J,T,Ct,BQ,BF,BI,q,Bc,U,CA,Bc,CO,R,DU,A,k,7,B3,X,Bp,l,Dt,Z,Dd,r,B5,Bb,w,BX,W,Bn,Bl,BX,I,BP,5,BL,DF,G,BQ,CJ,CD,z,BZ,B9,M,B7,BR,5,BN,S,Cf,b,X,5,CZ,A,Bz,Bz,H,Cv,EN,BX,CR,S,p,t,B7,a,DP,f,Fb,Bo,C6,C6,R,CE,Cd,i,R,CC,BD,Ck,BW,Bw,BZ,e,2,CU,BU,EC,DS,BP,Ca,a,q,Be,Ci,e,B0,8,o,Ck,Cs,o,g,BI,Bg,3,8,H|Dgy,B5y,By,DS,r,CY,CZ,w,0,Ba,Cs,L,Bg,By,BC,CE,EU,u,r,Bf,c,5,BU,E,BL,9,Dh,g,V,B1,Dg,O,D8,BD,GI,e,y,C9,BE,U,B6,v,H,BR,e,B1,DV,A,CP,Q,CB,Bd,Bd,V,BJ,r,BR,BE,S,Cs,9,I,W,BA,Bv,u,BZ,BJ,X,BT,f,f,B7,E,BD,Bf,BH,m,CV,BD,BB,Y|Dq4,CMW,u,BY,CG,e,FU,BJ,g,B4,By,q,Em,BX,BK,W,FW,H,Ew,V,Bm,BL,CA,f,d,v,FH,Bv,BJ,BR,EL,Z,BN,CF,Db,a,CP,n,DH,Bj,c,v,5,v,GJ,f,D9,BC,Dh,P,U,B0,Dg,h,BK,8,Cc,T,EK,CU,D1,Bq,CT,z,CZ,BO,Cs,CG,9,U|CtW,CKw,Ba,BG,Dq,o,CM,5,CQ,Ch,Bo,K,Do,C,j,Bo,Cw,BG,Cs,B2,EW,Bt,U,Cj,BQ,r,De,K,BE,n,Bk,DV,Ds,CP,CG,Bh,DY,Bl,ES,BZ,H,B9,9,G,Bh,2,h,BJ,Ct,p,p,Cl,B1,9,Cj,f,r,Bf,Cb,b,DT,BO,T,Cs,CZ,I,Dt,C0,Cj,W,Dl,Bo,CT,S,Bb,l,CL,E,CT,B1,C1,n,l,CS,c,DW,Ch,BG,0,CO,CL,K,u,Cu,DC,z,C0,BC,CX,B6,7,B0,Cl,z,X,CX,BB,CE|Cgq,Bii,Bz,Bq,D,Bu,BB,D,g,CW,Br,Cc,D7,Bw,CP,DE,u,Cg,Bm,BG,P,B4,CJ,8,CH,D0,Bv,Ck,m,BA,BB,Ds,CM,4,g,BN,Bo,Bh,CM,b,BM,G,Dy,CY,BM,O,8,7,BJ,Bn,CA,Br,y,K,BC,CZ,DE,r,CO,Bn,Ek,j,FE,2,S,u,C0,m,CS,B0,CK,F,Ba,k,CS,T,Dk,Bp,Ci,X,Ds,C1,CY,J,S,Ct,BV,ED,3,CV,BY,f,BX,Bx,BC,Cl,Q,CD,Cc,j,Q,CF,C7,C7,Bm,Bt,BS,B7,DG,Bb,G,C1,Bg,h,S,Bf,Er,Br,BN,Dv,GF,8,Dh,u,Dp,a,BZ,D8,Bj,i,Cf,l,DP,Bj,D9,BE,DR,Ce,DH,6,CL,DC,CX,EU,Bv,h,CF,BE,BN,BR|B1O,Brg,F,C,c,e,F,BU,y,Bu,Bu,BO,h,BQ,Bd,K,T,Ce,w,BU,2,s,2,s,K,By,BE,p,Di,4,Bs,n,Co,C,Ds,BM,Bu,F,Dq,g,Bp,CB,Bx,z,S,CX,BN,D5,HL,DX,GV,Dd,Dl,BS|CaC,CBE,BN,H,BT,B2,A,e,Bb,A,9,2,r,H,BR,8,CZ,w,S,Bk,j,BI,Ee,g,q,1,BO,l,p,z,Bs,BH,5,BD,BW,3,Bc,j,G,CP|jk,DD2,Ba,B0,Cq,CO,BE,Dw,CF,Bo,N,ES,CG,DC,DM,F,BI,BS,BL,BG,FA,Eg,DO,Dk,CI,CS,DG,A,0,By,GG,h,e,CI,CA,I,ES,Bl,FC,CN,G,E9,BE,BR,Fj,7,DJ,CP,g,CB,FJ,Cl,GP,Cx,CX,Ej,CS,CR,DG,Bz,C9,Dp,DX,v,BP,Fb,B1,DD,D5,U,B1,Cj,Dv,L,BB,DE,Ct,Do,Cd,Ek|Bc4,C5M,DY,z,c,z,Bs,Y,DI,x,U,Bh,r,3,CA,CH,BU,n,N,l,CM,j,4,3,BR,t,Cl,I,n,V,u,BF,y,CF,Cx,N,BB,t,N,Bn,BT,U,C7,L,1,u,BN,j,BP,c,Cj,E,Dl,w,DR,Q,Ch,F,Bv,3,Bj,J,F,Ba,BB,Bg,B6,o,A,BS,3,BO,L,Ba,DI,A,Dg,BM,u,B0,Co,BC,V,Bc,B8,g,De,BQ|Boi,CsE,BM,J,y,u,BA,L,DU,U,CE,B1,z,p,Q,BB,Ck,L,BK,Bb,F,n,EG,BJ,Cc,e,CA,Bf,B2,C,Ew,BF,C,7,BV,Bt,u,Bx,h,BF,DJ,P,Bp,5,J,Bd,Cj,R,CL,BD,DD,L,Cx,BP,K,Bt,f,G,b,o,BD,I,CT,q,1,z,d,W,FD,y,N,BO,DB,b,BN,Bx,Ch,CZ,Bd,i,Bh,h,Bd,m,0,W,i,BG,2,BC,P,k,q,Q,U,d,B4,H,0,O,l,W,O,c,BJ,0,d,BW,BN,g,O,BG,Bd,2,BV,I,CZ,BA,CJ,V,x,f,BX,A,z,v,CZ,V,BH,f,Bh,w,CF,C,CB,W,BZ,t,P,2,Bx,2,m,BU,4,0,s,N,1,Bc,C6,Cq,Bk,W,W,6,Bn,Cy,Bi,I,Bu,2,Cg,E,DQ,R,Dk,x,Ci,F,BO,d,BM,i,0,v,C6,K,BS,V,M,Bm,BA,s,Cw,M|BNu,Cx4,K,Bb,2,BP,A,BT,B7,p,BA,Bh,E,Bb,Bm,Cz,X,7,Bl,X,C7,Cr,0,Bd,t,M,DF,BO,CV,d,Bh,U,B5,r,Bp,BI,BV,b,N,M,Bf,Bk,CZ,M,V,BA,CN,W,f,z,Bv,o,M,4,Cb,Q,Bh,BE,BV,CE,Q,BG,z,Bs,BN,BK,4,2,v,Bo,CM,6,FC,Be,EE,BG,DO,j,Q,x,DG,D,D8,Z,F6,E,Bo,X,w,BB|2w,CfO,R,BV,Bz,A,m,r,BF,CH,n,j,Cz,F,Bp,v,Cp,Q,En,0,v,BI,DN,l,X,n,B9,c,Bp,G,Bd,k,e,y,J,k,BA,K,Bm,5,c,2,C2,L,CS,k,Bi,H,BA,p,U,i,f,CG,BK,a,BK,Be,CY,BD,By,BS,BI,Q,Cg,BB,Bg,M,Be,n,R,b,U,BJ|BJQ,CgM,Bw,3,O,3,B9,r,Bh,CN,B9,CL,Cl,n,CB,I,Cf,1,BN,f,Cr,m,Cb,BY,BD,Y,n,BG,j,C,BE,CG,n,q,By,A,Q,BU,Bo,z,BM,X,Cs,Y,Q,o,BQ,G,Bk,g,W,P,Bg,a,u,u,BE,M,Dc,9,s,U|BX2,Cfi,w,e,CI,U,CY,BB,BU,J,Bc,3,P,BH,BM,h,c,BX,BI,1,P,d,k,X,1,P,B5,G,V,c,r,R,O,l,3,BD,j,BH,1,X,l,Bc,W,BY,H,Ba,B3,B6,BD,BW,BB,6,9,U|BdE,CWu,Bc,n,Bg,g,Bc,j,G,z,Bl,t,9,S,5,D3,B5,U,CX,BM,Dx,x,Bn,z,Ev,K,Cf,g,BR,R,5,BU,n,k,w,i,z,Y,BB,t,B5,6,R,BU,B9,w,X,BA,Bv,BS,Ck,m,B8,CK,Bg,CM,B8,q,BY,s,CA,X,CE,D,Bg,x,BG,e,CY,U,y,u,BW,A,8,V,BA,7,BC,BX,B2,B7,G,Bb,X,BZ,k,Bd|BXc,C3a,U,Bd,Cp,BD,v,B1,Dh,BN,DJ,A,x,BA,Bp,W,R,y,W,4,Bb,g,DZ,i,r,Cs,Dq,BA,Fa,P,DK,U,c,r,Bs,N,DG,Bj|BaC,C9Y,Bi,v,S,Bj,BC,B5,Df,BR,B9,h,DH,Bi,Bt,M,d,q,DL,V,Fb,O,Dr,BB,G,Ca,Bk,CC,DC,BG,Ck,CZ,Ck,E,m,Cc,Cu,k,Ba,Z,Cw,BN,Cq,D|BcQ,DF2,e,l,CT,B3,8,DB,BZ,BD,Cr,C,Cx,BM,Bb,Y,Cv,l,Y,B4,BN,Z,CD,BI,T,B2,EE,4,EE,c,Dg,h,DU,G|ti,Cxa,u,Bp,5,3,BM,BL,y,Bt,R,BH,BU,CF,Bd,X,1,Y,z,n,CV,p,BN,z,CX,r,k,9,U,BX,Bo,x,B0,BZ,BL,Bf,BL,b,e,CH,V,j,BB,o,Bj,G,CT,l,C3,K,d,3,Bn,4,BB,L,Dd,8,p,t,Cv,C,Y,CS,Bo,CO,Ep,k,Bh,0,K,Ba,p,u,Y,CK,j,DY,B6,A,y,BO,y,C6,l,BG,m,q,Cs,M,k,t,CM,Bk,v,BO,J,By,Ca,b,CE,e,E,BP,DQ,x,D,BJ,DS,m,By,2,Do,BR,Bg,BD|BLG,CSq,4,BV,BQ,Q,Ce,h,Eu,L,Bm,y,Dw,w,CW,BN,B4,V,Br,BX,BN,CT,BE,B1,Cx,a,DT,BB,D,Bn,C7,V,CT,BI,Cl,3,CZ,G,P,CI,Bn,BC,i,c,X,Y,g,BC,BQ,BA,Bl,BY,T,BM,y,s|BWy,Bz2,b,9,Ep,R,E,g,D9,o,m,BY,Bw,BH,Cg,K,CY,P,F,j,Bu,Y;BMC,CJW,CY,H,Ck,2,CS,BJ,C6,U,C,Bm,Bi,3,BB,CB,v,Z,B9,G,Br,U,D7,1,CQ,B1,Bp,h,Bz,A,Bt,Bq,l,t,s,B7,Bm,Bh,BP,t,By,Bf,Bm,7,C,Bz,C9,0,6,Bp,CF,V,BO,C3,CJ,D,Cp,BY,BN,Ck,l,CK,BR,Be,Bp,B0,P,4,Bg,Bk,K,BE,BE,c,E,0,CG,S,BQ,s,Bu,F,g,i,m,I|CUa,B54,Bj,j,BJ,0,Dv,a,BZ,h,Dr,h,Bv,E,Dt,BN,Cp,D,Bt,m,Dj,5,BF,o,L,Bz,3,t,3,t,BN,Bc,BO,BO,B9,R,Ct,u,CN,B3,E5,X,Cn,Bs,Df,I,v,BX,CP,Z,DJ,Bu,Dh,F,B5,DM,CX,By,Bi,Cg,CD,Bg,Dk,DG,E8,I,BW,Cc,GK,b,D2,CG,Du,4,FW,E,Fm,CR,Eo,BR,Du,e,Cw,T,Dy,Bs,Dc,I,DG,Bl,i,BJ,T,Bl,CY,x,BQ,9,CN,5,BA,Dt,n,BB,Bu,Cl;BWQ,CK6,DS,BA,Cw,b,Y,BR,Cy,BD,l,z,D1,L,BZ,BB,Cr,Bv,BD,Bg,E,o,u,Y,BA,CA,Bj,2|BFy,CHu,F,1,BF,d,L,BF,Bh,Bl,j,O,F,u,Bx,BE,T,Bi,Q,CM,c,BA,j,g,P,BC,Ba,Bk,M,n,2,S,q,3,w,V,O,BL,b,BH,e,BZ,BU,z|1a,CaA,BC,Z,Ca,BZ,Cq,n,BM,e,w,BR,BC,5,BP,BP,Bf,s,CP,D,Cx,g,Bh,F,r,r,BL,u,r,BV,Bk,Bh,s,BB,Be,BN,BO,t,BM,BX,C2,BP,X,j,DD,BM,B3,BK,C7,8,Cv,CW,q,Q,Bf,BW,F,BG,CF,e,BB,BZ,7,BG,E,BG,I,E,CO,H,m,g,BG,h,BQ,F,D,4,BI,U,U,BU,Ci,0|e6,CdU,I,l,f,z,Bc,l,Bo,H,R,BV,Bb,j,CZ,a,r,BT,Bj,H,j,e,Bz,BH,Bl,J,BZ,q,BH,Ba,Bj,h,E,Be,CW,By,H,y,Bc,T,4,i,Cu,D,o,s,Dc,9|Te,Cls,o,v,L,Bb,7,F,v,S,W,By,0,I|T2,Cn2,Z,CL,1,J,X,Bz,Cz,Be,Bp,R,CR,Bg,Bh,BS,Bf,E,f,BI,Ck,o,C,A,D,A,CY,R,C8,q,CE,Bb,Bw,x|WS,Cwg,k,BH,z,C7,z,BP,B7,A,i,DZ,Bx,w,CF,Ba,C9,r,CZ,Q,C,A,Bo,2,C0,Eu,EY,BW,Cs,H|dJ,CLG,BK,y,BU,e,y,Bl,B4,A,i,a,B2,J,4,Bn,Bf,3,D,Ch,j,f,J,Bh,BZ,R,BS,B7,3,CJ,BG,7,d,5,BN,BN,S,BF,BV,1,Br,c,Br,X,e,Cg,T,CA,Bd,S,x,BO,Q,CG,BS,BM,O,BS,q,B6,F,BW,p,BK,J,BG|YD,B5q,T,BE,BM,BM,c,4,BH,6,2,CI,BT,B6,BY,Q,I,Bg,i,e,C,Cg,Be,2,5,Bm,B3,I,j,b,B5,A,z,Bk,BV,f,BL,z,K,CS,BV,Ba,Ei,CU,D8,l,EU,A,Da,j,Cq,M,FO,J,BS,BR,F6,Bd,BK,s,Do,Bf,Du,a,K,B3,DF,CJ,EJ,t,T,BF,B9,Bz,BR,Cn,BQ,B1,B3,Bd,r,CH,Cd,p,CT,Cf,EH,D,DF,E,CD,BL,BP,BN,Bl,Q,BN,BG,5,B0,DB,g|UB,Cxw,i,CV,Cd,C3,Ft,B5,El,e,Cm,DW,Br,DS,EY,Cg,Cc,Bg,o,Bt,p,Bv,CA,C,Ca,p|Imw,BGB,Co,CB,Bq,Bf,BP,x,Bx,2,CV,Bc,CF,Bs,CJ,CS,d,BE,BY,D,By,BH,Ba,BH,BC,5|Ia8,hz,4,BJ,CR,C,BP,CA,B6,z,o,H;IZi,e9,f,l,CZ,Cw,r,B6,BG,A,BK,Cl,BS,Bj;IW2,f1,BR,H,B9,W,r,e,M,BS,CI,h,BE,r,g,1;IS8,Z3,w,BD,I,p,Cj,BY,Bv,BK,BP,BE,e,U,Be,x,Co,Bf;IK4,Wp,BS,BF,p,L,Bb,s,BV,BU,K,i,B6,BX|JMm,CFR,BP,Bt,Bn,CP,Cf,BT,j,0,BX,e,B2,Co,BF,Bw,Df,BS,G,BK,CU,BI,i,Ce,J,CG,BV,CK,G,k,Bj,BU,Cj,C0,BV,CS,BM,Q,Bu,Bz,Cg,1,4,C3,CW,DZ,E,CM,Bc,3,e,Cd,Ck,BD,CM,R,B0,BO,Bo,Z,z,C1,9,B5,Cd,E,3,9,S,BZ,d,n;IzU,CQh,Cu,Bs,B8,Bq,Ba,CY,BO,0,e,Bw,CQ,Bg,s,BZ,u,BV,CS,BS,6,BX,A,BX,BN,Bf,CJ,CZ,Bp,BT,BM,Bj,Cf,F,Cx,BN,1,CJ,B1,DR,Cj,Bd,Bn,5,C9,E,CH,BE,Df,O,j,BM,Bu,CY,EC,DM,CG,k,CU,BO|Hqa,CHp,B6,P,O,Dz,BH,BJ,X,Cl,BJ,2,CP,CP,r,K,B9,G,CB,Cw,b,CI,B3,Cy,E,Be,CI,T,DG,BJ,Bw,c,Cg,m;Gi6,Bp7,Db,Bp,Cz,v,n,Br,BN,BV,Cv,F,CD,T,C1,k,CV,X,CP,L,B5,Bt,7,K,Bn,7,Bl,BB,CV,G,CL,A,Dd,CE,Bt,m,E,B2,Bm,a,g,u,H,BK,Y,CO,X,B6,Bt,DQ,h,B0,I,B0,BT,CG,F,6,Bd,BS,Z,Ci,B1,Ci,d,BW,Ba,BZ,BH,DA,Bm,7,6,BR,D,Bo,Bn,Ci,T,BC,x,8,W,B0,q,y,a,Bm,V,B2,BU,CU,Q,Cd,BW,CO,Cm,BE,Bk,BY,Cc,BM,Be,Q,2,b,Ci,BO,B8,W,e,s,0,S,By,H,DY,8,Bu,Ba,0,Bs,B2,Bo,K,BS,E,Bw,CQ,Cs,BW,Cx,BY,o,BL,Bg,BC,Bk,Ba,t,Y,Cc,Bw,Bk,w,BS,Bm,i,E,4,Ba,Z,C,y,Ba,e,Bk,a,CW,Bf,By,B5,CC,D,CC,T,r,Bw,Bi,Ck,Bc,0,h,y,Ba,B0,B6,BK,Bq,Z,Cs,m,F,Bo,CZ,BE,Bu,c,CI,z,Bs,BV,Cs,z,6,U,CA,BB,B2,6,BO,T,u,m,Be,Bl,1,Bv,BP,BT,BJ,H,Y,BT,9,Bn,BJ,Bn,O,5,Ck,Bx,Ce,BD,Bo,BJ,CU,B5,6,A,Bq,z,e,BB,DG,BH,CI,BG,m,Bu,o,Ba,a,Bw,8,Ck,d,Bi,Q,6,Z,B0,a,Cc,m,o,f,BE,w,Bs,m,Bw,E,6,BO,BM,4,Bl,O,CB,y,b,I,BX,BK,Bn,Q,B1,J,BL,BK,Cj,CE,BO,BE,BX,Bi,BR,V,Bd,s,Cx,e,Bl,y,b,2,Cv,V,Br,BE,CN,De,Br,CS,Bj,CK,BZ,b,x,B0,CD,BQ,Df,BS,s,BS,Bb,y,g,i,Db,CS,CB,Be,BP,Ci,Cn,4,Cl,E,B1,P,CB,Bi,Cv,N,C3,j,Bf,3,C3,E,B1,p,CV,Bb,C7,CZ,Bl,BN,Ch,BF,Bl,9,Cx,BP,Bn,z,Cb,b,CP,K,BD,B3,BH,Dn,J,C9,BV,Bf,BR,B7,BZ,Cr,Bc,B9,i,e,Bq,Bv,n,C1,CV,Cx,2,B1,g,B1,O,DJ,6,CH,CA,l,Cc,x,Bm,Bl,BU,DH,Y,BE,Bi,x,Ca,Bl,CR,C3,l,Bq,Bw,e,B2,BQ,Bk,R,CY,Cn,Cv,CD,BH,BP,Cl,Ch,BU,G,Bs,CD,CW,Br,BM,k,u,EJ,B8,CR,G,DH,Bi,Fx,T,EN,BL,Dr,BF,DF,M|EP0,YQ,f,DX,BX,5,Cz,v,Bj,Ci,j,Eo,Bc,FO,CO,Bx,Be,CT,Bk,DX|FrK,6s,Cp,BA,H,Cw,Bk,Bc,Dg,4,B2,F,s,BP,Bb,Bb,v,B3,Cx,Bj;EK4,CMm,R,B0,CO,0,C5,Fm,GY,BS,Bo,s,CU,Fw,GY,BF,By,Bc,K,DQ,Cq,S,Cc,CI,BQ,S,0,CR,Cs,Bt,Em,BP,CO,Cl,BP,Dx,BK,BZ,Dy,j,EW,d,D4,CD,CA,X,Bc,C9,B4,B5,Di,E,Gq,v,ES,c,DK,f,Ew,B7,D4,A,Ba,BB,Dw,Bs,FM,BI,E0,I,Dw,BI,CU,Bu,CQ,BE,h,BE,BD,BQ,Bq,CE,B0,T,DS,p,DO,Bs,E6,BQ,CW,CI,CQ,4,Eq,c,Ci,Z,W,BK,C5,CQ,Cn,BC,Cd,BN,DN,e,B1,Z,z,BU,CQ,DM,Bk,Cc,D2,BP,Ei,CC,D,Ba,C4,Da,By,BC,D,By,Bx,u,Co,Bm,EC,k,EQ,G,E0,9,C0,BN,B8,DR,BO,BZ,BI,B9,BM,DL,Fm,BD,Dy,CT,BU,DD,E4,A,Cw,BQ,FW,8,Bt,C5,BR,BN,BH,Dh,CL,DL,D7,k,Cv,BJ,0,Cx,f,Dz,Bp,H,C,Bn,CH,B4,BR,B1,FB,BZ,g,Br,Cz,G,Bh,BC,CP,CT,Dj,Bv,Cn,CF,Eh,7,CZ,Bh,Df,3,Bu,Be,r,BQ,Ci,CK,Bt,Bs,Cz,BL,Dp,CP,CB,CH,DL,L,Bp,Bf,Bs,CN,Co,h,G,Bd,Ci,7,Dm,CS,C2,BR,CG,H,g,Br,El,5,Bf,Bv,DL,Bn,Bp,CR,De,Bx,BQ,DL,B8,C9,CM,Cf,F,CZ,CD,3,w,Bv,B4,BB,f,Cn,1,Cj,Bx,T,CX,Dh,Cn,EP,DB,D1,Ed,DB,Ef,Ct,Dp,X,B9,Bd,BH,BE,B1,Bn,Eh,Bn,DZ,f,BJ,Db,Bx,N,1,CW,u,BQ,EV,BC,Bh,j,DR,0,Bh,BU,g,B0,C9,m,Bj,BM,Cv,Bt,DL,Z,Cj,C,Bv,z,Br,d,e,Dt,Bt,G,T,w,H,BU,CX,7,Bb,k,CZ,BO,6,Cq,CD,m,x,C8,Db,h,Y,Dy,DE,Cs,I,Co,H,Ce,BZ,w,BH,B4,B3,R,Df,e,BG,BW,Bh,CA,CV,BX,Cr,y,Dv,CF,C7,CZ,Cl,b,Bb,2,Bt,E,CT,w,Bv,1,CL,CZ,R,Ci,B9,r,Dx,S,Dp,u,Cn,Ba,Ch,o,BF,Bi,Bz,c,DR,CI,Cl,8,BX,x,Ef,CQ,DL,CE,5,Di,CU,d,G,Bo,BT,Bq,U,Cm,Dd,Dw,FV,BU,7,Ce,CZ,Be,l,6,f,B0,G,BQ,B7,u,BF,V,z,C8,4,u,d,u,DG,Bi,CO,m,Da,b,BM,CE,EK,Y,BI,BQ,FG,Bu,c,u|GU0,BQq,B7,FL,BZ,Cp,Bt,Cs,X,Ca,B2,DK,Cm,Cc,Bc,9,j,B9|hq,CbQ,B8,d,W,m,DM,k,u,BJ,Em,1,X,Bl,w,BZ,Cl,e,Cn,BL,K,Bl,Z,7,BE,Bp,DC,Bn,Bm,Cr,Dk,Cl,Ci,A,w,t,5,p,C4,BL,CW,9,Cw,Br,U,n,n,BL,Bx,Bg,Cz,g,BX,CF,CU,BP,Z,Br,BV,N,Bv,Cv,BX,R,C,8,o,Bu,s,q,BR,B2,BB,Bo,BV,Y,9,BY,CF,m,BZ,BS,CZ,M,Ch,Bc,C9,CI,CN,B0,BB,DM,Bn,Y,Cn,BE,Bf,d,B3,Bf,BV,R,W,Ba,Bv,Y,1,Cg,BI,8,9,BO,I,4,BY,r,Bk,I,By,BG,i,f,Bi,G,q,BS,CY,b,Ba,i,Q,BU;vm,B9C,Cc,S,BL,Cj,e,BB,r,Bp,Cd,BO,Bp,U,Eh,Bo,c,Bq,Dw,V,DS,W;cG,CH6,Bm,BA,B6,CT,d,ER,Bf,M,BT,BF,BP,0,J,D4,v,B0,Bw,L|gA,C1W,CF,f,Cb,a,BV,By,H,DS,i,2,4,8,C0,M,BK,4,Ck,4,H,Bp,9,BF,Y,5,Bu,f,x,BP,9,W,CV,CV,2,Bl;n4,C5A,BC,Bn,B7,Cn,DZ,By,d,BW,Eu,BE|UB,Cxw,Cb,o,CB,D,o,Bu,p,Bs,Cs,I,Dc,CB,Bv,CN;J9,CwQ,c,B4,CJ,B8,F,E,D5,i,x,2,BK,Bc,BF,2,Bv,Bh,L,DI,Bp,Bo,BK,DU,Cg,Cm,Ck,R,D2,S,Db,Dh,DQ,c,Di,D,1,Cn,C5,C5,DU,N,Q,X,C4,Dz,CM,h,B8,Dp,6,BT,D4,n,Z,CF,Bp,7,BS,Br,C5,Br,EV,A,Ff,3,Bh,o,CJ,Bh,C9,W,CT,BP,Bt,o,Eu,DY,C4,s,D,A,FD,g,7,BS,DY,BA,Bx,Bu,m,CI,Ey,V|uz,DcY,v,CH,Do,CN,EN,Cf,JT,CN,Cz,l,EP,c,JB,BC,DK,Ba,HD,Bk,Fu,m,L,8,Gx,u,CM,CG,E4,e,FA,CN,E4,Bw,EE,7,FQ,Bu,FW,P|CZq,CLC,6,H,CM,B9,Bc,P,i,0,B4,BS,Bs,Bt,Bo,CT,Be,J,BA,3,Cp,R,j,Ch,l,BJ,BL,v,E,Bn,z,L,CB,Bq,BI,Bm,9,6,BN,P,Dz,CZ,H,CO,Bd,i,BX,2,4,BC,Bt,BG,o,y,BP,k,r,0,y,g,CY,7,Bu,N,c,Y,Bl,Bu,y,c;CY0,CA8,CN,a,Bp,Bg,h,BM,q,G,8,3,Ba,A,A,f,BS,B3|CE4,CQG,Y,Y,Cs,j,Eu,h,Ea,Bj,i,n,B8,g,DA,r,BA,BV,CA,v,z,d,Bk,Bv,d,Z,Bv,M,CZ,6,z,h,Ef,h,DH,Bk,Dd,J,e,BW,z,CO,B1,BK,Bz,Y,BL,8|GRw,o8,Bp,Ce,Cw,J,BI,BL,3,Cx,BZ,Bk;GXc,gM,y,4,W,CA,Bw,M,h,CL,CY,DG,V,DF,BL,BF,BB,CD,BB,9,CB,CO,q,2;Gjq,bI,U,CJ,M,Bz,BH,C9,BN,DS,Bh,Bn,BC,CZ,5,Bh,Dz,B2,5,CW,8,Bg,CD,Bg,BB,BV,Bh,I,CZ,Bz,j,6,BQ,Cs,CC,6,Bw,BM,BI,Bd,Cc,2,g,Bc,CS,G,N,Ce,Cm,Bh,S,Bp,O,BN;GKQ,eE,ET,DF,Bk,CQ,CW,B8,B6,CQ,Bq,DM,k,Cp,CJ,Bx,Bt,CN;GWo,6w,j,BV,BI,CV,3,Cr,B5,BF,f,Cn,s,Cj,Bs,X,Ba,Y,EC,Bz,T,Bv,BC,x,V,Bf,Ch,Bk,BN,Bq,1,BL,CF,B4,C5,d,Bn,s,K,BU,BA,0,9,u,b,BL,Bl,B0,f,Ba,J,DE,BU,BF,U,FE,BE,C6,B6,D,CA,5,BA,0,S,1;GVq,k0,h,Bg,B6,BB,CE,A,F,BV,Bf,BZ,CF,9,H,Bg,O,Bo;Gg0,nO,4,Dl,Cf,0,E,BF,y,CB,Bj,v,J,CS,9,K,h,B8,B4,R,D,BM,B9,Ce,DG,F,2,BP|FM2,U0,i,k,Co,Bb,O,Bp,CI,Y,BE,BU,u,T,B4,B9,BW,CJ,M,CN,X,Bd,U,BJ,O,B5,BI,3,BS,C3,F,BH,CT,N,DF,CY,Dz,Ci,Z,Bo,B1,CK,d,Cq,BL,Bu,W,CW,t,BW;GIQ,NW,Cx,i,Dt,A,BJ,Dr,BR,BJ,Bp,Ef,Cn,r,DF,4,Bj,T,B3,Bp,CF,Q,CH,r,CN,B0,j,CK,CY,BJ,Ce,m,o,Cu,BY,m,D2,q,CS,Ci,Bk,CE,Be,Br,q,BG,Bi,H,M,CE,I,Bk,Ce,CO,Bo,Cg,BS,C,Bo,Bp,K,BZ,CI,5,Cq,9,P,BR,CL,L,k,Bl,CZ,BH|GAa,Rk,J,Bl,N,CF,Bj,G,r,BH,Bf,Bq,BS,BM,Cu,Bw|si,CaC,Co,R,Bo,u,Cy,E,m,i,i,D,m,BH,Cj,1,V,BV,BJ,V,C,5,BR,E,BH,g,n,h,CP,G,s,S,x,BY,W,Bk|BeO,Dkw,d,CR,E6,CJ,DB,Cd,Dw,Dp,CN,Cx,C4,Cb,BT,CH,Ew,CN,BP,Bp,DB,B3,G5,EJ,F1,R,Fr,BL,FR,r,B3,Bu,DJ,BE,s,DM,Bj,C4,Bi,B2,C4,CC,HY,De,CK,q,X,BW,Ef,Bi,BF,BQ,H,E8,FD,CM,ET,Bk,B4,0,Dm,Bt,EM,K,De,x,DE,Ba,Bk,CY,FA,BE,EK,BR,BZ,CT|BKw,CiW,5,1,n,BV,t,V,Dd,8,BF,N,v,v,Bh,b,X,O,Bl,h,BR,H,R,p,Ct,Z,BN,W,Bp,y,V,BI,Q,a,c,s,Bc,F,BG,U,E,U,m,I,O,u,u,K,e,k,8,A,M,N,BU,a,Bo,BJ,B4,q,Bg,V,CU,c,DE,BP|wc,Co2,Bg,BF,Ca,R,N,5,Bu,p,e,y,CM,X,U,BB,CY,N,Be,Bl,9,A,f,l,v,L,P,v,n,J,F,V,BH,V,Bd,E,d,t,Bf,m,Bh,N,Ch,BA,BJ,R,Bz,BT,CZ,BC,B1,BY,Bp,w,V,BW,l,8,CW,q,BM,y,CU,o,y,m,0,Z,Bc,W|B3g,ug,X,BS,BY,Eu,U,CK,BC,8,CW,i,Bo,B0,B2,Dv,4,C9,Bu,Bj,Ea,DF,Bw,B1,Bw,B3,BA,BH,Bk,9,9,x,BZ,Q,BH,BE,BV,B2,Bb,BC,1,BI,Cz,BS,CP,C,x,q,B5,v,B7,Bc,BD,Cb,Dv,q|HXq,CCY,C9,DR,E,DV,BP,Cl,i,Bn,Br,CR,EH,Bh,Fr,N,En,Dt,CL,BQ,J,Ca,Fn,t,Dz,Bj,Dx,D,DQ,CZ,CL,Ff,CF,BX,Bl,BQ,y,C4,CF,6,BT,CO,DC,8,Bs,CC,DO,Bq,CY,CM,Ga,8,Dc,p,DW,Fs,CK,Bh,Eu,DO,B0,BQ,CA,D6,j,Dm,BY,CE,Da,k,Bu,Ef,H,Cn;Hge,CRy,CS,BW,s,Dn,Ex,3,C1,DN,FF,CM,Bv,Dj,Dl,D,d,DM,Bk,Ce,Dc,M,6,Ec,8,Cg,Dw,DX,Ce,BH,CQ,r;G3A,Bt6,Bw,B6,B0,Z,BU,BW,CY,r,a,BH,B1,B9,BV,BC,Bp,v,3,B5,CH,6,C,Bg|DBp,BDH,8,Bx,P,EZ,Da,n,BU,m,CK,3,m,9,S,C7,Y,BR,BM,J,BO,g,BK,l,A,Bx,d,B5,p,B3,h,C1,C7,Cf,Cj,h,Dn,e,DR,4,DM,E4,f,Ba,DV,BQ,D7,CY,Cp,e,F7,FQ,BS,D2,E,Bu,Bi,C0,Fo,6,C8,F,DC,Bp,C,BB|Cru,9S,Cg,FV,BE,CR,CV,3,p,Bb,F,BH,DP,BX,FL,Bh,C3,CT,Bb,L,9,M,B5,BX,CD,n,Ct,L,z,N,t,1,3,R,f,z,Bn,E,BB,b,CR,K,1,B2,G,Bw,h,6,p,CY,7,BU,q,K,X,Be,Y,m,J,Ba,Ba,BC,V,BW,0,Bk,BU,1,2,S,Du,E,k,V,DI,V,BO,K,y,BF,Bg,i,CS,DY,DC,Bc,JS,BO|Byw,Bgs,Dk,h,BY,BA,w,BK,Cc,a,i,BG,BE,i,DP,DO,Gc,Bm,o,e,D2,3,Ey,CR,JG,Gf,GA,R,C2,V,y,Bh,CS,E,BQ,Cx,Bk,v,i,BJ,CM,BX,M,BV,V,BH,a,BF,6,5,a,BF,e,z,8,n,4,O,m,BP,I,x,BO,DR,Js,Bn,o,q,Be,CT,CL,Gd,Jr,DP,JT,BP,DD,Bd,CT,DZ,Bh,j,z,BE,BP,L,DJ,U,l,U,Dv,F,3,T,BV,0,1,Bl,U,BX,Bb,BD,b,BW,9,BA,R,BQ,Br,BK,Bt,Cs,5,Co,CP,CM,Bd,i,CJ,DE,Z,CQ,K,B4,B3,Dk,Bh,BQ,Bv,q,BF,B0,M,s,5,Bq,7,u,BR,CY,B9,Cm,Bp,CM,Bn,A,g,Bw,I,BI,a,BS|Cg9,EDx,Bo,A,Ey,s,E2,t,D8,BZ,BY,B9,Y,BZ,I,Bp,FB,BB,FR,z,GF,x,Gv,p,Hp,M,EP,BG,i,BU,G4,2,Cw,BG,CC,BY,Bc,BM,B6,BI,CG,BU;Db1,EK5,HQ,H,G8,V,CY,BU,Bs,BI,DW,BV,9,Bp,7,Bd,Gx,c,HN,N,ED,BE,A,I,Bx,6;D0d,Dr5,CO,Y,Du,J,6,Bo,M,BM,F,Ck,B0,Bg,C8,g,Bs,BN,u,BN,BY,Bd,BE,Bb,4,Bd,Y,Bd,l,BR,3,BN,Dz,d,Dn,n,EP,E,Bk,BQ,Dx,d,Dn,d,Cd,8,N,BU,Dg,BQ;FUH,Dt5,CC,i,EG,b,Eq,R,Di,d,Dg,Y,B4,B1,Ch,Q,D7,J,D9,I,EX,N,DT,m,Bt,BW;GXj,Dzn,q,BG,D2,l,EK,h,D2,k,B1,BJ,DD,1,Ef,Q,DP,BI;Gml,Dy9,CU,q,DO,v,E6,BR,B5,I,EL,S,Eb,4;IgH,EFj,B6,BO,GA,h,DO,BB,Ce,BL,2,Bd,GN,b,EP,BI,B5,BI,J,M,CF,2;JWo,EZR,A,RF,StT,A,A,RE,M,D,C0,B2,Fy,BB,Y,G,Da,BC,a,D,Y,D,Eq,BV,EE,BU,u,M,Je,k,DE,x,Bg,Z,E2,BF,JK,1,HQ,BB,Mc,v,JS,2,Ns,p,Hw,BB,Ig,6,I8,4,s,Bg,Mt,I,Kb,u,Ct,BS,Ir,q,k,Bc,BM,BU,BM,BO,n,BU,FZ,2,Cd,BI,FB,BC,H0,N,Hc,g,Eq,BH,Fu,8,FU,BM,Ck,BE,BJ,BU,EL,4,Ev,6,Gp,M,Fz,c,GR,U,CH,BM,EL,BA,Ch,BI,BD,Dq,Bk,V,C6,BB,FS,U,FI,a,Co,BZ,FI,U,ES,s,EC,2,Dq,BE,E2,U,J,BM,BL,BO,8,BI,EK,k,B4,BH,E6,o,Ds,y,Em,E,EW,U,EW,w,De,q,D6,s,Cg,N,CM,R,Ey,c,ES,l,Ec,E,EO,c,EW,V,Ey,V,Ee,I,Eq,F,Ey,F,Ea,I,DS,6,D4,g,EC,r,D2,i,De,BK,CE,BD,BI,BJ,CG,BF,DW,6,D0,BN,EY,Z,Ds,3,Ei,K,EG,k,E2,J,EW,d,Ea,j,Bs,BY,CF,BE,Bl,BI,EN,Q,Bz,BO,t,BM,BJ,CY,Cc,b,EO,N,EM,M,Dw,h,DS,9,BY,BJ,EW,N,EM,c,Ea,o,D8,W,DS,v,ES,Q,Cw,Cc,Cm,Bd,Ds,l,EE,U,Co,BR,EO,J,D4,Z,D2,r,Cg,BM,BQ,BI,DO,BR,Ea,U,DS,t,CO,BF,ES,U,DW,q,DS,0,D4,c,Ei,W,EG,c,DK,s,B4,BA,w,BY,Z,BU,BB,BQ,BL,BS,BB,BQ,1,BI,L,BQ,S,BQ,Bg,BO,BS,BU,e,BQ,n,BY,Z,BQ,Bk,Bc,Bw,8,CE,BM,CO,BA,Ck,8,BQ,BY,Bw,2,CC,0,DG,M,CC,BA,CQ,o,Co,W,CW,0,B0,BA,Cg,Y,B4,1,BP,BF,DR,7,Bb,t,CZ,g,Cp,V,CP,v,CV,1,Bl,7,d,BR,M,BP,Bg,BF,CP,x,DD,P,Bv,BH,B5,BB,CD,BZ,h,BN,BK,BX,Bs,BB,Co,v,Cc,BD,BU,BR,s,BN,6,BR,Bg,BH,8,BN,a,C9,8,BN,Q,BR,BA,BT,d,Bt,Bx,BV,B3,BF,EV,d,Bd,BJ,B7,BF,E3,BP,ET,f,EF,t,EX,r,Cl,BV,FN,J,Fr,I,FJ,R,Fb,A,BA,BR,E6,l,Dm,5,CA,BJ,Dl,BB,Fl,U,En,1,L,BV,J,BR,Dw,BF,s,BP,EG,BN,G0,h,Fy,3,Em,BB,F2,BD,IC,f,H2,5,Fg,7,GA,BH,DK,Bh,Bk,BN,D4,BI,FU,8,Fm,BA,Gs,0,Fu,2,IC,E,H2,d,Gg,v,CG,BY,Ee,6,IK,E,GW,s,GE,q,Gs,c,HI,k,FA,y,CR,BI,Bb,BK,A,BM,GP,J,Gp,h,GV,A,3,BO,a,CY,Bc,s,Em,u,Fc,w,D4,6,D6,6,C4,BS,Ea,i,EW,c,CO,Q,E8,I,Eu,a,EA,o,D4,w,Di,u,Ee,BA,C0,BG,DC,6,6,BQ,Db,w,BK,BU,CI,BA,DW,o,Di,u,DS,BC,Cg,BQ,Bk,Bg,CU,2,D2,L,Bk,BH,D0,J,I,BO,Bo,BQ,De,V,y,BN,D2,N,EK,i,EC,Y,Dq,N,BY,BV,Di,BG,DS,i,Do,c,Dm,c,DS,u,Dk,g,Cy,q,B6,BK,Ca,1,DW,c,CU,Bh,B0,BJ,Do,m,Bc,BQ,DS,4,EO,N,BS,BN,Co,BM,De,Y,Dw,I,Da,F,Dm,Z,Dc,N,Bg,BF,CG,9,Di,k,Dw,I,Dq,A,Dk,E,DO,c,Da,W,C0,4,DC,i,DS,U,Cc,4,Bw,Bu,B0,BG,DW,h,BQ,BJ,Cw,x,DW,Q,CS,BJ,CY,1,DS,w,BI,BY,C4,k,DW,BE,DK,c,Dw,m,Ci,s,Co,u,Cg,s,DC,Z,C4,BI,CG,4,DC,F,Co,u,o,BK,Cs,2,Co,o,DO,e,C8,Q,C0,N,DE,T,Ck,5,U,BZ,C0,BF,B6,5,D2,Z,CK,3,Co,3,DG,N,Ck,m,Cw,BU,DC,r,DK,Z,DC,Z,DK,P,DO,A,Co,DX,J,1,X,Bd,DH,z,Cj,BP,c,BR,Dm,E,d,BR,Bp,BN,Bh,BV,Cc,BD,Du,T,Ds,i,Bw,BQ,BG,BO,Bu,BA,CC,6,0,BK,Bq,Bk,CC,S,Dq,I,DO,Y,DQ,g,Bk,BQ,8,BM,CM,BM,DK,0,Cu,m,Bu,BG,B0,i,CW,g,DO,V,C4,U,DK,Y,Dg,N,CW,2,Bo,CK,BM,3,Bg,Bh,Cs,p,DG,R,DG,Y,DS,R,DC,F,CC,U,Cs,N,Cc,t,C4,c,De,A,C8,c,DW,d,CI,BE,Bo,BG,CO,2,EC,Ca,CG,d,Cc,3,CK,BL,EG,B7,DK,F,C8,A,De,W,De,c,Co,2,CM,8,Dm,I,CY,q,Ci,n,Bo,BD,CQ,BB,Di,I,CM,1,D2,z,EC,V,DW,Q,Cg,BA,CK,BC,C4,Q,C4,d,DW,V,DC,g,C4,A,C0,V,C8,V,C4,k,De,e,DS,I,Dq,A,C8,U,C4,Q,2,Bk,I,BU,CC,3,i,Bd,BG,BX,BU,BF,Cs,j,Dq,K,EO,E,C4,M,EO,A,DC,E,EO,J,Dm,R,CS,BB,p,BN,CG,9,Dc,v,Dm,1,EK,j,EW,h,DS,f,Dq,F,CE,BE,C2,5,Cc,BB,C0,v,D6,V,Ds,Z,Bk,BR,Dq,x,Cc,BJ,Dm,h,Ds,E,De,N,D0,E,D2,P,Dm,d,DU,x,DW,n,CS,9,Z,BR,Bt,BJ,Bd,Bd,BJ,BJ,Bh,BX,EP,f,B5,BL,EN,r,Bd,BR,CN,BP,CX,BB,BV,BV,z,BN,V,Bd,E,BP,B0,BR,q,BN,Bg,BJ,GA,d,BS,BZ,F1,h,E5,r,GJ,J,Cv,B1,j,Bh,BZ,BN,Bt,BP,ES,BF,Bo,BV,Cw,BN,D6,BH,Ee,BB,E0,BB,Ha,BD,Bm,Bl,JS,r,o,R,CY,7,I6,y,HY,BB,Fi,x|Brk,BzW,O,C,e,w,CU,F,C6,8,CN,BX,O,n,V,G,n,P,f,E,L,J,F,U,R,M,n,C,3,R,n,K|Brk,BzW,m,L,2,Q,m,D,Q,N,E,V,K,I,e,F,m,O,U,H,G,R,DT,BV,Bl,a,v,BS,Bg,I|HB,Bzc,BO,CF,M,B9,BG,Db,2,r,n,BR,EP,j,Bd,BN,B3,R,J,CZ,Dx,BT,BP,Bn,Cp,3,DP,f,FN,CZ,A,Dz,f,A,G,Bv,CB,H,BF,v,Bd,A,BL,a,Ct,X,BF,Ch,BB,P,Bh,EF,Ef,Df,BF,Ed,BV,Bd,Z,BL,HR,R,F,A,K,Bg,BO,2,BE,Bq,P,BG,BI,CQ,Bw,CE,BG,g,2,B2,E,Bu,BK,B8,CK,BM,CC,DS,E,C,Bm,BQ,DA,W,Ci,CM,Bm,2,Cs,Cq,z,EC,BO,Cw,a,Bq,CE,CM,DQ,Be,CY,BU,CK,DW,BA,B8,CY,A,B6,BZ,DE,O,DW,t,BY,D|B46,BI8,Mz,A,Mh,A,M9,A,A,L2,A,Le,9,Ck,0,CA,h,BY,BK,Bi,EU,E,DG,3,DM,7,Be,h,Ce,BC,BW,4,C0,S,CS,b,2,Bn,u,BE,Ck,x,Cg,L,Bm,y,Bw,Et,U,1,5,BT,r,Cd,5,Br,v,j,BF,BC,Bd,Bc,CV,Em,V,T,BU,DZ,CA,DR,Ca,FD,BM,Bv,BE,B1,C2,Dj,p,l,I,CH,Du,C5,k,p|BSo,BI8,A,Gd,Dt,A,D,BX,M3,GM,M3,GK,DR,Bx,CT,BN,Bz,Bw,FH,BY,Bb,CC,Cj,Be,Bh,l,BJ,By,J,BY,B5,CU,BS,BW,T,CC,a,Bw,R,Bc,k,Co,L,Be,BF,C2,Bk,u,S,BW,X,BW,CO,BO,8,BC,Bk,6,M,Ce,Dw,BJ,BW,S,Cs,j,ES,Bb,Be,C3,C4,p,Ei,BX,Dc,Bl,Bi,0,Bi,Be,v,Cc,BA,Bk,CU,Bg,CO,a,EY,p,BG,Bd,BM,A,BC,j,DM,Z,w,BF,BL,Bj,g,BZ,1,CB,8,Cl,A,Lf,A,L3|CeK,Zy,JJ,Jr,EN,J,C3,CT,CF,F,3,BB,CP,A,BT,BG,C9,BX,7,BX,CL,Q,t,Y,v,H,BD,C,EF,Cu,CR,A,BH,BE,A,By,Br,i,B5,De,Bf,w,j,BS,Bp,Bi,CB,O,BG,B0,Bu,G,c,8,D,C4,8,DY,Bg,4,U,BU,BY,Cc,B6,Bm,BU,DK,g,Cw,Du,r,BC,Ca,B6,Bd,B4,u,w,r,CO,D,Cy,BT,0,BJ,Ba,BD,BU,B3,BG,BF,BJ,Bb,BH,Bh,Q,3,E,BB,Bw,F,w,Q,u,l,t,BL,BM,Bx,BM,Bj,BO,BL,Ki,Dz,Cs,A|CMm,oc,BY,R,8,w,w,BB,H,BX,B1,v,BY,5,BN,Bt,v,k,x,R,Bx,E,F,BA,R,2,BG,Bg,BI,Ba|Ch4,ky,D,F,A,BV,A,DR,A,Br,Bd,B9,CR,Ct,Ct,A,Kj,Dy,BP,BK,BN,Bi,BN,Bw,s,BK,BM,Bs,BC,l,o,BX,Bc,BV,Bk,D,DE,0,Dg,Y,C0,BA,Bk,M,BK,m,B0,G|BvW,DF,Gj,R,Dj,E,BJ,Z,B7,BB,x,U,C,Ca,u,BO,M,Cm,q,Be,BO,Bq,BO,2,BC,BI,BT,c,M,Dw,BW,2,CC,t,Cm,u,CQ,A,CA,Be,Bg,CP,Y,Bp,Ba,Dr,BN,CX,Bl,CJ,7,BV,C,Db|BkI,Dp,BS,B1,N,B5,7,Z,Bt,M,BB,B1,B9,Q,U,Bw,a,O,I,B6,6,4,w,V,B6,BA|72,CNk,C3,BO,BN,BW,BP,s,Bf,BM,t,BA,Bl,Bg,q,BU,BK,v,q,q,Bg,E,Cw,h,CO,C,Be,t,BK,A,z,Bb,Bi,BP,f,Bh,v,L,n,T,BD,v,f,Bx|BKM,CMg,Bm,BD,O,CJ,n,J,h,j,Bv,E,BR,t,CH,T,BV,y,f,BY,a,BG,a,D,I,o,B4,g,u,I,BG,K,Be,E|8u,CYG,Ce,0,CA,J,Bu,BT,W,BB,B8,x,Q,BV,B4,7,BA,s,y,Z,x,j,m,l,z,t,S,BN,Bk,BZ,BR,BB,h,BD,W,Z,j,d,Bf,F,BH,L,J,O,Y,Y,Y,w,f,A,n,k,j,K,b,g,l,M,f,c,j,L,d,BH,x,P,Q,S,BP,q,BF,U,f,c,1,i,u,K,e,Bg,Bj,BO,y,Ba,BL,A,BO,BO,BD,4,x,BQ|BCu,CNY,3,T,N,m,Bb,Bl,O,BD,r,Q,5,BC,BZ,o,W,i,e,Bw,BC,u,m,S,0,j,e,d,BE,V,BO,r,R,T,n,t|BEa,CLC,P,BK,x,U,r,2,m,s,w,O,c,BG,i,K,e,d,k,N,a,h,i,L,m,l,e,A,Z,x,Z,Z,I,P,v,J,B5,h,J,p,b,C|DM9,is,B2,a,q,H,J,Cb,Ct,X,l,S,6,4,F,BQ|Blc,LU,C1,CI,v,BY,Bz,r,Bf,O,3,j,Bd,Y,B9,Co,h,BC,CZ,BS,1,B6,BV,BY,CN,Bq,D,BE,Bv,BS,CN,BQ,8,W,BI,m,y,C2,4,Be,CU,c,i,3,Bq,B5,2,R,BK,i,CU,J,c,p,DO,A,G,o,Bq,m,U,6,BO,q,Cs,B3,Bo,U,Bm,CU,Bw,Bw,T,B6,x,6,B6,K,O,u,Bg,P,Z,CZ,Y,CV,Bo,BR,Y,BJ,F,Bn,c,F,C,Ch,d,9,Bv,H,BH,B1,CA,P,Bo,Bj,i,BT,Be,x,B4,Df,CN,CJ,B9,B7,CB,Bf,CR,A,Cn,v,CD,s,BX,3";
+
+// The projected map is 1000x500 user units — equirectangular is 2:1 — and what
+// you are looking at is always a viewBox inside it.
+const MAP_W = 1000;
+const MAP_H = 500;
+const MAP_MIN_W = 20;   // furthest you can zoom in
+const MAP_ROUND = 10;   // questions in a quiz round
+const MAP_TRIES = 2;    // wrong clicks before the answer is given away
+const MAP_HIT_PX = 16;  // click tolerance around a country too small to hit
+
+// Framed by hand. A continent's own bounding box is useless where it crosses the
+// antimeridian: Russia and Oceania each span the full width of the map, so their
+// boxes would frame the world.
+const MAP_REGIONS = {
+    world: { x: 0, y: 0, w: MAP_W, h: MAP_H },
+    Africa: { x: 447, y: 144, w: 200, h: 206 },
+    Asia: { x: 569, y: 33, w: 348, h: 248 },
+    Europe: { x: 431, y: 50, w: 197, h: 106 },
+    'North America': { x: 22, y: 42, w: 339, h: 194 },
+    'South America': { x: 269, y: 211, w: 139, h: 197 },
+    Oceania: { x: 806, y: 264, w: 194, h: 125 }
+};
+
+// Antarctica has no one living in it to learn about, and "Seven seas" is not a
+// country at all. Both still draw; neither is ever the answer.
+const MAP_NOT_QUIZZABLE = ['Antarctica', 'Seven seas (open ocean)'];
+
+var mapGeometryCache = null;
+var mapIso3Index = null;
+var mapRuntime = {};
+
+function mapGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function mapGetWidget(element) {
+    return element.closest('.map-widget');
+}
+
+/** Transient per-instance state — a drag in flight, a pending flash — that has no
+ *  business being written to storage. */
+function mapRuntimeFor(toolId) {
+    if (!mapRuntime[toolId]) mapRuntime[toolId] = { drag: null, timer: null };
+    return mapRuntime[toolId];
+}
+
+/** One country's row, with names on it. */
+function mapCountry(index) {
+    const r = MAP_COUNTRIES[index];
+    if (!r) return null;
+    return {
+        index: index, iso2: r[0], iso3: r[1], name: r[2], continent: r[3],
+        subregion: r[4], pop: r[5], capital: r[6], lon: r[7], lat: r[8]
+    };
+}
+
+function mapIndexOf(iso3) {
+    if (!mapIso3Index) {
+        mapIso3Index = {};
+        MAP_COUNTRIES.forEach(function(row, i) { mapIso3Index[row[1]] = i; });
+    }
+    const i = mapIso3Index[iso3];
+    return i === undefined ? -1 : i;
+}
+
+// ---------- geometry ----------
+
+/** Base62 with a zigzag sign, matching the generator. */
+function mapDecodeInt(token, alphabet) {
+    let u = 0;
+    for (let i = 0; i < token.length; i++) u = u * 62 + alphabet[token.charAt(i)];
+    return u % 2 ? -(u - 1) / 2 : u / 2;
+}
+
+/**
+ * The baked geometry decoded once for the page: per country, its rings of
+ * hundredths-of-a-degree coordinates and the SVG path they project to. Static, so
+ * every instance of the tool shares the one copy.
+ */
+function mapGeometry() {
+    if (mapGeometryCache) return mapGeometryCache;
+    const alphabet = {};
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split('').forEach(function(c, i) {
+        alphabet[c] = i;
+    });
+
+    mapGeometryCache = MAP_GEOMETRY.split('|').map(function(blob) {
+        const rings = blob.split(';').map(function(text) {
+            const parts = text.split(',');
+            const ring = new Array(parts.length);
+            let lon = 0;
+            let lat = 0;
+            for (let i = 0; i < parts.length; i += 2) {
+                lon += mapDecodeInt(parts[i], alphabet);
+                lat += mapDecodeInt(parts[i + 1], alphabet);
+                ring[i] = lon;
+                ring[i + 1] = lat;
+            }
+            return ring;
+        });
+        return { rings: rings, path: mapRingsToPath(rings) };
+    });
+    return mapGeometryCache;
+}
+
+// Equirectangular: longitude is x and latitude is y, which is the projection the
+// stored coordinates fall into with the least arithmetic. Kept as two functions
+// so a projection that does more work can replace them without touching callers.
+function mapProjectX(lon) { return (lon + 18000) / 36; }
+function mapProjectY(lat) { return (9000 - lat) / 36; }
+
+function mapRingsToPath(rings) {
+    return rings.map(function(ring) {
+        let d = '';
+        for (let i = 0; i < ring.length; i += 2) {
+            d += (i ? 'L' : 'M') + mapProjectX(ring[i]).toFixed(1) + ' ' + mapProjectY(ring[i + 1]).toFixed(1);
+        }
+        return d + 'Z';
+    }).join('');
+}
+
+/** A country's extent in user space, or null where it wraps the antimeridian and
+ *  the extent would be the whole map. */
+function mapCountryBounds(index) {
+    const entry = mapGeometry()[index];
+    if (!entry) return null;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    entry.rings.forEach(function(ring) {
+        for (let i = 0; i < ring.length; i += 2) {
+            const x = mapProjectX(ring[i]);
+            const y = mapProjectY(ring[i + 1]);
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+    });
+    if (minX > maxX || maxX - minX > MAP_W / 2) return null;
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+// ---------- state ----------
+
+function mapGetData(toolId) {
+    const customizations = loadToolCustomizations();
+    const saved = (customizations[toolId] || {}).mapData || {};
+    return {
+        view: saved.view || Object.assign({}, MAP_REGIONS.world),
+        region: MAP_REGIONS[saved.region] ? saved.region : 'world',
+        mode: saved.mode === 'quiz' ? 'quiz' : 'explore',
+        selected: saved.selected || null,
+        quiz: saved.quiz || null,
+        streak: saved.streak || 0,
+        best: saved.best || 0,
+        progress: saved.progress || {}
+    };
+}
+
+function mapSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].mapData = data;
+    saveToolCustomizations(customizations);
+}
+
+// ---------- view ----------
+
+/** Keep the view inside the world and within the zoom range. */
+function mapClampView(view) {
+    const ratio = view.h / view.w;
+    const w = Math.min(MAP_W, Math.max(MAP_MIN_W, view.w));
+    const h = Math.min(MAP_H, w * ratio);
+    return {
+        x: Math.max(0, Math.min(MAP_W - w, view.x)),
+        y: Math.max(0, Math.min(MAP_H - h, view.y)),
+        w: w,
+        h: h
+    };
+}
+
+function mapApplyView(widget, view) {
+    const svg = widget.querySelector('.map-svg');
+    if (svg) svg.setAttribute('viewBox', view.x + ' ' + view.y + ' ' + view.w + ' ' + view.h);
+}
+
+/** Client coordinates to map user space. getScreenCTM already knows about the
+ *  letterboxing preserveAspectRatio introduces, which hand arithmetic would not. */
+function mapClientToUser(svg, clientX, clientY) {
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return null;
+    const point = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
+    return { x: point.x, y: point.y, scale: ctm.a };
+}
+
+function mapViewAround(cx, cy, w, h) {
+    return mapClampView({ x: cx - w / 2, y: cy - h / 2, w: w, h: h });
+}
+
+function mapSetView(widget, toolId, view) {
+    const data = mapGetData(toolId);
+    data.view = mapClampView(view);
+    mapSaveData(toolId, data);
+    mapApplyView(widget, data.view);
+}
+
+function mapZoomBtn(btn, factor) {
+    const widget = mapGetWidget(btn);
+    const toolId = mapGetToolId(widget);
+    const svg = widget.querySelector('.map-svg');
+    const rect = svg.getBoundingClientRect();
+    mapZoomAt(widget, toolId, factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
+}
+
+/** Zoom about a point, leaving whatever is under it where it is. */
+function mapZoomAt(widget, toolId, factor, clientX, clientY) {
+    const svg = widget.querySelector('.map-svg');
+    const anchor = mapClientToUser(svg, clientX, clientY);
+    const data = mapGetData(toolId);
+    const view = data.view;
+    const next = mapClampView({ x: view.x, y: view.y, w: view.w * factor, h: view.h * factor });
+    if (anchor) {
+        const ratio = next.w / view.w;
+        next.x = anchor.x - (anchor.x - view.x) * ratio;
+        next.y = anchor.y - (anchor.y - view.y) * ratio;
+    }
+    mapSetView(widget, toolId, next);
+}
+
+function mapResetView(btn) {
+    const widget = mapGetWidget(btn);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    mapSetView(widget, toolId, MAP_REGIONS[data.region] || MAP_REGIONS.world);
+}
+
+function mapZoomToCountry(widget, toolId, index) {
+    const country = mapCountry(index);
+    if (!country) return;
+    const bounds = mapCountryBounds(index);
+    if (bounds) {
+        const pad = Math.max(bounds.w, bounds.h) * 0.35 + 6;
+        mapSetView(widget, toolId, {
+            x: bounds.x - pad, y: bounds.y - pad,
+            w: bounds.w + pad * 2, h: bounds.h + pad * 2
+        });
+        return;
+    }
+    // Wraps the antimeridian, so frame its label point instead of its extent.
+    mapSetView(widget, toolId, mapViewAround(mapProjectX(country.lon), mapProjectY(country.lat), 300, 150));
+}
+
+// ---------- rendering ----------
+
+function mapInit() {
+    document.querySelectorAll('.map-widget').forEach(function(widget) {
+        if (widget.dataset.mapInited) return;
+        widget.dataset.mapInited = '1';
+        const toolId = mapGetToolId(widget);
+        if (!toolId) return;
+
+        // The 177 shapes are built once and thereafter only recoloured. Rebuilding
+        // them the way the rest of the toolbox rebuilds innerHTML would be ~50KB of
+        // markup per mouse move.
+        const svg = widget.querySelector('.map-svg');
+        if (svg) svg.innerHTML = mapBuildShapes();
+
+        const select = widget.querySelector('.map-region');
+        if (select) {
+            select.innerHTML = Object.keys(MAP_REGIONS).map(function(name) {
+                return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name === 'world' ? 'Whole world' : name) + '</option>';
+            }).join('');
+        }
+
+        mapBindStage(widget, toolId);
+        const data = mapGetData(toolId);
+        mapApplyView(widget, data.view);
+        mapRender(widget);
+    });
+}
+
+function mapBuildShapes() {
+    const geometry = mapGeometry();
+    return MAP_COUNTRIES.map(function(row, i) {
+        return '<path class="map-country" data-iso="' + row[1] + '" d="' + geometry[i].path + '"></path>';
+    }).join('');
+}
+
+/** Re-render the panels and recolour the shapes. Never rebuilds the shapes. */
+function mapRender(widget) {
+    const toolId = mapGetToolId(widget);
+    if (!toolId) return;
+    const data = mapGetData(toolId);
+
+    widget.querySelectorAll('.map-mode').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.mode === data.mode);
+    });
+    const select = widget.querySelector('.map-region');
+    if (select) select.value = data.region;
+
+    const learned = Object.keys(data.progress).filter(function(iso) { return data.progress[iso].right; }).length;
+    const stat = widget.querySelector('.map-stat');
+    if (stat) stat.textContent = 'Learned ' + learned + ' / ' + MAP_COUNTRIES.length;
+
+    const panel = widget.querySelector('.map-panel');
+    if (panel) panel.innerHTML = data.mode === 'quiz' ? mapQuizPanel(data) : mapExplorePanel(data);
+    mapPaint(widget, data);
+}
+
+function mapPaint(widget, data) {
+    const quizzing = data.mode === 'quiz' && data.quiz && !data.quiz.done;
+    const svg = widget.querySelector('.map-svg');
+    if (svg) svg.classList.toggle('quiz', Boolean(quizzing));
+    widget.querySelectorAll('.map-country').forEach(function(path) {
+        const iso = path.getAttribute('data-iso');
+        const entry = data.progress[iso];
+        path.classList.toggle('learned', Boolean(entry && entry.right));
+        path.classList.toggle('selected', data.mode === 'explore' && data.selected === iso);
+        path.classList.remove('right', 'wrong');
+    });
+}
+
+function mapFlag(iso2) {
+    if (!iso2 || iso2.length !== 2) return '';
+    return String.fromCodePoint(0x1F1E6 + iso2.charCodeAt(0) - 65, 0x1F1E6 + iso2.charCodeAt(1) - 65);
+}
+
+function mapFormatPop(value) {
+    if (!value) return 'unknown';
+    return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+function mapExplorePanel(data) {
+    const index = data.selected ? mapIndexOf(data.selected) : -1;
+    const country = index === -1 ? null : mapCountry(index);
+    if (!country) return '<span class="map-hint">Click a country to see what it is. Drag to pan, scroll to zoom.</span>';
+    return '<span class="map-flag">' + mapFlag(country.iso2) + '</span>' +
+        '<span class="map-title">' + escapeHtml(country.name) + '</span>' +
+        '<dl>' +
+            '<dt>Capital</dt><dd>' + escapeHtml(country.capital || '—') + '</dd>' +
+            '<dt>Population</dt><dd>' + mapFormatPop(country.pop) + '</dd>' +
+            '<dt>Region</dt><dd>' + escapeHtml(country.continent) +
+                (country.subregion && country.subregion !== country.continent ? ' · ' + escapeHtml(country.subregion) : '') + '</dd>' +
+        '</dl>';
+}
+
+function mapQuizPanel(data) {
+    const quiz = data.quiz;
+    if (!quiz) return '<span class="map-hint">Loading…</span>';
+    const score = '<span class="map-hint">Score ' + quiz.correct + ' · Streak ' + data.streak + ' · Best ' + data.best + '</span>';
+    if (quiz.done) {
+        return '<span class="map-prompt">Round over — <b>' + quiz.correct + ' / ' + quiz.asked.length + '</b></span>' +
+            score +
+            '<span class="map-spacer"></span>' +
+            '<button class="map-btn" onclick="mapQuizStart(this)">Play again</button>' +
+            '<button class="map-btn" onclick="mapResetProgress(this)">Reset progress</button>';
+    }
+    const target = mapCountry(mapIndexOf(quiz.target));
+    const done = quiz.asked.length - 1;
+    return '<span class="map-prompt">Find <b>' + escapeHtml(target ? target.name : '?') + '</b></span>' +
+        '<span class="map-progress"><span style="width:' + Math.round(done / MAP_ROUND * 100) + '%"></span></span>' +
+        '<span class="map-hint">' + quiz.asked.length + ' / ' + MAP_ROUND + '</span>' +
+        score +
+        '<span class="map-spacer"></span>' +
+        '<button class="map-btn" onclick="mapQuizSkip(this)">Skip</button>';
+}
+
+// ---------- interaction ----------
+
+function mapBindStage(widget, toolId) {
+    const svg = widget.querySelector('.map-svg');
+    if (!svg) return;
+    const runtime = mapRuntimeFor(toolId);
+
+    svg.addEventListener('pointerdown', function(e) {
+        runtime.drag = { x: e.clientX, y: e.clientY, moved: 0 };
+        // Read once here: a pointermove that went to storage for the current view
+        // would parse the whole board's customizations on every mouse position.
+        runtime.view = mapGetData(toolId).view;
+        svg.setPointerCapture(e.pointerId);
+        svg.classList.add('dragging');
+    });
+
+    svg.addEventListener('pointermove', function(e) {
+        if (!runtime.drag) { mapTooltip(widget, e); return; }
+        const info = mapClientToUser(svg, e.clientX, e.clientY);
+        if (!info || !info.scale) return;
+        const dx = (e.clientX - runtime.drag.x) / info.scale;
+        const dy = (e.clientY - runtime.drag.y) / info.scale;
+        runtime.drag.moved += Math.abs(e.clientX - runtime.drag.x) + Math.abs(e.clientY - runtime.drag.y);
+        runtime.drag.x = e.clientX;
+        runtime.drag.y = e.clientY;
+        const view = runtime.view;
+        // The view is written to the DOM on every move and saved once at the end
+        // of the drag.
+        runtime.view = mapClampView({ x: view.x - dx, y: view.y - dy, w: view.w, h: view.h });
+        mapApplyView(widget, runtime.view);
+    });
+
+    const end = function(e) {
+        if (!runtime.drag) return;
+        const drag = runtime.drag;
+        const view = runtime.view;
+        runtime.drag = null;
+        runtime.view = null;
+        svg.classList.remove('dragging');
+        // Under a few pixels of travel this was a click, not a pan, and the view
+        // has not moved to be saved.
+        if (drag.moved < 5) mapClick(widget, toolId, e);
+        else if (view) mapSetView(widget, toolId, view);
+    };
+    svg.addEventListener('pointerup', end);
+    svg.addEventListener('pointercancel', function() { runtime.drag = null; svg.classList.remove('dragging'); });
+    svg.addEventListener('pointerleave', function() { mapHideTooltip(widget); });
+
+    svg.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        mapZoomAt(widget, toolId, e.deltaY > 0 ? 1.2 : 1 / 1.2, e.clientX, e.clientY);
+    }, { passive: false });
+
+    svg.addEventListener('dblclick', function(e) {
+        const iso = mapIsoAt(e);
+        if (iso) mapZoomToCountry(widget, toolId, mapIndexOf(iso));
+    });
+}
+
+/**
+ * The country under a pointer event. `target` is not enough on its own: the drag
+ * handler captures the pointer, and a captured pointerup reports the capturing
+ * <svg> as its target however far into a country it happened — which silently
+ * made every click land on nothing.
+ */
+function mapIsoAt(e) {
+    let el = e.target && e.target.closest ? e.target.closest('path.map-country') : null;
+    if (!el) {
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        el = under && under.closest ? under.closest('path.map-country') : null;
+    }
+    return el ? el.getAttribute('data-iso') : null;
+}
+
+function mapTooltip(widget, e) {
+    const tip = widget.querySelector('.map-tooltip');
+    if (!tip) return;
+    const iso = mapIsoAt(e);
+    if (!iso) { mapHideTooltip(widget); return; }
+    const country = mapCountry(mapIndexOf(iso));
+    if (!country) { mapHideTooltip(widget); return; }
+    const stage = widget.querySelector('.map-stage').getBoundingClientRect();
+    tip.textContent = country.name;
+    tip.style.left = (e.clientX - stage.left) + 'px';
+    tip.style.top = (e.clientY - stage.top) + 'px';
+    tip.classList.add('show');
+}
+
+function mapHideTooltip(widget) {
+    const tip = widget.querySelector('.map-tooltip');
+    if (tip) tip.classList.remove('show');
+}
+
+function mapClick(widget, toolId, e) {
+    const data = mapGetData(toolId);
+    const iso = mapIsoAt(e);
+    if (data.mode === 'quiz') { mapQuizAnswer(widget, toolId, iso, e); return; }
+    data.selected = iso;
+    mapSaveData(toolId, data);
+    mapRender(widget);
+}
+
+function mapSetMode(btn, mode) {
+    const widget = mapGetWidget(btn);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    data.mode = mode;
+    mapSaveData(toolId, data);
+    if (mode === 'quiz' && (!data.quiz || data.quiz.done)) { mapQuizStart(btn); return; }
+    mapRender(widget);
+}
+
+function mapSetRegion(select) {
+    const widget = mapGetWidget(select);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    data.region = MAP_REGIONS[select.value] ? select.value : 'world';
+    data.view = mapClampView(MAP_REGIONS[data.region]);
+    // The pool the quiz draws from just changed, so the round has to.
+    if (data.mode === 'quiz') data.quiz = null;
+    mapSaveData(toolId, data);
+    mapApplyView(widget, data.view);
+    if (data.mode === 'quiz') mapQuizStart(select);
+    else mapRender(widget);
+}
+
+function mapSearch(input) {
+    const widget = mapGetWidget(input);
+    const toolId = mapGetToolId(widget);
+    const query = input.value.trim().toLowerCase();
+    if (query.length < 2) return;
+    const matches = MAP_COUNTRIES.map(function(row, i) { return i; }).filter(function(i) {
+        return MAP_COUNTRIES[i][2].toLowerCase().indexOf(query) === 0;
+    });
+    // Jump only once the query names one country, so typing "i" does not fly off
+    // to India before you have finished writing Indonesia.
+    const exact = matches.filter(function(i) { return MAP_COUNTRIES[i][2].toLowerCase() === query; });
+    const hit = exact.length ? exact[0] : (matches.length === 1 ? matches[0] : -1);
+    if (hit === -1) return;
+    const data = mapGetData(toolId);
+    data.selected = MAP_COUNTRIES[hit][1];
+    data.mode = 'explore';
+    mapSaveData(toolId, data);
+    mapZoomToCountry(widget, toolId, hit);
+    mapRender(widget);
+}
+
+// ---------- quiz ----------
+
+/** The countries a round can ask about: the chosen region, minus the ones that
+ *  are not countries, minus the ones already asked this round. */
+function mapQuizPool(data) {
+    const asked = (data.quiz && data.quiz.asked) || [];
+    return MAP_COUNTRIES.map(function(row, i) { return i; }).filter(function(i) {
+        const row = MAP_COUNTRIES[i];
+        if (MAP_NOT_QUIZZABLE.indexOf(row[3]) !== -1) return false;
+        if (data.region !== 'world' && row[3] !== data.region) return false;
+        return asked.indexOf(row[1]) === -1;
+    });
+}
+
+function mapQuizStart(el) {
+    const widget = mapGetWidget(el);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    data.mode = 'quiz';
+    data.selected = null;
+    // Frame the region being quizzed. Starting a round zoomed in on somewhere else
+    // asks you to find a country that is not on screen.
+    data.view = mapClampView(MAP_REGIONS[data.region] || MAP_REGIONS.world);
+    data.quiz = { target: null, asked: [], attempts: 0, correct: 0, done: false };
+    mapQuizAsk(data);
+    mapSaveData(toolId, data);
+    mapApplyView(widget, data.view);
+    mapRender(widget);
+}
+
+/** Move to the next question, or end the round. */
+function mapQuizAsk(data) {
+    const pool = mapQuizPool(data);
+    if (!pool.length || data.quiz.asked.length >= MAP_ROUND) {
+        data.quiz.done = true;
+        data.quiz.target = null;
+        return;
+    }
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    data.quiz.target = MAP_COUNTRIES[pick][1];
+    data.quiz.asked.push(data.quiz.target);
+    data.quiz.attempts = 0;
+}
+
+/**
+ * Whether a click counts as hitting the country being asked for. The shape
+ * decides when it is big enough to hit; otherwise anything within a few pixels of
+ * the country's label point counts, because Luxembourg at world zoom is three
+ * pixels across and would be unwinnable on the shape alone.
+ */
+function mapHitsTarget(widget, iso, targetIso, e) {
+    if (iso === targetIso) return true;
+    const country = mapCountry(mapIndexOf(targetIso));
+    if (!country) return false;
+    const svg = widget.querySelector('.map-svg');
+    const point = mapClientToUser(svg, e.clientX, e.clientY);
+    if (!point || !point.scale) return false;
+    const dx = point.x - mapProjectX(country.lon);
+    const dy = point.y - mapProjectY(country.lat);
+    return Math.sqrt(dx * dx + dy * dy) * point.scale <= MAP_HIT_PX;
+}
+
+function mapQuizAnswer(widget, toolId, iso, e) {
+    const data = mapGetData(toolId);
+    const quiz = data.quiz;
+    if (!quiz || quiz.done || !quiz.target) return;
+    const runtime = mapRuntimeFor(toolId);
+    if (runtime.timer) return;   // a flash is already playing out
+
+    const target = quiz.target;
+    const right = mapHitsTarget(widget, iso, target, e);
+    if (!data.progress[target]) data.progress[target] = { right: 0, wrong: 0 };
+
+    if (right) {
+        quiz.correct++;
+        data.progress[target].right++;
+        data.streak++;
+        if (data.streak > data.best) data.best = data.streak;
+    } else {
+        quiz.attempts++;
+        data.progress[target].wrong++;
+        data.streak = 0;
+        if (quiz.attempts < MAP_TRIES) {
+            mapSaveData(toolId, data);
+            mapRender(widget);
+            mapFlash(widget, toolId, iso, 'wrong', null);
+            return;
+        }
+    }
+
+    mapSaveData(toolId, data);
+    mapRender(widget);
+    // Right or given away, the answer is shown before moving on.
+    mapFlash(widget, toolId, right ? target : iso, right ? 'right' : 'wrong', target);
+}
+
+/** Colour the answer for a moment, then ask the next one. */
+function mapFlash(widget, toolId, iso, className, advanceTo) {
+    const runtime = mapRuntimeFor(toolId);
+    const paint = function(targetIso, cls) {
+        const path = targetIso && widget.querySelector('.map-country[data-iso="' + targetIso + '"]');
+        if (path) path.classList.add(cls);
+    };
+    paint(iso, className);
+    if (advanceTo && advanceTo !== iso) paint(advanceTo, 'right');
+    if (!advanceTo) return;
+
+    runtime.timer = setTimeout(function() {
+        runtime.timer = null;
+        if (!widget.isConnected) return;
+        const data = mapGetData(toolId);
+        if (!data.quiz || data.quiz.done) { mapRender(widget); return; }
+        mapQuizAsk(data);
+        mapSaveData(toolId, data);
+        mapRender(widget);
+    }, 900);
+}
+
+function mapQuizSkip(btn) {
+    const widget = mapGetWidget(btn);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    if (!data.quiz || data.quiz.done) return;
+    data.streak = 0;
+    mapQuizAsk(data);
+    mapSaveData(toolId, data);
+    mapRender(widget);
+}
+
+function mapResetProgress(btn) {
+    const widget = mapGetWidget(btn);
+    const toolId = mapGetToolId(widget);
+    const data = mapGetData(toolId);
+    data.progress = {};
+    data.streak = 0;
+    data.best = 0;
+    mapSaveData(toolId, data);
+    mapRender(widget);
+}
+
 (function injectScriptsForExport() {
     if (document.getElementById('educational-tools-scripts')) return;
 
@@ -3325,7 +4229,8 @@ function tlLoadEraPreset(btn) {
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
     var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
-    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions);
+    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapProjectX, mapProjectY, mapRingsToPath, mapCountryBounds, mapGetData, mapSaveData, mapClampView, mapApplyView, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapBuildShapes, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapClick, mapSetMode, mapSetRegion, mapSearch, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
+    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initClock !== "undefined") return;\n' +
@@ -3348,6 +4253,14 @@ function tlLoadEraPreset(btn) {
         'window.TL_DEFAULT_ERAS = ' + JSON.stringify(TL_DEFAULT_ERAS) + ';\n' +
         'window.TL_ERA_TYPES = ' + JSON.stringify(TL_ERA_TYPES) + ';\n' +
         'window.TL_ERA_PRESETS = ' + JSON.stringify(TL_ERA_PRESETS) + ';\n' +
+        'window.MAP_COUNTRIES = ' + JSON.stringify(MAP_COUNTRIES) + ';\n' +
+        'window.MAP_GEOMETRY = ' + JSON.stringify(MAP_GEOMETRY) + ';\n' +
+        'window.MAP_REGIONS = ' + JSON.stringify(MAP_REGIONS) + ';\n' +
+        'window.MAP_NOT_QUIZZABLE = ' + JSON.stringify(MAP_NOT_QUIZZABLE) + ';\n' +
+        'window.MAP_W = ' + MAP_W + '; window.MAP_H = ' + MAP_H + ';\n' +
+        'window.MAP_MIN_W = ' + MAP_MIN_W + '; window.MAP_ROUND = ' + MAP_ROUND + ';\n' +
+        'window.MAP_TRIES = ' + MAP_TRIES + '; window.MAP_HIT_PX = ' + MAP_HIT_PX + ';\n' +
+        'window.mapGeometryCache = null; window.mapIso3Index = null; window.mapRuntime = {};\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         'if (typeof parseMarkdown === "undefined") { window.parseMarkdown = ' + parseMarkdown.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
@@ -3371,7 +4284,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDF93',
     color: '#2ecc71',
     version: '1.0.0',
-    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table', 'number-line-explorer', 'angle-explorer', 'history-timeline'],
+    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table', 'number-line-explorer', 'angle-explorer', 'history-timeline', 'world-map'],
     source: 'external'
 });
 
@@ -3920,4 +4833,41 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Educational Tools plugin loaded (8 tools)');
+// World Map
+PluginRegistry.registerTool({
+    id: 'world-map',
+    name: 'World Map',
+    description: 'Interactive world map with country facts and a find-the-country quiz',
+    icon: '🌍',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['map', 'world', 'geography', 'country', 'countries', 'capital', 'atlas', 'quiz', 'learn', 'education'],
+    title: 'World Map',
+    content: '<div class="map-widget">' +
+        '<div class="map-toolbar">' +
+            '<button class="map-btn map-mode" data-mode="explore" onclick="mapSetMode(this, \'explore\')">Explore</button>' +
+            '<button class="map-btn map-mode" data-mode="quiz" onclick="mapSetMode(this, \'quiz\')">Quiz</button>' +
+            '<select class="map-select map-region" onchange="mapSetRegion(this)"></select>' +
+            '<input type="search" class="map-search" placeholder="Search country" oninput="mapSearch(this)">' +
+            '<span class="map-spacer"></span>' +
+            '<span class="map-stat"></span>' +
+        '</div>' +
+        '<div class="map-stage">' +
+            '<svg class="map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>' +
+            '<div class="map-tooltip"></div>' +
+            '<div class="map-zoom">' +
+                '<button class="map-btn" onclick="mapZoomBtn(this, 0.7)" title="Zoom in">+</button>' +
+                '<button class="map-btn" onclick="mapZoomBtn(this, 1.4)" title="Zoom out">−</button>' +
+                '<button class="map-btn" onclick="mapResetView(this)" title="Back to the whole region">⌂</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="map-panel"></div>' +
+    '</div>',
+    contentType: 'html',
+    onInit: 'mapInit',
+    defaultWidth: 720,
+    defaultHeight: 520,
+    source: 'external'
+});
+
+console.log('Educational Tools plugin loaded (9 tools)');

@@ -17,4 +17,4 @@ Each toolbox file follows this pattern in order:
 - `plugins/toolboxes/developer-tools.js` — Diff Viewer, Sequence Diagram, JWT Decoder, Code Formatter, Cron Expression, Regex Tester, Epoch Converter, IP Address Info, and others
 - `plugins/toolboxes/finance-tools.js` — Investment Calculator, Tax Calculator, Loan Calculator
 - `plugins/toolboxes/creative-tools.js` — Color Picker, Drawing Canvas, Emoticon Picker, Family Tree, Image Viewer
-- `plugins/toolboxes/educational-tools.js` — Analog Clock, Money Counter
+- `plugins/toolboxes/educational-tools.js` — Analog Clock, Money Counter, World Map
