@@ -3456,6 +3456,7 @@ tr:hover {
             <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyBtn">Copy Tool</button>
             <button class="copy-tool-btn ts-single-only" id="toolSettingsCutBtn">Cut Tool</button>
             <button class="copy-tool-btn ts-single-only" id="toolSettingsPasteBtn">Paste Tool</button>
+            <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyLinkBtn">Copy Tool Link</button>
             <button class="export-tool-btn ts-single-only" id="toolSettingsExportBtn">Export as HTML</button>
             <button class="export-png-btn ts-single-only" id="toolSettingsExportPngBtn">Export as PNG</button>
             <button class="send-to-back-btn ts-single-only" id="toolSettingsSendToBackBtn">Send to Back</button>
@@ -4075,12 +4076,17 @@ const PluginLoader = {
                 return;
             }
 
+            // Which tools this plugin brings is only observable by diffing the
+            // registry around the script running — see indexToolsFrom.
+            const knownTools = new Set(PluginRegistry.tools.keys());
+
             const script = document.createElement('script');
             script.src = url;
             script.async = true;
 
             script.onload = () => {
                 this.loadedUrls.add(url);
+                this.indexToolsFrom(url, knownTools);
                 console.log('Plugin loaded:', url);
                 resolve({ url, status: 'loaded' });
             };
@@ -4092,6 +4098,21 @@ const PluginLoader = {
 
             document.head.appendChild(script);
         });
+    },
+
+    // Record every tool a plugin just registered, so any tool can be traced back
+    // to the plugin that provides it — used by tool URL hashes to install the
+    // right plugin, and to keep it installed once the tool is on a board.
+    indexToolsFrom(url, knownTools) {
+        const index = loadToolPluginIndex();
+        let changed = false;
+        for (const id of PluginRegistry.tools.keys()) {
+            if (!knownTools.has(id) && index[id] !== url) {
+                index[id] = url;
+                changed = true;
+            }
+        }
+        if (changed) saveToolPluginIndex(index);
     },
 
     // Default plugins that are always loaded
@@ -4408,8 +4429,63 @@ function setupDarkMode() {
 
 var currentFullscreenTool = null;
 
+// Maximize a tool. Module-level so the header button, the header double-click
+// and URL-hash routing all drive the same code path.
+function enterToolFullscreen(tool) {
+    if (!tool || currentFullscreenTool === tool) return;
+    exitToolFullscreen();
+
+    const toolId = tool.getAttribute('data-tool');
+    tool._savedWidth = tool.style.width;
+    tool._savedHeight = tool.style.height;
+    tool.style.width = '';
+    tool.style.height = '';
+    tool.classList.add('fullscreen');
+    const btn = tool.querySelector('.fullscreen-btn');
+    if (btn) btn.classList.add('active');
+    const backdrop = document.getElementById('fullscreenBackdrop');
+    if (backdrop) backdrop.classList.add('active');
+    currentFullscreenTool = tool;
+
+    if (toolId) {
+        const tc = loadToolCustomizations();
+        tc[toolId] = tc[toolId] || {};
+        tc[toolId].fullscreen = true;
+        saveToolCustomizations(tc);
+        if (toolCustomizations[toolId]) toolCustomizations[toolId].fullscreen = true;
+        updateLocationHashForTool(toolId);
+    }
+}
+
+function exitToolFullscreen() {
+    if (!currentFullscreenTool) return;
+
+    const tool = currentFullscreenTool;
+    const toolId = tool.getAttribute('data-tool');
+    if (tool._savedWidth) tool.style.width = tool._savedWidth;
+    if (tool._savedHeight) tool.style.height = tool._savedHeight;
+    tool.classList.remove('fullscreen');
+    const btn = tool.querySelector('.fullscreen-btn');
+    if (btn) btn.classList.remove('active');
+    const backdrop = document.getElementById('fullscreenBackdrop');
+    if (backdrop) backdrop.classList.remove('active');
+    currentFullscreenTool = null;
+
+    if (toolId) {
+        const tc = loadToolCustomizations();
+        if (tc[toolId]) { tc[toolId].fullscreen = false; saveToolCustomizations(tc); }
+        if (toolCustomizations[toolId]) toolCustomizations[toolId].fullscreen = false;
+    }
+    // The tool no longer owns the URL — hand it back to the board.
+    updateLocationHashForTool(null);
+}
+
 // Initialize the toolboard
 async function init() {
+    // Read the hash before anything renders: restoring a maximized tool rewrites
+    // it, which would otherwise clobber the link the visitor arrived on.
+    const initialHash = window.location.hash;
+
     setupDarkMode();
 
     // Load external plugins before rendering
@@ -4441,14 +4517,14 @@ async function init() {
     updateStorageIndicator();
     setupHeaderCollapse();
 
-    // URL hash-based board switching: #BoardName opens that board
-    if (window.location.hash) {
-        switchToBoardByHash();
+    // URL hash routing: #BoardName, #tool/<toolId>, #BoardName/tool/<toolId>
+    if (initialHash) {
+        applyLocationHash(initialHash, { initial: true });
     } else {
         const board = boards.find(b => b.id === currentBoardId);
         if (board) history.replaceState(null, '', '#' + encodeURIComponent(board.name));
     }
-    window.addEventListener('hashchange', switchToBoardByHash);
+    window.addEventListener('hashchange', () => applyLocationHash(window.location.hash));
 }
 
 // Display Toolboard version based on file modification date
@@ -5089,65 +5165,29 @@ function setupToolControls() {
         }
     });
 
-    // Fullscreen button
+    // Fullscreen button — enter/exit live in enterToolFullscreen/exitToolFullscreen
     const fullscreenBackdrop = document.getElementById('fullscreenBackdrop');
-
-    function exitFullscreen() {
-        if (currentFullscreenTool) {
-            const toolId = currentFullscreenTool.getAttribute('data-tool');
-            if (currentFullscreenTool._savedWidth) currentFullscreenTool.style.width = currentFullscreenTool._savedWidth;
-            if (currentFullscreenTool._savedHeight) currentFullscreenTool.style.height = currentFullscreenTool._savedHeight;
-            currentFullscreenTool.classList.remove('fullscreen');
-            const btn = currentFullscreenTool.querySelector('.fullscreen-btn');
-            if (btn) btn.classList.remove('active');
-            fullscreenBackdrop.classList.remove('active');
-            currentFullscreenTool = null;
-            // Save state
-            if (toolId) {
-                const tc = loadToolCustomizations();
-                if (tc[toolId]) { tc[toolId].fullscreen = false; saveToolCustomizations(tc); }
-            }
-        }
-    }
 
     toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.fullscreen-btn')) {
             e.stopPropagation();
             const tool = e.target.closest('.tool');
-            const btn = e.target.closest('.fullscreen-btn');
-            const toolId = tool.getAttribute('data-tool');
 
             if (tool.classList.contains('fullscreen')) {
-                exitFullscreen();
+                exitToolFullscreen();
             } else {
-                // Exit any existing fullscreen first
-                exitFullscreen();
-                tool._savedWidth = tool.style.width;
-                tool._savedHeight = tool.style.height;
-                tool.style.width = '';
-                tool.style.height = '';
-                tool.classList.add('fullscreen');
-                btn.classList.add('active');
-                fullscreenBackdrop.classList.add('active');
-                currentFullscreenTool = tool;
-                // Save state
-                if (toolId) {
-                    const tc = loadToolCustomizations();
-                    tc[toolId] = tc[toolId] || {};
-                    tc[toolId].fullscreen = true;
-                    saveToolCustomizations(tc);
-                }
+                enterToolFullscreen(tool);
             }
         }
     });
 
     // Click backdrop to exit fullscreen
-    fullscreenBackdrop.addEventListener('click', exitFullscreen);
+    fullscreenBackdrop.addEventListener('click', exitToolFullscreen);
 
     // ESC key to exit fullscreen
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && currentFullscreenTool) {
-            exitFullscreen();
+            exitToolFullscreen();
         }
     });
 
@@ -5553,6 +5593,16 @@ function setupToolControls() {
         pasteTools();
     });
 
+    // Share link: opens this tool maximized, installing its plugin if the
+    // person following the link doesn't have it.
+    document.getElementById('toolSettingsCopyLinkBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!currentSettingsToolId) return;
+        const url = getToolShareUrl(currentSettingsToolId);
+        closeSettingsModal();
+        copyTextToClipboard(url, 'Tool link copied');
+    });
+
     // Export tool button in modal
     settingsExportBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -5660,19 +5710,23 @@ function renderToolboard() {
         });
     }
 
-    // Restore fullscreen state (class/button already applied in createTool)
+    // Restore fullscreen state (class/button already applied in createTool).
+    // The old board's tools are gone, so any previous reference is stale.
+    const backdrop = document.getElementById('fullscreenBackdrop');
+    currentFullscreenTool = null;
     const tc = loadToolCustomizations();
     for (const tid of Object.keys(tc)) {
         if (tc[tid].fullscreen) {
             const tool = toolboard.querySelector(`.tool[data-tool="${tid}"]`);
             if (tool) {
-                const backdrop = document.getElementById('fullscreenBackdrop');
                 if (backdrop) backdrop.classList.add('active');
                 currentFullscreenTool = tool;
+                updateLocationHashForTool(tid);
                 break;
             }
         }
     }
+    if (!currentFullscreenTool && backdrop) backdrop.classList.remove('active');
 }
 
 function initializeCalculators() {
@@ -8886,9 +8940,11 @@ function openFeatureSelectModal() {
     if (searchInput) setTimeout(() => searchInput.focus(), 50);
 }
 
-function createNoteWithTemplate(templateId) {
+// options.skipEditor — don't pop the content editor for blank notes
+// options.onReady(toolId, element) — called once the tool is sized and saved
+function createNoteWithTemplate(templateId, options = {}) {
     const template = NOTE_TEMPLATES[templateId] || PluginRegistry.getTool(templateId);
-    if (!template) return;
+    if (!template) return null;
 
     // Generate unique ID
     const toolId = 'custom-' + Date.now();
@@ -8896,6 +8952,9 @@ function createNoteWithTemplate(templateId) {
     // Add to custom notes list
     customTools.push(toolId);
     saveCustomTools(customTools);
+
+    // The tool is now part of the board, so its plugin has to stay installed
+    ensurePluginInstalledForTool(templateId);
 
     // Determine if content is HTML or Markdown
     const isHtml = template.content.trim().startsWith('<');
@@ -8940,6 +8999,8 @@ function createNoteWithTemplate(templateId) {
                     z: maxZ
                 };
                 savePositions(positions);
+
+                if (typeof options.onReady === 'function') options.onReady(toolId, tool);
             });
         };
 
@@ -8956,10 +9017,12 @@ function createNoteWithTemplate(templateId) {
         }
 
         // For blank tools, open the content editor immediately
-        if (templateId === 'blank') {
+        if (templateId === 'blank' && !options.skipEditor) {
             openContentEditor(toolId);
         }
     }
+
+    return toolId;
 }
 
 function populateExportLists() {
@@ -9505,6 +9568,12 @@ function deleteTool(toolId) {
         : 'Hide this note? You can restore it later from the Import/Export menu.';
 
     if (confirm(message)) {
+        // A maximized tool owns the backdrop and the URL — hand both back before
+        // it disappears
+        if (currentFullscreenTool && currentFullscreenTool.getAttribute('data-tool') === toolId) {
+            exitToolFullscreen();
+        }
+
         if (isCustom) {
             // Remove from customTools array
             customTools = customTools.filter(id => id !== toolId);
@@ -9563,6 +9632,8 @@ function deleteAllTools() {
     if (tools.length === 0) return;
 
     if (!confirm('Delete all tools on this board? This cannot be undone.')) return;
+
+    exitToolFullscreen();
 
     tools.forEach(tool => {
         const toolId = tool.getAttribute('data-tool');
@@ -10646,12 +10717,220 @@ function switchToBoard(boardId) {
     renderToolboard();
 }
 
-function switchToBoardByHash() {
-    const hash = decodeURIComponent(window.location.hash.slice(1)).trim();
-    if (!hash) return;
-    const board = boards.find(b => b.name.toLowerCase() === hash.toLowerCase());
-    if (board && board.id !== currentBoardId) {
-        switchToBoard(board.id);
+// ============================================================
+// URL hash routing
+//
+//   #BoardName                 — open that board (long-standing behaviour)
+//   #tool/<toolId>             — open that tool maximized on the current board
+//   #BoardName/tool/<toolId>   — open the board, then the tool maximized
+//
+// A tool hash carries the tool's plugin id ("jwt-decoder"), not a board-local
+// instance id, so the link works for someone who has never opened Toolboard:
+// the plugin providing the tool is installed on the fly, an instance is created
+// on their current board, and it opens maximized. Visiting the same link again
+// re-uses that instance instead of piling up duplicates.
+//
+// Maximizing and the URL stay in sync in both directions: maximizing a tool
+// writes its hash, restoring it writes the board hash back.
+// ============================================================
+
+const TOOL_HASH_SEGMENT = 'tool';
+
+// Splitting happens before decoding: board names are percent-encoded, so a "/"
+// in a board name can never be mistaken for a separator.
+function parseToolboardHash(rawHash) {
+    const raw = (rawHash || '').replace(/^#/, '');
+    if (!raw) return { boardName: '', toolId: '' };
+
+    const parts = raw.split('/');
+    const decode = (s) => { try { return decodeURIComponent(s).trim(); } catch { return s.trim(); } };
+
+    if (parts.length >= 2 && parts[0].toLowerCase() === TOOL_HASH_SEGMENT) {
+        return { boardName: '', toolId: decode(parts.slice(1).join('/')) };
+    }
+    if (parts.length >= 3 && parts[1].toLowerCase() === TOOL_HASH_SEGMENT) {
+        return { boardName: decode(parts[0]), toolId: decode(parts.slice(2).join('/')) };
+    }
+    return { boardName: decode(raw), toolId: '' };
+}
+
+function buildToolboardHash(boardName, toolId) {
+    const board = boardName ? encodeURIComponent(boardName) : '';
+    if (!toolId) return board ? '#' + board : '';
+    const tail = TOOL_HASH_SEGMENT + '/' + encodeURIComponent(toolId);
+    return board ? '#' + board + '/' + tail : '#' + tail;
+}
+
+// The shareable id for a tool instance: its template (plugin) id when it has
+// one, so the link means the same thing in anyone else's browser.
+function toolHashId(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    return custom.templateId || toolId;
+}
+
+// Pass a tool id to give the URL to that tool, or null to give it back to the board.
+function updateLocationHashForTool(toolId) {
+    const board = boards.find(b => b.id === currentBoardId);
+    const hash = buildToolboardHash(board ? board.name : '', toolId ? toolHashId(toolId) : '');
+    if (hash && hash !== window.location.hash) {
+        history.replaceState(null, '', hash);
+    }
+}
+
+// Absolute link to a tool, for sharing.
+function getToolShareUrl(toolId) {
+    return window.location.origin + window.location.pathname + window.location.search +
+        buildToolboardHash('', toolHashId(toolId));
+}
+
+// Which plugin provides which tool is only knowable once the plugin script has
+// run, so discovered mappings are cached to keep repeat visits to a link instant.
+const TOOL_PLUGIN_INDEX_KEY = 'toolboard_toolPluginIndex';
+
+function loadToolPluginIndex() {
+    try {
+        return JSON.parse(localStorage.getItem(TOOL_PLUGIN_INDEX_KEY) || '{}');
+    } catch {
+        return {};
+    }
+}
+
+function saveToolPluginIndex(index) {
+    try {
+        localStorage.setItem(TOOL_PLUGIN_INDEX_KEY, JSON.stringify(index));
+    } catch (e) {
+        console.warn('Could not cache tool→plugin index:', e);
+    }
+}
+
+// A tool is only as durable as its plugin: a tool whose plugin isn't installed
+// renders now but disappears on the next reload. Called whenever a tool lands on
+// a board, including tools that came from a plugin loaded while searching.
+function ensurePluginInstalledForTool(toolId) {
+    if (window.TOOLBOARD_EMBEDDED) return; // exported boards inline their plugins
+    const url = loadToolPluginIndex()[toolId];
+    if (!url) return;
+    if (PluginLoader.DEFAULT_URLS.includes(url)) return;
+    if (!PluginLoader.addPluginUrl(url)) return; // already installed
+    if (document.getElementById('loadedPluginsList')) {
+        updateOfficialPluginButtons();
+        refreshPluginLists();
+    }
+}
+
+// Resolve a tool id to a template, installing the official plugin that provides
+// it if needed. Returns the template, or null when no plugin claims the id.
+// Nothing maps ids to plugins ahead of time — a plugin's tools are only known
+// once its script has run — so unknown ids are resolved by loading the official
+// plugins in turn until one registers the id.
+async function ensureToolPlugin(toolId) {
+    let template = NOTE_TEMPLATES[toolId] || PluginRegistry.getTool(toolId);
+    if (template) {
+        ensurePluginInstalledForTool(toolId);
+        return template;
+    }
+
+    const index = loadToolPluginIndex();
+    const candidates = [];
+    if (index[toolId]) candidates.push(index[toolId]);
+    for (const group of OFFICIAL_PLUGINS) {
+        for (const item of group.items) {
+            if (!candidates.includes(item.url)) candidates.push(item.url);
+        }
+    }
+
+    for (const url of candidates) {
+        if (PluginLoader.loadedUrls.has(url)) continue; // already ran, already checked
+        try {
+            await PluginLoader.loadFromUrl(url);
+        } catch {
+            continue;
+        }
+        template = PluginRegistry.getTool(toolId);
+        if (template) {
+            // Keep the plugin for next time — the tool the visitor followed a
+            // link to should still be there on their next visit.
+            ensurePluginInstalledForTool(toolId);
+            return template;
+        }
+    }
+    return null;
+}
+
+// Clipboard write with a prompt() fallback for browsers/contexts (file://, no
+// HTTPS) where the async clipboard API isn't available.
+function copyTextToClipboard(text, successMessage) {
+    const fallback = () => window.prompt('Copy this link:', text);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToolToast(successMessage))
+            .catch(fallback);
+    } else {
+        fallback();
+    }
+}
+
+// An instance of this tool already on the current board, if there is one:
+// either the literal instance id or anything created from the same template.
+function findToolInstanceOnBoard(toolId) {
+    const onBoard = [...SECTIONS.filter(id => !hiddenTools.includes(id)), ...customTools];
+    if (onBoard.includes(toolId)) return toolId;
+    return onBoard.find(id => (toolCustomizations[id] || {}).templateId === toolId) || null;
+}
+
+async function openToolByHashId(toolId) {
+    if (!toolId) return;
+
+    const existing = findToolInstanceOnBoard(toolId);
+    if (existing) {
+        const el = document.querySelector(`.tool[data-tool="${existing}"]`);
+        if (el) {
+            el.style.zIndex = ++maxZ;
+            enterToolFullscreen(el);
+            // enterToolFullscreen is a no-op when the tool was restored already
+            // maximized, so make sure the URL still names board and tool
+            updateLocationHashForTool(existing);
+        }
+        return;
+    }
+
+    // First-time visitors land on an empty board while plugins are probed, so
+    // say what's happening.
+    if (!NOTE_TEMPLATES[toolId] && !PluginRegistry.getTool(toolId)) {
+        showToolToast('Loading "' + toolId + '"…');
+    }
+
+    const template = await ensureToolPlugin(toolId);
+    if (!template) {
+        showToolToast('No tool found for "' + toolId + '"');
+        return;
+    }
+
+    createNoteWithTemplate(toolId, {
+        skipEditor: true,
+        onReady: (newToolId, el) => enterToolFullscreen(el)
+    });
+}
+
+// options.initial — the first routing pass of a page load, where a tool left
+// maximized in a previous session should stay maximized. Later hash changes are
+// navigation: going back to a bare board hash restores the maximized tool.
+async function applyLocationHash(rawHash, options = {}) {
+    const { boardName, toolId } = parseToolboardHash(rawHash);
+    let switchedBoard = false;
+
+    if (boardName) {
+        const board = boards.find(b => b.name.toLowerCase() === boardName.toLowerCase());
+        if (board && board.id !== currentBoardId) {
+            switchToBoard(board.id);
+            switchedBoard = true;
+        }
+    }
+
+    if (toolId) {
+        await openToolByHashId(toolId);
+    } else if (!options.initial && !switchedBoard) {
+        exitToolFullscreen();
     }
 }
 

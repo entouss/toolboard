@@ -15,6 +15,11 @@ All data is board-scoped via `boardKey(key)` → `finance_${currentBoardId}_${ke
 
 Tool-specific data is stored as a named property inside `toolCustomizations[toolId]` (e.g., `checklistItems`, `dirtreeItems`, `diffData`).
 
+## App-Level Keys (not board-scoped)
+
+- `toolboard_pluginUrls` — installed external plugin URLs
+- `toolboard_toolPluginIndex` — tool id → plugin URL, built as plugins load (see [URL Hashes](urls.md))
+
 ## Helpers
 
 - `loadToolCustomizations()` — reads the full customizations object from localStorage

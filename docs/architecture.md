@@ -13,3 +13,5 @@ Three plugin types registered via global `PluginRegistry`:
 - **Boards** — pre-configured workspaces (`PluginRegistry.registerBoard({...})`)
 
 Plugin files live in `plugins/toolboxes/` and `plugins/boards/`. They're loaded via `<script>` tags (either from the official plugins list or user-added URLs saved in localStorage).
+
+Plugins can also be installed on demand: opening a `#tool/<toolId>` link resolves the tool to the plugin that provides it, installs that plugin, and opens the tool maximized — see [URL Hashes](urls.md).
