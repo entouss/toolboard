@@ -8,31 +8,18 @@
     style.id = 'diagram-tools-styles';
     style.textContent = `
 /* Sequence Diagram Widget Styles */
-.tool-content:has(.seq-widget) { display: flex; flex-direction: column; }
-.seq-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
-.seq-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
-.seq-mode-toggle { display: flex; gap: 4px; }
-.seq-mode-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
-.seq-mode-btn:first-child { border-radius: 4px 0 0 4px; }
-.seq-mode-btn:last-child { border-radius: 0 4px 4px 0; }
-.seq-mode-btn.active { background: #3498db; color: white; border-color: #3498db; }
-.seq-help-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+/* The tool's own padding is gone: the framework pads .tool-content, and having
+   both meant the diagram sat further in than the tool it is in. */
+.seq-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.seq-actions { display: flex; align-items: center; gap: 4px; }
+.seq-help-btn { padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap; }
 .seq-help-btn:hover { background: var(--table-hover); }
-.seq-split-container { flex: 1; display: none; gap: 10px; min-height: 0; }
-.seq-split-container.active { display: flex; }
-.seq-split-container .seq-edit-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.seq-split-container .seq-edit-pane textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.5; }
-.seq-split-container .seq-edit-pane textarea:focus { outline: none; border-color: #3498db; }
-.seq-split-container .seq-view-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); overflow: auto; }
-.seq-split-resizer { width: 6px; background: var(--border-color); cursor: col-resize; border-radius: 3px; flex-shrink: 0; }
-.seq-split-resizer:hover { background: #3498db; }
-.seq-edit-container { flex: 1; display: none; flex-direction: column; min-height: 0; }
-.seq-edit-container.active { display: flex; }
-.seq-edit-container textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.5; }
-.seq-edit-container textarea:focus { outline: none; border-color: #3498db; }
-.seq-edit-container textarea::placeholder { color: var(--text-muted); }
-.seq-view-container { flex: 1; min-height: 0; display: none; flex-direction: column; overflow: auto; }
-.seq-view-container.active { display: flex; }
+.seq-edit-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
+.seq-edit-pane textarea { flex: 1; resize: none; padding: 0; border: none; background: transparent; font-family: monospace; font-size: 12px; color: var(--text-primary); min-height: 100px; line-height: 1.5; outline: none; }
+.seq-edit-pane textarea::placeholder { color: var(--text-muted); }
+.tool.authoring-split .seq-edit-pane { padding-right: 10px; }
+.seq-view-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); overflow: auto; }
+.tool.authoring-render .seq-view-pane { border: none; border-radius: 0; background: transparent; }
 .seq-diagram { flex: 1; min-height: 200px; display: flex; justify-content: center; padding: 10px; }
 .seq-diagram svg { max-width: 100%; height: auto; }
 .seq-participant-box { fill: var(--bg-tertiary); stroke: var(--border-color); stroke-width: 2; }
@@ -66,38 +53,21 @@ body.dark-mode .seq-arrow-number-bg { fill: #2980b9; }
 body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 
 /* Mermaid Diagram Widget Styles */
-.mermaid-diag-widget { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; position: relative; }
-.mermaid-diag-toolbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
-.mermaid-diag-toolbar select, .mermaid-diag-toolbar button { font-size: 12px; }
-.mermaid-diag-mode-btns { display: flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
-.mermaid-diag-mode-btns button { border: none; border-radius: 0; background: var(--bg-primary); color: var(--text-muted); padding: 3px 8px; cursor: pointer; font-size: 11px; border-right: 1px solid var(--border-color); }
-.mermaid-diag-mode-btns button:last-child { border-right: none; }
-.mermaid-diag-mode-btns button.active { background: var(--accent-color, #3498db); color: #fff; }
-.mermaid-diag-mode-btns button:hover:not(.active) { background: var(--bg-secondary, #f0f0f0); }
-.mermaid-diag-export-btns { display: flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
-.mermaid-diag-export-btns button { border: none; border-radius: 0; background: var(--bg-primary); color: var(--text-muted); padding: 3px 8px; cursor: pointer; font-size: 11px; border-right: 1px solid var(--border-color); }
-.mermaid-diag-export-btns button:last-child { border-right: none; }
-.mermaid-diag-export-btns button:hover { background: var(--bg-secondary, #f0f0f0); }
-.mermaid-diag-body { display: flex; flex: 1; min-height: 0; }
-.mermaid-diag-editor { width: 50%; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
-.mermaid-diag-editor textarea { flex: 1; resize: none; border: none; padding: 8px; font-family: monospace; font-size: 12px; line-height: 1.5; background: var(--bg-primary); color: var(--text-primary); outline: none; min-height: 0; }
-.mermaid-diag-preview { width: 50%; overflow: auto; padding: 8px; background: var(--bg-secondary); display: flex; align-items: flex-start; justify-content: center; }
+.mermaid-diag-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; box-sizing: border-box; position: relative; }
+/* The template picker and the two export buttons. One copy: the framework lifts
+   this node into the mode bar, so it is there in every mode and there is nothing to
+   keep in step with a second set. */
+.mermaid-diag-actions { display: flex; align-items: center; gap: 4px; }
+.mermaid-diag-actions select { font-size: 10px; max-width: 120px; }
+.mermaid-diag-btn { padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap; }
+.mermaid-diag-btn:hover { background: var(--table-hover); }
+.mermaid-diag-editor { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
+.mermaid-diag-editor textarea { flex: 1; resize: none; border: none; padding: 0; font-family: monospace; font-size: 12px; line-height: 1.5; background: transparent; color: var(--text-primary); outline: none; min-height: 0; }
+.mermaid-diag-preview { flex: 1 1 50%; min-width: 0; overflow: auto; padding: 8px; background: var(--bg-secondary); border-radius: 4px; display: flex; align-items: flex-start; justify-content: center; }
+.tool.authoring-split .mermaid-diag-editor { padding-right: 10px; }
 .mermaid-diag-preview svg { max-width: 100%; height: auto; }
-/* Mode: edit — full-width editor, no preview */
-.mermaid-diag-body.mode-edit .mermaid-diag-editor { width: 100%; border-right: none; }
-.mermaid-diag-body.mode-edit .mermaid-diag-preview { display: none; }
-/* Mode: render — full-width preview, no editor */
-.mermaid-diag-body.mode-render .mermaid-diag-editor { display: none; }
-.mermaid-diag-body.mode-render .mermaid-diag-preview { width: 100%; }
-/* Render mode: hide toolbar and status bar */
-.mermaid-diag-widget:has(.mermaid-diag-body.mode-render) .mermaid-diag-toolbar { display: none; }
-.mermaid-diag-widget:has(.mermaid-diag-body.mode-render) .mermaid-diag-status { display: none; }
-/* Hover overlay — visible only in render mode on widget hover */
-.mermaid-diag-hover-controls { position: absolute; top: 8px; right: 8px; z-index: 10; display: flex; align-items: center; gap: 5px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 6px; opacity: 0; pointer-events: none; transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-.mermaid-diag-hover-controls select { font-size: 11px; }
-.mermaid-diag-widget:has(.mermaid-diag-body.mode-render):hover .mermaid-diag-hover-controls { opacity: 1; pointer-events: auto; }
 .mermaid-diag-error { color: #e74c3c; font-size: 11px; font-family: monospace; white-space: pre-wrap; padding: 8px; }
-.mermaid-diag-status { font-size: 11px; color: var(--text-muted); padding: 3px 8px; border-top: 1px solid var(--border-color); }
+.mermaid-diag-status { font-size: 11px; color: var(--text-muted); padding: 3px 0 0; }
 
 /* Family Tree Widget Styles */
 .tool-content:has(.ftree-widget) { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
@@ -291,9 +261,12 @@ var DGM_BRAIN_PATHS = [
 // ============================================================
 
 function seqGetToolId(element) { return element.closest('.tool')?.dataset.tool || null; }
+// No mode in the default. It used to say `mode: 'split'`, which meant a tool that
+// had never been opened still answered "split" when asked what mode it was in —
+// enough to make the migration below fire for tools that had never chosen anything.
 function seqGetData(toolId) {
     const customizations = loadToolCustomizations();
-    return (customizations[toolId]?.seqData) || { text: '', mode: 'split' };
+    return (customizations[toolId]?.seqData) || { text: '' };
 }
 function seqSaveData(toolId, data) {
     const customizations = loadToolCustomizations();
@@ -305,22 +278,32 @@ function seqInit() {
     document.querySelectorAll('.seq-widget').forEach(widget => {
         const toolId = seqGetToolId(widget);
         if (!toolId) return;
+        const tool = widget.closest('.tool');
         const data = seqGetData(toolId);
-        widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
-        widget.querySelectorAll('.seq-mode-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode));
-        seqUpdateContainers(widget, data.mode, toolId);
+        widget.querySelector('textarea').value = data.text;
+
+        // Hand this tool's private mode over to the framework, once. Its own word
+        // for showing only the diagram was "view", which the framework stores as
+        // "render"; the other two names already agree.
+        const customizations = loadToolCustomizations();
+        const stored = customizations[toolId]?.seqData?.mode;
+        if (stored !== undefined && !customizations[toolId].viewMode) {
+            customizations[toolId].viewMode = stored === 'view' ? 'render' : stored;
+            delete customizations[toolId].seqData.mode;
+            saveToolCustomizations(customizations);
+            // The tool was laid out from the framework's key before this ran, so it
+            // needs telling. This draws the diagram too, by way of onRender.
+            applyToolMode(tool, toolId);
+        } else {
+            seqRender(toolId);
+        }
     });
 }
-function seqUpdateContainers(widget, mode, toolId) {
-    const editContainer = widget.querySelector('.seq-edit-container');
-    const splitContainer = widget.querySelector('.seq-split-container');
-    const viewContainer = widget.querySelector('.seq-view-container');
-    editContainer.classList.remove('active');
-    splitContainer.classList.remove('active');
-    viewContainer.classList.remove('active');
-    if (mode === 'edit') editContainer.classList.add('active');
-    else if (mode === 'split') { splitContainer.classList.add('active'); seqRenderDiagram(widget, toolId, '.seq-split-container .seq-diagram'); }
-    else if (mode === 'view') { viewContainer.classList.add('active'); seqRenderDiagram(widget, toolId, '.seq-view-container .seq-diagram'); }
+/** What the framework calls when the diagram needs to be up to date. */
+function seqRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.seq-widget');
+    if (widget) seqRenderDiagram(widget, toolId);
 }
 function seqOnInput(textarea) {
     const widget = textarea.closest('.seq-widget');
@@ -329,19 +312,9 @@ function seqOnInput(textarea) {
     const data = seqGetData(toolId);
     data.text = textarea.value;
     seqSaveData(toolId, data);
-    widget.querySelectorAll('textarea').forEach(ta => { if (ta !== textarea) ta.value = textarea.value; });
-    if (data.mode === 'split') seqRenderDiagram(widget, toolId, '.seq-split-container .seq-diagram');
-}
-function seqSetMode(btn, mode) {
-    const widget = btn.closest('.seq-widget');
-    const toolId = seqGetToolId(widget);
-    if (!toolId) return;
-    const data = seqGetData(toolId);
-    data.mode = mode;
-    seqSaveData(toolId, data);
-    widget.querySelectorAll('.seq-mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === mode));
-    widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
-    seqUpdateContainers(widget, mode, toolId);
+    // Only when the diagram is on screen to be kept up to date.
+    const tool = widget.closest('.tool');
+    if (!(tool && tool.classList.contains('authoring-edit'))) seqRenderDiagram(widget, toolId);
 }
 function seqShowHelp(btn) {
     let modal = document.querySelector('.seq-help-modal');
@@ -401,9 +374,9 @@ function seqParseText(text) {
     });
     return { participants, items };
 }
-function seqRenderDiagram(widget, toolId, containerSelector) {
+function seqRenderDiagram(widget, toolId) {
     const data = seqGetData(toolId);
-    const container = widget.querySelector(containerSelector || '.seq-diagram');
+    const container = widget.querySelector('.seq-diagram');
     if (!container) return;
     if (!data.text.trim()) { container.innerHTML = '<div class="seq-error-message">Enter sequence diagram notation to see the diagram</div>'; return; }
     const { participants, items } = seqParseText(data.text);
@@ -2284,8 +2257,11 @@ function mermDiagGetToolId(el) {
     return tool ? tool.getAttribute('data-tool') : null;
 }
 
+/** Via the tool, not the widget: the template picker and the export buttons are
+ *  lifted into the mode bar, so they are no longer inside the widget they act on. */
 function mermDiagGetWidget(el) {
-    return el.closest('.mermaid-diag-widget');
+    var tool = el.closest('.tool');
+    return tool ? tool.querySelector('.mermaid-diag-widget') : el.closest('.mermaid-diag-widget');
 }
 
 function mermDiagLoadLib(callback) {
@@ -2306,18 +2282,18 @@ function mermDiagLoadLib(callback) {
     document.head.appendChild(script);
 }
 
-function mermDiagSaveData(toolId, code, mode) {
+// Only the diagram is this tool's to store. Which mode it is in is the framework's,
+// under the same key as every other tool that opted in.
+function mermDiagSaveData(toolId, code) {
     var customizations = loadToolCustomizations();
     if (!customizations[toolId]) customizations[toolId] = {};
     customizations[toolId].mermaidCode = code;
-    if (mode !== undefined) customizations[toolId].mermaidMode = mode;
     saveToolCustomizations(customizations);
 }
 
 function mermDiagLoadData(toolId) {
     var customizations = loadToolCustomizations();
-    var entry = customizations[toolId] || {};
-    return { code: entry.mermaidCode || '', mode: entry.mermaidMode || 'preview' };
+    return { code: (customizations[toolId] || {}).mermaidCode || '' };
 }
 
 function mermDiagRender(widget) {
@@ -2328,11 +2304,12 @@ function mermDiagRender(widget) {
 
     var code = textarea.value.trim();
     var toolId = mermDiagGetToolId(widget);
-    var body = widget.querySelector('.mermaid-diag-body');
-    var currentMode = (body && body.className.match(/mode-(\w+)/) || [])[1] || 'preview';
+    var tool = widget.closest('.tool');
     if (toolId) mermDiagSaveData(toolId, textarea.value);
 
-    if (currentMode === 'edit') {
+    // Nothing to draw into while the editor has the tool to itself — and the library
+    // is a CDN fetch, so not asking for it is the point.
+    if (tool && tool.classList.contains('authoring-edit')) {
         if (statusEl) statusEl.textContent = '';
         return;
     }
@@ -2375,22 +2352,11 @@ function mermDiagOnInput(textarea) {
     }, 500);
 }
 
-function mermDiagSetMode(btn, mode) {
-    var widget = mermDiagGetWidget(btn);
-    if (!widget) return;
-    var body = widget.querySelector('.mermaid-diag-body');
-    if (!body) return;
-    body.className = 'mermaid-diag-body mode-' + mode;
-    widget.querySelectorAll('.mermaid-diag-mode-btns button').forEach(function(b) {
-        var m = (b.getAttribute('onclick') || '').match(/'(\w+)'\)/);
-        b.classList.toggle('active', !!(m && m[1] === mode));
-    });
-    var toolId = mermDiagGetToolId(widget);
-    if (toolId) {
-        var textarea = widget.querySelector('.mermaid-diag-editor textarea');
-        mermDiagSaveData(toolId, textarea ? textarea.value : '', mode);
-    }
-    if (mode !== 'edit') mermDiagRender(widget);
+/** What the framework calls when the diagram needs to be up to date. */
+function mermDiagOnRender(toolId) {
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var widget = tool && tool.querySelector('.mermaid-diag-widget');
+    if (widget) mermDiagRender(widget);
 }
 
 function mermDiagInsertTemplate(sel) {
@@ -2481,15 +2447,21 @@ function mermDiagInit() {
             textarea.value = 'flowchart TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[Do something]\n    B -->|No| D[Do something else]\n    C --> E[End]\n    D --> E';
         }
 
-        var mode = saved.mode || 'preview';
-        var body = widget.querySelector('.mermaid-diag-body');
-        if (body) body.className = 'mermaid-diag-body mode-' + mode;
-        widget.querySelectorAll('.mermaid-diag-mode-btns button').forEach(function(b) {
-            var m = (b.getAttribute('onclick') || '').match(/'(\w+)'\)/);
-            b.classList.toggle('active', !!(m && m[1] === mode));
-        });
-
-        mermDiagRender(widget);
+        // Hand the tool's private mode over to the framework, once. Preview was this
+        // tool's word for both at once, which the framework stores as split; a
+        // diagram left in Preview reopens showing both, as it always did.
+        var customizations = loadToolCustomizations();
+        var stored = (customizations[toolId] || {}).mermaidMode;
+        if (stored !== undefined && !(customizations[toolId] || {}).viewMode) {
+            customizations[toolId].viewMode = stored === 'preview' ? 'split' : stored;
+            delete customizations[toolId].mermaidMode;
+            saveToolCustomizations(customizations);
+            // The tool was laid out from the framework's key before this ran, so it
+            // needs telling. This draws the diagram too, by way of onRender.
+            applyToolMode(tool, toolId);
+        } else {
+            mermDiagRender(widget);
+        }
     });
 
     if (!mermDiagInit._themeObserver) {
@@ -5635,9 +5607,9 @@ function dgmInit() {
 (function injectScriptsForExport() {
     if (document.getElementById('diagram-tools-scripts')) return;
 
-    var seqFunctions = [seqGetToolId, seqGetData, seqSaveData, seqInit, seqUpdateContainers, seqOnInput, seqSetMode, seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram];
+    var seqFunctions = [seqGetToolId, seqGetData, seqSaveData, seqInit, seqRender, seqOnInput, seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
-    var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagSetMode, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
+    var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagOnRender, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
     var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmCalloutPtr, dgmHitCalloutHandle, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmWrapLines, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmFitView, dgmToggleAutoFit, dgmToggleFocus, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
 
     var allFunctions = seqFunctions.concat(ftreeFunctions).concat(mermDiagFunctions).concat(dgmFunctions);
@@ -5675,19 +5647,11 @@ PluginRegistry.registerTool({
     tags: ['diagram', 'uml', 'sequence'],
     title: 'Sequence Diagram',
     content: `<div class="seq-widget">
-<div class="seq-toolbar">
-<div class="seq-mode-toggle">
-<button class="seq-mode-btn" onclick="seqSetMode(this, 'edit')">Edit</button>
-<button class="seq-mode-btn active" onclick="seqSetMode(this, 'split')">Split</button>
-<button class="seq-mode-btn" onclick="seqSetMode(this, 'view')">View</button>
+<div class="seq-actions">
+<button class="seq-help-btn" onclick="seqShowHelp(this)">? Syntax</button>
 </div>
-<button class="seq-help-btn" onclick="seqShowHelp(this)">? Syntax Help</button>
-</div>
-<div class="seq-edit-container">
-<textarea placeholder="Enter sequence diagram notation..." oninput="seqOnInput(this)"></textarea>
-</div>
-<div class="seq-split-container active">
-<div class="seq-edit-pane">
+<div class="authoring-split">
+<div class="authoring-source seq-edit-pane">
 <textarea placeholder="Enter sequence diagram notation...
 
 Example:
@@ -5696,18 +5660,27 @@ Bob --> Alice: Hi there!
 Bob -> Charlie: Forward
 Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
 </div>
-<div class="seq-split-resizer"></div>
-<div class="seq-view-pane">
+<div class="authoring-resizer"></div>
+<div class="authoring-result seq-view-pane">
 <div class="seq-diagram"></div>
 </div>
 </div>
-<div class="seq-view-container">
-<div class="seq-diagram"></div>
-</div>
-<div class="seq-help-text">
+<div class="seq-help-text authoring-chrome">
 <code>A -> B: msg</code> | <code>Note over A: text</code> | Colors: <code>[red]</code> or <code>[line:red, text:blue]</code>
 </div>
 </div>`,
+    // Opting in to the shared modes. This tool had all three already, but as three
+    // copies of the content — one per mode — with two textareas it copied between on
+    // every keystroke and two places it drew the same diagram. There is one of each
+    // now, and the mode is a class on the tool rather than a container to swap.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        source: '.authoring-source',
+        result: '.authoring-result',
+        actions: '.seq-actions',
+        onRender: 'seqRender'
+    },
     contentType: 'html',
     onInit: 'seqInit',
     source: 'external'
@@ -5760,39 +5733,9 @@ PluginRegistry.registerTool({
     tags: ['mermaid', 'diagram', 'flowchart', 'sequence', 'class', 'er', 'gantt', 'chart', 'graph', 'uml', 'visualization'],
     title: 'Mermaid Diagram',
     content: '<div class="mermaid-diag-widget">' +
-        '<div class="mermaid-diag-toolbar">' +
-            '<select onchange="mermDiagInsertTemplate(this)">' +
-                '<option value="">Insert template...</option>' +
-                '<option value="flowchart">Flowchart</option>' +
-                '<option value="sequence">Sequence Diagram</option>' +
-                '<option value="classDiagram">Class Diagram</option>' +
-                '<option value="stateDiagram">State Diagram</option>' +
-                '<option value="erDiagram">ER Diagram</option>' +
-                '<option value="gantt">Gantt Chart</option>' +
-                '<option value="pie">Pie Chart</option>' +
-                '<option value="gitgraph">Git Graph</option>' +
-            '</select>' +
-            '<span style="flex:1;"></span>' +
-            '<div class="mermaid-diag-mode-btns">' +
-                '<button onclick="mermDiagSetMode(this,\'edit\')" title="Edit mode">Edit</button>' +
-                '<button class="active" onclick="mermDiagSetMode(this,\'preview\')" title="Preview mode">Preview</button>' +
-                '<button onclick="mermDiagSetMode(this,\'render\')" title="Render mode">Render</button>' +
-            '</div>' +
-            '<div class="mermaid-diag-export-btns">' +
-                '<button onclick="mermDiagExportSvg(this)" title="Export as SVG">SVG</button>' +
-                '<button onclick="mermDiagExportPng(this)" title="Export as PNG">PNG</button>' +
-            '</div>' +
-        '</div>' +
-        '<div class="mermaid-diag-body mode-preview">' +
-            '<div class="mermaid-diag-editor">' +
-                '<textarea spellcheck="false" oninput="mermDiagOnInput(this)" placeholder="Enter Mermaid syntax..."></textarea>' +
-            '</div>' +
-            '<div class="mermaid-diag-preview"></div>' +
-        '</div>' +
-        '<div class="mermaid-diag-status"></div>' +
-        '<div class="mermaid-diag-hover-controls">' +
-            '<select onchange="mermDiagInsertTemplate(this)">' +
-                '<option value="">Template...</option>' +
+        '<div class="mermaid-diag-actions">' +
+            '<select onchange="mermDiagInsertTemplate(this)" title="Start from a worked example">' +
+                '<option value="">Template…</option>' +
                 '<option value="flowchart">Flowchart</option>' +
                 '<option value="sequence">Sequence</option>' +
                 '<option value="classDiagram">Class</option>' +
@@ -5802,17 +5745,29 @@ PluginRegistry.registerTool({
                 '<option value="pie">Pie</option>' +
                 '<option value="gitgraph">Git Graph</option>' +
             '</select>' +
-            '<div class="mermaid-diag-mode-btns">' +
-                '<button onclick="mermDiagSetMode(this,\'edit\')" title="Edit mode">Edit</button>' +
-                '<button onclick="mermDiagSetMode(this,\'preview\')" title="Preview mode">Preview</button>' +
-                '<button class="active" onclick="mermDiagSetMode(this,\'render\')" title="Render mode">Render</button>' +
-            '</div>' +
-            '<div class="mermaid-diag-export-btns">' +
-                '<button onclick="mermDiagExportSvg(this)" title="Export as SVG">SVG</button>' +
-                '<button onclick="mermDiagExportPng(this)" title="Export as PNG">PNG</button>' +
-            '</div>' +
+            '<button class="mermaid-diag-btn" onclick="mermDiagExportSvg(this)" title="Download the diagram as an SVG">SVG</button>' +
+            '<button class="mermaid-diag-btn" onclick="mermDiagExportPng(this)" title="Download the diagram as a PNG">PNG</button>' +
         '</div>' +
+        '<div class="authoring-split">' +
+            '<div class="authoring-source mermaid-diag-editor">' +
+                '<textarea spellcheck="false" oninput="mermDiagOnInput(this)" placeholder="Enter Mermaid syntax…"></textarea>' +
+            '</div>' +
+            '<div class="authoring-resizer"></div>' +
+            '<div class="authoring-result mermaid-diag-preview"></div>' +
+        '</div>' +
+        '<div class="mermaid-diag-status authoring-chrome"></div>' +
     '</div>',
+    // Opting in to the shared modes. What this tool called Preview is Both, and its
+    // Render is View; the words and the hover behaviour are the framework's now, and
+    // the second copy of the toolbar it kept for the hover overlay is gone with it.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        source: '.authoring-source',
+        result: '.authoring-result',
+        actions: '.mermaid-diag-actions',
+        onRender: 'mermDiagOnRender'
+    },
     onInit: 'mermDiagInit',
     defaultWidth: 600,
     defaultHeight: 400,

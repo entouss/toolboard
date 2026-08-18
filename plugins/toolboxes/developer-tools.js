@@ -624,9 +624,16 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 
 /* Directory Structure Widget */
 .tool-content:has(.dirtree-widget) { display: flex; flex-direction: column; }
-.dirtree-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
-.dirtree-input-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; flex-shrink: 0; }
-.dirtree-input-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: var(--input-bg); color: var(--text-primary); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+/* No padding of its own: the framework pads .tool-content, and both meant the tree
+   sat further in than the tool around it. */
+.dirtree-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.dirtree-actions { display: flex; align-items: center; gap: 4px; }
+.dirtree-source, .dirtree-tree-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
+.tool.authoring-split .dirtree-source { padding-right: 10px; }
+/* Wraps: beside the text this row has half a tool to fit in, and the folder button
+   and Add were being cut off the end of it. */
+.dirtree-input-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+.dirtree-input-row input { flex: 1 1 120px; min-width: 0; padding: 7px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: var(--input-bg); color: var(--text-primary); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
 .dirtree-input-row input:focus { outline: none; border-color: #3498db; }
 .dirtree-type-toggle { display: flex; gap: 0; }
 .dirtree-type-btn { padding: 6px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 13px; line-height: 1; }
@@ -658,12 +665,11 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .dirtree-children { margin-left: 20px; padding-left: 8px; border-left: 2px solid var(--border-light); }
 .dirtree-children.collapsed { display: none; }
 .dirtree-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-light); font-size: 11px; color: var(--text-muted); flex-shrink: 0; gap: 6px; }
-.dirtree-footer-buttons { display: flex; gap: 4px; }
 .dirtree-md-btn { background: none; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 2px 8px; border-radius: 3px; transition: all 0.15s; white-space: nowrap; }
 .dirtree-md-btn:hover { border-color: #3498db; color: #3498db; }
-.dirtree-md-btn.active { background: #3498db; border-color: #3498db; color: white; }
-.dirtree-markdown-editor { width: 100%; min-height: 150px; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; line-height: 1.6; background: var(--input-bg); color: var(--text-primary); resize: vertical; box-sizing: border-box; tab-size: 2; flex: 1; }
-.dirtree-markdown-editor:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+/* A pane now, not a box that appears in place of the tree: no frame of its own, and
+   it fills the side it is given. */
+.dirtree-markdown-editor { flex: 1; width: 100%; padding: 0; border: none; background: transparent; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; line-height: 1.6; color: var(--text-primary); resize: none; outline: none; box-sizing: border-box; tab-size: 2; min-height: 0; }
 
 /* SQL Query Explainer Styles */
 .tool-content:has(.sqle-widget) { display: flex; flex-direction: column; }
@@ -1976,24 +1982,46 @@ PluginRegistry.registerTool({
     tags: ['directory', 'tree', 'folder', 'file', 'structure', 'project', 'ascii', 'layout'],
     title: 'Directory Structure',
     content: '<div class="dirtree-widget">' +
-        '<div class="dirtree-input-row">' +
-            '<input type="text" class="dirtree-input" placeholder="Add file or folder...">' +
-            '<div class="dirtree-type-toggle">' +
-                '<button class="dirtree-type-btn active" onclick="this.parentElement.querySelectorAll(\'.dirtree-type-btn\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')" data-type="file" title="File">📄</button>' +
-                '<button class="dirtree-type-btn" onclick="this.parentElement.querySelectorAll(\'.dirtree-type-btn\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')" data-type="folder" title="Folder">📁</button>' +
-            '</div>' +
-            '<button class="dirtree-add-btn" onclick="dirtreeAddItem(this)">Add</button>' +
+        '<div class="dirtree-actions">' +
+            '<button class="dirtree-md-btn" onclick="dirtreeCopyTree(this)" title="Copy as ASCII tree">📋 Copy Tree</button>' +
         '</div>' +
-        '<div class="dirtree-items"></div>' +
-        '<textarea class="dirtree-markdown-editor" style="display:none;"></textarea>' +
-        '<div class="dirtree-footer">' +
-            '<span class="dirtree-summary-text">No items yet</span>' +
-            '<div class="dirtree-footer-buttons">' +
-                '<button class="dirtree-md-btn" onclick="dirtreeCopyTree(this)" title="Copy as ASCII tree">📋 Copy Tree</button>' +
-                '<button class="dirtree-md-btn" onclick="dirtreeToggleMarkdown(this)" title="Edit as markdown">✎ Markdown</button>' +
+        '<div class="authoring-split">' +
+            '<div class="authoring-source dirtree-source">' +
+                '<textarea class="dirtree-markdown-editor" spellcheck="false" oninput="dirtreeOnSourceInput(this)" placeholder="One per line. End a name with / for a folder, indent two spaces to nest.&#10;&#10;src/&#10;  index.js&#10;  lib/&#10;    parse.js&#10;README.md"></textarea>' +
             '</div>' +
+            '<div class="authoring-resizer"></div>' +
+            '<div class="authoring-result dirtree-tree-pane">' +
+                '<div class="dirtree-input-row">' +
+                    '<input type="text" class="dirtree-input" placeholder="Add file or folder...">' +
+                    '<div class="dirtree-type-toggle">' +
+                        '<button class="dirtree-type-btn active" onclick="this.parentElement.querySelectorAll(\'.dirtree-type-btn\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')" data-type="file" title="File">📄</button>' +
+                        '<button class="dirtree-type-btn" onclick="this.parentElement.querySelectorAll(\'.dirtree-type-btn\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')" data-type="folder" title="Folder">📁</button>' +
+                    '</div>' +
+                    '<button class="dirtree-add-btn" onclick="dirtreeAddItem(this)">Add</button>' +
+                '</div>' +
+                '<div class="dirtree-items"></div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="dirtree-footer authoring-chrome">' +
+            '<span class="dirtree-summary-text">No items yet</span>' +
         '</div>' +
     '</div>',
+    // The markdown was already this tool's second way of saying the same thing —
+    // behind a button that swapped one for the other and carried its own state in
+    // its label. As modes it can also be had side by side, which the toggle could
+    // never offer, and the tree edits and the text stay in step both ways.
+    //
+    // The row that adds a file stays with the tree rather than with the chrome: it
+    // is how you use this tool, and putting it behind a mode change would mean
+    // leaving View to add one file.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        source: '.authoring-source',
+        result: '.authoring-result',
+        actions: '.dirtree-actions',
+        onRender: 'dirtreeOnRender'
+    },
     contentType: 'html',
     onInit: 'dirtreeInit',
     source: 'external',
@@ -5490,6 +5518,13 @@ function jpPreset(btn, path) {
 let dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
 
 // Core data
+/** Via the tool, not the widget: Copy Tree is lifted into the mode bar, so it is no
+ *  longer inside the widget it copies from. */
+function dirtreeGetWidget(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.querySelector('.dirtree-widget') : element.closest('.dirtree-widget');
+}
+
 function dirtreeGetToolId(element) {
     const tool = element.closest('.tool');
     return tool ? tool.getAttribute('data-tool') : null;
@@ -5554,11 +5589,23 @@ function dirtreeInit() {
     });
 }
 
-function dirtreeRender(widget, toolId) {
+/**
+ * Draw the tree, and keep the markdown in step with it.
+ *
+ * `keepSource` is for the one caller that must not be written back to: the textarea
+ * itself. Regenerating the text from the items it just produced would renormalise
+ * the line under the cursor as you typed it.
+ */
+function dirtreeRender(widget, toolId, keepSource) {
     const items = dirtreeGetData(toolId);
     const listEl = widget.querySelector('.dirtree-items');
     const summaryEl = widget.querySelector('.dirtree-summary-text');
     if (!listEl) return;
+
+    if (!keepSource) {
+        const source = widget.querySelector('.dirtree-markdown-editor');
+        if (source) source.value = dirtreeToMarkdown(items, 0).join('\n');
+    }
 
     listEl.innerHTML = items.map((item, idx) => dirtreeRenderItem(item, idx, '')).join('');
 
@@ -5851,35 +5898,20 @@ function dirtreeFromMarkdown(text) {
     return root;
 }
 
-function dirtreeToggleMarkdown(btn) {
-    const widget = btn.closest('.dirtree-widget');
-    const toolId = dirtreeGetToolId(widget);
-    if (!toolId) return;
+/** Typing the structure out: parse, save, redraw the tree — but leave the text alone. */
+function dirtreeOnSourceInput(textarea) {
+    const widget = dirtreeGetWidget(textarea);
+    const toolId = dirtreeGetToolId(textarea);
+    if (!widget || !toolId) return;
+    dirtreeSaveData(toolId, dirtreeFromMarkdown(textarea.value));
+    dirtreeRender(widget, toolId, true);
+}
 
-    const listEl = widget.querySelector('.dirtree-items');
-    const editor = widget.querySelector('.dirtree-markdown-editor');
-    const inputRow = widget.querySelector('.dirtree-input-row');
-    const isEditing = editor.style.display !== 'none';
-
-    if (isEditing) {
-        const items = dirtreeFromMarkdown(editor.value);
-        dirtreeSaveData(toolId, items);
-        editor.style.display = 'none';
-        listEl.style.display = '';
-        if (inputRow) inputRow.style.display = '';
-        btn.classList.remove('active');
-        btn.textContent = '✎ Markdown';
-        dirtreeRender(widget, toolId);
-    } else {
-        const items = dirtreeGetData(toolId);
-        editor.value = dirtreeToMarkdown(items, 0).join('\n');
-        editor.style.display = '';
-        listEl.style.display = 'none';
-        if (inputRow) inputRow.style.display = 'none';
-        btn.classList.add('active');
-        btn.textContent = '✓ Apply';
-        editor.focus();
-    }
+/** What the framework calls when the tree needs to be up to date. */
+function dirtreeOnRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.dirtree-widget');
+    if (widget) dirtreeRender(widget, toolId);
 }
 
 // ASCII tree
@@ -5901,7 +5933,7 @@ function dirtreeToAsciiTree(items, prefix, isLast) {
 }
 
 function dirtreeCopyTree(btn) {
-    const widget = btn.closest('.dirtree-widget');
+    const widget = dirtreeGetWidget(btn);
     const toolId = dirtreeGetToolId(widget);
     if (!toolId) return;
 
@@ -9563,12 +9595,12 @@ function ghdHistoryTooltip(d) {
         jpEvalPath, jpDescendants, jpFilterMatch, jpResolvePath, jpTokenize,
         jpQuery, jpExecute, jpEscapeHtml, jpLoadSample, jpPrettify,
         jpCopyResult, jpClear, jpPreset,
-        dirtreeGetToolId, dirtreeGetData, dirtreeSaveData,
+        dirtreeGetWidget, dirtreeGetToolId, dirtreeGetData, dirtreeSaveData,
         dirtreeGetItemByPath, dirtreeSetItemByPath, dirtreeGetParentArray,
         dirtreeInit, dirtreeRender, dirtreeRenderItem,
         dirtreeAddItem, dirtreeAddChild, dirtreeToggle, dirtreeUpdateName, dirtreeNameKeydown, dirtreeDelete,
         dirtreeDragStart, dirtreeDragOver, dirtreeDragLeave, dirtreeDrop,
-        dirtreeToMarkdown, dirtreeFromMarkdown, dirtreeToggleMarkdown,
+        dirtreeToMarkdown, dirtreeFromMarkdown, dirtreeOnSourceInput, dirtreeOnRender,
         dirtreeToAsciiTree, dirtreeCopyTree,
         sqleGetToolId, sqleGetData, sqleSaveData, sqleInit, sqleOnInput,
         sqleParse, sqleExtractClauses, sqleFindKeyword, sqleSplitByKeywords,

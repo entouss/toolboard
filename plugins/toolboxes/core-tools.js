@@ -184,49 +184,80 @@
     border-color: #3498db;
 }
 
+/* A pane now, not a box that appears in place of the list: no frame of its own, and
+   it fills the side it is given. */
 .checklist-markdown-editor {
+    flex: 1;
     width: 100%;
-    min-height: 150px;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
     font-size: 13px;
     line-height: 1.6;
-    background: var(--input-bg);
     color: var(--text-primary);
-    resize: vertical;
+    resize: none;
+    outline: none;
     box-sizing: border-box;
     tab-size: 2;
 }
 
-.checklist-markdown-editor:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+.checklist-widget {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    box-sizing: border-box;
 }
 
-.checklist-md-btn {
-    background: none;
+.checklist-source, .checklist-list-pane {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.checklist-list-pane { overflow: auto; }
+
+.tool.authoring-split .checklist-source { padding-right: 10px; }
+
+.checklist-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.checklist-add-row .checklist-input {
+    flex: 1 1 120px;
+    min-width: 0;
+    padding: 8px 10px;
     border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 3px;
-    transition: all 0.15s;
-    white-space: nowrap;
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--input-bg);
+    color: var(--text-primary);
 }
 
-.checklist-md-btn:hover {
-    border-color: #3498db;
-    color: #3498db;
-}
-
-.checklist-md-btn.active {
-    background: #3498db;
-    border-color: #3498db;
+.checklist-add-btn {
+    padding: 8px 14px;
+    background: #27ae60;
     color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.checklist-summary {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-light);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
 }
 
 .tool-content:has(.calc-container) {
@@ -338,12 +369,24 @@ function checklistRenderItem(item, idx, parentIdx = null) {
     `;
 }
 
-function checklistRender(widget, toolId) {
+/**
+ * Draw the list, and keep the markdown in step with it.
+ *
+ * `keepSource` is for the one caller that must not be written back to: the textarea
+ * itself. Regenerating the text from the items it just produced would renormalise
+ * the line under the cursor as you typed it.
+ */
+function checklistRender(widget, toolId, keepSource) {
     const items = checklistGetData(toolId);
     const listEl = widget.querySelector('.checklist-items');
     const summaryEl = widget.querySelector('.checklist-summary');
 
     if (!listEl) return;
+
+    if (!keepSource) {
+        const source = widget.querySelector('.checklist-markdown-editor');
+        if (source) source.value = checklistToMarkdown(items);
+    }
 
     listEl.innerHTML = items.map((item, idx) => checklistRenderItem(item, idx)).join('');
 
@@ -617,37 +660,20 @@ function checklistFromMarkdown(text) {
     return items;
 }
 
-function checklistToggleMarkdown(btn) {
-    const widget = btn.closest('.checklist-widget');
-    const toolId = checklistGetToolId(widget);
-    if (!toolId) return;
+/** Typing the list out: parse, save, redraw the list — but leave the text alone. */
+function checklistOnSourceInput(textarea) {
+    const widget = textarea.closest('.checklist-widget');
+    const toolId = checklistGetToolId(textarea);
+    if (!widget || !toolId) return;
+    checklistSaveData(toolId, checklistFromMarkdown(textarea.value));
+    checklistRender(widget, toolId, true);
+}
 
-    const listEl = widget.querySelector('.checklist-items');
-    const editor = widget.querySelector('.checklist-markdown-editor');
-    const inputRow = widget.querySelector('.checklist-input')?.parentElement;
-    const isEditing = editor.style.display !== 'none';
-
-    if (isEditing) {
-        // Save markdown back to items
-        const items = checklistFromMarkdown(editor.value);
-        checklistSaveData(toolId, items);
-        editor.style.display = 'none';
-        listEl.style.display = '';
-        if (inputRow) inputRow.style.display = '';
-        btn.classList.remove('active');
-        btn.textContent = '✎ Markdown';
-        checklistRender(widget, toolId);
-    } else {
-        // Convert items to markdown and show editor
-        const items = checklistGetData(toolId);
-        editor.value = checklistToMarkdown(items);
-        editor.style.display = '';
-        listEl.style.display = 'none';
-        if (inputRow) inputRow.style.display = 'none';
-        btn.classList.add('active');
-        btn.textContent = '✓ Apply';
-        editor.focus();
-    }
+/** What the framework calls when the list needs to be up to date. */
+function checklistOnRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.checklist-widget');
+    if (widget) checklistRender(widget, toolId);
 }
 
 // ============================================================
@@ -767,7 +793,7 @@ function calcBackspace() {
 (function injectScriptsForExport() {
     if (document.getElementById('core-tools-scripts')) return;
 
-    var checklistFunctions = [checklistGetToolId, checklistGetData, checklistSaveData, checklistInit, checklistRenderItem, checklistRender, checklistGetItemByPath, checklistSetItemByPath, checklistAddItem, checklistAddSub, checklistCycleStatus, checklistUpdateText, checklistTextKeydown, checklistDelete, checklistDragStart, checklistDragOver, checklistDragLeave, checklistDrop, checklistToMarkdown, checklistFromMarkdown, checklistToggleMarkdown];
+    var checklistFunctions = [checklistGetToolId, checklistGetData, checklistSaveData, checklistInit, checklistRenderItem, checklistRender, checklistGetItemByPath, checklistSetItemByPath, checklistAddItem, checklistAddSub, checklistCycleStatus, checklistUpdateText, checklistTextKeydown, checklistDelete, checklistDragStart, checklistDragOver, checklistDragLeave, checklistDrop, checklistToMarkdown, checklistFromMarkdown, checklistOnSourceInput, checklistOnRender];
     var calcFunctions = [calcInit, calcKeyHandler, calcInputHandler, calcNum, calcOp, calcEquals, calcClear, calcBackspace];
     var allFunctions = checklistFunctions.concat(calcFunctions);
 
@@ -799,18 +825,39 @@ PluginRegistry.registerTool({
     toolbox: 'core',
     tags: ['todo', 'tasks', 'list'],
     title: 'Checklist',
-    content: '<div class="checklist-widget" style="padding:10px;">' +
-        '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
-            '<input type="text" class="checklist-input" placeholder="Add new item..." style="flex:1;padding:8px 10px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;background:var(--input-bg);color:var(--text-primary);">' +
-            '<button onclick="checklistAddItem(this)" style="padding:8px 14px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Add</button>' +
+    content: '<div class="checklist-widget">' +
+        '<div class="authoring-split">' +
+            '<div class="authoring-source checklist-source">' +
+                '<textarea class="checklist-markdown-editor" spellcheck="false" oninput="checklistOnSourceInput(this)" ' +
+                    'placeholder="One per line. &#10;&#10;- to do&#10;+ in progress&#10;x done&#10;  - indent two spaces for a subitem"></textarea>' +
+            '</div>' +
+            '<div class="authoring-resizer"></div>' +
+            '<div class="authoring-result checklist-list-pane">' +
+                '<div class="checklist-add-row">' +
+                    '<input type="text" class="checklist-input" placeholder="Add new item...">' +
+                    '<button class="checklist-add-btn" onclick="checklistAddItem(this)">Add</button>' +
+                '</div>' +
+                '<ul class="checklist-items"></ul>' +
+            '</div>' +
         '</div>' +
-        '<ul class="checklist-items" style="list-style:none;padding:0;margin:0;"></ul>' +
-        '<textarea class="checklist-markdown-editor" style="display:none;"></textarea>' +
-        '<div class="checklist-summary" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between;">' +
+        '<div class="checklist-summary authoring-chrome">' +
             '<span class="checklist-summary-text"></span>' +
-            '<button class="checklist-md-btn" onclick="checklistToggleMarkdown(this)" title="Edit as markdown">\u270E Markdown</button>' +
         '</div>' +
     '</div>',
+    // The markdown was already this tool's second way of saying the same thing \u2014
+    // behind a button that swapped one for the other and carried its own state in
+    // its label. As modes it can also be had side by side, and ticking something off
+    // rewrites the text while typing the text rebuilds the list.
+    //
+    // The row that adds an item stays with the list rather than with the chrome:
+    // ticking and adding is what this tool is for, and both belong in View.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        source: '.authoring-source',
+        result: '.authoring-result',
+        onRender: 'checklistOnRender'
+    },
     onInit: 'checklistInit',
     defaultWidth: 290,
     defaultHeight: 350,

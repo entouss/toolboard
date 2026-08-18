@@ -145,14 +145,11 @@
 .imgv-pick-btn.active { background: #e74c3c; color: white; border-color: #e74c3c; }
 .imgv-display.eyedropper { cursor: crosshair; }
 .imgv-display.eyedropper img { cursor: crosshair; }
-.imgv-widget.render-mode .imgv-input-row { display: none; }
-.imgv-widget.render-mode .imgv-controls { display: none; }
-.imgv-widget.render-mode .imgv-display { background-image: none; background: transparent; }
-.tool:has(.imgv-widget.render-mode) { background: transparent; box-shadow: none; }
-.imgv-mode-toggle { position: absolute; top: 6px; right: 6px; padding: 3px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; opacity: 0; transition: opacity 0.2s; z-index: 2; }
-.imgv-display:hover .imgv-mode-toggle { opacity: 1; }
-.imgv-widget.render-mode .imgv-mode-toggle { opacity: 0; }
-.imgv-widget.render-mode .imgv-display:hover .imgv-mode-toggle { opacity: 0.8; }
+/* Showing and hiding the panes is the framework's; what is left here is what View
+   means for a picture — no chequerboard behind it, so a cut-out sits on whatever
+   the tool is, rather than on a grey grid. The tool keeps its frame: that is the
+   owner's choice, not something finishing an edit should decide. */
+.tool.authoring-render .imgv-display { background-image: none; background: transparent; }
 
 /* Image Viewer Crop Mode */
 .imgv-crop-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: crosshair; z-index: 3; display: none; }
@@ -175,7 +172,6 @@
 .imgv-crop-bar .imgv-crop-apply:hover { background: #219a52; }
 .imgv-crop-bar .imgv-crop-cancel-btn { background: var(--bg-tertiary); color: var(--text-primary); }
 .imgv-crop-bar .imgv-crop-cancel-btn:hover { background: var(--table-hover); }
-.imgv-widget.crop-mode .imgv-mode-toggle { display: none; }
 .imgv-widget.crop-mode .imgv-controls { pointer-events: none; opacity: 0.5; }
 .imgv-widget.crop-mode .imgv-input-row { pointer-events: none; opacity: 0.5; }
 .imgv-meme-text { position: absolute; left: 0; right: 0; text-align: center; padding: 8px 10px; font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; font-size: 32px; text-transform: uppercase; color: white; -webkit-text-stroke: 2px black; text-shadow: 2px 2px 0 black, -2px -2px 0 black, 2px -2px 0 black, -2px 2px 0 black; line-height: 1.1; word-wrap: break-word; pointer-events: none; z-index: 1; user-select: none; }
@@ -1257,8 +1253,8 @@ function imgvApplyCropLayout(widget, img, crop, state) {
     var cropNatW = natW * (100 - crop.left - crop.right) / 100;
     var cropNatH = natH * (100 - crop.top - crop.bottom) / 100;
     if (cropNatW <= 0 || cropNatH <= 0) return;
-    var isRender = widget.classList.contains('render-mode');
     var toolEl = widget.closest('.tool');
+    var isRender = imgvIsViewOnly(widget);
     var cropRatio = (cropNatW / cropNatH).toFixed(6);
     if (toolEl) toolEl.setAttribute('data-crop-aspect-ratio', cropRatio);
     if (isRender) {
@@ -1537,7 +1533,7 @@ function imgvDisplayClick(widget, e) {
         var dispW = dispRect.width, dispH = dispRect.height;
         var cropNatW = natW * (100 - crop.left - crop.right) / 100;
         var cropNatH = natH * (100 - crop.top - crop.bottom) / 100;
-        var isRender = widget.classList.contains('render-mode');
+        var isRender = imgvIsViewOnly(widget);
         var scale = isRender ? Math.max(dispW / cropNatW, dispH / cropNatH) : Math.min(dispW / cropNatW, dispH / cropNatH);
         var cropDispW = cropNatW * scale;
         var cropDispH = cropNatH * scale;
@@ -1595,21 +1591,19 @@ function imgvDisplayClick(widget, e) {
     widget.querySelector('.imgv-display').classList.remove('eyedropper');
 }
 
-function imgvToggleMode(btn) {
-    var widget = imgvGetWidget(btn);
-    var toolEl = widget.closest('.tool');
-    var isRender = widget.classList.toggle('render-mode');
-    toolEl.classList.toggle('frameless', isRender);
-    btn.textContent = isRender ? 'Edit' : 'Render';
-    // Persist frameless in toolCustomizations so the framework restores it
-    var toolId = imgvGetToolId(widget);
-    var customizations = loadToolCustomizations();
-    customizations[toolId] = customizations[toolId] || {};
-    customizations[toolId].frameless = isRender;
-    customizations[toolId].imgvRenderMode = isRender;
-    saveToolCustomizations(customizations);
-    // Re-apply styles so crop layout recalculates for new mode
-    if (widget._imgvCrop) imgvApplyStyles(widget);
+/** Whether the picture is on its own, which the crop maths needs to know: with the
+ *  controls gone the display fills the tool, and the image fills rather than fits. */
+function imgvIsViewOnly(widget) {
+    var tool = widget.closest('.tool');
+    return Boolean(tool && tool.classList.contains('authoring-render'));
+}
+
+/** The framework calls this when the mode changes; a crop has to re-measure against
+ *  a display that has just changed size. */
+function imgvOnModeChange(toolId) {
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var widget = tool && tool.querySelector('.imgv-widget');
+    if (widget && widget._imgvCrop) imgvApplyStyles(widget);
 }
 
 // ── Crop functions ──
@@ -2094,11 +2088,22 @@ function imgvInit() {
             imgvMemeApply(widget);
         }
 
-        // Restore render mode
-        if (saved.imgvRenderMode) {
-            widget.classList.add('render-mode');
-            widget.closest('.tool').classList.add('frameless');
-            widget.querySelector('.imgv-mode-toggle').textContent = 'Edit';
+        // Hand the old private toggle over to the framework, once. It wrote frameless
+        // itself, in step with its own flag, so that goes too — the framework infers
+        // frameless from the mode, and leaving the old value behind would keep the
+        // tool frameless in Both as well.
+        if (saved.imgvRenderMode !== undefined && !saved.viewMode) {
+            var fresh = loadToolCustomizations();
+            fresh[toolId] = fresh[toolId] || {};
+            fresh[toolId].viewMode = saved.imgvRenderMode ? 'render' : 'split';
+            if (saved.imgvRenderMode) {
+                delete fresh[toolId].frameless;
+                // The tool was built from the stored value before this ran, so the
+                // class is already on the element and nothing else will take it off.
+                widget.closest('.tool').classList.remove('frameless');
+            }
+            delete fresh[toolId].imgvRenderMode;
+            saveToolCustomizations(fresh);
         }
 
         // Enter key on URL input
@@ -3651,7 +3656,7 @@ function speInit() {
     var cpkFunctions = [cpkHsvToRgb, cpkRgbToHsv, cpkRgbToHsl, cpkHslToRgb, cpkGetState, cpkDrawWheel, cpkDrawSV, cpkUpdateCursors, cpkUpdateAlpha, cpkUpdateValues, cpkFullUpdate, cpkWheelEvent, cpkSVEvent, cpkAlphaEvent, cpkMakeDraggable, cpkHexTyped, cpkRgbaTyped, cpkHslaTyped, cpkAlphaTyped, cpkCopyVal, cpkSaveColor, cpkInitWidget, cpkInit, cpkUpdateLinkBanner, cpkConfirmLink, cpkRevertLink];
     var emoteFunctions = [emoteInit, emoteSelectTab, emoteRender, emoteSearch, emoteCopy, emoteUpdateLinkBanner];
     var drawFunctions = [drawGetState, drawInit, drawBeginStroke, drawMoveStroke, drawEndStroke, drawSetColor, drawSetSize, drawToggleEraser, drawClear, drawUndo, drawDownload, drawResizeCanvas, drawColorInput, drawSizeInput];
-    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvFlash, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvApplyCropLayout, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick, imgvToggleMode, imgvCropStart, imgvCreateCropOverlay, imgvCropMouseDown, imgvCropMouseMove, imgvCropMouseUp, imgvCropUpdateRect, imgvCropApply, imgvCropCancel, imgvCropExit, imgvMemeChange, imgvMemeSizeChange, imgvMemeApply, imgvLoadTracer, imgvTraceSvg, imgvShowSvgModal, imgvSaveState, imgvInit];
+    var imgvFunctions = [imgvGetWidget, imgvGetToolId, imgvIsViewOnly, imgvOnModeChange, imgvFlash, imgvGetState, imgvBuildFilterString, imgvBuildTransformString, imgvApplyStyles, imgvApplyCropLayout, imgvUpdateValueDisplay, imgvSliderChange, imgvToggleFlip, imgvShowImage, imgvLoad, imgvHandlePaste, imgvHandleDrop, imgvReset, imgvProcessTransparency, imgvTransColorChange, imgvTransToleranceChange, imgvPickToggle, imgvDisplayClick,  imgvCropStart, imgvCreateCropOverlay, imgvCropMouseDown, imgvCropMouseMove, imgvCropMouseUp, imgvCropUpdateRect, imgvCropApply, imgvCropCancel, imgvCropExit, imgvMemeChange, imgvMemeSizeChange, imgvMemeApply, imgvLoadTracer, imgvTraceSvg, imgvShowSvgModal, imgvSaveState, imgvInit];
     var msheetFunctions = [msheetGetToolId, msheetGetWidget, msheetGetState, msheetSaveData, msheetNoteYPos, msheetYToNote, msheetXToSlot, msheetDraw, msheetCanvasClick, msheetPlayNote, msheetPlay, msheetPlaySequence, msheetStop, msheetClear, msheetSetTempo, msheetSetDuration, msheetSetInstrument, msheetInit];
     var paedFunctions = [paedGetToolId, paedGetState, paedSaveData, paedInitPixels, paedRender, paedCoordsToCell, paedSaveSnapshot, paedApplyTool, paedFloodFill, paedHandleStart, paedHandleMove, paedHandleEnd, paedSetTool, paedSetColor, paedSetSize, paedColorInput, paedUndo, paedRedo, paedClear, paedToggleGrid, paedExport, paedResizeCanvas, paedUpdateStatus, paedInit];
     var cpalFunctions = [cpalGetToolId, cpalHslToHex, cpalHexToHsl, cpalGenerate, cpalRender, cpalSetMode, cpalSetBase, cpalRandomize, cpalToggleLock, cpalCopyColor, cpalCopyAll, cpalSaveState, cpalInit];
@@ -3846,17 +3851,16 @@ PluginRegistry.registerTool({
     tags: ['image', 'photo', 'picture', 'filter', 'brightness', 'contrast', 'saturate', 'blur', 'rotate', 'flip', 'css', 'viewer'],
     title: 'Image Viewer',
     content: '<div class="imgv-widget">' +
-        '<div class="imgv-input-row">' +
+        '<div class="imgv-input-row authoring-source">' +
             '<input type="text" placeholder="Enter image URL..." spellcheck="false">' +
             '<button onclick="imgvLoad(this)">Load</button>' +
         '</div>' +
-        '<div class="imgv-display">' +
-            '<button class="imgv-mode-toggle" onclick="imgvToggleMode(this)">Render</button>' +
+        '<div class="imgv-display authoring-result">' +
             '<div class="imgv-meme-text imgv-meme-top"></div>' +
             '<div class="imgv-meme-text imgv-meme-bottom"></div>' +
             '<div class="imgv-placeholder">Paste, drag &amp; drop, or enter a URL above</div>' +
         '</div>' +
-        '<div class="imgv-controls">' +
+        '<div class="imgv-controls authoring-source">' +
             '<div class="imgv-section-label">Filters</div>' +
             '<div class="imgv-slider-row"><label>Brightness</label><input type="range" min="0" max="300" value="100" data-filter="brightness" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
             '<div class="imgv-slider-row"><label>Contrast</label><input type="range" min="0" max="300" value="100" data-filter="contrast" data-unit="%" oninput="imgvSliderChange(this)"><span class="imgv-val">100%</span></div>' +
@@ -3900,6 +3904,25 @@ PluginRegistry.registerTool({
             '<div class="imgv-slider-row"><label>Font Size</label><input type="range" min="12" max="72" value="32" data-meme-size="1" oninput="imgvMemeSizeChange(this)"><span class="imgv-val">32px</span></div>' +
         '</div>' +
     '</div>',
+    // Two modes, not three. The source here is a panel of sliders rather than text,
+    // and a mode that showed the controls without the picture would be adjusting
+    // something you cannot see. So the tool's editing mode is the one that shows
+    // both, and it says Edit: with the picture in it only so you can see what the
+    // sliders are doing, "Both" would be describing the layout rather than what you
+    // came to do.
+    //
+    // It opens in Edit rather than View, unlike the other tools: a new image viewer
+    // has no image, and View would be an empty square whose one instruction points
+    // at a field that is hidden. Once there is a picture, switching to View sticks.
+    authoring: {
+        modes: ['split', 'render'],
+        defaultMode: 'split',
+        labels: { split: 'Edit' },
+        titles: { split: 'The picture, with everything you can change about it' },
+        source: '.imgv-controls',
+        result: '.imgv-display',
+        onRender: 'imgvOnModeChange'
+    },
     contentType: 'html',
     onInit: 'imgvInit',
     source: 'external',

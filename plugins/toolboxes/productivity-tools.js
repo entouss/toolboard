@@ -1675,27 +1675,19 @@
    document rather than a branded widget.
    font-size is inherited, not fixed, so per-tool and per-board font settings reach
    the table instead of being overridden here. */
-.rcp-widget { --rcp-accent: #2e7d32; --rcp-border: #4a4a4a; position: relative; padding: 10px; font-size: inherit; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+.rcp-widget { --rcp-accent: #2e7d32; --rcp-border: #4a4a4a; position: relative; font-size: inherit; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
 body.dark-mode .rcp-widget { --rcp-accent: #5cb860; --rcp-border: #8b9096; }
-.rcp-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap; }
-.rcp-mode-toggle { display: flex; gap: 0; }
-.rcp-mode-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; }
-.rcp-mode-btn:first-child { border-radius: 4px 0 0 4px; }
-.rcp-mode-btn:last-child { border-radius: 0 4px 4px 0; }
-.rcp-mode-btn.active { background: var(--rcp-accent); color: #fff; border-color: var(--rcp-accent); }
-.rcp-toolbar-spacer { flex: 1; }
-.rcp-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+/* The four mode buttons and the panes are the framework's now; what is left here
+   is what the recipe itself looks like. rcpActions is lifted into the tool header
+   by applyToolMode, so these buttons are styled to sit there. */
+.rcp-actions { display: flex; align-items: center; gap: 4px; }
+.rcp-btn { padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap; }
 .rcp-btn:hover { background: var(--table-hover); }
-.rcp-edit-container, .rcp-view-container { flex: 1; display: none; min-height: 0; flex-direction: column; }
-.rcp-edit-container.active, .rcp-view-container.active { display: flex; }
-.rcp-split-container { flex: 1; display: none; gap: 10px; min-height: 0; }
-.rcp-split-container.active { display: flex; }
-.rcp-edit-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.rcp-edit-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
 .rcp-widget textarea { flex: 1; resize: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; line-height: 1.5; tab-size: 4; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
 .rcp-widget textarea:focus { outline: none; border-color: var(--rcp-accent); }
-.rcp-view-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: transparent; overflow: auto; }
-.rcp-split-resizer { width: 6px; background: var(--border-color); cursor: col-resize; border-radius: 3px; flex-shrink: 0; }
-.rcp-split-resizer:hover { background: var(--rcp-accent); }
+.rcp-view-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: transparent; overflow: auto; }
+.tool.authoring-render .rcp-view-pane { border: none; border-radius: 0; }
 .rcp-output { flex: 1; padding: 10px; overflow: auto; }
 /* Natural width, never wider than the pane. A percentage width here would make the
    table stretch to fill any measuring container and break double-click auto-resize. */
@@ -1725,13 +1717,6 @@ body.dark-mode .rcp-widget { --rcp-accent: #5cb860; --rcp-border: #8b9096; }
 .rcp-help-content code { background: var(--code-bg); padding: 1px 4px; border-radius: 3px; font-family: monospace; }
 .rcp-help-close { float: right; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; }
 .rcp-help-close:hover { color: var(--text-heading); }
-/* Render mode: just the recipe. Controls fade in over it on hover. */
-.rcp-widget.mode-render { padding: 0; }
-.rcp-widget.mode-render .rcp-toolbar, .rcp-widget.mode-render .rcp-help-text { display: none; }
-.rcp-widget.mode-render .rcp-view-pane { border: none; border-radius: 0; background: transparent; }
-.rcp-hover-controls { position: absolute; top: 8px; right: 8px; z-index: 10; display: none; align-items: center; gap: 5px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 6px; opacity: 0; pointer-events: none; transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-.rcp-widget.mode-render .rcp-hover-controls { display: flex; }
-.rcp-widget.mode-render:hover .rcp-hover-controls, .rcp-widget.mode-render:focus-within .rcp-hover-controls { opacity: 1; pointer-events: auto; }
 
 `;
     document.head.appendChild(style);
@@ -5553,9 +5538,11 @@ function bnoiseSetTimer(select) {
 // =============================================
 
 function rcpGetToolId(element) { return element.closest('.tool')?.dataset.tool || null; }
+// No mode here any more — that is the framework's, under its own key. Leaving a
+// default one behind made every new tool look like it had been left in Split.
 function rcpGetData(toolId) {
     const customizations = loadToolCustomizations();
-    return (customizations[toolId]?.rcpData) || { text: '', mode: 'split' };
+    return (customizations[toolId]?.rcpData) || { text: '' };
 }
 function rcpSaveData(toolId, data) {
     const customizations = loadToolCustomizations();
@@ -5719,6 +5706,20 @@ function rcpBuildTableHtml(parsed) {
     return html + '</table>';
 }
 
+/** The widget, from anywhere inside the tool — the action buttons live in the
+ *  header once the framework has lifted them out of the widget itself. */
+function rcpGetWidget(element) {
+    var tool = element.closest('.tool');
+    return tool ? tool.querySelector('.rcp-widget') : null;
+}
+
+/** What the framework calls when the result needs to be up to date. */
+function rcpRender(toolId) {
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var widget = tool && tool.querySelector('.rcp-widget');
+    if (widget) rcpRenderTable(widget, toolId, '.rcp-output');
+}
+
 function rcpRenderTable(widget, toolId, containerSelector) {
     var container = widget.querySelector(containerSelector);
     if (!container) return;
@@ -5730,42 +5731,37 @@ function rcpRenderTable(widget, toolId, containerSelector) {
         return;
     }
     if (!parsed.roots.length && !parsed.prep.length && !parsed.title) {
-        container.innerHTML = '<div class="rcp-placeholder">Write your recipe on the left — indent each ingredient under the step that uses it.</div>';
+        container.innerHTML = '<div class="rcp-placeholder">Write your recipe — indent each ingredient under the step that uses it.</div>';
         return;
     }
     container.innerHTML = rcpBuildTableHtml(parsed);
 }
 
 function rcpActiveOutput(widget) {
-    var data = rcpGetData(rcpGetToolId(widget));
-    return widget.querySelector(data.mode === 'view' || data.mode === 'render'
-        ? '.rcp-view-container .rcp-output'
-        : '.rcp-split-container .rcp-output');
+    return widget.querySelector('.rcp-output');
 }
 
+// The mode is the framework's; all this has to do is put the text back — and, once,
+// hand over the mode this tool used to keep for itself. "view" no longer exists;
+// what it meant is what render means now.
 function rcpInit() {
     document.querySelectorAll('.rcp-widget').forEach(widget => {
         const toolId = rcpGetToolId(widget);
         if (!toolId) return;
         const data = rcpGetData(toolId);
-        widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
-        widget.querySelectorAll('.rcp-mode-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode));
-        rcpUpdateContainers(widget, data.mode, toolId);
-    });
-}
+        widget.querySelector('textarea').value = data.text;
 
-function rcpUpdateContainers(widget, mode, toolId) {
-    const editContainer = widget.querySelector('.rcp-edit-container');
-    const splitContainer = widget.querySelector('.rcp-split-container');
-    const viewContainer = widget.querySelector('.rcp-view-container');
-    editContainer.classList.remove('active');
-    splitContainer.classList.remove('active');
-    viewContainer.classList.remove('active');
-    // Render mode reuses the view container; the class strips the surrounding chrome.
-    widget.classList.toggle('mode-render', mode === 'render');
-    if (mode === 'edit') editContainer.classList.add('active');
-    else if (mode === 'split') { splitContainer.classList.add('active'); rcpRenderTable(widget, toolId, '.rcp-split-container .rcp-output'); }
-    else { viewContainer.classList.add('active'); rcpRenderTable(widget, toolId, '.rcp-view-container .rcp-output'); }
+        // Only for a tool that really was left in a mode: read the stored object,
+        // not the defaulted one, or a tool that has never been opened inherits a
+        // mode it was never in.
+        const customizations = loadToolCustomizations();
+        const custom = customizations[toolId];
+        const stored = custom && custom.rcpData;
+        if (custom && !custom.viewMode && stored && stored.mode) {
+            custom.viewMode = stored.mode === 'view' ? 'render' : stored.mode;
+            saveToolCustomizations(customizations);
+        }
+    });
 }
 
 function rcpOnInput(textarea) {
@@ -5775,8 +5771,9 @@ function rcpOnInput(textarea) {
     const data = rcpGetData(toolId);
     data.text = textarea.value;
     rcpSaveData(toolId, data);
-    widget.querySelectorAll('textarea').forEach(ta => { if (ta !== textarea) ta.value = textarea.value; });
-    if (data.mode === 'split') rcpRenderTable(widget, toolId, '.rcp-split-container .rcp-output');
+    // Only Split has both on screen at once; in Edit the result is redrawn when
+    // the mode changes, which is the only time anyone will see it.
+    rcpRenderTable(widget, toolId, '.rcp-output');
 }
 
 // Keep Tab inside the editor — indentation is the syntax, so losing focus mid-recipe
@@ -5789,36 +5786,6 @@ function rcpOnKeyDown(textarea, event) {
     textarea.value = textarea.value.slice(0, start) + '  ' + textarea.value.slice(end);
     textarea.selectionStart = textarea.selectionEnd = start + 2;
     rcpOnInput(textarea);
-}
-
-function rcpSetMode(btn, mode) {
-    const widget = btn.closest('.rcp-widget');
-    const toolId = rcpGetToolId(widget);
-    if (!toolId) return;
-    const data = rcpGetData(toolId);
-    data.mode = mode;
-    rcpSaveData(toolId, data);
-    widget.querySelectorAll('.rcp-mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === mode));
-    widget.querySelectorAll('textarea').forEach(ta => ta.value = data.text);
-    rcpUpdateContainers(widget, mode, toolId);
-}
-
-function rcpStartResize(resizer, event) {
-    event.preventDefault();
-    event.stopPropagation();
-    var container = resizer.closest('.rcp-split-container');
-    var editPane = container.querySelector('.rcp-edit-pane');
-    function onMove(e) {
-        var rect = container.getBoundingClientRect();
-        var ratio = Math.min(0.85, Math.max(0.15, (e.clientX - rect.left) / rect.width));
-        editPane.style.flex = '0 0 ' + (ratio * 100) + '%';
-    }
-    function onUp() {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
-    }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
 }
 
 function rcpWrapText(ctx, text, maxWidth) {
@@ -5859,7 +5826,8 @@ function rcpEffectiveBackground(el) {
 }
 
 function rcpExportPng(btn) {
-    var widget = btn.closest('.rcp-widget');
+    var widget = rcpGetWidget(btn);
+    if (!widget) return;
     var output = rcpActiveOutput(widget);
     var table = output && output.querySelector('.rcp-table');
     if (!table) return;
@@ -5917,7 +5885,8 @@ function rcpExportPng(btn) {
 
 // Inline the styles so the table survives a paste into a doc or email.
 function rcpCopyHtml(btn) {
-    var widget = btn.closest('.rcp-widget');
+    var widget = rcpGetWidget(btn);
+    if (!widget) return;
     var output = rcpActiveOutput(widget);
     var table = output && output.querySelector('.rcp-table');
     if (!table) return;
@@ -5988,7 +5957,7 @@ bake 350&deg;F (170&deg;C) 30 to 40 min
     var breathingFunctions = [breathingGetWidget, breathingGetToolId, breathingGetState, breathingInit, breathingToggle, breathingReset, breathingTick, breathingAdvancePhase, breathingUpdateDisplay, breathingSetPreset, breathingApplySettings, breathingToggleSettings];
     var wcFunctions = [wcBuildSearchIndex, wcGetWidget, wcGetToolId, wcGetState, wcFormatTime, wcRender, wcTick, wcAddZone, wcRemoveZone, wcSaveState, wcInit];
     var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
-    var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpRenderTable, rcpActiveOutput, rcpInit, rcpUpdateContainers, rcpOnInput, rcpOnKeyDown, rcpSetMode, rcpStartResize, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
+    var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpGetWidget, rcpRender, rcpRenderTable, rcpActiveOutput, rcpInit, rcpOnInput, rcpOnKeyDown, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
     var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions);
 
     var code = '(function() {\n' +
@@ -6482,45 +6451,34 @@ PluginRegistry.registerTool({
     tags: ['recipe', 'cooking', 'food', 'table', 'kitchen', 'baking', 'ingredients'],
     title: 'Recipe',
     content: '<div class="rcp-widget">' +
-        '<div class="rcp-toolbar">' +
-            '<div class="rcp-mode-toggle">' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'edit\')">Edit</button>' +
-                '<button class="rcp-mode-btn active" onclick="rcpSetMode(this, \'split\')">Split</button>' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'view\')">View</button>' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'render\')" title="Recipe only, no controls">Render</button>' +
-            '</div>' +
-            '<span class="rcp-toolbar-spacer"></span>' +
+        // Lifted into the tool header by the framework, so there is one copy of
+        // these buttons whether the chrome is showing or hovered into view.
+        '<div class="rcp-actions">' +
             '<button class="rcp-btn" onclick="rcpExportPng(this)" title="Download the table as a PNG">PNG</button>' +
             '<button class="rcp-btn" onclick="rcpCopyHtml(this)" title="Copy the table as HTML">Copy</button>' +
-            '<button class="rcp-btn" onclick="rcpShowHelp(this)">? Syntax Help</button>' +
+            '<button class="rcp-btn" onclick="rcpShowHelp(this)">? Syntax</button>' +
         '</div>' +
-        '<div class="rcp-edit-container">' +
-            '<textarea spellcheck="false" placeholder="Enter recipe outline..." oninput="rcpOnInput(this)" onkeydown="rcpOnKeyDown(this, event)"></textarea>' +
-        '</div>' +
-        '<div class="rcp-split-container active">' +
-            '<div class="rcp-edit-pane">' +
+        '<div class="authoring-split">' +
+            '<div class="authoring-source rcp-edit-pane">' +
                 '<textarea spellcheck="false" oninput="rcpOnInput(this)" onkeydown="rcpOnKeyDown(this, event)" placeholder="Outermost step first, ingredients indented beneath.&#10;&#10;# Espresso Brownies&#10;@ Butter and flour an 8x8-in pan&#10;@ Preheat oven to 350°F (170°C)&#10;&#10;bake 350°F (170°C) 30 to 40 min&#10;  fold in&#10;    mix&#10;      mix&#10;        melt&#10;          4 oz (115 g) unsalted butter&#10;        1 cup (200 g) sugar&#10;        1/4 tsp. (2.5 mL) vanilla extract&#10;        1 shot (60 mL) espresso&#10;      2 large (100 g) eggs&#10;    1/2 cup (80 g) all-purpose flour&#10;    1/3 cup (80 g) cocoa powder&#10;    1/4 tsp. (1.3 g) baking soda&#10;    1/4 tsp. (1.5 g) table salt"></textarea>' +
             '</div>' +
-            '<div class="rcp-split-resizer" onmousedown="rcpStartResize(this, event)"></div>' +
-            '<div class="rcp-view-pane"><div class="rcp-output"></div></div>' +
+            '<div class="authoring-resizer"></div>' +
+            '<div class="authoring-result rcp-view-pane"><div class="rcp-output"></div></div>' +
         '</div>' +
-        '<div class="rcp-view-container">' +
-            '<div class="rcp-view-pane"><div class="rcp-output"></div></div>' +
-        '</div>' +
-        '<div class="rcp-help-text">' +
+        '<div class="rcp-help-text authoring-chrome">' +
             'Indent ingredients under the step that uses them. <code>#</code> title | <code>@</code> prep row | <code>//</code> comment' +
         '</div>' +
-        '<div class="rcp-hover-controls">' +
-            '<div class="rcp-mode-toggle">' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'edit\')">Edit</button>' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'split\')">Split</button>' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'view\')">View</button>' +
-                '<button class="rcp-mode-btn" onclick="rcpSetMode(this, \'render\')">Render</button>' +
-            '</div>' +
-            '<button class="rcp-btn" onclick="rcpExportPng(this)" title="Download the table as a PNG">PNG</button>' +
-            '<button class="rcp-btn" onclick="rcpCopyHtml(this)" title="Copy the table as HTML">Copy</button>' +
-        '</div>' +
     '</div>',
+    // Opting in to the shared modes. Everything the framework needs to know about
+    // this tool's shape is here; it owns the buttons, the panes and the divider.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        source: '.authoring-source',
+        result: '.authoring-result',
+        actions: '.rcp-actions',
+        onRender: 'rcpRender'
+    },
     contentType: 'html',
     onInit: 'rcpInit',
     defaultWidth: 640,

@@ -1508,6 +1508,93 @@ main#toolboard {
 }
 
 /* Frameless mode */
+/* ---- authoring modes ---------------------------------------------------- */
+
+/* Out of the way until you reach for it, and when it arrives it makes room for
+   itself rather than sitting on top of the result. Covering the thing you came to
+   look at is exactly what you do not want of a control you only summoned to get at
+   the buttons — so the body moves down and the whole result stays readable.
+   Collapsing by max-height rather than display, so it slides instead of jumping. */
+/* One inset, whatever the mode. The tool's own 15px goes away with the frame in
+   View, so a tool that supplied its own padding on top ended up 25px in from the
+   edge while editing and 10px while reading — the text jumped every time you
+   switched. The framework holds it steady and the tools supply none of their own.
+   The first selector is there only to outrank .tool.frameless .tool-content. */
+.tool.authoring.frameless .tool-content,
+.tool.authoring .tool-content { display: flex; flex-direction: column; justify-content: flex-start; padding: 10px; }
+.authoring-overlay {
+    display: flex; align-items: center; justify-content: flex-end; gap: 4px; flex-wrap: wrap;
+    flex-shrink: 0; overflow: hidden;
+    max-height: 0; opacity: 0; padding: 0 6px; margin-bottom: 0;
+    pointer-events: none;
+    transition: max-height 0.2s, opacity 0.2s, padding 0.2s, margin-bottom 0.2s;
+}
+/* focus-within as well as hover, so the controls do not vanish out from under you
+   while the caret is in the source. */
+.tool.authoring:hover .authoring-overlay,
+.tool.authoring:focus-within .authoring-overlay {
+    max-height: 80px; opacity: 1; padding: 4px 6px; margin-bottom: 6px; pointer-events: auto;
+}
+/* Held shut while the tool is being measured, whatever the pointer is doing. Last
+   so it wins on order, and with no transition: a strip on its way out is still a
+   strip, and auto-fit would size the tool around however much of it was left. */
+.tool.authoring.authoring-measuring .authoring-overlay {
+    max-height: 0; opacity: 0; padding: 0 6px; margin-bottom: 0; transition: none;
+}
+.authoring-mode-btn {
+    padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary);
+    color: var(--text-primary); cursor: pointer; font-size: 10px; line-height: 1.5;
+    border-radius: 0; white-space: nowrap; flex-shrink: 0;
+}
+.authoring-mode-btn:first-child { border-radius: 3px 0 0 3px; }
+.authoring-mode-btn:last-of-type { border-radius: 0 3px 3px 0; }
+.authoring-mode-btn + .authoring-mode-btn { border-left: none; }
+.authoring-mode-btn.active { background: var(--accent-color, #3498db); color: #fff; border-color: var(--accent-color, #3498db); }
+.authoring-mode-btn:hover:not(.active) { background: var(--bg-secondary); }
+/* A tool's own buttons are moved in here rather than duplicated. */
+.authoring-overlay > :not(.authoring-mode-btn) { display: flex; align-items: center; gap: 4px; margin-left: 6px; }
+
+/* Which of the two panes is on. The tool says what they are; this decides when. */
+.tool.authoring .authoring-split { display: flex; flex: 1; min-height: 0; min-width: 0; }
+.tool.authoring-edit .authoring-result,
+.tool.authoring-edit .authoring-resizer,
+.tool.authoring-render .authoring-source,
+.tool.authoring-render .authoring-resizer { display: none; }
+/* On its own, a pane takes the whole width whatever the divider last said. */
+.tool.authoring-edit .authoring-source,
+.tool.authoring-render .authoring-result { flex: 1 1 auto !important; }
+
+.authoring-resizer { flex: 0 0 5px; cursor: col-resize; background: var(--border-light); border-radius: 3px; }
+.authoring-resizer:hover { background: var(--accent-color, #3498db); }
+
+/* The note. Its result is markdown, which brings its own spacing, so the pane only
+   has to give it room and get out of the way. */
+.note-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; }
+.note-widget .authoring-source { display: flex; flex-direction: column; min-width: 0; flex: 1 1 50%; }
+/* A writing surface, not a form field. The recipe's box makes sense around syntax
+   you are being asked to get right; a note is prose, and the border only draws a
+   line around the middle of the tool. The divider separates the two panes in Both. */
+.note-source {
+    flex: 1; resize: none; padding: 0; border: none; background: transparent;
+    color: var(--text-primary); font-family: inherit; font-size: inherit;
+    line-height: 1.5; min-height: 60px;
+}
+.note-source:focus { outline: none; }
+.note-widget .authoring-result { flex: 1 1 50%; min-width: 0; overflow: auto; }
+.tool.authoring-split .note-widget .authoring-source { padding-right: 10px; }
+.tool.authoring-split .note-widget .authoring-result { padding-left: 10px; }
+.note-empty { color: var(--text-muted); font-size: 12px; font-style: italic; }
+.note-btn {
+    padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary);
+    color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap;
+}
+.note-btn:hover { background: var(--table-hover); }
+
+/* Anything a tool draws inside itself that is chrome rather than result — a syntax
+   hint, a status line. Render means the result and nothing else, and the tool
+   should not have to know that; it just marks what is not the result. */
+.tool.authoring-render .authoring-chrome { display: none; }
+
 .tool.frameless {
     border-radius: 4px;
     overflow: hidden;
@@ -3499,7 +3586,19 @@ const NOTE_TEMPLATES = {
         description: 'A blank note for freeform text and ideas',
         icon: '📝',
         title: 'New Tool',
-        content: ''
+        content: '',
+        // The note is why the double-click gesture existed in the first place; it
+        // just had nowhere to go but a modal. Now it goes where every other tool's
+        // does. The big editor is still there, one button along, for the work it is
+        // actually good at: find and replace, sorting lines, counting words.
+        authoring: {
+            modes: ['edit', 'split', 'render'],
+            defaultMode: 'render',
+            source: '.authoring-source',
+            result: '.authoring-result',
+            actions: '.note-actions',
+            onRender: 'noteRender'
+        }
     },
     'dynamic-investment-calculator': {
         id: 'dynamic-investment-calculator',
@@ -3637,20 +3736,16 @@ Hide Whitespace
         description: 'Create sequence diagrams from simple text notation',
         icon: '📊',
         title: 'Sequence Diagram',
+        // A copy of the plugin's tool, and the copy that wins: getAuthoring and
+        // createTool both read NOTE_TEMPLATES before the registry. Its behaviour
+        // still comes from diagram-tools.js, so the two must say the same thing —
+        // keep this in step with the registration there.
         content: `<div class="seq-widget">
-<div class="seq-toolbar">
-<div class="seq-mode-toggle">
-<button class="seq-mode-btn" onclick="seqSetMode(this, 'edit')">Edit</button>
-<button class="seq-mode-btn active" onclick="seqSetMode(this, 'split')">Split</button>
-<button class="seq-mode-btn" onclick="seqSetMode(this, 'view')">View</button>
+<div class="seq-actions">
+<button class="seq-help-btn" onclick="seqShowHelp(this)">? Syntax</button>
 </div>
-<button class="seq-help-btn" onclick="seqShowHelp(this)">? Syntax Help</button>
-</div>
-<div class="seq-edit-container">
-<textarea placeholder="Enter sequence diagram notation..." oninput="seqOnInput(this)"></textarea>
-</div>
-<div class="seq-split-container active">
-<div class="seq-edit-pane">
+<div class="authoring-split">
+<div class="authoring-source seq-edit-pane">
 <textarea placeholder="Enter sequence diagram notation...
 
 Example:
@@ -3659,18 +3754,23 @@ Bob --> Alice: Hi there!
 Bob -> Charlie: Forward
 Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
 </div>
-<div class="seq-split-resizer"></div>
-<div class="seq-view-pane">
+<div class="authoring-resizer"></div>
+<div class="authoring-result seq-view-pane">
 <div class="seq-diagram"></div>
 </div>
 </div>
-<div class="seq-view-container">
-<div class="seq-diagram"></div>
-</div>
-<div class="seq-help-text">
+<div class="seq-help-text authoring-chrome">
 <code>A -> B: msg</code> | <code>Note over A: text</code> | Colors: <code>[red]</code> or <code>[line:red, text:blue]</code>
 </div>
 </div>`,
+        authoring: {
+            modes: ['edit', 'split', 'render'],
+            defaultMode: 'render',
+            source: '.authoring-source',
+            result: '.authoring-result',
+            actions: '.seq-actions',
+            onRender: 'seqRender'
+        },
         onInit: 'seqInit'
     },
     'jwt-decoder': {
@@ -3855,6 +3955,225 @@ Charlie --> Bob: Reply" oninput="seqOnInput(this)"></textarea>
 };
 
 // ============================================================
+// Authoring modes
+//
+// Several tools show a source and a rendered result, and every one of them had
+// grown its own version of the same four buttons: the recipe called them Edit /
+// Split / View / Render, Mermaid called the middle one Preview and had no View at
+// all, and the image viewer had a single button that toggled between two of them.
+// Each also hand-rolled its own way of hiding the tool's chrome, and two of them
+// shipped a second copy of their buttons to put in the overlay that replaced it.
+//
+// This is that concern, once. A tool opts in by declaring `authoring` on its
+// registration; a tool that does not declare it is untouched by all of this.
+//
+// The bar goes in the tool's own header rather than inside the tool, which is what
+// makes Render nearly free: .tool.frameless already collapses the header and fades
+// it back on hover, which is exactly the behaviour the tools were each building.
+// ============================================================
+
+const AUTHORING_MODES = ['edit', 'split', 'render'];
+// Labels, not keys. What is stored and what is written on the button are separate
+// on purpose: the active one is decided by the stored value, so these can be
+// reworded without touching a saved board. "Render" was the only real jargon here —
+// it comes from graphics and compilation, and someone writing a recipe has no
+// reason to know it. "View" is free again now that it is not also a mode of its own.
+const AUTHORING_LABELS = { edit: 'Edit', split: 'Both', render: 'View' };
+const AUTHORING_TITLES = {
+    edit: 'Only the part you change',
+    split: 'Both at once, side by side',
+    render: 'Only the finished thing'
+};
+/** Modes that show the result and hide the source — where double-click has work to do. */
+const AUTHORING_RESULT_MODES = ['render'];
+
+/**
+ * A tool's own wording for its buttons, keyed by mode.
+ *
+ * The default labels describe the general case, and for most tools that is what the
+ * modes are: Both is the source and the result side by side. Where a tool's source
+ * is a panel of controls rather than something you read, "Both" describes the layout
+ * and not the reason you are there — that mode is simply where you work on the
+ * thing. Such a tool renames the button; it cannot change what the button does,
+ * since the mode comes from data-mode and never from the text.
+ */
+function authoringWording(declared, modes) {
+    const out = {};
+    if (!declared || typeof declared !== 'object') return out;
+    modes.forEach(m => { if (typeof declared[m] === 'string' && declared[m]) out[m] = declared[m]; });
+    return out;
+}
+
+/**
+ * Validate a tool's declaration, or return null for a tool that did not opt in.
+ *
+ * Unknown modes are dropped rather than trusted: the bar is built from this list,
+ * and a typo would otherwise render a button that puts the tool in a state no CSS
+ * describes.
+ */
+function normalizeAuthoring(declared) {
+    if (!declared || !Array.isArray(declared.modes)) return null;
+    const modes = declared.modes.filter(m => AUTHORING_MODES.includes(m));
+    if (!modes.length) return null;
+    // Where double-click lands. The source on its own is the plainer answer to "let
+    // me change this" — Split is for watching the result keep up as you type, which
+    // is a thing you choose rather than a thing you land in. A tool that would
+    // rather open side by side says so.
+    const editMode = modes.includes(declared.editMode) ? declared.editMode
+        : (modes.includes('edit') ? 'edit' : modes[0]);
+    return {
+        modes,
+        defaultMode: modes.includes(declared.defaultMode) ? declared.defaultMode : modes[0],
+        editMode,
+        labels: authoringWording(declared.labels, modes),
+        titles: authoringWording(declared.titles, modes),
+        source: declared.source || null,
+        result: declared.result || null,
+        actions: declared.actions || null,
+        onRender: declared.onRender || null,
+        doubleClickToEdit: declared.doubleClickToEdit !== false
+    };
+}
+
+/** A tool's authoring declaration, or null. Templates resolve the same way everywhere. */
+function getAuthoring(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    if (!custom.templateId) return null;
+    const template = NOTE_TEMPLATES[custom.templateId] || PluginRegistry.getTool(custom.templateId);
+    // Normalized on read as well as on registration: the built-in templates in
+    // NOTE_TEMPLATES never pass through registerTool. normalizeAuthoring is
+    // idempotent, so a plugin's already-normalized declaration comes back unchanged.
+    return template ? normalizeAuthoring(template.authoring) : null;
+}
+
+function getToolMode(toolId) {
+    const authoring = getAuthoring(toolId);
+    if (!authoring) return null;
+    const saved = (toolCustomizations[toolId] || {}).viewMode;
+    return authoring.modes.includes(saved) ? saved : authoring.defaultMode;
+}
+
+/**
+ * The controls, floating over the result and fading in on hover.
+ *
+ * Not in the tool header: a tool 300px wide cannot hold a title, four mode buttons,
+ * whatever the tool itself offers and the four window buttons on one line, and
+ * every way of resolving that takes something away from someone. Over the content
+ * there is always room, and the controls are out of the way of the thing you came
+ * to look at until you reach for them.
+ *
+ * Which mode is active is read from the stored value, never from a button's own
+ * label — every tool that grew this independently compared button.textContent to
+ * the mode, so renaming a label broke it silently.
+ */
+function authoringOverlayHtml(authoring, mode) {
+    return '<div class="authoring-overlay">' +
+        authoring.modes.map(m =>
+            '<button class="authoring-mode-btn' + (m === mode ? ' active' : '') +
+            '" data-mode="' + m + '" title="' +
+            escapeHtml(authoring.titles[m] || AUTHORING_TITLES[m]) + '">' +
+            escapeHtml(authoring.labels[m] || AUTHORING_LABELS[m]) + '</button>').join('') +
+        '</div>';
+}
+
+/**
+ * Put a tool into a mode: the classes that lay it out, and a nudge to the tool to
+ * redraw its result.
+ *
+ * Mode does not touch `frameless`. Whether a tool has a frame is the owner's
+ * decision about that tool, made in its settings and true in every mode; whether
+ * the source is showing is a different question entirely, asked and answered many
+ * times an hour. Tying the two meant a tool lost its title and its header the
+ * moment you finished editing it.
+ */
+function applyToolMode(tool, toolId) {
+    if (!tool) return;
+    const authoring = getAuthoring(toolId);
+    if (!authoring) return;
+    const mode = getToolMode(toolId);
+    const custom = toolCustomizations[toolId] || {};
+
+    AUTHORING_MODES.forEach(m => tool.classList.toggle('authoring-' + m, m === mode));
+    tool.classList.add('authoring');
+
+    tool.querySelectorAll('.authoring-mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+
+    // The tool's own buttons live in one node that moves into the bar, so a tool
+    // never needs a second copy of them for the hover state.
+    if (authoring.actions) {
+        const bar = tool.querySelector('.authoring-overlay');
+        const actions = tool.querySelector(authoring.actions);
+        if (bar && actions && actions.parentElement !== bar) bar.appendChild(actions);
+    }
+
+    // Restore the divider before the result is drawn, so the renderer measures the
+    // width it will actually have.
+    const split = tool.querySelector('.authoring-split');
+    if (split && custom.splitRatio) {
+        const pane = tool.querySelector(authoring.source);
+        if (pane) pane.style.flex = '0 0 ' + (custom.splitRatio * 100) + '%';
+    }
+
+    if (mode !== 'edit' && authoring.onRender && typeof window[authoring.onRender] === 'function') {
+        window[authoring.onRender](toolId);
+    }
+}
+
+/** The result mode a tool returns to when you are done with the source. */
+function authoringResultMode(toolId, authoring) {
+    const custom = toolCustomizations[toolId] || {};
+    return authoring.modes.includes(custom.lastResultMode) ? custom.lastResultMode : 'render';
+}
+
+function setToolMode(toolId, mode) {
+    const authoring = getAuthoring(toolId);
+    if (!authoring || !authoring.modes.includes(mode)) return;
+    if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
+    const previous = getToolMode(toolId);
+    if (AUTHORING_RESULT_MODES.includes(previous)) toolCustomizations[toolId].lastResultMode = previous;
+    toolCustomizations[toolId].viewMode = mode;
+    saveToolCustomizations(toolCustomizations);
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    applyToolMode(tool, toolId);
+    // Deliberately not auto-fitting here. Changing mode is not a request to resize
+    // the tool — you chose that size — and fitting to the result while the header
+    // is mid-transition measures a box that is about to change and clips the table.
+}
+
+/** Drag the divider between source and result, and remember where it was left —
+ *  every tool that built this itself wrote the width to the element and lost it on
+ *  the next reload. */
+function startAuthoringResize(resizer, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const tool = resizer.closest('.tool');
+    const toolId = tool && tool.getAttribute('data-tool');
+    const authoring = toolId && getAuthoring(toolId);
+    if (!authoring) return;
+    const container = resizer.closest('.authoring-split');
+    const pane = container.querySelector(authoring.source);
+    if (!pane) return;
+    let ratio = null;
+    const onMove = (e) => {
+        const rect = container.getBoundingClientRect();
+        ratio = Math.min(0.85, Math.max(0.15, (e.clientX - rect.left) / rect.width));
+        pane.style.flex = '0 0 ' + (ratio * 100) + '%';
+    };
+    const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (ratio === null) return;
+        if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
+        toolCustomizations[toolId].splitRatio = ratio;
+        saveToolCustomizations(toolCustomizations);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+}
+
+// ============================================================
 // Plugin Registry System
 // ============================================================
 const PluginRegistry = {
@@ -3886,6 +4205,9 @@ const PluginRegistry = {
             defaultHeight: plugin.defaultHeight || null,
             templateId: plugin.templateId || null,
             defaultContent: plugin.defaultContent || null,
+            // Opt in to the shared edit/preview modes. Omit it and nothing below
+            // touches the tool. See normalizeAuthoring for the shape.
+            authoring: normalizeAuthoring(plugin.authoring),
             source: plugin.source || 'embedded' // 'embedded' or 'external'
         };
         this.tools.set(plugin.id, normalizedPlugin);
@@ -5137,6 +5459,19 @@ function setupToolControls() {
         ).join('') + '<div class="color-swatch swatch-custom" title="Pick from Color Tool" data-color="custom">🎨</div>';
 
     // Minimize button
+    // Mode bar. Delegated, because the bar is rebuilt whenever a tool is.
+    toolboard.addEventListener('click', (e) => {
+        const btn = e.target.closest('.authoring-mode-btn');
+        if (!btn) return;
+        e.stopPropagation();
+        const tool = btn.closest('.tool');
+        if (tool) setToolMode(tool.getAttribute('data-tool'), btn.dataset.mode);
+    });
+    toolboard.addEventListener('mousedown', (e) => {
+        const resizer = e.target.closest('.authoring-resizer');
+        if (resizer) startAuthoringResize(resizer, e);
+    });
+
     toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.minimize-btn')) {
             e.stopPropagation();
@@ -5749,6 +6084,8 @@ function initializeCalculators() {
                     window[template.onInit]();
                 }
             }
+            // After onInit, so the panes the declaration names actually exist.
+            applyToolMode(tool, toolId);
         });
     }, 50);
 }
@@ -6175,11 +6512,19 @@ function setupContentEditor() {
             toolCustomizations[toolId].textCasing = editorTransforms.casing || '';
             saveToolCustomizations(toolCustomizations);
 
-            // Update the tool content
+            // Update the tool content. A tool in the authoring shell gets its result
+            // repainted and its own textarea brought back into step; painting over
+            // .tool-content would take the panes and the overlay with it.
             const tool = document.querySelector(`[data-tool="${toolId}"]`);
             if (tool) {
-                const contentDiv = tool.querySelector('.tool-content');
-                contentDiv.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
+                const source = tool.querySelector('.note-source');
+                if (source) {
+                    source.value = textarea.value;
+                    noteRender(toolId);
+                } else {
+                    const contentDiv = tool.querySelector('.tool-content');
+                    contentDiv.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
+                }
             }
         }
         overlay.classList.remove('open');
@@ -6388,8 +6733,15 @@ function setupContentEditor() {
     // Double-click on tool content to edit
     const toolboard = document.getElementById('toolboard');
     toolboard.addEventListener('dblclick', (e) => {
-        // Don't trigger on interactive elements
-        if (e.target.closest('input, button, select, textarea, a, .checklist-widget, .calendar-widget, .diff-widget, .seq-widget')) return;
+        // Don't trigger on interactive elements. contenteditable counts: the
+        // checklist and the directory tree let you rename an item in place, and on
+        // text you can type into, double-click already means "select a word".
+        //
+        // The named widgets are tools that are interactive all over and have not
+        // opted in; an opted-in tool does not need to be listed, because the gesture
+        // is confined to its result pane below — which is why .seq-widget,
+        // .checklist-widget and .diff-widget came off this list when they adopted.
+        if (e.target.closest('input, button, select, textarea, a, [contenteditable="true"], .calendar-widget')) return;
 
         const toolContent = e.target.closest('.tool-content');
         if (!toolContent) return;
@@ -6398,16 +6750,67 @@ function setupContentEditor() {
         if (!tool) return;
 
         const toolId = tool.getAttribute('data-tool');
-        if (toolId) {
-            // Only open editor for note tools, not plugin tools with HTML templates
-            const custom = toolCustomizations[toolId] || {};
-            if (custom.templateId) {
-                const tmpl = NOTE_TEMPLATES[custom.templateId] || PluginRegistry.getTool(custom.templateId);
-                if (tmpl && tmpl.content && tmpl.content.trim().startsWith('<')) return;
-            }
+        if (!toolId) return;
+
+        // A tool that shows a result and hides its source has nowhere on screen
+        // that says "edit me", which is the situation the note has always been in
+        // and answered with this gesture. Now every opted-in tool answers it the
+        // same way — but only from a mode where the source is out of sight. In
+        // Split the textarea is right there, and double-click already means
+        // "select a word".
+        const authoring = getAuthoring(toolId);
+        if (authoring) {
+            if (!authoring.doubleClickToEdit) return;
+            const mode = getToolMode(toolId);
+            if (!AUTHORING_RESULT_MODES.includes(mode)) return;
+            if (authoring.result && !e.target.closest(authoring.result)) return;
             e.preventDefault();
-            openContentEditor(toolId);
+            setToolMode(toolId, authoring.editMode);
+            return;
         }
+
+        // Only open editor for note tools, not plugin tools with HTML templates
+        const custom = toolCustomizations[toolId] || {};
+        if (custom.templateId) {
+            const tmpl = NOTE_TEMPLATES[custom.templateId] || PluginRegistry.getTool(custom.templateId);
+            if (tmpl && tmpl.content && tmpl.content.trim().startsWith('<')) return;
+        }
+        e.preventDefault();
+        openContentEditor(toolId);
+    });
+
+    // Esc leaves the source again, for whichever result mode you came from.
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const tool = e.target.closest && e.target.closest('.tool.authoring');
+        if (!tool) return;
+        const toolId = tool.getAttribute('data-tool');
+        const authoring = getAuthoring(toolId);
+        if (!authoring) return;
+        const mode = getToolMode(toolId);
+        if (mode !== 'edit' && mode !== 'split') return;
+        e.preventDefault();
+        setToolMode(toolId, authoringResultMode(toolId, authoring));
+    });
+
+    // Turning your attention elsewhere on the board puts a tool back to its result.
+    // Editing is something you go into a tool to do, not a state it should sit in
+    // once you have looked away — and it means the board settles back to a page of
+    // finished things without anyone tidying up.
+    //
+    // Scoped to the board on purpose. A click on the app's own chrome, or in a
+    // dialog the tool itself opened — the syntax help, the content editor — is not
+    // you leaving; those live outside #toolboard, so they are left alone. Nor does
+    // pointerdown inside the tool count, which is what keeps a divider drag that
+    // ends outside the tool, and the first half of a double-click, from demoting it.
+    toolboard.addEventListener('pointerdown', (e) => {
+        const from = e.target.closest('.tool');
+        document.querySelectorAll('.tool.authoring-edit, .tool.authoring-split').forEach((tool) => {
+            if (tool === from) return;
+            const id = tool.getAttribute('data-tool');
+            const decl = getAuthoring(id);
+            if (decl) setToolMode(id, authoringResultMode(id, decl));
+        });
     });
 }
 
@@ -6973,6 +7376,9 @@ function createTool(toolId) {
     const headerColor = custom.color || null;
     const isMinimized = custom.minimized || false;
     const isCustomTool = customTools.includes(toolId);
+    // Null for every tool that has not opted in, which is most of them.
+    const authoringDecl = getAuthoring(toolId);
+    const savedMode = authoringDecl ? getToolMode(toolId) : null;
 
     tool.innerHTML = `
         <div class="tool-header"${headerColor ? ` style="background: ${headerColor}"` : ''}>
@@ -6985,7 +7391,8 @@ function createTool(toolId) {
             </div>
         </div>
         <div class="tool-content">
-            ${custom.customContent ? renderToolContent(custom.customContent, custom.plainText, getTextTransforms(custom)) : content.html}
+            ${authoringDecl ? authoringOverlayHtml(authoringDecl, savedMode) : ''}
+            ${!content.isNote && custom.customContent ? renderToolContent(custom.customContent, custom.plainText, getTextTransforms(custom)) : content.html}
         </div>
         <div class="resize-handle resize-handle-n" data-resize="n"></div>
         <div class="resize-handle resize-handle-s" data-resize="s"></div>
@@ -7132,6 +7539,64 @@ function applyTextTransforms(text, transforms) {
     return text;
 }
 
+// ---- the note, in the shared authoring shell ----------------------------------
+//
+// A note is markdown and the thing markdown becomes, which is the same shape every
+// other tool in this family has; it simply never had the source anywhere but in a
+// modal. Giving it the two panes is most of the work, and the rest of the framework
+// then applies to it unchanged.
+
+function noteBodyHtml(text, custom) {
+    if (!text) {
+        return '<div class="note-empty">Nothing here yet. Double-click to write something, ' +
+            'or press Edit above.</div>';
+    }
+    return renderToolContent(text, custom.plainText, getTextTransforms(custom));
+}
+
+function noteShellHtml(toolId, custom) {
+    const text = custom.customContent != null ? custom.customContent : '';
+    return '<div class="note-widget">' +
+        '<div class="note-actions">' +
+            '<button class="note-btn" onclick="openContentEditor(noteToolId(this))" ' +
+                'title="The big editor: find and replace, line sorting, word count">Editor</button>' +
+        '</div>' +
+        '<div class="authoring-split">' +
+            '<div class="authoring-source">' +
+                '<textarea class="note-source" spellcheck="false" oninput="noteOnInput(this)" ' +
+                    'placeholder="Write in Markdown…">' + escapeHtml(text) + '</textarea>' +
+            '</div>' +
+            '<div class="authoring-resizer"></div>' +
+            '<div class="authoring-result">' + noteBodyHtml(text, custom) + '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+/** The tool a note control belongs to — its buttons are lifted into the overlay,
+ *  so the widget is no longer above them. */
+function noteToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+/** What the framework calls when the result needs to be up to date. */
+function noteRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const result = tool && tool.querySelector('.authoring-result');
+    if (!result) return;
+    const custom = toolCustomizations[toolId] || {};
+    result.innerHTML = noteBodyHtml(custom.customContent != null ? custom.customContent : '', custom);
+}
+
+function noteOnInput(textarea) {
+    const toolId = noteToolId(textarea);
+    if (!toolId) return;
+    if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
+    toolCustomizations[toolId].customContent = textarea.value;
+    saveToolCustomizations(toolCustomizations);
+    noteRender(toolId);
+}
+
 function renderToolContent(text, plainText, transforms) {
     text = applyTextTransforms(text, transforms);
     if (plainText) {
@@ -7174,7 +7639,8 @@ function getToolContent(toolId) {
 
         return {
             title: custom.title || 'New Tool',
-            html: custom.customContent != null ? renderToolContent(custom.customContent, custom.plainText, getTextTransforms(custom)) : '<p>Click the settings gear and "Edit Content" to add content to this tool.</p>'
+            isNote: true,
+            html: noteShellHtml(toolId, custom)
         };
     }
     return null;
@@ -7690,12 +8156,35 @@ function autoFitToolContent(tool, skipAnimation = false) {
 // scrollWidth/Height remain as a floor, for content that overflows its box even
 // when the size is auto, scaled out of the content's own zoomed coordinate space.
 function naturalContentSize(content, toolId) {
-    const rect = content.getBoundingClientRect();
     const zoom = getToolZoom(toolId);
-    return {
-        width: Math.max(rect.width, content.scrollWidth * zoom),
-        height: Math.max(rect.height, content.scrollHeight * zoom),
-    };
+    return withoutAuthoringChrome(content.closest('.tool'), () => {
+        const rect = content.getBoundingClientRect();
+        return {
+            width: Math.max(rect.width, content.scrollWidth * zoom),
+            height: Math.max(rect.height, content.scrollHeight * zoom),
+        };
+    });
+}
+
+/**
+ * Measure a tool as it looks when nobody is pointing at it.
+ *
+ * Fitting a tool to its content means fitting it to the result, and the mode
+ * controls are not the result — they are a thing that appears because you are
+ * reaching for them. Worse, you reach for the resize handle with the same pointer,
+ * so the controls are always open at the exact moment the tool is measured, and
+ * every auto-fit would bake in room for a strip that is not there once you look
+ * away. Collapse them for the measurement and put them back.
+ */
+function withoutAuthoringChrome(tool, measure) {
+    if (!tool || !tool.classList.contains('authoring')) return measure();
+    tool.classList.add('authoring-measuring');
+    tool.offsetHeight;                      // settle the collapsed layout before reading
+    try {
+        return measure();
+    } finally {
+        tool.classList.remove('authoring-measuring');
+    }
 }
 
 // Let a tool's scroll panes re-decide whether they need a scrollbar at all.
@@ -7850,6 +8339,10 @@ function autoResizeTool(tool, handleType) {
 // and take up the slack. A couple of passes is plenty; each one settles the deepest
 // offender and the ones above it were already sized around it.
 function settleNestedScrollers(tool, startHeight, maxHeight) {
+    return withoutAuthoringChrome(tool, () => settleNestedScrollersNow(tool, startHeight, maxHeight));
+}
+
+function settleNestedScrollersNow(tool, startHeight, maxHeight) {
     let height = startHeight;
     for (let pass = 0; pass < 3; pass++) {
         tool.offsetHeight; // flush layout before measuring
@@ -9008,6 +9501,7 @@ function createNoteWithTemplate(templateId, options = {}) {
             // Call onInit first, then auto-fit after dynamic content has rendered
             setTimeout(() => {
                 window[template.onInit]();
+                applyToolMode(tool, toolId);
                 // Wait for dynamic content to render before auto-fitting
                 setTimeout(doAutoFit, 50);
             }, 50);
@@ -9016,9 +9510,15 @@ function createNoteWithTemplate(templateId, options = {}) {
             doAutoFit();
         }
 
-        // For blank tools, open the content editor immediately
+        // A new note opens ready to be typed into. It used to throw the big editor
+        // up over the whole board before you had decided you wanted it; the note can
+        // be written where it sits, and the editor is a button away when it is
+        // wanted for what it is good at.
         if (templateId === 'blank' && !options.skipEditor) {
-            openContentEditor(toolId);
+            setToolMode(toolId, getAuthoring(toolId) ? 'edit' : 'render');
+            const source = tool.querySelector('.note-source');
+            if (source) source.focus();
+            else openContentEditor(toolId);
         }
     }
 
