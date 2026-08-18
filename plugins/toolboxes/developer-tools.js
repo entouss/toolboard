@@ -464,7 +464,8 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 
 /* QR Code Generator Widget Styles */
 .tool-content:has(.qr-widget) { display: flex; flex-direction: column; }
-.qr-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 10px; }
+/* No padding of its own: the framework pads .tool-content. */
+.qr-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; gap: 10px; }
 .qr-input-section { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
 .qr-input-section label { font-weight: 600; font-size: 11px; color: var(--text-heading); }
 .qr-input-section textarea { resize: none; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 60px; }
@@ -476,11 +477,16 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 .qr-option-group select:focus, .qr-option-group input[type="number"]:focus { outline: none; border-color: #3498db; }
 .qr-option-group input[type="color"] { width: 28px; height: 24px; padding: 1px; border: 1px solid var(--border-color); border-radius: 3px; cursor: pointer; background: var(--input-bg); }
 .qr-output-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; min-height: 180px; position: relative; overflow: hidden; }
-.qr-canvas-wrap { display: flex; align-items: center; justify-content: center; padding: 16px; }
-.qr-canvas-wrap canvas { image-rendering: pixelated; }
+/* On its own, a code is the thing on the board rather than something in a panel. */
+.tool.authoring-render .qr-output-section { background: transparent; border: none; border-radius: 0; }
+.qr-canvas-wrap { display: flex; align-items: center; justify-content: center; padding: 16px; min-width: 0; min-height: 0; }
+/* The canvas is drawn at whatever pixel size was asked for; on screen it must still
+   fit the tool it is in, at any size the tool is dragged to. */
+.qr-canvas-wrap canvas { image-rendering: pixelated; max-width: 100%; max-height: 100%; object-fit: contain; }
 .qr-placeholder { color: var(--text-muted); font-style: italic; font-size: 12px; }
-.qr-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.qr-action-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; flex: 1; text-align: center; }
+/* Lifted into the mode bar, so these size to their text rather than sharing a row. */
+.qr-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.qr-action-btn { padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap; }
 .qr-action-btn:hover { background: var(--table-hover); }
 .qr-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .qr-action-btn.primary { background: #3498db; color: white; border-color: #3498db; }
@@ -1765,11 +1771,16 @@ PluginRegistry.registerTool({
     tags: ['qr', 'qrcode', 'barcode', 'generator', 'encode'],
     title: 'QR Code Generator',
     content: `<div class="qr-widget">
-<div class="qr-input-section">
+<div class="qr-actions">
+<button class="qr-action-btn primary" onclick="qrDownloadPNG(this)" disabled>PNG</button>
+<button class="qr-action-btn" onclick="qrDownloadSVG(this)" disabled>SVG</button>
+<button class="qr-action-btn" onclick="qrCopyToClipboard(this)" disabled>Copy</button>
+</div>
+<div class="qr-input-section authoring-source">
 <label>Content</label>
 <textarea placeholder="Enter text, URL, or data to encode..." oninput="qrGenerate(this)"></textarea>
 </div>
-<div class="qr-options-row">
+<div class="qr-options-row authoring-source">
 <div class="qr-option-group">
 <label>Size:</label>
 <input type="number" class="qr-size-input" value="256" min="64" max="1024" step="32" onchange="qrGenerate(this)">
@@ -1792,18 +1803,30 @@ PluginRegistry.registerTool({
 <input type="color" class="qr-bg-color" value="#ffffff" onchange="qrGenerate(this)">
 </div>
 </div>
-<div class="qr-output-section">
+<div class="qr-output-section authoring-result">
 <div class="qr-canvas-wrap">
 <span class="qr-placeholder">Enter text above to generate a QR code</span>
 </div>
 </div>
-<div class="qr-actions">
-<button class="qr-action-btn primary" onclick="qrDownloadPNG(this)" disabled>Download PNG</button>
-<button class="qr-action-btn" onclick="qrDownloadSVG(this)" disabled>Download SVG</button>
-<button class="qr-action-btn" onclick="qrCopyToClipboard(this)" disabled>Copy Image</button>
-</div>
-<div class="qr-info"></div>
+<div class="qr-info authoring-chrome"></div>
 </div>`,
+    // Two modes, not three. What you change here is a line of text and four
+    // settings, and a mode that showed those without the code would be adjusting
+    // something you cannot see — so the editing mode is the one that shows both.
+    //
+    // It opens in Edit rather than View, like the image viewer: a new one encodes
+    // nothing, and View would be an empty panel whose one instruction points at a
+    // field that is hidden. Once there is a code, View sticks.
+    authoring: {
+        modes: ['split', 'render'],
+        defaultMode: 'split',
+        labels: { split: 'Edit' },
+        titles: { split: 'The code, with everything you can change about it' },
+        source: '.qr-input-section',
+        result: '.qr-output-section',
+        actions: '.qr-actions',
+        onRender: 'qrOnRender'
+    },
     contentType: 'html',
     onInit: 'qrInit',
     source: 'external',
@@ -4526,19 +4549,86 @@ const QR = (function() {
     return { generate, bestVersion };
 })();
 
-function qrInit() {}
+/** Via the tool, not the widget: the download buttons are lifted into the mode bar,
+ *  which is a sibling of the widget rather than inside it. */
+function qrGetWidget(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.querySelector('.qr-widget') : element.closest('.qr-widget');
+}
+
+function qrGetToolId(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+// Nothing used to be stored: a code survived until the next reload and no further.
+// That is tolerable for a tool you keep open and read off; it is not tolerable for
+// one you leave on a board showing its code, which is what View is for.
+function qrGetData(toolId) {
+    const custom = loadToolCustomizations()[toolId] || {};
+    return custom.qrData || { text: '', size: 256, ec: 'M', fg: '#000000', bg: '#ffffff' };
+}
+
+function qrSaveData(toolId, data) {
+    const customizations = loadToolCustomizations();
+    if (!customizations[toolId]) customizations[toolId] = {};
+    customizations[toolId].qrData = data;
+    saveToolCustomizations(customizations);
+}
+
+function qrInit() {
+    document.querySelectorAll('.qr-widget').forEach(widget => {
+        const toolId = qrGetToolId(widget);
+        if (!toolId) return;
+        const data = qrGetData(toolId);
+        widget.querySelector('textarea').value = data.text || '';
+        widget.querySelector('.qr-size-input').value = data.size || 256;
+        widget.querySelector('.qr-ec-select').value = data.ec || 'M';
+        widget.querySelector('.qr-fg-color').value = data.fg || '#000000';
+        widget.querySelector('.qr-bg-color').value = data.bg || '#ffffff';
+        qrGenerate(widget);
+    });
+}
+
+/** What the framework calls when the code needs to be up to date. */
+function qrOnRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.qr-widget');
+    if (widget) qrGenerate(widget);
+}
 
 function qrGenerate(element) {
-    const widget = element.closest('.qr-widget');
+    const widget = qrGetWidget(element);
     const text = widget.querySelector('textarea').value;
     const wrap = widget.querySelector('.qr-canvas-wrap');
     const info = widget.querySelector('.qr-info');
-    const buttons = widget.querySelectorAll('.qr-action-btn');
+    // Searched from the tool: the download buttons have been lifted into the mode
+    // bar, so the widget can no longer see the things it enables and disables.
+    const buttons = (widget.closest('.tool') || widget).querySelectorAll('.qr-action-btn');
+
+    const toolId = qrGetToolId(widget);
+    const store = () => {
+        if (!toolId) return;
+        qrSaveData(toolId, {
+            text: text,
+            size: parseInt(widget.querySelector('.qr-size-input').value) || 256,
+            ec: widget.querySelector('.qr-ec-select').value,
+            fg: widget.querySelector('.qr-fg-color').value,
+            bg: widget.querySelector('.qr-bg-color').value
+        });
+    };
 
     if (!text) {
-        wrap.innerHTML = '<span class="qr-placeholder">Enter text above to generate a QR code</span>';
+        // "Above" is only true where the field is on screen. Clicking away settles a
+        // tool into View, which can leave a new one pointing at something hidden.
+        const tool = widget.closest('.tool');
+        const hidden = tool && tool.classList.contains('authoring-render');
+        wrap.innerHTML = '<span class="qr-placeholder">' + (hidden
+            ? 'Nothing to encode yet — double-click to add some text'
+            : 'Enter text above to generate a QR code') + '</span>';
         info.textContent = '';
         buttons.forEach(b => b.disabled = true);
+        store();
         return;
     }
 
@@ -4548,10 +4638,13 @@ function qrGenerate(element) {
     const bgColor = widget.querySelector('.qr-bg-color').value;
 
     const result = QR.generate(text, ecLevel);
+    // Saved even when the text is too long to encode: what you typed is yours, and
+    // losing it on reload because it did not fit would be its own small betrayal.
     if (!result) {
         wrap.innerHTML = '<span class="qr-placeholder" style="color: var(--error-text);">Text too long for QR code</span>';
         info.textContent = '';
         buttons.forEach(b => b.disabled = true);
+        store();
         return;
     }
 
@@ -4588,10 +4681,11 @@ function qrGenerate(element) {
     const byteLen = new TextEncoder().encode(text).length;
     info.textContent = `Version ${version} | ${size}×${size} modules | ${byteLen} bytes | EC: ${ecLevel}`;
     buttons.forEach(b => b.disabled = false);
+    store();
 }
 
 function qrDownloadPNG(btn) {
-    const widget = btn.closest('.qr-widget');
+    const widget = qrGetWidget(btn);
     const canvas = widget.querySelector('.qr-canvas');
     if (!canvas) return;
     const a = document.createElement('a');
@@ -4601,7 +4695,7 @@ function qrDownloadPNG(btn) {
 }
 
 function qrDownloadSVG(btn) {
-    const widget = btn.closest('.qr-widget');
+    const widget = qrGetWidget(btn);
     const text = widget.querySelector('textarea').value;
     if (!text) return;
 
@@ -4638,7 +4732,7 @@ function qrDownloadSVG(btn) {
 }
 
 function qrCopyToClipboard(btn) {
-    const widget = btn.closest('.qr-widget');
+    const widget = qrGetWidget(btn);
     const canvas = widget.querySelector('.qr-canvas');
     if (!canvas) return;
     canvas.toBlob(blob => {
@@ -9609,7 +9703,8 @@ function ghdHistoryTooltip(d) {
         uuidRefreshDisplay, uuidCopyCurrent, uuidCopyAll,
         urlpParse, urlpSwitchTab, urlpEncodeFromDecoded, urlpDecodeFromEncoded, urlpPaste,
         urlpCopyText, urlpCopyField, urlpInit,
-        qrInit, qrGenerate, qrDownloadPNG, qrDownloadSVG, qrCopyToClipboard,
+        qrGetWidget, qrGetToolId, qrGetData, qrSaveData, qrInit, qrOnRender,
+        qrGenerate, qrDownloadPNG, qrDownloadSVG, qrCopyToClipboard,
         nbcInit, nbcConvert, nbcFormatBin, nbcRenderBits, nbcUpdateInfo, nbcCopy,
         httpGetWidget, httpInit, httpMethodChanged, httpUpdateBodyTabVisibility, httpReqTab,
         httpRespTab, httpAddKV, httpRemoveKV, httpKVChanged, httpSyncParamsToURL,
