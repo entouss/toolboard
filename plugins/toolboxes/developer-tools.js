@@ -1413,8 +1413,11 @@ Hide Whitespace
     contentType: 'html',
     onInit: 'diffInit',
     source: 'external',
-    defaultWidth: 1400,
-    defaultHeight: 900
+    // The copy of this tool in index.html was the one that opened, so these are the
+    // numbers people have actually been getting. This registration said 1400x900,
+    // which no screen this is likely to be on can hold.
+    defaultWidth: 1000,
+    defaultHeight: 650
 });
 
 // Lorem Ipsum Generator
