@@ -9,29 +9,26 @@
     style.textContent = `
 /* Diff Viewer Widget Styles */
 .tool-content:has(.diff-widget) { display: flex; flex-direction: column; }
-.diff-widget { padding: 10px; font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
-.diff-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
-.diff-mode-toggle { display: flex; gap: 4px; }
-.diff-mode-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
-.diff-mode-btn:first-child { border-radius: 4px 0 0 4px; }
-.diff-mode-btn:last-child { border-radius: 0 4px 4px 0; }
-.diff-mode-btn.active { background: #3498db; color: white; border-color: #3498db; }
-.diff-view-options { display: flex; align-items: center; gap: 8px; }
-.diff-view-btn { padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 10px; border-radius: 3px; }
+/* No padding of its own: the framework pads .tool-content. */
+.diff-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
+/* How the difference is laid out, and what counts as one — lifted into the mode bar.
+   Not what the bar itself offers: those choose whether you are looking at the texts
+   or at the difference. */
+.diff-actions { display: flex; align-items: center; gap: 6px; }
+.diff-view-btn { padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap; }
+.diff-view-btn:hover:not(.active) { background: var(--table-hover); }
 .diff-view-btn.active { background: #27ae60; color: white; border-color: #27ae60; }
-.diff-whitespace-toggle { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); }
+.diff-whitespace-toggle { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); white-space: nowrap; }
 .diff-whitespace-toggle input { margin: 0; }
-.diff-edit-container { display: flex; gap: 10px; flex: 1; min-height: 0; }
+.diff-edit-container { display: flex; gap: 10px; flex: 1 1 55%; min-height: 0; min-width: 0; }
 .diff-edit-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .diff-edit-pane label { font-weight: 600; margin-bottom: 6px; font-size: 11px; color: var(--text-heading); }
 .diff-edit-pane textarea { flex: 1; resize: none; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; font-size: 12px; background: var(--input-bg); color: var(--text-primary); min-height: 100px; }
 .diff-edit-pane textarea:focus { outline: none; border-color: #3498db; }
-.diff-edit-resizer { width: 6px; background: var(--border-color); cursor: col-resize; border-radius: 3px; flex-shrink: 0; }
-.diff-edit-resizer:hover { background: #3498db; }
-.diff-view-container { flex: 1; min-height: 0; display: none; flex-direction: column; }
-.diff-view-container.active { display: flex; }
-.diff-edit-container.hidden { display: none; }
+.diff-view-container { flex: 1 1 45%; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.tool.authoring-split .diff-edit-container { padding-right: 10px; }
 .diff-output { flex: 1; overflow: auto; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); font-family: monospace; font-size: 12px; }
+.tool.authoring-render .diff-output { border: none; border-radius: 0; }
 .diff-split-view { display: flex; min-height: 100%; }
 .diff-split-pane { flex: 1; min-width: 0; }
 .diff-split-pane:first-child { border-right: 1px solid var(--border-color); }
@@ -1380,36 +1377,47 @@ PluginRegistry.registerTool({
     tags: ['diff', 'compare', 'text'],
     title: 'Text Diff',
     content: `<div class="diff-widget">
-<div class="diff-toolbar">
-<div class="diff-mode-toggle">
-<button class="diff-mode-btn active" onclick="diffSetMode(this, 'edit')">Edit</button>
-<button class="diff-mode-btn" onclick="diffSetMode(this, 'view')">View</button>
-</div>
-<div class="diff-view-options">
-<button class="diff-view-btn active" onclick="diffSetView(this, 'split')">Split</button>
-<button class="diff-view-btn" onclick="diffSetView(this, 'unified')">Unified</button>
+<div class="diff-actions">
+<button class="diff-view-btn" data-view="split" onclick="diffSetView(this, 'split')" title="The two texts in columns">Side by side</button>
+<button class="diff-view-btn" data-view="unified" onclick="diffSetView(this, 'unified')" title="One list, additions and deletions together">Inline</button>
 <label class="diff-whitespace-toggle">
 <input type="checkbox" onchange="diffToggleWhitespace(this)">
-Hide Whitespace
+Ignore spacing
 </label>
 </div>
-</div>
-<div class="diff-edit-container">
+<div class="authoring-split">
+<div class="authoring-source diff-edit-container">
 <div class="diff-edit-pane">
 <label>Original</label>
 <textarea placeholder="Enter original text..." oninput="diffOnInput(this, 'original')" onscroll="diffSyncScroll(this, 'original')"></textarea>
 </div>
-<div class="diff-edit-resizer"></div>
 <div class="diff-edit-pane">
 <label>Modified</label>
 <textarea placeholder="Enter modified text..." oninput="diffOnInput(this, 'modified')" onscroll="diffSyncScroll(this, 'modified')"></textarea>
 </div>
 </div>
-<div class="diff-view-container">
+<div class="authoring-resizer"></div>
+<div class="authoring-result diff-view-container">
 <div class="diff-output"></div>
 </div>
-<div class="diff-stats"></div>
+</div>
+<div class="diff-stats authoring-chrome"></div>
 </div>`,
+    // Opting in to the shared modes. Its own Edit and View become two of the three,
+    // and Both — which it could not offer, having only one container for each — is
+    // the two texts with the difference beside them, updating as you type.
+    //
+    // Its other pair of buttons stays its own, but had to be renamed: "Split" there
+    // meant the two texts in columns, which is not what Both means here, and one bar
+    // cannot hold two meanings of the same word. They are Side by side and Inline.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        source: '.authoring-source',
+        result: '.authoring-result',
+        actions: '.diff-actions',
+        onRender: 'diffOnRender'
+    },
     contentType: 'html',
     onInit: 'diffInit',
     source: 'external',
@@ -2168,7 +2176,10 @@ function diffGetToolId(element) {
 function diffGetData(toolId) {
     const customizations = loadToolCustomizations();
     const custom = customizations[toolId] || {};
-    return custom.diffData || { original: '', modified: '', mode: 'edit', viewType: 'split', hideWhitespace: false };
+    // No `mode` in the default: a tool that had never been opened would otherwise
+    // answer "edit" when asked, which is enough to make the migration below fire for
+    // tools that never chose anything.
+    return custom.diffData || { original: '', modified: '', viewType: 'split', hideWhitespace: false };
 }
 
 function diffSaveData(toolId, data) {
@@ -2182,30 +2193,53 @@ function diffInit() {
     document.querySelectorAll('.diff-widget').forEach(widget => {
         const toolId = diffGetToolId(widget);
         if (!toolId) return;
+        const tool = widget.closest('.tool');
         const data = diffGetData(toolId);
         const textareas = widget.querySelectorAll('.diff-edit-pane textarea');
         if (textareas[0]) textareas[0].value = data.original;
         if (textareas[1]) textareas[1].value = data.modified;
-        widget.querySelectorAll('.diff-mode-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.textContent.toLowerCase() === data.mode);
-        });
-        widget.querySelectorAll('.diff-view-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.textContent.toLowerCase() === data.viewType);
+        // Searched from the tool, not the widget: these buttons have been lifted
+        // into the mode bar, which is a sibling of the widget rather than inside it.
+        // And read from the button rather than from its label: renaming Split to
+        // "Side by side" broke the old comparison, silently and invisibly.
+        tool.querySelectorAll('.diff-view-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === (data.viewType || 'split'));
         });
         const wsCheckbox = widget.querySelector('.diff-whitespace-toggle input');
         if (wsCheckbox) wsCheckbox.checked = data.hideWhitespace;
-        const editContainer = widget.querySelector('.diff-edit-container');
-        const viewContainer = widget.querySelector('.diff-view-container');
-        if (data.mode === 'view') {
-            editContainer.classList.add('hidden');
-            viewContainer.classList.add('active');
-            diffRenderOutput(widget, toolId);
+
+        // Hand this tool's private mode over to the framework, once. Its word for
+        // showing only the difference was "view", which the framework stores as
+        // "render"; "edit" already agrees.
+        const customizations = loadToolCustomizations();
+        const stored = customizations[toolId]?.diffData?.mode;
+        if (stored !== undefined && !customizations[toolId].viewMode) {
+            customizations[toolId].viewMode = stored === 'view' ? 'render' : stored;
+            delete customizations[toolId].diffData.mode;
+            saveToolCustomizations(customizations);
+            // The tool was laid out from the framework's key before this ran, so it
+            // needs telling. This renders the difference too, by way of onRender.
+            applyToolMode(tool, toolId);
         } else {
-            editContainer.classList.remove('hidden');
-            viewContainer.classList.remove('active');
+            diffOnRender(toolId);
         }
         diffUpdateStats(widget, toolId);
     });
+}
+
+/** Whether the difference is on screen to be kept up to date. */
+function diffResultShowing(widget) {
+    const tool = widget.closest('.tool');
+    return !(tool && tool.classList.contains('authoring-edit'));
+}
+
+/** What the framework calls when the difference needs to be up to date. */
+function diffOnRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.diff-widget');
+    if (!widget) return;
+    if (diffResultShowing(widget)) diffRenderOutput(widget, toolId);
+    diffUpdateStats(widget, toolId);
 }
 
 function diffOnInput(textarea, field) {
@@ -2215,48 +2249,37 @@ function diffOnInput(textarea, field) {
     data[field] = textarea.value;
     diffSaveData(toolId, data);
     const widget = textarea.closest('.diff-widget');
+    if (diffResultShowing(widget)) diffRenderOutput(widget, toolId);
     diffUpdateStats(widget, toolId);
 }
 
-function diffSetMode(btn, mode) {
-    const widget = btn.closest('.diff-widget');
-    const toolId = diffGetToolId(widget);
-    if (!toolId) return;
-    const data = diffGetData(toolId);
-    data.mode = mode;
-    diffSaveData(toolId, data);
-    widget.querySelectorAll('.diff-mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === mode));
-    const editContainer = widget.querySelector('.diff-edit-container');
-    const viewContainer = widget.querySelector('.diff-view-container');
-    if (mode === 'view') {
-        editContainer.classList.add('hidden');
-        viewContainer.classList.add('active');
-        diffRenderOutput(widget, toolId);
-    } else {
-        editContainer.classList.remove('hidden');
-        viewContainer.classList.remove('active');
-    }
+/** The two buttons and the checkbox live in the mode bar, so they reach their widget
+ *  through the tool rather than from inside it. */
+function diffGetWidget(element) {
+    const tool = element.closest('.tool');
+    return tool ? tool.querySelector('.diff-widget') : element.closest('.diff-widget');
 }
 
 function diffSetView(btn, viewType) {
-    const widget = btn.closest('.diff-widget');
-    const toolId = diffGetToolId(widget);
-    if (!toolId) return;
+    const widget = diffGetWidget(btn);
+    const toolId = diffGetToolId(btn);
+    if (!widget || !toolId) return;
     const data = diffGetData(toolId);
     data.viewType = viewType;
     diffSaveData(toolId, data);
-    widget.querySelectorAll('.diff-view-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === viewType));
-    if (data.mode === 'view') diffRenderOutput(widget, toolId);
+    const tool = btn.closest('.tool');
+    (tool || widget).querySelectorAll('.diff-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewType));
+    if (diffResultShowing(widget)) diffRenderOutput(widget, toolId);
 }
 
 function diffToggleWhitespace(checkbox) {
-    const widget = checkbox.closest('.diff-widget');
-    const toolId = diffGetToolId(widget);
-    if (!toolId) return;
+    const widget = diffGetWidget(checkbox);
+    const toolId = diffGetToolId(checkbox);
+    if (!widget || !toolId) return;
     const data = diffGetData(toolId);
     data.hideWhitespace = checkbox.checked;
     diffSaveData(toolId, data);
-    if (data.mode === 'view') diffRenderOutput(widget, toolId);
+    if (diffResultShowing(widget)) diffRenderOutput(widget, toolId);
     diffUpdateStats(widget, toolId);
 }
 
@@ -9554,7 +9577,7 @@ function ghdHistoryTooltip(d) {
 
     // List all functions to export
     const functionsToExport = [
-        diffGetToolId, diffGetData, diffSaveData, diffInit, diffOnInput, diffSetMode, diffSetView,
+        diffGetToolId, diffGetData, diffSaveData, diffInit, diffOnInput, diffGetWidget, diffResultShowing, diffOnRender, diffSetView,
         diffToggleWhitespace, diffSyncScroll, computeDiff, buildLCSMatrix, backtrackDiff,
         diffRenderOutput, renderSplitView, renderUnifiedView, renderDiffLine, renderUnifiedLine, diffUpdateStats,
         jwtGetToolId, jwtInit, jwtDecode, jwtBase64Decode, jwtSyntaxHighlight, jwtRenderClaims,
