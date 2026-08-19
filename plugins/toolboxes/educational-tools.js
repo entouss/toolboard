@@ -4699,15 +4699,68 @@ function mapQuizPanel(data) {
 
 // ---------- interaction ----------
 
+/** One step of a pinch: resize the view about the middle of the two fingers. */
+function mapPinchStep(widget, runtime, points, svg) {
+    const span = mapPointerSpan(points);
+    if (!span || !span.dist || !runtime.pinch || !runtime.pinch.dist) return;
+    // Step by step rather than from the gesture's start: the view is clamped as it
+    // goes, so the only honest reference is where it is now.
+    const factor = runtime.pinch.dist / span.dist;
+    runtime.pinch.dist = span.dist;
+    const anchor = mapClientToUser(svg, span.x, span.y);
+    const view = runtime.view;
+    const next = mapClampView(runtime.pinch.projection,
+        { x: view.x, y: view.y, w: view.w * factor, h: view.h * factor });
+    if (anchor) {
+        // Whatever is between the fingers stays between them.
+        const ratio = next.w / view.w;
+        next.x = anchor.x - (anchor.x - view.x) * ratio;
+        next.y = anchor.y - (anchor.y - view.y) * ratio;
+    }
+    // Clamped again after moving, not only after resizing: the anchor can push a
+    // corner off the edge of the world.
+    runtime.view = mapClampView(runtime.pinch.projection, next);
+    // Written to the DOM as it happens and saved once at the end, as the pan does:
+    // a save per frame would parse the whole board's customizations each time.
+    mapApplyView(widget, runtime.view);
+}
+
+/** The gap between the first two fingers down, and the point between them. */
+function mapPointerSpan(points) {
+    const two = Array.from(points.values()).slice(0, 2);
+    if (two.length < 2) return null;
+    return {
+        dist: Math.hypot(two[0].x - two[1].x, two[0].y - two[1].y),
+        x: (two[0].x + two[1].x) / 2,
+        y: (two[0].y + two[1].y) / 2
+    };
+}
+
 function mapBindStage(widget, toolId) {
     const svg = widget.querySelector('.map-svg');
     if (!svg) return;
     const runtime = mapRuntimeFor(toolId);
 
+    // Touch has no wheel, and .map-svg sets touch-action:none so the browser's own
+    // pinch never reaches the page either — which left a phone with no way to zoom
+    // at all, and a second finger merely jerking the pan about.
+    const points = new Map();
+
     svg.addEventListener('pointerdown', function(e) {
         // Neither drag feeds the tooltip, so without this it hangs where the
         // pointer was when the drag began.
         mapHideTooltip(widget);
+        points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (points.size === 2) {
+            const span = mapPointerSpan(points);
+            const current = mapGetData(toolId);
+            runtime.drag = null;
+            svg.classList.remove('dragging');
+            runtime.pinch = { dist: span.dist, projection: current.projection };
+            runtime.view = current.view;
+            return;
+        }
+        if (points.size > 2) return;
         const data = mapGetData(toolId);
         if (data.comparing && data.mode === 'explore') {
             const iso = mapIsoAt(e);
@@ -4730,6 +4783,20 @@ function mapBindStage(widget, toolId) {
     });
 
     svg.addEventListener('pointermove', function(e) {
+        if (points.has(e.pointerId)) points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (runtime.pinch) {
+            // One frame per pair of fingers, not one per finger. Each touch reports
+            // its own pointermove, so acting on the first would measure a gap and a
+            // midpoint made of one new position and one still where it started —
+            // which walks the anchor out from between the fingers as you pinch.
+            if (runtime.pinch.frame) return;
+            runtime.pinch.frame = requestAnimationFrame(function() {
+                if (!runtime.pinch) return;
+                runtime.pinch.frame = 0;
+                mapPinchStep(widget, runtime, points, svg);
+            });
+            return;
+        }
         if (runtime.ghost) { mapDragGhost(widget, runtime.ghost, e); return; }
         if (!runtime.drag) {
             const data = mapGetData(toolId);
@@ -4754,6 +4821,17 @@ function mapBindStage(widget, toolId) {
     });
 
     const end = function(e) {
+        points.delete(e.pointerId);
+        if (runtime.pinch) {
+            if (points.size >= 2) return;
+            if (runtime.pinch.frame) cancelAnimationFrame(runtime.pinch.frame);
+            const view = runtime.view;
+            runtime.pinch = null;
+            runtime.view = null;
+            runtime.drag = null;
+            if (view) mapSetView(widget, toolId, view);
+            return;
+        }
         if (runtime.ghost) {
             const ghost = runtime.ghost;
             runtime.ghost = null;
@@ -4776,7 +4854,15 @@ function mapBindStage(widget, toolId) {
         else if (view) mapSetView(widget, toolId, view);
     };
     svg.addEventListener('pointerup', end);
-    svg.addEventListener('pointercancel', function() { runtime.drag = null; svg.classList.remove('dragging'); });
+    svg.addEventListener('pointercancel', function(e) {
+        points.delete(e.pointerId);
+        runtime.drag = null;
+        if (points.size < 2) {
+            if (runtime.pinch && runtime.pinch.frame) cancelAnimationFrame(runtime.pinch.frame);
+            runtime.pinch = null;
+        }
+        svg.classList.remove('dragging');
+    });
     svg.addEventListener('pointerleave', function() { mapHideTooltip(widget); mapHideArrow(widget); });
 
     svg.addEventListener('wheel', function(e) {
@@ -5168,7 +5254,7 @@ function mapResetProgress(btn) {
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
     var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlOnRender, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
-    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapLayerFor, mapTableOf, mapBlobOf, mapLayerOf, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapOnRender, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapIsQuizzable, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
+    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapLayerFor, mapTableOf, mapBlobOf, mapLayerOf, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapPinchStep, mapPointerSpan, mapResetView, mapZoomToCountry, mapInit, mapOnRender, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapIsQuizzable, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
     var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
 
     var code = '(function() {\n' +
