@@ -320,7 +320,8 @@
     --map-state-capital:#1f5fa8; --map-state-capital-on:#2d7dd2;
     --map-backdrop:#d8d2c4; --map-backdrop-stroke:#bdb7a8;
     --map-hint-cold:#4a6fa5; --map-hint-warm:#e08a1e; --map-hint-hot:#27ae60;
-    display:flex; flex-direction:column; gap:6px; padding:8px; box-sizing:border-box;
+    /* No padding of its own: the framework pads .tool-content. */
+    display:flex; flex-direction:column; gap:6px; box-sizing:border-box;
     flex:1; min-height:0; width:100%; font-size:12px;
 }
 body.dark-mode .map-widget {
@@ -342,6 +343,7 @@ body.dark-mode .map-widget {
 .map-spacer { flex:1; }
 .map-stat { font-size:10px; color:var(--text-muted); white-space:nowrap; }
 .map-stage { position:relative; flex:1; min-height:60px; border:1px solid var(--border-color); border-radius:4px; overflow:hidden; background:var(--map-ocean); }
+.tool.authoring-render .map-stage { border:none; border-radius:0; }
 .map-svg { display:block; width:100%; height:100%; cursor:grab; touch-action:none; }
 .map-svg.dragging { cursor:grabbing; }
 /* non-scaling-stroke, so this is screen pixels at every zoom. 0.35 was enough for
@@ -414,6 +416,10 @@ body.dark-mode .map-widget {
 .map-prompt { font-size:13px; }
 .map-prompt b { color:var(--text-heading); }
 .map-hint { font-size:11px; color:var(--text-muted); }
+/* On its own, a map does not need telling how to be a map. The whole strip goes,
+   not just the words in it, so the map gets the height back — but only while that
+   is all the strip holds: a country's facts and a quiz's score both stay. */
+.tool.authoring-render .map-panel:has(> .map-nudge) { display:none; }
 .map-progress { flex:0 0 90px; height:5px; border-radius:3px; background:var(--border-color); overflow:hidden; }
 .map-progress span { display:block; height:100%; background:#3498db; }
 
@@ -4606,6 +4612,15 @@ function mapRender(widget) {
     mapPaint(widget, data);
 }
 
+/** What the framework calls when the map needs to be up to date. The SVG scales
+ *  itself to whatever box it is given, so this is about the panel and the painting
+ *  rather than the geometry. */
+function mapOnRender(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.map-widget');
+    if (widget) mapRender(widget);
+}
+
 function mapPaint(widget, data) {
     const quizzing = data.mode === 'quiz' && data.quiz && !data.quiz.done;
     const svg = widget.querySelector('.map-svg');
@@ -4643,7 +4658,9 @@ function mapExplorePanel(data) {
     const layer = mapLayerFor(data.region);
     const index = data.selected ? mapIndexOf(data.selected, layer) : -1;
     const country = index === -1 ? null : mapCountry(index, layer);
-    if (!country) return '<span class="map-hint">Click a country to see what it is. Drag to pan, scroll to zoom.</span>';
+    // Its own class, not just .map-hint: that one is also the quiz's score and its
+    // round counter, which View has every reason to keep.
+    if (!country) return '<span class="map-hint map-nudge">Click a country to see what it is. Drag to pan, scroll to zoom.</span>';
     return '<span class="map-flag">' + mapFlag(country.iso2) + '</span>' +
         '<span class="map-title">' + escapeHtml(country.name) + '</span>' +
         '<dl>' +
@@ -5151,7 +5168,7 @@ function mapResetProgress(btn) {
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
     var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlOnRender, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
-    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapLayerFor, mapTableOf, mapBlobOf, mapLayerOf, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapIsQuizzable, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
+    var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapLayerFor, mapTableOf, mapBlobOf, mapLayerOf, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapOnRender, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapIsQuizzable, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
     var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
 
     var code = '(function() {\n' +
@@ -5803,7 +5820,7 @@ PluginRegistry.registerTool({
     tags: ['map', 'world', 'geography', 'country', 'countries', 'capital', 'atlas', 'quiz', 'learn', 'education'],
     title: 'World Map',
     content: '<div class="map-widget">' +
-        '<div class="map-toolbar">' +
+        '<div class="map-toolbar authoring-source">' +
             '<button class="map-btn map-mode" data-mode="explore" onclick="mapSetMode(this, \'explore\')">Explore</button>' +
             '<button class="map-btn map-mode" data-mode="quiz" onclick="mapSetMode(this, \'quiz\')">Quiz</button>' +
             '<select class="map-select map-region" onchange="mapSetRegion(this)"></select>' +
@@ -5813,7 +5830,7 @@ PluginRegistry.registerTool({
             '<span class="map-spacer"></span>' +
             '<span class="map-stat"></span>' +
         '</div>' +
-        '<div class="map-stage">' +
+        '<div class="map-stage authoring-result">' +
             '<svg class="map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>' +
             '<div class="map-tooltip"></div>' +
             '<div class="map-arrow">' +
@@ -5829,6 +5846,25 @@ PluginRegistry.registerTool({
         '</div>' +
         '<div class="map-panel"></div>' +
     '</div>',
+    // Two modes, not three: the map is the thing, and a mode that showed the
+    // controls without it would be choosing a region you cannot see.
+    //
+    // Alone among the two-mode tools, this one opens in View. The others are empty
+    // when new — an image viewer with no picture, a QR code with nothing encoded —
+    // so View would have been a blank square. A new map is already a map.
+    //
+    // The facts panel stays in both modes. It is what clicking a country is for,
+    // and in a quiz it holds the question and the score; hiding it would leave View
+    // able to ask nothing and answer nothing.
+    authoring: {
+        modes: ['split', 'render'],
+        defaultMode: 'render',
+        labels: { split: 'Edit' },
+        titles: { split: 'The map, with the regions, projections and quiz' },
+        source: '.map-toolbar',
+        result: '.map-stage',
+        onRender: 'mapOnRender'
+    },
     contentType: 'html',
     onInit: 'mapInit',
     defaultWidth: 720,
