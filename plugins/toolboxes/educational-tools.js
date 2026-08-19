@@ -247,8 +247,15 @@
 
 /* History Timeline Widget Styles */
 .tl-widget { display:flex; flex-direction:column; gap:8px; height:100%; box-sizing:border-box; padding:10px; }
-.tl-toolbar { display:flex; gap:6px; flex-wrap:wrap; opacity:0; max-height:0; margin-bottom:-8px; overflow:hidden; transition:opacity 0.15s, max-height 0.15s, margin-bottom 0.15s; }
-.tl-widget:hover .tl-toolbar, .tl-widget:has(.tl-panel.open) .tl-toolbar, .tl-toolbar:focus-within { opacity:1; max-height:200px; margin-bottom:0; }
+/* This row is the mode bar: the framework fades it in on hover and pushes the
+   timeline down for it, which is what the rules that used to live here did by hand.
+   What is kept is the one thing the framework has no reason to know — that a panel
+   left open is a reason to stay open, whatever the pointer is doing. */
+.tl-toolbar { display:flex; gap:6px; flex-wrap:wrap; }
+.tool.authoring:has(.tl-panel.open) .authoring-overlay { max-height:400px; opacity:1; padding:4px 6px; margin-bottom:6px; pointer-events:auto; }
+/* On its own, a timeline is the thing on the board; the buttons that build it are
+   not part of it. The mode buttons stay, so there is a way back. */
+.tool.authoring-render .tl-toolbar-btn { display:none; }
 .tl-toolbar-btn { padding:4px 10px; font-size:12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; }
 .tl-toolbar-btn:hover { background:var(--bg-tertiary); }
 .tl-toolbar-btn.active { background:#3498db; border-color:#3498db; color:#fff; }
@@ -2955,6 +2962,16 @@ function tlInit() {
     });
 }
 
+/** What the framework calls when the timeline needs to be up to date. A panel left
+ *  open belongs to the editing mode, so leaving that mode closes it. */
+function tlOnRender(toolId) {
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var widget = tool && tool.querySelector('.tl-widget');
+    if (!widget) return;
+    if (tool.classList.contains('authoring-render')) tlClosePanels(widget);
+    tlRender(widget, toolId);
+}
+
 function tlGenId() {
     return 'tl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
@@ -3039,7 +3056,12 @@ function tlRender(widget, toolId) {
     if (!lineEl) return;
 
     if (sorted.length === 0) {
-        lineEl.innerHTML = '<div class="tl-empty">No events yet. Click "+ Add Event" to get started.</div>';
+        // "Click + Add Event" is only true where that button is on screen.
+        var tool = widget.closest('.tool');
+        var bare = tool && tool.classList.contains('authoring-render');
+        lineEl.innerHTML = '<div class="tl-empty">' + (bare
+            ? 'Nothing on this timeline yet — double-click to start adding events.'
+            : 'No events yet. Click "+ Add Event" to get started.') + '</div>';
     } else {
         var html = '';
         var lastEraId = null;
@@ -5128,7 +5150,7 @@ function mapResetProgress(btn) {
     var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid, multSetMax, multSetHalf, multToggleHard, multCellHover, multCellOut, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
-    var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
+    var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlOnRender, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
     var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapLayerFor, mapTableOf, mapBlobOf, mapLayerOf, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapResetView, mapZoomToCountry, mapInit, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapIsQuizzable, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
     var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
 
@@ -5745,8 +5767,25 @@ PluginRegistry.registerTool({
                 '<button class="tl-toolbar-btn" onclick="tlAddEra(this)">Add</button>' +
             '</div>' +
         '</div>' +
-        '<div class="tl-scroll"><div class="tl-line"></div></div>' +
+        '<div class="tl-scroll authoring-result"><div class="tl-line"></div></div>' +
     '</div>',
+    // Two modes, not three: the panels are forms you fill in against the timeline,
+    // and a mode that showed them without it would be editing something you cannot
+    // see. So the editing mode is the one that shows both, and it says Edit.
+    //
+    // It opens in Edit rather than View, like the image viewer and the QR code: a
+    // new timeline has no events, and its one instruction names a button that View
+    // hides. Once there is something on it, View sticks.
+    authoring: {
+        modes: ['split', 'render'],
+        defaultMode: 'split',
+        labels: { split: 'Edit' },
+        titles: { split: 'The timeline, with the buttons that build it' },
+        source: '.tl-panel',
+        result: '.authoring-result',
+        actions: '.tl-toolbar',
+        onRender: 'tlOnRender'
+    },
     onInit: 'tlInit',
     defaultWidth: 520,
     defaultHeight: 580,
