@@ -1862,6 +1862,32 @@ main#toolboard {
     border-color: #3498db;
 }
 
+/* A field with a button beside it, as the board settings drawer does for its icon. */
+.ts-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.ts-row input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.ts-mini {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 7px;
+    color: var(--text-secondary);
+}
+
+.ts-mini:hover { background: var(--table-hover); }
+
 .color-picker-row {
     display: flex;
     gap: 6px;
@@ -3490,7 +3516,10 @@ tr:hover {
             <div class="tool-settings-body">
             <div id="toolSettingsScope" class="ts-bulk-only ts-scope"></div>
             <label class="ts-single-only">Title</label>
-            <input type="text" id="toolSettingsTitleInput" class="title-input ts-single-only" placeholder="Tool title">
+            <div class="ts-row ts-single-only">
+                <input type="text" id="toolSettingsTitleInput" class="title-input ts-single-only" placeholder="Tool title">
+                <button class="ts-mini" id="toolSettingsTitleEmojiBtn" title="Pick from Emoji Tool">🎭</button>
+            </div>
             <label>Color</label>
             <div class="color-picker-row" id="toolSettingsColorPicker"></div>
             <label>Background</label>
@@ -5513,6 +5542,30 @@ function setupToolControls() {
             toolCustomizations[toolId].title = newTitle;
             saveToolCustomizations(toolCustomizations);
         }
+    });
+
+    // The title takes an emoji the way the board's icon does. The picker writes into
+    // the field and lets the input handler above do the saving, so there is one path.
+    const settingsTitleEmojiBtn = document.getElementById('toolSettingsTitleEmojiBtn');
+    settingsTitleEmojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Clicking the button blurs the field, so remember where the caret was.
+        const start = settingsTitleInput.selectionStart ?? settingsTitleInput.value.length;
+        const end = settingsTitleInput.selectionEnd ?? start;
+        window._toolLink = {
+            type: 'emoji',
+            label: 'Tool Title',
+            apply: (emoji) => {
+                const value = settingsTitleInput.value;
+                settingsTitleInput.value = value.slice(0, start) + emoji + value.slice(end);
+                settingsTitleInput.dispatchEvent(new Event('input'));
+                settingsTitleInput.focus();
+                settingsTitleInput.setSelectionRange(start + emoji.length, start + emoji.length);
+                window._toolLink = null;
+                closeToolPickerPopup();
+            },
+        };
+        openToolPickerPopup(settingsTitleEmojiBtn, 'emoji');
     });
 
     // Font family change in modal
