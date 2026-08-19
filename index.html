@@ -1552,7 +1552,7 @@ main#toolboard {
 .authoring-mode-btn.active { background: var(--accent-color, #3498db); color: #fff; border-color: var(--accent-color, #3498db); }
 .authoring-mode-btn:hover:not(.active) { background: var(--bg-secondary); }
 /* A tool's own buttons are moved in here rather than duplicated. */
-.authoring-overlay > :not(.authoring-mode-btn) { display: flex; align-items: center; gap: 4px; margin-left: 6px; }
+.authoring-mode-btn + :not(.authoring-mode-btn) { margin-left: 6px; }
 
 /* Which of the two panes is on. The tool says what they are; this decides when. */
 .tool.authoring .authoring-split { display: flex; flex: 1; min-height: 0; min-width: 0; }
@@ -3723,14 +3723,43 @@ function getToolMode(toolId) {
  * label — every tool that grew this independently compared button.textContent to
  * the mode, so renaming a label broke it silently.
  */
+function authoringModeButtonsHtml(authoring, mode) {
+    return authoring.modes.map(m =>
+        '<button class="authoring-mode-btn' + (m === mode ? ' active' : '') +
+        '" data-mode="' + m + '" title="' +
+        escapeHtml(authoring.titles[m] || AUTHORING_TITLES[m]) + '">' +
+        escapeHtml(authoring.labels[m] || AUTHORING_LABELS[m]) + '</button>').join('');
+}
+
+/** A bar of the framework's own, for a tool that offers no controls to share it. */
 function authoringOverlayHtml(authoring, mode) {
-    return '<div class="authoring-overlay">' +
-        authoring.modes.map(m =>
-            '<button class="authoring-mode-btn' + (m === mode ? ' active' : '') +
-            '" data-mode="' + m + '" title="' +
-            escapeHtml(authoring.titles[m] || AUTHORING_TITLES[m]) + '">' +
-            escapeHtml(authoring.labels[m] || AUTHORING_LABELS[m]) + '</button>').join('') +
-        '</div>';
+    return '<div class="authoring-overlay">' + authoringModeButtonsHtml(authoring, mode) + '</div>';
+}
+
+/**
+ * Find the bar and make sure it holds the mode buttons.
+ *
+ * A tool that declares `actions` gives the framework a node it already owns, and
+ * the mode buttons go *into* it — the tool's own row becomes the bar. The
+ * alternative, which this replaced, was to move the tool's node into a bar of the
+ * framework's: that put a tool's buttons outside its own widget, so every
+ * `widget.querySelector('.some-btn')` inside the tool silently stopped matching.
+ * It cost the diff viewer the highlight on its layout buttons and the QR generator
+ * the enabling of its downloads, both quietly — the click still worked, only the
+ * state did not follow. Four tools had grown the same workaround. Nothing of the
+ * tool's moves now, so a tool can keep looking for its own controls where it put
+ * them.
+ */
+function authoringBar(tool, authoring, mode) {
+    const bar = authoring.actions
+        ? tool.querySelector(authoring.actions)
+        : tool.querySelector('.authoring-overlay');
+    if (!bar) return null;
+    bar.classList.add('authoring-overlay');
+    if (!bar.querySelector('.authoring-mode-btn')) {
+        bar.insertAdjacentHTML('afterbegin', authoringModeButtonsHtml(authoring, mode));
+    }
+    return bar;
 }
 
 /**
@@ -3753,17 +3782,13 @@ function applyToolMode(tool, toolId) {
     AUTHORING_MODES.forEach(m => tool.classList.toggle('authoring-' + m, m === mode));
     tool.classList.add('authoring');
 
+    // Before the active state is synced: on the first pass this is what creates the
+    // buttons whose state is about to be set.
+    authoringBar(tool, authoring, mode);
+
     tool.querySelectorAll('.authoring-mode-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.mode === mode);
     });
-
-    // The tool's own buttons live in one node that moves into the bar, so a tool
-    // never needs a second copy of them for the hover state.
-    if (authoring.actions) {
-        const bar = tool.querySelector('.authoring-overlay');
-        const actions = tool.querySelector(authoring.actions);
-        if (bar && actions && actions.parentElement !== bar) bar.appendChild(actions);
-    }
 
     // Restore the divider before the result is drawn, so the renderer measures the
     // width it will actually have.
@@ -7048,7 +7073,7 @@ function createTool(toolId) {
             </div>
         </div>
         <div class="tool-content">
-            ${authoringDecl ? authoringOverlayHtml(authoringDecl, savedMode) : ''}
+            ${authoringDecl && !authoringDecl.actions ? authoringOverlayHtml(authoringDecl, savedMode) : ''}
             ${!content.isNote && custom.customContent ? renderToolContent(custom.customContent, custom.plainText, getTextTransforms(custom)) : content.html}
         </div>
         <div class="resize-handle resize-handle-n" data-resize="n"></div>

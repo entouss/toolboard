@@ -2257,11 +2257,8 @@ function mermDiagGetToolId(el) {
     return tool ? tool.getAttribute('data-tool') : null;
 }
 
-/** Via the tool, not the widget: the template picker and the export buttons are
- *  lifted into the mode bar, so they are no longer inside the widget they act on. */
 function mermDiagGetWidget(el) {
-    var tool = el.closest('.tool');
-    return tool ? tool.querySelector('.mermaid-diag-widget') : el.closest('.mermaid-diag-widget');
+    return el.closest('.mermaid-diag-widget');
 }
 
 function mermDiagLoadLib(callback) {

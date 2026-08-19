@@ -2221,11 +2221,9 @@ function diffInit() {
         const textareas = widget.querySelectorAll('.diff-edit-pane textarea');
         if (textareas[0]) textareas[0].value = data.original;
         if (textareas[1]) textareas[1].value = data.modified;
-        // Searched from the tool, not the widget: these buttons have been lifted
-        // into the mode bar, which is a sibling of the widget rather than inside it.
-        // And read from the button rather than from its label: renaming Split to
+        // Read from the button rather than from its label: renaming Split to
         // "Side by side" broke the old comparison, silently and invisibly.
-        tool.querySelectorAll('.diff-view-btn').forEach(btn => {
+        widget.querySelectorAll('.diff-view-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === (data.viewType || 'split'));
         });
         const wsCheckbox = widget.querySelector('.diff-whitespace-toggle input');
@@ -2276,11 +2274,8 @@ function diffOnInput(textarea, field) {
     diffUpdateStats(widget, toolId);
 }
 
-/** The two buttons and the checkbox live in the mode bar, so they reach their widget
- *  through the tool rather than from inside it. */
 function diffGetWidget(element) {
-    const tool = element.closest('.tool');
-    return tool ? tool.querySelector('.diff-widget') : element.closest('.diff-widget');
+    return element.closest('.diff-widget');
 }
 
 function diffSetView(btn, viewType) {
@@ -2290,8 +2285,7 @@ function diffSetView(btn, viewType) {
     const data = diffGetData(toolId);
     data.viewType = viewType;
     diffSaveData(toolId, data);
-    const tool = btn.closest('.tool');
-    (tool || widget).querySelectorAll('.diff-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewType));
+    widget.querySelectorAll('.diff-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewType));
     if (diffResultShowing(widget)) diffRenderOutput(widget, toolId);
 }
 
@@ -4549,11 +4543,8 @@ const QR = (function() {
     return { generate, bestVersion };
 })();
 
-/** Via the tool, not the widget: the download buttons are lifted into the mode bar,
- *  which is a sibling of the widget rather than inside it. */
 function qrGetWidget(element) {
-    const tool = element.closest('.tool');
-    return tool ? tool.querySelector('.qr-widget') : element.closest('.qr-widget');
+    return element.closest('.qr-widget');
 }
 
 function qrGetToolId(element) {
@@ -4602,9 +4593,7 @@ function qrGenerate(element) {
     const text = widget.querySelector('textarea').value;
     const wrap = widget.querySelector('.qr-canvas-wrap');
     const info = widget.querySelector('.qr-info');
-    // Searched from the tool: the download buttons have been lifted into the mode
-    // bar, so the widget can no longer see the things it enables and disables.
-    const buttons = (widget.closest('.tool') || widget).querySelectorAll('.qr-action-btn');
+    const buttons = widget.querySelectorAll('.qr-action-btn');
 
     const toolId = qrGetToolId(widget);
     const store = () => {
@@ -5638,11 +5627,8 @@ function jpPreset(btn, path) {
 let dirtreeDragState = { dragging: null, toolId: null, parentPath: null };
 
 // Core data
-/** Via the tool, not the widget: Copy Tree is lifted into the mode bar, so it is no
- *  longer inside the widget it copies from. */
 function dirtreeGetWidget(element) {
-    const tool = element.closest('.tool');
-    return tool ? tool.querySelector('.dirtree-widget') : element.closest('.dirtree-widget');
+    return element.closest('.dirtree-widget');
 }
 
 function dirtreeGetToolId(element) {

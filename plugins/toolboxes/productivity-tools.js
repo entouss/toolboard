@@ -5709,8 +5709,7 @@ function rcpBuildTableHtml(parsed) {
 /** The widget, from anywhere inside the tool — the action buttons live in the
  *  header once the framework has lifted them out of the widget itself. */
 function rcpGetWidget(element) {
-    var tool = element.closest('.tool');
-    return tool ? tool.querySelector('.rcp-widget') : null;
+    return element.closest('.rcp-widget');
 }
 
 /** What the framework calls when the result needs to be up to date. */
