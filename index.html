@@ -11244,7 +11244,44 @@ const _EMOTE_POPUP_HTML =
 
 let _toolPickerOutsideHandler = null;
 
-function openToolPickerPopup(triggerEl, type) {
+// Both pickers are drawn by index.html but filled by creative-tools.js: the emoji
+// list and its search live in emoteInit, the wheel in cpkInitWidget. Both calls are
+// guarded by typeof, so without that plugin the button opened a box holding a search
+// field and nothing else — silently, and the same on every screen.
+const PICKER_PLUGIN_URL = 'plugins/toolboxes/creative-tools.js';
+const PICKER_NEEDS = { emoji: 'emoteInit', color: 'cpkInitWidget' };
+
+/**
+ * Fetch the plugin the picker needs, if it is not already here.
+ *
+ * Loaded, not installed: opening a picker is not a decision to keep a toolbox, and
+ * a board's plugin list is the owner's to choose. Tool links install what they load
+ * because a tool left on a board without its plugin is broken on the next visit; a
+ * picker leaves nothing behind.
+ */
+async function ensurePickerPlugin(type) {
+    const needed = PICKER_NEEDS[type];
+    if (!needed || typeof window[needed] === 'function') return true;
+    // An exported board inlines its plugins, so there is nothing to go and get.
+    if (window.TOOLBOARD_EMBEDDED) return false;
+    showToolToast('Fetching the ' + (type === 'emoji' ? 'emoji' : 'colours') + '…');
+    try {
+        await PluginLoader.loadFromUrl(PICKER_PLUGIN_URL);
+    } catch (e) {
+        return false;
+    }
+    return typeof window[needed] === 'function';
+}
+
+async function openToolPickerPopup(triggerEl, type) {
+    if (!(await ensurePickerPlugin(type))) {
+        window._toolLink = null;
+        showToolToast(type === 'emoji'
+            ? 'The emoji picker needs the Creative Tools plugin'
+            : 'The colour picker needs the Creative Tools plugin');
+        return;
+    }
+
     const popup = document.getElementById('toolPickerPopup');
     const inner = document.getElementById('toolPickerPopupInner');
 
