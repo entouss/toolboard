@@ -11248,29 +11248,55 @@ function openToolPickerPopup(triggerEl, type) {
     const popup = document.getElementById('toolPickerPopup');
     const inner = document.getElementById('toolPickerPopupInner');
 
+    // Never wider or taller than the screen it opens on. These were fixed at
+    // 480x520, which on a phone put a quarter of the picker — part of the search
+    // box, the end of the category tabs and the right-hand column of emoji — past
+    // the edge of the viewport, where nothing could scroll to it.
+    const roomW = window.innerWidth - 16;
+    const roomH = window.innerHeight - 16;
+    // Cleared each time: one picker's scrolling must not be left on the next.
+    popup.style.maxHeight = '';
+    popup.style.overflowY = '';
+
     if (type === 'emoji') {
-        inner.innerHTML = '<div class="emote-widget" style="display:flex;flex-direction:column;height:520px;padding:8px;gap:6px;box-sizing:border-box;">' + _EMOTE_POPUP_HTML + '</div>';
-        popup.style.width = '480px';
+        const height = Math.min(520, roomH);
+        inner.innerHTML = '<div class="emote-widget" style="display:flex;flex-direction:column;height:' + height +
+            'px;padding:8px;gap:6px;box-sizing:border-box;">' + _EMOTE_POPUP_HTML + '</div>';
+        popup.style.width = Math.min(480, roomW) + 'px';
         if (typeof emoteInit === 'function') emoteInit();
         if (typeof emoteUpdateLinkBanner === 'function') emoteUpdateLinkBanner();
     } else if (type === 'color') {
         inner.innerHTML = '<div class="cpk-widget" style="padding:10px;">' + _CPK_POPUP_HTML + '</div>';
-        popup.style.width = '340px';
+        popup.style.width = Math.min(340, roomW) + 'px';
+        popup.style.maxHeight = roomH + 'px';
+        popup.style.overflowY = 'auto';
         const widget = inner.querySelector('.cpk-widget');
         if (typeof cpkInitWidget === 'function') cpkInitWidget(widget);
         if (typeof cpkUpdateLinkBanner === 'function') cpkUpdateLinkBanner();
     }
 
-    // Position near trigger
+    // Shown before it is placed, so its height can be measured rather than assumed:
+    // the old maths guessed 540 for every picker, which is neither of them.
+    popup.style.left = '0px';
+    popup.style.top = '0px';
+    popup.style.display = 'block';
+
     const rect = triggerEl.getBoundingClientRect();
-    const popW = parseInt(popup.style.width) || 360;
+    const popW = popup.offsetWidth;
+    const popH = popup.offsetHeight;
+
     let left = rect.left;
-    let top = rect.bottom + 6;
     if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
-    if (top + 540 > window.innerHeight - 8) top = Math.max(8, rect.top - 540 - 6);
+
+    // Below the button if it fits, above it if that fits instead, and otherwise
+    // wherever on screen it can be seen whole.
+    let top = rect.bottom + 6;
+    if (top + popH > window.innerHeight - 8) {
+        const above = rect.top - popH - 6;
+        top = above >= 8 ? above : Math.max(8, window.innerHeight - popH - 8);
+    }
     popup.style.left = Math.max(8, left) + 'px';
     popup.style.top = Math.max(8, top) + 'px';
-    popup.style.display = 'block';
 
     if (type === 'emoji') {
         setTimeout(() => inner.querySelector('.emote-search input')?.focus(), 50);
