@@ -3594,7 +3594,7 @@ const NOTE_TEMPLATES = {
         name: 'Note',
         description: 'A blank note for freeform text and ideas',
         icon: '📝',
-        title: 'New Tool',
+        title: 'Note',
         content: '',
         // The note is why the double-click gesture existed in the first place; it
         // just had nowhere to go but a modal. Now it goes where every other tool's
@@ -6143,13 +6143,13 @@ function setupContentEditor() {
         const mod = e.metaKey || e.ctrlKey;
         if (mod && e.shiftKey && e.key === 's') {
             e.preventDefault();
-            sortLinesBtn.click();
+            setTransform('sortAsc', editorTransforms.sort !== 'asc');
         } else if (mod && e.shiftKey && e.key === 'r') {
             e.preventDefault();
-            reverseSortBtn.click();
+            setTransform('sortDesc', editorTransforms.sort !== 'desc');
         } else if (mod && e.shiftKey && e.key === 'u') {
             e.preventDefault();
-            uniqueLinesBtn.click();
+            setTransform('unique', !editorTransforms.unique);
         } else if (mod && e.key === 'f') {
             e.preventDefault();
             openFindReplace(false);
@@ -6521,6 +6521,16 @@ function openContentEditor(toolId) {
     const displayTitle = custom.title || content.title;
 
     titleSpan.textContent = displayTitle;
+
+    // "Reset to Default" only where there is a default to go back to. A note's
+    // default content is empty, so on a note the button offered to replace what you
+    // had written with nothing — under a name that sounded like it was restoring
+    // something. A tool whose template ships content keeps it.
+    const template = custom.templateId
+        ? (NOTE_TEMPLATES[custom.templateId] || PluginRegistry.getTool(custom.templateId))
+        : null;
+    const hasDefault = Boolean(template && template.content && template.content.trim());
+    overlay.querySelector('.content-editor-reset').style.display = hasDefault ? '' : 'none';
 
     // Load plain text toggle state
     const plainTextCheckbox = document.getElementById('editorPlainTextCheckbox');
