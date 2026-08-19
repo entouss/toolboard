@@ -2138,6 +2138,27 @@ main#toolboard {
     border-bottom: 1px solid var(--border-color);
 }
 
+.editor-tf { position: relative; }
+.editor-tf-panel {
+    display: none; position: absolute; right: 0; top: calc(100% + 4px); z-index: 30;
+    background: var(--bg-secondary); border: 1px solid var(--border-color);
+    border-radius: 6px; box-shadow: 0 6px 20px var(--shadow-medium);
+    padding: 6px; min-width: 172px;
+}
+.editor-tf-panel.open { display: block; }
+.editor-tf-panel label {
+    display: flex; align-items: center; gap: 7px; padding: 4px 7px;
+    font-size: 12px; color: var(--text-primary); cursor: pointer; border-radius: 4px;
+    white-space: nowrap;
+}
+.editor-tf-panel label:hover { background: var(--bg-tertiary); }
+.editor-tf-panel input[type="checkbox"] { margin: 0; }
+.editor-tf-sep { height: 1px; background: var(--border-color); margin: 4px 2px; }
+.editor-tf-casing { justify-content: space-between; }
+.editor-tf-casing select {
+    font-size: 11px; padding: 1px 4px; border: 1px solid var(--border-color);
+    border-radius: 3px; background: var(--input-bg); color: var(--text-primary);
+}
 .editor-action-btn {
     padding: 2px 8px;
     font-size: 11px;
@@ -3339,21 +3360,30 @@ tr:hover {
                         </label>
                         <div style="display:flex;gap:4px;flex-wrap:wrap;">
                             <button id="editorEmojiBtn" class="editor-action-btn" title="Insert emoji">🙂</button>
-                            <button id="editorSortLinesBtn" class="editor-action-btn" title="Sort lines A-Z at render time">Sort</button>
-                            <button id="editorReverseSortBtn" class="editor-action-btn" title="Sort lines Z-A at render time">Reverse</button>
-                            <button id="editorReverseOrderBtn" class="editor-action-btn" title="Reverse line order at render time">Flip</button>
-                            <button id="editorShuffleBtn" class="editor-action-btn" title="Shuffle lines randomly at render time">Shuffle</button>
-                            <button id="editorUniqueLinesBtn" class="editor-action-btn" title="Remove duplicate lines at render time">Unique</button>
-                            <button id="editorTrimBtn" class="editor-action-btn" title="Trim whitespace per line at render time">Trim</button>
-                            <button id="editorStripEmptyBtn" class="editor-action-btn" title="Remove empty lines at render time">No blanks</button>
-                            <button id="editorNumberBtn" class="editor-action-btn" title="Number lines at render time">1. 2. 3.</button>
-                            <select id="editorCasingSelect" class="editor-action-btn" title="Apply text casing at render time" style="padding:1px 4px;">
-                                <option value="">Casing</option>
-                                <option value="upper">UPPER</option>
-                                <option value="lower">lower</option>
-                                <option value="title">Title Case</option>
-                                <option value="sentence">Sentence case</option>
-                            </select>
+                            <div class="editor-tf" id="editorTransformMenu">
+                                <button id="editorTransformBtn" class="editor-action-btn" title="Change how these lines are rendered, without changing what you typed">Transform</button>
+                                <div class="editor-tf-panel" id="editorTransformPanel">
+                                    <label><input type="checkbox" data-tf="sortAsc"> Sort A–Z</label>
+                                    <label><input type="checkbox" data-tf="sortDesc"> Sort Z–A</label>
+                                    <label><input type="checkbox" data-tf="reverse"> Flip the order</label>
+                                    <label><input type="checkbox" data-tf="shuffle"> Shuffle</label>
+                                    <div class="editor-tf-sep"></div>
+                                    <label><input type="checkbox" data-tf="unique"> Drop duplicates</label>
+                                    <label><input type="checkbox" data-tf="stripEmpty"> Drop blank lines</label>
+                                    <label><input type="checkbox" data-tf="trim"> Trim spaces</label>
+                                    <label><input type="checkbox" data-tf="number"> Number them</label>
+                                    <div class="editor-tf-sep"></div>
+                                    <label class="editor-tf-casing">Casing
+                                        <select id="editorCasingSelect">
+                                            <option value="">As typed</option>
+                                            <option value="upper">UPPER</option>
+                                            <option value="lower">lower</option>
+                                            <option value="title">Title Case</option>
+                                            <option value="sentence">Sentence case</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="content-editor-find-replace" id="editorFindReplace" style="display:none;">
@@ -5783,23 +5813,37 @@ function initializeCalculators() {
 let currentEditingTool = null;
 let editorTransforms = { sort: null, unique: false, casing: '', reverse: false, shuffle: false, trim: false, stripEmpty: false, number: false };
 
+/**
+ * The transform menu, showing what is on.
+ *
+ * These were nine controls in a row — eight toggle buttons and a casing select —
+ * which is a lot of chrome above a text box for something most notes never use, and
+ * gave no answer to "what is being done to this text?" beyond reading the shade of
+ * nine buttons. One button now, and it counts what is on.
+ */
 function updateTransformBtnStates() {
-    const ids = {
-        editorSortLinesBtn: editorTransforms.sort === 'asc',
-        editorReverseSortBtn: editorTransforms.sort === 'desc',
-        editorReverseOrderBtn: editorTransforms.reverse,
-        editorShuffleBtn: editorTransforms.shuffle,
-        editorUniqueLinesBtn: editorTransforms.unique,
-        editorTrimBtn: editorTransforms.trim,
-        editorStripEmptyBtn: editorTransforms.stripEmpty,
-        editorNumberBtn: editorTransforms.number
+    const state = {
+        sortAsc: editorTransforms.sort === 'asc',
+        sortDesc: editorTransforms.sort === 'desc',
+        reverse: editorTransforms.reverse,
+        shuffle: editorTransforms.shuffle,
+        unique: editorTransforms.unique,
+        stripEmpty: editorTransforms.stripEmpty,
+        trim: editorTransforms.trim,
+        number: editorTransforms.number
     };
-    for (const [id, active] of Object.entries(ids)) {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle('active', active);
-    }
+    document.querySelectorAll('#editorTransformPanel input[data-tf]').forEach((box) => {
+        box.checked = Boolean(state[box.dataset.tf]);
+    });
     const casSel = document.getElementById('editorCasingSelect');
     if (casSel) casSel.value = editorTransforms.casing || '';
+
+    const on = Object.values(state).filter(Boolean).length + (editorTransforms.casing ? 1 : 0);
+    const btn = document.getElementById('editorTransformBtn');
+    if (btn) {
+        btn.textContent = on ? 'Transform · ' + on : 'Transform';
+        btn.classList.toggle('active', on > 0);
+    }
 }
 
 function getEditorTransforms() {
@@ -6076,84 +6120,69 @@ function setupContentEditor() {
     }
 
     // --- Render-time transforms ---
-    const sortLinesBtn = document.getElementById('editorSortLinesBtn');
-    const reverseSortBtn = document.getElementById('editorReverseSortBtn');
-    const reverseOrderBtn = document.getElementById('editorReverseOrderBtn');
-    const shuffleBtn = document.getElementById('editorShuffleBtn');
-    const uniqueLinesBtn = document.getElementById('editorUniqueLinesBtn');
-    const trimBtn = document.getElementById('editorTrimBtn');
-    const stripEmptyBtn = document.getElementById('editorStripEmptyBtn');
-    const numberBtn = document.getElementById('editorNumberBtn');
+    const transformBtn = document.getElementById('editorTransformBtn');
+    const transformPanel = document.getElementById('editorTransformPanel');
+    const transformMenu = document.getElementById('editorTransformMenu');
     const casingSelect = document.getElementById('editorCasingSelect');
 
-    sortLinesBtn.addEventListener('click', () => {
-        editorTransforms.sort = editorTransforms.sort === 'asc' ? null : 'asc';
+    // Sorting is one question with three answers, so its two boxes clear each other
+    // rather than both being on. Everything else is independent.
+    function setTransform(key, on) {
+        if (key === 'sortAsc') editorTransforms.sort = on ? 'asc' : null;
+        else if (key === 'sortDesc') editorTransforms.sort = on ? 'desc' : null;
+        else editorTransforms[key] = on;
         updateTransformBtnStates();
         updateEditorPreview();
+    }
+
+    transformBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        transformPanel.classList.toggle('open');
     });
 
-    reverseSortBtn.addEventListener('click', () => {
-        editorTransforms.sort = editorTransforms.sort === 'desc' ? null : 'desc';
-        updateTransformBtnStates();
-        updateEditorPreview();
+    transformPanel.addEventListener('change', (e) => {
+        const box = e.target.closest('input[data-tf]');
+        if (box) { setTransform(box.dataset.tf, box.checked); return; }
+        if (e.target === casingSelect) {
+            editorTransforms.casing = casingSelect.value;
+            updateTransformBtnStates();
+            updateEditorPreview();
+        }
     });
 
-    reverseOrderBtn.addEventListener('click', () => {
-        editorTransforms.reverse = !editorTransforms.reverse;
-        updateTransformBtnStates();
-        updateEditorPreview();
+    // A menu that stays open while you tick several things, and closes when you are
+    // done with it — clicking anywhere else, or Escape.
+    transformPanel.addEventListener('click', (e) => e.stopPropagation());
+    document.addEventListener('click', (e) => {
+        if (!transformPanel.classList.contains('open')) return;
+        if (!transformMenu.contains(e.target)) transformPanel.classList.remove('open');
     });
-
-    shuffleBtn.addEventListener('click', () => {
-        editorTransforms.shuffle = !editorTransforms.shuffle;
-        updateTransformBtnStates();
-        updateEditorPreview();
-    });
-
-    uniqueLinesBtn.addEventListener('click', () => {
-        editorTransforms.unique = !editorTransforms.unique;
-        updateTransformBtnStates();
-        updateEditorPreview();
-    });
-
-    trimBtn.addEventListener('click', () => {
-        editorTransforms.trim = !editorTransforms.trim;
-        updateTransformBtnStates();
-        updateEditorPreview();
-    });
-
-    stripEmptyBtn.addEventListener('click', () => {
-        editorTransforms.stripEmpty = !editorTransforms.stripEmpty;
-        updateTransformBtnStates();
-        updateEditorPreview();
-    });
-
-    numberBtn.addEventListener('click', () => {
-        editorTransforms.number = !editorTransforms.number;
-        updateTransformBtnStates();
-        updateEditorPreview();
-    });
-
-    casingSelect.addEventListener('change', () => {
-        editorTransforms.casing = casingSelect.value;
-        updateEditorPreview();
-    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && transformPanel.classList.contains('open')) {
+            e.stopPropagation();
+            transformPanel.classList.remove('open');
+        }
+    }, true);
 
     textarea.addEventListener('keydown', (e) => {
         const mod = e.metaKey || e.ctrlKey;
-        if (mod && e.shiftKey && e.key === 's') {
+        // Lower-cased because Shift is part of these: e.key reports the shifted
+        // character, so Cmd+Shift+S arrives as 'S' and every one of these
+        // comparisons had been quietly failing.
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        if (mod && e.shiftKey && key === 's') {
             e.preventDefault();
             setTransform('sortAsc', editorTransforms.sort !== 'asc');
-        } else if (mod && e.shiftKey && e.key === 'r') {
+        } else if (mod && e.shiftKey && key === 'r') {
             e.preventDefault();
             setTransform('sortDesc', editorTransforms.sort !== 'desc');
-        } else if (mod && e.shiftKey && e.key === 'u') {
+        } else if (mod && e.shiftKey && key === 'u') {
             e.preventDefault();
             setTransform('unique', !editorTransforms.unique);
-        } else if (mod && e.key === 'f') {
+        } else if (mod && key === 'f') {
             e.preventDefault();
             openFindReplace(false);
-        } else if (mod && e.key === 'h') {
+        } else if (mod && key === 'h') {
             e.preventDefault();
             openFindReplace(true);
         } else if (e.key === 'Escape' && findBar.style.display !== 'none') {
