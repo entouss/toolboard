@@ -1745,6 +1745,21 @@ main#toolboard {
     max-width: 90%;
     color: var(--text-primary);
     font-weight: normal;
+    /* Every row on show makes the panel taller than a laptop screen, and the overlay
+       is fixed and centred, so whatever fell past the edge was simply unreachable.
+       Cap the panel at the viewport and scroll the rows under a header that stays. */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+}
+
+.tool-settings-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Keep the scrollbar off the controls without narrowing them. */
+    margin-right: -8px;
+    padding-right: 8px;
 }
 
 /* The same panel serves one tool or many. Bulk mode drops the rows that identify a
@@ -1795,6 +1810,7 @@ main#toolboard {
 
 .tool-settings-header {
     display: flex;
+    flex: 0 0 auto;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
@@ -3471,6 +3487,7 @@ tr:hover {
                 <h3 id="toolSettingsHeading">Tool Settings</h3>
                 <button class="tool-settings-close">&times;</button>
             </div>
+            <div class="tool-settings-body">
             <div id="toolSettingsScope" class="ts-bulk-only ts-scope"></div>
             <label class="ts-single-only">Title</label>
             <input type="text" id="toolSettingsTitleInput" class="title-input ts-single-only" placeholder="Tool title">
@@ -3579,6 +3596,7 @@ tr:hover {
             <button class="send-to-back-btn ts-single-only" id="toolSettingsSendToBackBtn">Send to Back</button>
             <button class="delete-tool-btn ts-single-only" id="toolSettingsDeleteBtn">Hide Tool</button>
             <button class="ts-undo-btn ts-bulk-only" id="toolSettingsUndoBtn" disabled>Undo Changes</button>
+            </div>
         </div>
     </div>
 
@@ -5239,6 +5257,7 @@ function setupToolControls() {
     });
 
     const settingsPanel = settingsOverlay.querySelector('.tool-settings');
+    const settingsBody = settingsOverlay.querySelector('.tool-settings-body');
     const settingsHeading = document.getElementById('toolSettingsHeading');
     const settingsScope = document.getElementById('toolSettingsScope');
     const settingsUndoBtn = document.getElementById('toolSettingsUndoBtn');
@@ -5364,6 +5383,9 @@ function setupToolControls() {
 
         populateSettingsPanel();
         settingsOverlay.classList.add('open');
+        // The rows scroll, and the same element serves every tool, so it reopens
+        // where it was left — but only once it is laid out can that be undone.
+        settingsBody.scrollTop = 0;
     };
 
     // Settings button - open modal
