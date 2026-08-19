@@ -197,12 +197,12 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .dgm-autofit-btn:hover { background: var(--bg-primary); }
 .dgm-autofit-btn.active { background: #3498db; color: white; border-color: #3498db; }
 .dgm-autofit-btn.active:hover { background: #2980b9; }
-.dgm-widget.dgm-focus > .dgm-toolbar,
-.dgm-widget.dgm-focus > .dgm-tabs,
-.dgm-widget.dgm-focus > .dgm-actions { display: none; }
-.dgm-focus-toggle { position: absolute; top: 6px; right: 6px; z-index: 5; width: 24px; height: 24px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-muted); cursor: pointer; display: none; align-items: center; justify-content: center; opacity: 0.6; transition: opacity 0.15s; }
-.dgm-focus-toggle:hover { opacity: 1; color: var(--text-primary); }
-.dgm-widget.dgm-focus .dgm-focus-toggle { display: flex; }
+/* Focus mode was this tool's own View: a class on the widget that hid the three
+   chrome rows, a button in the bottom row to enter it and a second floating button
+   to leave again — and nothing stored, so a diagram left in focus reopened with all
+   its furniture back. The framework's View does the hiding, the mode bar is the way
+   back, and the choice is remembered. */
+.tool.authoring-render .dgm-canvas-wrap { background: transparent; }
 .dgm-text-overlay { position: absolute; border: 2px solid #3498db; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; padding: 2px 4px; resize: none; z-index: 10; outline: none; font-family: sans-serif; box-sizing: border-box; min-width: 60px; min-height: 28px; }
 .dgm-context-menu { position: absolute; z-index: 20; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 160px; font-size: 12px; }
 .dgm-context-menu .dgm-ctx-item { display: flex; align-items: center; justify-content: space-between; padding: 5px 12px; cursor: pointer; color: var(--text-primary); white-space: nowrap; }
@@ -3969,14 +3969,12 @@ function dgmToggleAutoFit(btn) {
     dgmDraw(toolId);
 }
 
-function dgmToggleFocus(btn) {
-    var widget = btn.closest('.dgm-widget');
-    widget.classList.toggle('dgm-focus');
-    var toolId = dgmGetToolId(btn);
+/** What the framework calls when the mode changes. The canvas is sized by its box,
+ *  and hiding three rows of chrome changes that box — so it has to be redrawn once
+ *  the new layout has settled, which is what focus mode did here too. */
+function dgmOnRender(toolId) {
     var s = dgmGetState(toolId);
-    if (s && s.canvas) {
-        setTimeout(function() { dgmDraw(toolId); }, 0);
-    }
+    if (s && s.canvas) setTimeout(function() { dgmDraw(toolId); }, 0);
 }
 
 function dgmExportPNG(btn) {
@@ -4265,7 +4263,10 @@ function dgmDraw(toolId) {
     var isDark = document.body.classList.contains('dark-mode');
     ctx.fillStyle = isDark ? '#1e1e1e' : '#ffffff';
     ctx.fillRect(0, 0, W, H);
-    dgmDrawGrid(ctx, s, W, H);
+    // The grid is drafting paper: useful while placing things, and not part of the
+    // diagram you leave on a board.
+    var tool = s.canvas.closest('.tool');
+    if (!(tool && tool.classList.contains('authoring-render'))) dgmDrawGrid(ctx, s, W, H);
     ctx.save();
     ctx.translate(s.viewX, s.viewY);
     ctx.scale(s.zoom, s.zoom);
@@ -5607,7 +5608,7 @@ function dgmInit() {
     var seqFunctions = [seqGetToolId, seqGetData, seqSaveData, seqInit, seqRender, seqOnInput, seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
     var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagOnRender, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
-    var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmCalloutPtr, dgmHitCalloutHandle, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmWrapLines, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmFitView, dgmToggleAutoFit, dgmToggleFocus, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
+    var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmCalloutPtr, dgmHitCalloutHandle, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmWrapLines, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmFitView, dgmToggleAutoFit, dgmOnRender, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
 
     var allFunctions = seqFunctions.concat(ftreeFunctions).concat(mermDiagFunctions).concat(dgmFunctions);
 
@@ -5782,7 +5783,7 @@ PluginRegistry.registerTool({
     tags: ['diagram', 'flowchart', 'draw', 'shapes', 'arrows', 'excalidraw', 'lucidchart', 'whiteboard'],
     title: 'Diagram',
     content: '<div class="dgm-widget">' +
-        '<div class="dgm-toolbar">' +
+        '<div class="dgm-toolbar authoring-source">' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'rect\')" title="Add Rectangle"><svg width="16" height="12" viewBox="0 0 16 12"><rect x="1" y="1" width="14" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'ellipse\')" title="Add Ellipse"><svg width="16" height="14" viewBox="0 0 16 14"><ellipse cx="8" cy="7" rx="7" ry="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>' +
             '<button class="dgm-tool-btn" onclick="dgmAddShape(this,\'diamond\')" title="Add Diamond"><svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 13,7 7,13 1,7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>' +
@@ -5851,13 +5852,13 @@ PluginRegistry.registerTool({
             '<button class="dgm-valign-btn active" onclick="dgmSetTextVAlign(this,\'middle\')" title="Align middle" data-valign="middle"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="1" y1="2" x2="11" y2="2" stroke="currentColor" stroke-width="1"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="11" y2="10" stroke="currentColor" stroke-width="1"/></svg></button>' +
             '<button class="dgm-valign-btn" onclick="dgmSetTextVAlign(this,\'bottom\')" title="Align bottom" data-valign="bottom"><svg width="12" height="12" viewBox="0 0 12 12"><line x1="1" y1="3.5" x2="11" y2="3.5" stroke="currentColor" stroke-width="1"/><line x1="1" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="1"/><line x1="1" y1="11" x2="11" y2="11" stroke="currentColor" stroke-width="2"/></svg></button>' +
         '</div>' +
-        '<div class="dgm-tabs">' +
+        '<div class="dgm-tabs authoring-source">' +
             '<button class="dgm-tab-add" onclick="dgmAddTab(this)" title="Add tab">+</button>' +
         '</div>' +
-        '<div class="dgm-canvas-wrap">' +
+        '<div class="dgm-canvas-wrap authoring-result">' +
             '<canvas class="dgm-canvas"></canvas>' +
         '</div>' +
-        '<div class="dgm-actions">' +
+        '<div class="dgm-actions authoring-source">' +
             '<button onclick="dgmUndo(this)">Undo</button>' +
             '<button onclick="dgmDeleteSelected(this)">Delete</button>' +
             '<button onclick="dgmSendToFront(this)" title="Send to front">\u25B2</button>' +
@@ -5866,10 +5867,23 @@ PluginRegistry.registerTool({
             '<span class="dgm-zoom-label">100%</span>' +
             '<button class="dgm-autofit-btn" onclick="dgmToggleAutoFit(this)" title="Auto fit — diagram scales with window">Auto Fit</button>' +
             '<button onclick="dgmExportPNG(this)">Export PNG</button>' +
-            '<button onclick="dgmToggleFocus(this)" title="Focus mode — hide toolbars"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1,4 L1,1 L4,1 M8,1 L11,1 L11,4 M11,8 L11,11 L8,11 M4,11 L1,11 L1,8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
         '</div>' +
-        '<button class="dgm-focus-toggle" onclick="dgmToggleFocus(this)" title="Exit focus mode"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M5,1 L1,1 L1,5 M9,1 L13,1 L13,5 M13,9 L13,13 L9,13 M1,9 L1,13 L5,13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="4" y1="4" x2="10" y2="10" stroke="currentColor" stroke-width="1.3"/><line x1="10" y1="4" x2="4" y2="10" stroke="currentColor" stroke-width="1.3"/></svg></button>' +
     '</div>',
+    // Two modes, not three: you draw on the canvas itself, so a mode that hid it
+    // would leave nothing to work on. The editing mode is the one that shows the
+    // shape tools, the tabs and the actions around it, and it says Edit.
+    //
+    // It opens in Edit: a new diagram is an empty canvas, and View would offer no
+    // way to put anything on it.
+    authoring: {
+        modes: ['split', 'render'],
+        defaultMode: 'split',
+        labels: { split: 'Edit' },
+        titles: { split: 'The diagram, with everything you draw it with' },
+        source: '.dgm-toolbar',
+        result: '.dgm-canvas-wrap',
+        onRender: 'dgmOnRender'
+    },
     contentType: 'html',
     onInit: 'dgmInit',
     source: 'external',
