@@ -630,7 +630,9 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
 /* No padding of its own: the framework pads .tool-content, and both meant the tree
    sat further in than the tool around it. */
 .dirtree-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; width: 100%; box-sizing: border-box; min-height: 0; }
-.dirtree-actions { display: flex; align-items: center; gap: 4px; }
+/* Not .dirtree-actions: that name was already taken by the buttons on each row,
+   and the later rule was replacing this bar's transition with its own. */
+.dirtree-bar { display: flex; align-items: center; gap: 4px; }
 .dirtree-source, .dirtree-tree-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
 .tool.authoring-split .dirtree-source { padding-right: 10px; }
 /* Wraps: beside the text this row has half a tool to fit in, and the folder button
@@ -2016,7 +2018,7 @@ PluginRegistry.registerTool({
     tags: ['directory', 'tree', 'folder', 'file', 'structure', 'project', 'ascii', 'layout'],
     title: 'Directory Structure',
     content: '<div class="dirtree-widget">' +
-        '<div class="dirtree-actions">' +
+        '<div class="dirtree-bar">' +
             '<button class="dirtree-md-btn" onclick="dirtreeCopyTree(this)" title="Copy as ASCII tree">📋 Copy Tree</button>' +
         '</div>' +
         '<div class="authoring-split">' +
@@ -2053,7 +2055,7 @@ PluginRegistry.registerTool({
         defaultMode: 'render',
         source: '.authoring-source',
         result: '.authoring-result',
-        actions: '.dirtree-actions',
+        actions: '.dirtree-bar',
         onRender: 'dirtreeOnRender'
     },
     contentType: 'html',
