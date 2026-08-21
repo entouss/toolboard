@@ -3673,6 +3673,12 @@ const NOTE_TEMPLATES = {
         icon: '📝',
         title: 'Note',
         content: '',
+        // An empty note has nothing to measure, so auto-fit gave it the floor: 200×120,
+        // a fraction of every other tool on the board and barely a line to type on.
+        // A declared size skips auto-fit; this is the top of the range the plugin tools
+        // use, and a note is the one tool you sit and write in.
+        defaultWidth: 600,
+        defaultHeight: 500,
         // The note is why the double-click gesture existed in the first place; it
         // just had nowhere to go but a modal. Now it goes where every other tool's
         // does. The big editor is still there, one button along, for the work it is
