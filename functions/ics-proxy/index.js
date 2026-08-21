@@ -111,26 +111,41 @@ exports.icsProxy = async (req, res) => {
     return;
   }
 
-  const reader = upstreamRes.body.getReader();
-  const chunks = [];
-  let totalBytes = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    totalBytes += value.byteLength;
-    if (totalBytes > MAX_BODY_BYTES) {
-      reader.cancel();
-      res.status(502).set(corsHeaders(origin)).send('Upstream response too large');
-      return;
-    }
-    chunks.push(value);
-  }
-
-  const body = Buffer.concat(chunks.map(c => Buffer.from(c)));
   const contentType = upstreamRes.headers.get('content-type') || 'application/octet-stream';
-
   res
     .status(upstreamRes.status)
-    .set({ ...corsHeaders(origin), 'Content-Type': contentType, 'Cache-Control': 'no-store' })
-    .send(body);
+    .set({ ...corsHeaders(origin), 'Content-Type': contentType, 'Cache-Control': 'no-store' });
+
+  // 204, 304 and HEAD carry no body at all, and asking one for a reader throws.
+  if (!upstreamRes.body) {
+    res.end();
+    return;
+  }
+
+  // Pass the body through as it arrives. Collecting it and then concatenating held
+  // two copies at once, and there is little room to spare: the instance has 128 MiB
+  // and the Node runtime alone takes most of it.
+  const reader = upstreamRes.body.getReader();
+  let totalBytes = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_BODY_BYTES) {
+        await reader.cancel();
+        // The status line is long gone, so the only way to refuse is to cut it off.
+        res.destroy();
+        return;
+      }
+      if (!res.write(Buffer.from(value))) {
+        await new Promise(resolve => res.once('drain', resolve));
+      }
+    }
+    res.end();
+  } catch {
+    // An upstream that dies mid-stream is not a reason to take the instance with it.
+    await reader.cancel().catch(() => {});
+    res.destroy();
+  }
 };
