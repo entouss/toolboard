@@ -214,8 +214,9 @@ const CURR_OPTIONAL_TERM = /summer|intersession|winter session|bridge|j-?term|in
 // A term that covers the whole level rather than dividing it.
 const CURR_SPAN_TERM = /full[ -]?year|year[ -]?long|all year|both semesters|entire year/i;
 
-// A term the course may take in any of the level's divisions.
-const CURR_ANY_TERM = /^(one|any|either)\b/i;
+// A term the course may take in any of the level's divisions — including the
+// document saying outright that it does not know ("Not Specified").
+const CURR_ANY_TERM = /^(one|any|either)\b|not specified|unspecified|n\/a|tbd/i;
 
 // Short, stable ids for the terms a document is likely to name, so a plan built
 // against one document still reads against the next version of it.
@@ -303,14 +304,23 @@ function currPlanner(data) {
         });
         terms = Object.keys(byId).map(function(id) { return byId[id]; });
         terms.sort(function(a, b) { return a.order - b.order; });
+        // A course card can be nothing but year-long courses. Then there is no term
+        // to divide the year into, and a column no course could sit in is clutter —
+        // unless something is offered without saying when, which has to go somewhere.
+        if (!terms.length) {
+            const needsColumn = courses.some(function(course) {
+                return !course.semester_offered || currTermKind(course.semester_offered) === 'any';
+            });
+            if (needsColumn) terms = [{ id: 'TM1', label: 'Term', optional: false, order: 0 }];
+        }
     }
-    if (!terms.length) terms = [{ id: 'TM1', label: 'Term', optional: false, order: 0 }];
 
     // A term outside the main run sits after the ones inside it, whatever order the
     // document listed them in.
     const main = terms.filter(function(t) { return !t.optional; });
     const optional = terms.filter(function(t) { return t.optional; });
     terms = main.concat(optional);
+    const spanOnly = !terms.length;
 
     const spanLabel = (courses.filter(function(c) { return currTermKind(c.semester_offered) === 'span'; })[0] || {})
         .semester_offered || 'Full year';
@@ -318,8 +328,10 @@ function currPlanner(data) {
     return {
         levels: levels,
         terms: terms,
-        main: main.length ? main : terms,
+        // With no terms at all the span cell is the whole of a level.
+        main: main.length ? main : (terms.length ? terms : [{ id: CURR_SPAN, label: 'Full year', optional: false, order: 0 }]),
         optional: optional,
+        spanOnly: spanOnly,
         spanId: CURR_SPAN,
         spanLabel: spanLabel,
         levelLabel: hints.level_label || null,
@@ -345,16 +357,37 @@ function currSlotLabel(planner, id) {
     return term ? term.label : id;
 }
 
-const CURR_FLAG_FILTERS = [
-    ['has_lab', 'Lab science'],
-    ['ncaa_approved', 'NCAA approved'],
-    ['meets_practical_fine_arts', 'Practical/fine arts'],
-    ['meets_pe_requirement', 'Meets PE'],
-    ['dual_enrollment', 'Dual enrolment'],
-    ['ap_exam_required', 'Exam required'],
-    ['additional_fee', 'Has a fee'],
-    ['performance_required', 'Performance required']
-];
+// Flags are a document's own vocabulary and keep growing — teacher approval,
+// audition required, counts towards a diploma programme. Rather than a list of the
+// ones we happen to know, the filter offers whichever flags this document sets,
+// with names made from the keys.
+const CURR_FLAG_NAMES = {
+    has_lab: 'Lab science',
+    ncaa_approved: 'NCAA approved',
+    meets_practical_fine_arts: 'Practical/fine arts',
+    meets_pe_requirement: 'Meets PE',
+    dual_enrollment: 'Dual enrolment',
+    ap_exam_required: 'Exam required',
+    additional_fee: 'Has a fee',
+    min_enrollment_10: 'Needs ten students',
+    eoc_course: 'End-of-course exam'
+};
+
+function currFlagLabel(key) {
+    if (CURR_FLAG_NAMES[key]) return CURR_FLAG_NAMES[key];
+    const words = String(key).replace(/_/g, ' ').trim();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+function currFlagsInUse(courses) {
+    const seen = {};
+    courses.forEach(function(course) {
+        Object.keys(course.flags || {}).forEach(function(key) {
+            if (course.flags[key]) seen[key] = (seen[key] || 0) + 1;
+        });
+    });
+    return Object.keys(seen).sort(function(a, b) { return seen[b] - seen[a]; });
+}
 
 // A small invented catalog, so the tool is not a blank box before you have a file
 // of your own. No real school, guide or course listing is involved.
@@ -390,7 +423,12 @@ const CURR_SCHEMA = {
                 properties: {
                     course_code: { type: ['string', 'number'], description: 'Unique within the document. Shown on catalog rows and plan cards.' },
                     title: { type: 'string', description: 'What prerequisites name the course by.' },
-                    department: { type: 'string', description: 'Groups the catalog and counts towards a requirement of the same name. Absent: "Courses".' },
+                    department_canonical: { type: 'string', description: 'A normalised department, preferred for grouping and for matching a requirement of the same name.' },
+                    department: { type: 'string', description: 'The heading as printed. Used when there is no canonical one, and shown beside it when there is. Absent: "Courses".' },
+                    cross_credit: { type: 'object', description: 'Says outright that the course satisfies another subject: {counts_as: "Science"}. Counted towards that requirement as well as its own department.' },
+                    program: { type: ['string', 'null'], description: 'A named pathway. Becomes a filter when any course has one.' },
+                    title_variants: { type: 'array', items: { type: 'string' }, description: 'Other printed forms of the title. Prerequisites naming any of them resolve to this course.' },
+                    credits_basis: { type: 'string', description: 'printed, inferred or unknown. Shown with the credit when it is not printed.' },
                     subject_area: { type: ['string', 'null'], description: 'A finer grouping inside a department, and a second name a requirement may match.' },
                     level: { type: 'string', description: 'Rigour tier, shown as a badge and filterable. Absent: "Standard".' },
                     credits: { type: 'number', description: 'Counted per level, in the totals, and towards requirements. Absent: 0.' },
@@ -418,8 +456,8 @@ const CURR_SCHEMA = {
                     },
                     flags: {
                         type: 'object',
-                        description: 'Booleans. Filterable, and three of them let a course count towards a requirement other than its department: ' +
-                            'meets_practical_fine_arts, meets_pe_requirement, and is_elective below.',
+                        description: 'Booleans, open-ended: whichever a document sets become filters, named from their keys. ' +
+                            'meets_practical_fine_arts and meets_pe_requirement additionally count the course towards those requirements.',
                         additionalProperties: { type: 'boolean' }
                     },
                     is_elective: { type: 'boolean', description: 'Also counts towards a requirement whose name reads like electives.' },
@@ -433,6 +471,10 @@ const CURR_SCHEMA = {
             type: 'object',
             description: 'What the plan is measured against.',
             properties: {
+                other_requirements: {
+                    type: 'array', items: { type: 'string' },
+                    description: 'Conditions that are not credits — service hours, testing. Listed under the totals as they are.'
+                },
                 credits_by_subject: {
                     type: 'array',
                     description: 'One row per requirement, each shown with a progress bar that opens to list the courses counted.',
@@ -440,13 +482,25 @@ const CURR_SCHEMA = {
                         type: 'object',
                         required: ['subject'],
                         properties: {
-                            subject: { type: 'string', description: 'Matched against each course\'s department, subject area, elective status and satisfying flags.' },
+                            subject: { type: 'string', description: 'Matched against each course\'s department (canonical or printed), subject area, cross credit, elective status and satisfying flags.' },
                             credits_required: { type: 'number' },
                             notes: { type: ['string', 'null'] }
                         }
                     }
                 }
             }
+        },
+        program_groupings: {
+            type: 'array',
+            description: 'Optional. Diploma or pathway groups, shown under the requirements and counted in courses rather than credits.',
+            items: { type: 'object', properties: {
+                name: { type: 'string' },
+                groups: { type: 'array', items: { type: 'object', properties: {
+                    name: { type: 'string' },
+                    courses: { type: 'array', items: { type: 'string' } },
+                    required_course: { type: 'boolean' }
+                } } }
+            } }
         },
         practical_fine_arts_index: {
             type: 'object',
@@ -468,7 +522,8 @@ const CURR_SCHEMA = {
             }
         },
         school: { type: 'object', description: 'Optional. Carried through untouched.' },
-        guide: { type: 'object', description: 'Optional. Carried through untouched.' }
+        document: { type: 'object', description: 'Optional. The document\'s own title and academic year, where it gives them.' },
+        guide: { type: 'object', description: 'Optional. The earlier name for `document`. Either is read.' }
     }
 };
 
@@ -576,7 +631,7 @@ function currDefaults() {
         hidden: { departments: [], subjects: [], courses: [] },
         ui: {
             tab: 'grid', search: '', department: '', level: '', grade: '', semester: '',
-            flag: '', selected: null, treeRoot: null, showDependents: true,
+            flag: '', program: '', selected: null, treeRoot: null, showDependents: true,
             showHidden: false, onlyMet: false, collapsed: [], openReqs: []
         }
     };
@@ -694,11 +749,16 @@ function currParse(text) {
 // a field is there. The document is otherwise kept whole, so reopening the JSON
 // pane shows what was loaded.
 function currNormalizeDoc(doc) {
+    doc.normalized_by_explorer = true;
     doc.courses = doc.courses.map(function(course) {
         const prereq = course.prerequisites || {};
         return Object.assign({}, course, {
             course_code: String(course.course_code),
-            department: course.department || 'Courses',
+            // Later documents normalise the department and keep the printed heading
+            // beside it; earlier ones carry only the printed one. Group by whichever
+            // is the more comparable, and keep the other as the finer name.
+            department: course.department_canonical || course.department || 'Courses',
+            department_printed: course.department_canonical ? (course.department || null) : null,
             level: course.level || 'Standard',
             semester_offered: course.semester_offered || null,
             subject_area: course.subject_area || null,
@@ -1015,9 +1075,14 @@ function currNormTitle(title) {
 function currTitleIndex(data) {
     const index = {};
     currCourses(data).forEach(function(c) {
-        const key = currNormTitle(c.title);
-        if (!index[key]) index[key] = [];
-        index[key].push(c.course_code);
+        // Sources print the same course differently; a prerequisite may name any of
+        // the forms, so every one of them points back to the course.
+        [c.title].concat(c.title_variants || []).forEach(function(title) {
+            const key = currNormTitle(title);
+            if (!key) return;
+            if (!index[key]) index[key] = [];
+            if (index[key].indexOf(c.course_code) === -1) index[key].push(c.course_code);
+        });
     });
     return index;
 }
@@ -1070,12 +1135,12 @@ function currTermEnd(planner, key) { return currTermPos(planner, key).end; }
 
 // Where the document allows this course to be planned.
 function currAllowedSlots(course, planner) {
-    const everyTerm = planner.terms.map(function(term) { return term.id; });
+    const everyTerm = planner.spanOnly ? [planner.spanId] : planner.terms.map(function(term) { return term.id; });
     const value = course.semester_offered;
     if (!value) return everyTerm;
     const kind = currTermKind(value);
     if (kind === 'span') return [planner.spanId];
-    if (kind === 'any') return planner.main.map(function(term) { return term.id; });
+    if (kind === 'any') return planner.spanOnly ? [planner.spanId] : planner.main.map(function(term) { return term.id; });
     const slug = currTermSlug(value);
     return everyTerm.indexOf(slug) !== -1 ? [slug] : everyTerm;
 }
@@ -1303,7 +1368,8 @@ function currMatchesFilters(course, ui) {
     const search = (ui.search || '').trim().toLowerCase();
     if (search) {
         const hay = (course.title + ' ' + course.course_code + ' ' + (course.description || '') + ' ' +
-            (course.subject_area || '')).toLowerCase();
+            (course.subject_area || '') + ' ' + (course.program || '') + ' ' +
+            (course.department_printed || '') + ' ' + (course.title_variants || []).join(' ')).toLowerCase();
         if (hay.indexOf(search) === -1) return false;
     }
     if (ui.department && course.department !== ui.department) return false;
@@ -1311,6 +1377,7 @@ function currMatchesFilters(course, ui) {
     if (ui.grade && course.grade_levels.indexOf(parseInt(ui.grade, 10)) === -1) return false;
     if (ui.semester && course.semester_offered !== ui.semester) return false;
     if (ui.flag && !(course.flags || {})[ui.flag]) return false;
+    if (ui.program && course.program !== ui.program) return false;
     return true;
 }
 
@@ -1385,6 +1452,7 @@ function currCatalogHtml(data) {
     const departments = currUniqueValues(courses, 'department');
     const levels = currUniqueValues(courses, 'level');
     const semesters = currUniqueValues(courses, 'semester_offered');
+    const programs = currUniqueValues(courses, 'program');
 
     let html =
         '<div class="curr-controls">' +
@@ -1403,13 +1471,15 @@ function currCatalogHtml(data) {
                     }).join('') + '</select>' +
                 '<select onchange="currSetFilter(this, \'semester\')" title="When it is offered">' +
                     currOptions(semesters, ui.semester, 'Any term') + '</select>' +
-                '<select onchange="currSetFilter(this, \'flag\')" title="Course flags">' +
+                '<select onchange="currSetFilter(this, \'flag\')" title="What the document marks courses with">' +
                     '<option value="">Any course</option>' +
-                    CURR_FLAG_FILTERS.map(function(pair) {
-                        return '<option value="' + pair[0] + '"' + (ui.flag === pair[0] ? ' selected' : '') +
-                            '>' + escapeHtml(pair[1]) + '</option>';
+                    currFlagsInUse(courses).map(function(key) {
+                        return '<option value="' + escapeHtml(key) + '"' + (ui.flag === key ? ' selected' : '') +
+                            '>' + escapeHtml(currFlagLabel(key)) + '</option>';
                     }).join('') +
                 '</select>' +
+                (programs.length ? '<select onchange="currSetFilter(this, \'program\')" title="Programme or pathway">' +
+                    currOptions(programs, ui.program, 'Any programme') + '</select>' : '') +
             '</div>' +
             '<div class="curr-count">' + currCountHtml(data, view) + '</div>' +
         '</div>';
@@ -1482,7 +1552,8 @@ function currLevelTagClass(level) {
 // shortened rather than dropped.
 function currLevelAbbr(level) {
     const known = { 'Honors': 'H', 'AP': 'AP', 'Dual Enrollment': 'DE',
-        'Honors Dual Enrollment': 'HDE', 'College Prep': 'CP' };
+        'Honors Dual Enrollment': 'HDE', 'College Prep': 'CP', 'Pre-AICE': 'PA',
+        'AICE': 'AI', 'A-Level AICE': 'AL', 'Academic Support': 'AS' };
     if (known[level]) return known[level];
     return level.split(/\s+/).map(function(word) { return word.charAt(0); }).join('').toUpperCase().slice(0, 3);
 }
@@ -1534,8 +1605,11 @@ function currDetailsHtml(data) {
     const placed = currPlacementOf(data, code);
     const prereq = course.prerequisites;
     // Only what the document actually says about this course, joined up.
-    const facts = [course.department, course.subject_area, course.level !== 'Standard' ? course.level : '',
-        currFormatCredits(course.credits) + ' credit', course.semester_offered,
+    const facts = [course.department, course.department_printed, course.subject_area,
+        course.program, course.level !== 'Standard' ? course.level : '',
+        currFormatCredits(course.credits) + ' credit' +
+            (course.credits_basis && course.credits_basis !== 'printed' ? ' (' + course.credits_basis + ')' : ''),
+        course.semester_offered,
         course.grade_levels.length
             ? course.grade_levels.map(function(l) { return currLevelLabel(planner, l); }).join(', ')
             : ''].filter(Boolean);
@@ -1588,9 +1662,9 @@ function currGridHtml(data, validation) {
 
     let html =
         '<div class="curr-grid-head">' +
-            '<div class="curr-head-sems">' + planner.main.map(function(term) {
+            '<div class="curr-head-sems">' + (planner.spanOnly ? '' : planner.main.map(function(term) {
                 return '<span title="' + escapeHtml(term.label) + '">' + escapeHtml(term.label) + '</span>';
-            }).join('') + '</div>' +
+            }).join('')) + '</div>' +
             planner.optional.map(function(term) {
                 return '<span class="curr-head-sum" title="' + escapeHtml(term.label) + '">' +
                     escapeHtml(term.label) + '</span>';
@@ -1605,11 +1679,12 @@ function currGridHtml(data, validation) {
                     '<span>' + currFormatCredits(credits) + ' cr</span></div>' +
                 '<div class="curr-terms">' +
                     currCellHtml(data, validation, planner, level, planner.spanId) +
-                    '<div class="curr-sems">' +
-                        planner.main.map(function(term) {
-                            return currCellHtml(data, validation, planner, level, term.id);
-                        }).join('') +
-                    '</div>' +
+                    (planner.spanOnly ? '' :
+                        '<div class="curr-sems">' +
+                            planner.main.map(function(term) {
+                                return currCellHtml(data, validation, planner, level, term.id);
+                            }).join('') +
+                        '</div>') +
                 '</div>' +
                 planner.optional.map(function(term) {
                     return currCellHtml(data, validation, planner, level, term.id);
@@ -1722,6 +1797,10 @@ function currCountsToward(data, course, subject, fineArts) {
     const want = currNormTitle(subject);
     if (!want) return false;
     if (currNormTitle(course.department) === want) return true;
+    if (course.department_printed && currNormTitle(course.department_printed) === want) return true;
+    // A document may say outright that a course counts as another subject — a
+    // computing course carrying a science credit, say. That is not a guess to make.
+    if (course.cross_credit && currNormTitle(course.cross_credit.counts_as) === want) return true;
     if (course.subject_area && currNormTitle(course.subject_area) === want) return true;
     // The guide lists these courses under electives as well as their own department.
     if (course.is_elective && /elective/.test(want)) return true;
@@ -1817,6 +1896,37 @@ function currTotalsHtml(data) {
             (twice.length === 1 ? ' course counts' : ' courses count') +
             ' towards more than one requirement: ' + escapeHtml(twice.join(', ')) + '</div>';
     }
+
+    // A document may print pathways — a diploma made of groups of courses — which
+    // are counted in courses rather than credits.
+    const inPlan = {};
+    counting.forEach(function(course) {
+        [course.title].concat(course.title_variants || []).forEach(function(title) {
+            inPlan[currNormTitle(title)] = true;
+        });
+    });
+    (data.catalog.program_groupings || []).forEach(function(program) {
+        html += '<div class="curr-req"><span class="curr-req-caret"></span>' +
+            '<span class="curr-req-name" title="' + escapeHtml(program.description || '') + '"><b>' +
+            escapeHtml(program.name) + '</b></span></div>';
+        (program.groups || []).forEach(function(group) {
+            const titles = group.courses || [];
+            const got = titles.filter(function(title) { return inPlan[currNormTitle(title)]; }).length;
+            const need = group.required_course ? 1 : Math.max(1, 0);
+            const pct = titles.length ? Math.min(100, Math.round((got / Math.max(need, 1)) * 100)) : 0;
+            html += '<div class="curr-req">' +
+                '<span class="curr-req-caret"></span>' +
+                '<span class="curr-req-name" title="' + escapeHtml(titles.join(', ')) + '">' +
+                    escapeHtml(group.name) + '</span>' +
+                '<span class="curr-bar"><i class="' + (got >= need ? 'done' : '') + '" style="width:' + pct + '%"></i></span>' +
+                '<span class="curr-req-num">' + got + ' of ' + titles.length + '</span>' +
+            '</div>';
+        });
+    });
+
+    (((data.catalog.graduation_requirements || {}).other_requirements) || []).forEach(function(text) {
+        html += '<div class="curr-req curr-note" style="display:block">' + escapeHtml(text) + '</div>';
+    });
 
     const missing = currCourses(data).filter(function(c) {
         return c.required_for_graduation && !currPlacementOf(data, c.course_code) &&
@@ -2347,6 +2457,12 @@ function currInit() {
         const toolId = currGetToolId(widget);
         if (!toolId) return;
         const data = currGetData(toolId);
+        // A catalog can arrive without having been through the loader — a board
+        // imported from someone else, state from an older version of this tool.
+        if (data.catalog && data.catalog.courses && !data.catalog.normalized_by_explorer) {
+            data.catalog = currNormalizeDoc(data.catalog);
+            currSaveData(toolId, data);
+        }
         const box = widget.querySelector('.curr-json');
         if (box && !box.value && data.catalog) box.value = JSON.stringify(data.catalog, null, 2);
         currRender(widget);
@@ -2375,7 +2491,7 @@ function currOnRender(toolId) {
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
         currBestTerm, currRender, currRenderFor, currMatchesFilters, currIsHidden,
-        currUniqueValues, currOptions, currCatalogView, currCountHtml, currCatalogHtml, currListHtml,
+        currUniqueValues, currFlagLabel, currFlagsInUse, currOptions, currCatalogView, currCountHtml, currCatalogHtml, currListHtml,
         currRenderCatalogList, currLevelTagClass, currShortSemester,
         currCourseRowHtml, currDetailsHtml, currRightHtml, currGridHtml, currCellHtml,
         currCardHtml, currLevelCredits, currFineArtsIndex, currCountsToward, currTotalsHtml,
@@ -2398,7 +2514,7 @@ function currOnRender(toolId) {
         'window.CURR_OPTIONAL_TERM = ' + CURR_OPTIONAL_TERM.toString() + ';\n' +
         'window.CURR_SPAN_TERM = ' + CURR_SPAN_TERM.toString() + ';\n' +
         'window.CURR_ANY_TERM = ' + CURR_ANY_TERM.toString() + ';\n' +
-        'window.CURR_FLAG_FILTERS = ' + JSON.stringify(CURR_FLAG_FILTERS) + ';\n' +
+        'window.CURR_FLAG_NAMES = ' + JSON.stringify(CURR_FLAG_NAMES) + ';\n' +
         // The rules carry regular expressions, so they are rebuilt rather than JSON'd.
         'window.CURR_REQUIREMENT_FLAGS = [' + CURR_REQUIREMENT_FLAGS.map(function(rule) {
             return '{flag:' + JSON.stringify(rule.flag) + ',subject:' + rule.subject.toString() + '}';
