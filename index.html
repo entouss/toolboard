@@ -4178,7 +4178,15 @@ const PluginLoader = {
             const knownTools = new Set(PluginRegistry.tools.keys());
 
             const script = document.createElement('script');
-            script.src = url;
+            // A plugin edited on disk has to be picked up by a reload. On a served
+            // site the browser's caching is exactly what is wanted; opened locally
+            // it hides the edit and you debug code you are no longer running.
+            const localHost = location.protocol === 'file:' ||
+                /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+            const relative = !/^https?:\/\//i.test(url);
+            script.src = (localHost && relative)
+                ? url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=' + Date.now()
+                : url;
             script.async = true;
 
             script.onload = () => {
