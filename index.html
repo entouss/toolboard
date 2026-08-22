@@ -651,6 +651,11 @@ header h1 {
     font-size: 0.9rem;
 }
 
+/* Where a dragged board would land. */
+.board-card.dragging { opacity: 0.4; }
+.board-card.drop-before { box-shadow: -3px 0 0 #3498db; }
+.board-card.drop-after { box-shadow: 3px 0 0 #3498db; }
+
 .board-card {
     position: relative;
     display: flex;
@@ -884,7 +889,9 @@ header h1 {
     color: var(--text-secondary);
 }
 
-.board-settings-drawer .bs-mini:hover { background: var(--table-hover); }
+.board-settings-drawer .bs-mini:hover:not(:disabled) { background: var(--table-hover); }
+.board-settings-drawer .bs-mini:disabled { opacity: 0.4; cursor: default; }
+.board-settings-drawer .bs-order-at { font-size: 10px; color: var(--text-secondary); margin-left: auto; }
 
 .board-card-rename-wrap {
     flex: 1;
@@ -6981,6 +6988,12 @@ function renderBoardSettingsDrawer(boardId) {
             '<button class="bs-mini bs-favicon-pick" title="Pick from Emoji Tool">🎭</button>' +
             '<button class="bs-mini bs-favicon-reset" title="Reset">↺</button>' +
         '</div>' +
+        '<label>Order</label>' +
+        '<div class="bs-row">' +
+            '<button class="bs-mini bs-move-up" title="Move this board earlier">↑ Earlier</button>' +
+            '<button class="bs-mini bs-move-down" title="Move this board later">↓ Later</button>' +
+            '<span class="bs-order-at"></span>' +
+        '</div>' +
         '<label>Board Font <a href="https://fonts.google.com" target="_blank" rel="noopener">Browse ↗</a></label>' +
         '<select class="font-select bs-font"></select>' +
         '<input type="text" class="font-custom-input bs-font-custom" placeholder="Or type any Google Font name..." spellcheck="false" value="' + escapeHtml(s.customFontName || '') + '">' +
@@ -7026,6 +7039,21 @@ function renderBoardSettingsDrawer(boardId) {
         e.target.classList.add('selected');
         updateBoardSetting(boardId, { color: color });
     });
+
+    // Order — the same move the drag does, for a finger rather than a mouse.
+    const at = boards.findIndex(b => b.id === boardId);
+    drawer.querySelector('.bs-order-at').textContent = (at + 1) + ' of ' + boards.length;
+    const upBtn = drawer.querySelector('.bs-move-up');
+    const downBtn = drawer.querySelector('.bs-move-down');
+    upBtn.disabled = at <= 0;
+    downBtn.disabled = at === boards.length - 1;
+    const moveAndRedraw = (by) => {
+        if (!moveBoardBy(boardId, by)) return;
+        renderBoardList(document.getElementById('boardManagerSearch').value);
+        renderBoardSettingsDrawer(boardId);
+    };
+    upBtn.addEventListener('click', () => moveAndRedraw(-1));
+    downBtn.addEventListener('click', () => moveAndRedraw(1));
 
     // Icon
     const faviconInput = drawer.querySelector('.bs-favicon');
@@ -10745,6 +10773,46 @@ function renderCurrentBoardRow() {
     el.appendChild(gear);
 }
 
+// Where a board sits in the list is the order it is kept in, so moving one is a
+// move within `boards`. Dropping onto a card means "put it here": before or after,
+// by which side of the card the pointer is on.
+let boardDragId = null;
+
+function moveBoardTo(boardId, targetIndex) {
+    const from = boards.findIndex(b => b.id === boardId);
+    if (from === -1) return false;
+    let to = Math.max(0, Math.min(boards.length - 1, targetIndex));
+    if (from < to) to -= 1;
+    if (from === to) return false;
+    boards.splice(to, 0, boards.splice(from, 1)[0]);
+    saveBoards(boards);
+    return true;
+}
+
+// One step either way, for a keyboard and for the buttons in the settings drawer.
+function moveBoardBy(boardId, by) {
+    const from = boards.findIndex(b => b.id === boardId);
+    if (from === -1) return false;
+    const to = from + by;
+    if (to < 0 || to >= boards.length) return false;
+    boards.splice(to, 0, boards.splice(from, 1)[0]);
+    saveBoards(boards);
+    return true;
+}
+
+function boardDropIndicator(card, e) {
+    const box = card.getBoundingClientRect();
+    const after = e.clientX > box.left + box.width / 2;
+    card.classList.toggle('drop-after', after);
+    card.classList.toggle('drop-before', !after);
+    return after;
+}
+
+function clearBoardDropMarks() {
+    document.querySelectorAll('.board-card.drop-before, .board-card.drop-after')
+        .forEach(el => el.classList.remove('drop-before', 'drop-after'));
+}
+
 function renderBoardList(filter) {
     const list = document.getElementById('boardManagerList');
     list.innerHTML = '';
@@ -10826,8 +10894,50 @@ function renderBoardList(filter) {
         };
 
 
+        card.draggable = true;
+        card.title = 'Drag to reorder, or hold Alt and press an arrow key';
+
+        card.ondragstart = (e) => {
+            boardDragId = board.id;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', board.id);
+            card.classList.add('dragging');
+        };
+        card.ondragend = () => { boardDragId = null; card.classList.remove('dragging'); clearBoardDropMarks(); };
+        card.ondragover = (e) => {
+            if (!boardDragId || boardDragId === board.id) return;
+            e.preventDefault();
+            boardDropIndicator(card, e);
+        };
+        card.ondragleave = () => card.classList.remove('drop-before', 'drop-after');
+        card.ondrop = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const after = card.classList.contains('drop-after');
+            clearBoardDropMarks();
+            const moved = boardDragId || e.dataTransfer.getData('text/plain');
+            boardDragId = null;
+            if (!moved || moved === board.id) return;
+            const target = boards.findIndex(b => b.id === board.id);
+            if (moveBoardTo(moved, target + (after ? 1 : 0))) {
+                renderBoardList(document.getElementById('boardManagerSearch').value);
+                const el = document.querySelector(`.board-card[data-board-id="${CSS.escape(moved)}"]`);
+                if (el) el.focus();
+            }
+        };
+
         card.onkeydown = (e) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+            // Alt and an arrow walks a board along, without a mouse to drag with.
+            if (e.altKey && ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (moveBoardBy(board.id, ['ArrowLeft', 'ArrowUp'].includes(e.key) ? -1 : 1)) {
+                    renderBoardList(document.getElementById('boardManagerSearch').value);
+                    const el = document.querySelector(`.board-card[data-board-id="${CSS.escape(board.id)}"]`);
+                    if (el) el.focus();
+                }
+            }
         };
 
         nameEl.ondblclick = (e) => { e.stopPropagation(); startInlineRename(card, board); };
@@ -10844,6 +10954,7 @@ function startInlineRename(card, board) {
 
     nameEl.style.display = 'none';
     if (actionsEl) actionsEl.style.display = 'none';
+    card.draggable = false;
 
     const wrap = document.createElement('div');
     wrap.className = 'board-card-rename-wrap';
