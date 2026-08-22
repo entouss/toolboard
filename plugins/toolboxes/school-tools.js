@@ -160,6 +160,11 @@
 .curr-shot-head:last-of-type { padding-bottom: 8px; }
 .curr-shot .curr-cell { min-height: 30px; }
 
+/* Off-screen, but the size of the paper: a frame with no width lays the document
+   out at its minimum and the print is then scaled down to fit, which is what made
+   the type tiny. 794x1123 is A4 at 96dpi. */
+.curr-print-frame { position: fixed; left: -20000px; top: 0; width: 794px; height: 1123px; border: 0; }
+
 .curr-schema { font-size: 11px; }
 .curr-schema-read { border: 1px solid var(--border-light); border-radius: 5px; padding: 6px; margin-bottom: 6px; line-height: 1.5; }
 .curr-schema-actions { display: flex; gap: 6px; padding-bottom: 6px; }
@@ -228,6 +233,8 @@ PluginRegistry.registerToolbox({
 // ---------------------------------------------------------------------------
 
 // The id under which a course covering a whole level is planned.
+const CURR_VERSION = '1.2.0';
+
 const CURR_SPAN = 'FY';
 
 // Terms that sit outside the main run of a level — a summer session belongs to
@@ -581,9 +588,9 @@ const CURR_SAMPLE = {
 PluginRegistry.registerTool({
     id: 'curriculum-explorer',
     name: 'Curriculum Explorer',
-    description: 'Explore a curriculum document and plan four years of classes against its prerequisites',
+    description: 'Explore a curriculum document and plan classes year by year against its prerequisites',
     icon: '📘',
-    version: '1.0.0',
+    version: CURR_VERSION,
     toolbox: 'school-tools',
     tags: ['curriculum', 'school', 'course', 'planner', 'prerequisites', 'schedule', 'education'],
     title: 'Curriculum Explorer',
@@ -593,6 +600,7 @@ PluginRegistry.registerTool({
 <label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="currHandleFile(this)"></label>
 <button class="curr-btn" onclick="currLoadSample(this)" title="Fill the box with a small invented catalog">Sample</button>
 <button class="curr-btn" onclick="currExportPng(this)" title="Save the plan as a picture">PNG</button>
+<button class="curr-btn" onclick="currExportPdf(this)" title="Print the course catalog, or save it as a PDF">PDF</button>
 </div>
 <div class="curr-status"></div>
 <div class="authoring-split">
@@ -2146,6 +2154,204 @@ function currDocTitle(catalog) {
     return doc.title || (catalog.school || {}).name || '';
 }
 
+// ---- The catalog as a document ---------------------------------------------
+
+// Which course fields to print, taken from the schema rather than a list of our
+// own, and narrowed to the ones this document actually fills in — a course card
+// carries no descriptions, and a page of empty labels helps nobody.
+const CURR_PRINT_SKIP = ['course_code', 'title', 'prerequisites', 'flags', 'notes',
+    'description', 'title_variants', 'credits_basis'];
+
+function currPrintFields(courses) {
+    const props = ((CURR_SCHEMA.properties.courses.items || {}).properties) || {};
+    const used = {};
+    courses.forEach(function(course) {
+        Object.keys(props).forEach(function(key) {
+            const value = course[key];
+            if (value === null || value === undefined || value === '') return;
+            if (Array.isArray(value) && !value.length) return;
+            used[key] = true;
+        });
+    });
+    return Object.keys(props).filter(function(key) {
+        return used[key] && CURR_PRINT_SKIP.indexOf(key) === -1;
+    });
+}
+
+function currPrintValue(course, key, planner) {
+    const value = course[key];
+    if (value === null || value === undefined || value === '') return '';
+    if (key === 'grade_levels') {
+        return value.map(function(level) { return currLevelLabel(planner, level); }).join(', ');
+    }
+    if (key === 'credits') {
+        return currFormatCredits(value) + (course.credits_basis && course.credits_basis !== 'printed'
+            ? ' (' + course.credits_basis + ')' : '');
+    }
+    if (key === 'cross_credit') return 'counts as ' + (value.counts_as || '');
+    if (key === 'college_credit') {
+        return [value.provider].concat(value.college_courses || []).filter(Boolean).join(' · ');
+    }
+    if (Array.isArray(value)) return value.join(', ');
+    if (typeof value === 'object') return '';
+    return String(value);
+}
+
+// The whole catalog as something to read on paper: what is on the catalog pane,
+// grouped the way it is grouped there, with everything the document says about
+// each course. Built as a document of its own so the browser can paginate it.
+function currCatalogPrintHtml(data) {
+    const planner = currPlanner(data);
+    const view = currCatalogView(data);
+    const catalog = data.catalog;
+    const courses = view.shown;
+    const fields = currPrintFields(courses);
+    const named = currToolTitle(currGetToolId(document.querySelector('.curr-widget')) || '');
+    const about = [currDocTitle(catalog), (catalog.school || {}).name,
+        ((catalog.document || catalog.guide || {}).academic_year)].filter(Boolean);
+
+    const groups = [];
+    courses.forEach(function(course) {
+        let group = groups.filter(function(g) { return g.name === course.department; })[0];
+        if (!group) { group = { name: course.department, subs: [] }; groups.push(group); }
+        const subName = course.subject_area || '';
+        let sub = group.subs.filter(function(s) { return s.name === subName; })[0];
+        if (!sub) { sub = { name: subName, courses: [] }; group.subs.push(sub); }
+        sub.courses.push(course);
+    });
+
+    const requirements = ((catalog.graduation_requirements || {}).credits_by_subject) || [];
+    const other = ((catalog.graduation_requirements || {}).other_requirements) || [];
+
+    let body = '<h1>' + escapeHtml(about[0] || 'Course catalog') + '</h1>';
+    if (about.length > 1) body += '<div class="sub">' + escapeHtml(about.slice(1).join(' · ')) + '</div>';
+    if (named) body += '<div class="sub">' + escapeHtml(named) + '</div>';
+    body += '<div class="sub">' + courses.length +
+        (courses.length === view.courses.length ? ' courses' :
+            ' of ' + view.courses.length + ' courses — the rest are filtered out or hidden') + '</div>';
+
+    if (requirements.length) {
+        body += '<h2>What is required</h2><table><tbody>' + requirements.map(function(req) {
+            return '<tr><td>' + escapeHtml(req.subject) + '</td><td class="num">' +
+                currFormatCredits(req.credits_required) + '</td><td class="note">' +
+                escapeHtml(req.notes || '') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+        if (other.length) {
+            body += '<ul class="other">' + other.map(function(text) {
+                return '<li>' + escapeHtml(text) + '</li>';
+            }).join('') + '</ul>';
+        }
+    }
+
+    groups.forEach(function(group) {
+        body += '<h2>' + escapeHtml(group.name) + '</h2>';
+        group.subs.forEach(function(sub) {
+            if (sub.name) body += '<h3>' + escapeHtml(sub.name) + '</h3>';
+            sub.courses.forEach(function(course) {
+                const facts = fields.map(function(key) {
+                    // A true/false field is worth printing only when it is true, and
+                    // then its name says it: "Elective", not "Is elective: true".
+                    if (typeof course[key] === 'boolean') {
+                        return course[key] ? '<span class="fact">' +
+                            escapeHtml(currFlagLabel(key.replace(/^is_/, ''))) + '</span>' : '';
+                    }
+                    const value = currPrintValue(course, key, planner);
+                    return value ? '<span class="fact"><b>' + escapeHtml(currFlagLabel(key)) + ':</b> ' +
+                        escapeHtml(value) + '</span>' : '';
+                }).filter(Boolean).join(' ');
+                const flags = Object.keys(course.flags || {}).filter(function(key) { return course.flags[key]; });
+                body += '<div class="course">' +
+                    '<div class="head"><span class="code">' + escapeHtml(course.course_code) + '</span> ' +
+                        escapeHtml(course.title) + '</div>' +
+                    (facts ? '<div class="facts">' + facts + '</div>' : '') +
+                    (course.prerequisites.raw ? '<div class="pre"><b>Needs:</b> ' +
+                        escapeHtml(course.prerequisites.raw) + '</div>' : '') +
+                    (course.description ? '<div class="desc">' + escapeHtml(course.description) + '</div>' : '') +
+                    (course.notes || []).map(function(note) {
+                        return '<div class="note">' + escapeHtml(note) + '</div>';
+                    }).join('') +
+                    (flags.length ? '<div class="flags">' + flags.map(function(key) {
+                        return escapeHtml(currFlagLabel(key));
+                    }).join(' · ') + '</div>' : '') +
+                '</div>';
+            });
+        });
+    });
+
+    // A document of its own: nothing of the board's styling reaches it, and the
+    // browser paginates it as it would any page.
+    return '<!doctype html><html><head><meta charset="utf-8">' +
+        '<title>' + escapeHtml(about[0] || 'Course catalog') + '</title><style>' +
+        // Sized in points, not pixels: a pixel is a 96th of an inch on paper, so the
+        // screen's 10.5px prints at under 8pt — a size nobody wants to read a
+        // catalog at. 10pt body is what a printed reference book uses.
+        '@page { margin: 15mm 13mm; }' +
+        'body { font: 10pt/1.4 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;' +
+            ' color: #111; margin: 0; }' +
+        'h1 { font-size: 18pt; margin: 0 0 2pt; }' +
+        'h2 { font-size: 13pt; margin: 14pt 0 4pt; padding-bottom: 2pt; border-bottom: 1px solid #888;' +
+            ' break-after: avoid; page-break-after: avoid; }' +
+        'h3 { font-size: 10pt; margin: 9pt 0 2pt; color: #555; text-transform: uppercase;' +
+            ' letter-spacing: 0.04em; break-after: avoid; page-break-after: avoid; }' +
+        '.sub { color: #555; font-size: 10pt; }' +
+        'table { width: 100%; border-collapse: collapse; margin-top: 4pt; }' +
+        'td { border-bottom: 1px solid #eee; padding: 2pt 4pt; vertical-align: top; }' +
+        'td.num { width: 50pt; text-align: right; }' +
+        'td.note, .note { color: #555; }' +
+        'ul.other { margin: 4pt 0 0 14pt; padding: 0; color: #333; }' +
+        '.course { break-inside: avoid; page-break-inside: avoid; padding: 5pt 0;' +
+            ' border-bottom: 1px solid #eee; }' +
+        '.head { font-weight: 600; font-size: 11pt; }' +
+        '.code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 9pt; color: #555; }' +
+        '.facts { color: #444; }' +
+        '.fact { margin-right: 10pt; }' +
+        '.facts, .desc, .pre, .note { overflow-wrap: break-word; }' +
+        '.desc { margin-top: 1pt; }' +
+        '.flags { color: #666; font-size: 9pt; margin-top: 1pt; }' +
+        '</style></head><body>' + body + '</body></html>';
+}
+
+// Handed to the browser to print, which is what makes the PDF. No library is
+// loaded for this: printing gives text that can be searched and selected, and
+// pages that break where they should, which a picture of the screen cannot.
+function currExportPdf(btn) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const data = currGetData(toolId);
+    if (!data.catalog) {
+        currSetStatus(widget, 'err', 'There is no catalog to print yet — load a curriculum first.');
+        return;
+    }
+    const view = currCatalogView(data);
+    if (!view.shown.length) {
+        currSetStatus(widget, 'err', 'Nothing would be printed: every course is filtered out or hidden.');
+        return;
+    }
+
+    const frame = document.createElement('iframe');
+    frame.className = 'curr-print-frame';
+    frame.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(frame);
+    const doc = frame.contentDocument;
+    doc.open();
+    doc.write(currCatalogPrintHtml(data));
+    doc.close();
+
+    currSetStatus(widget, 'ok', 'Printing ' + view.shown.length + ' courses — choose "Save as PDF" ' +
+        'in the print dialog to keep it. If it comes out small, check Scale under More settings.');
+    // The frame has to be laid out before it can be printed, and cleared up after.
+    setTimeout(function() {
+        try {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+        } catch (e) {
+            currSetStatus(widget, 'err', 'The catalog could not be printed: ' + e.message);
+        }
+        setTimeout(function() { frame.remove(); }, 1000);
+    }, 150);
+}
+
 // ---- The schema ------------------------------------------------------------
 
 function currSchemaRows(schema, path, depth, rows) {
@@ -2747,6 +2953,7 @@ function currOnRender(toolId) {
         currTermSlug, currTermOrder, currTermKind, currPlanner, currLevelLabel, currTermById,
         currSlotLabel, currAddLevel, currRemoveLevel, currSchemaRows, currSchemaHtml,
         currCopySchema, currLoadSchemaIntoEditor, currExportPng, currToolTitle, currDocTitle,
+        currPrintFields, currPrintValue, currCatalogPrintHtml, currExportPdf,
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
         currBestTerm, currRender, currRenderFor, currMatchesFilters, currIsHidden,
@@ -2781,7 +2988,9 @@ function currOnRender(toolId) {
         }).join(',') + '];\n' +
         'window.CURR_REQUIRED_FIELDS = ' + JSON.stringify(CURR_REQUIRED_FIELDS) + ';\n' +
         'window.CURR_SAMPLE = ' + JSON.stringify(CURR_SAMPLE) + ';\n' +
+        'window.CURR_VERSION = ' + JSON.stringify(CURR_VERSION) + ';\n' +
         'window.CURR_MAX_BYTES = ' + CURR_MAX_BYTES + ';\n' +
+        'window.CURR_PRINT_SKIP = ' + JSON.stringify(CURR_PRINT_SKIP) + ';\n' +
         'window.CURR_CORS_PROXY = ' + JSON.stringify(CURR_CORS_PROXY) + ';\n' +
         'window.CURR_ARM_MS = ' + CURR_ARM_MS + '; window.currArmed = {};\n' +
         'window.CURR_NODE_W = ' + CURR_NODE_W + '; window.CURR_NODE_H = ' + CURR_NODE_H + ';\n' +
@@ -2798,4 +3007,6 @@ function currOnRender(toolId) {
     (document.body || document.head).appendChild(script);
 })();
 
-console.log('School Tools plugin loaded (1 tool)');
+// The version is logged so it is possible to tell, from the console, which copy of
+// this file a page is actually running — a cached one looks identical otherwise.
+console.log('School Tools plugin loaded (1 tool) v' + CURR_VERSION);
