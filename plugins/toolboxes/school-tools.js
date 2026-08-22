@@ -598,7 +598,7 @@ PluginRegistry.registerTool({
 <div class="authoring-split">
 <div class="authoring-source curr-source">
 <div class="curr-drop" ondragover="currDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="currDropFile(event, this)">Paste the curriculum JSON below, or drop a .json file here</div>
-<textarea class="curr-json" spellcheck="false" placeholder="{ &quot;courses&quot;: [ ... ] }"></textarea>
+<textarea class="curr-json" spellcheck="false" oninput="currDraftChanged(this)" placeholder="{ &quot;courses&quot;: [ ... ] }"></textarea>
 </div>
 <div class="authoring-resizer"></div>
 <div class="authoring-result curr-explorer"></div>
@@ -667,6 +667,8 @@ function currGetData(toolId) {
     const base = currDefaults();
     return {
         catalog: data.catalog || null,
+        // Text typed into the JSON pane that has not been loaded yet.
+        draft: data.draft || null,
         sourceUrl: data.sourceUrl || null,
         plan: data.plan || {},
         // Years added past the ones the document implies, for a plan that runs long.
@@ -805,6 +807,8 @@ function currNormalizeDoc(doc) {
 function currLoadDoc(widget, toolId, doc, note, sourceUrl) {
     const data = currGetData(toolId);
     data.catalog = doc;
+    // Loaded: the draft has become the document.
+    delete data.draft;
     // Remembered so that opening the same link again does not refetch, and so the
     // tool can say where its document came from.
     data.sourceUrl = sourceUrl || null;
@@ -1040,6 +1044,34 @@ async function currLoadFromUrl(widget, toolId, url) {
         parsed.doc.courses.length + ' courses loaded from ' + currDescribeSource(url) +
         (viaProxy ? ', through the proxy.' : '.'), url);
     return true;
+}
+
+// An edit in the JSON pane is not the document yet — Load makes it so — but it is
+// work, and work survives a reload. The draft is kept beside the catalog and
+// dropped the moment it has been loaded or matches what is already loaded.
+let currDraftTimer = null;
+
+function currDraftChanged(box) {
+    const widget = currGetWidget(box);
+    const toolId = currGetToolId(box);
+    if (!widget || !toolId) return;
+    const text = box.value;
+    clearTimeout(currDraftTimer);
+    currDraftTimer = setTimeout(function() {
+        const data = currGetData(toolId);
+        const loaded = data.catalog ? JSON.stringify(data.catalog, null, 2) : '';
+        if (text === loaded || !text.trim()) {
+            if (!data.draft) return;
+            delete data.draft;
+            currSaveData(toolId, data);
+            currSetStatus(widget, '', '');
+            return;
+        }
+        data.draft = text;
+        if (currSaveData(toolId, data)) {
+            currSetStatus(widget, '', 'Edited — press Load to apply it. Kept for now, either way.');
+        }
+    }, 500);
 }
 
 function currHandleFile(input) {
@@ -2684,7 +2716,14 @@ function currInit() {
             currSaveData(toolId, data);
         }
         const box = widget.querySelector('.curr-json');
-        if (box && !box.value && data.catalog) box.value = JSON.stringify(data.catalog, null, 2);
+        if (box && !box.value) {
+            if (data.draft) {
+                box.value = data.draft;
+                currSetStatus(widget, '', 'This is an edit you had not loaded yet — press Load to apply it.');
+            } else if (data.catalog) {
+                box.value = JSON.stringify(data.catalog, null, 2);
+            }
+        }
         currRender(widget);
     });
 }
@@ -2700,7 +2739,7 @@ function currOnRender(toolId) {
     var currFunctions = [currGetToolId, currGetWidget, currWidgetFor, currDefaults, currGetData,
         currSaveData, currSaveDataSoon, currSetStatus, currParse, currNormalizeDoc, currLoadDoc, currLoadSource,
         currDisarm, currNeedsConfirm, currWorkInProgress, currEntries,
-        currLoadSample, currApplyHashParams, currDescribeSource, currProxyUrl, currCanProxy,
+        currLoadSample, currDraftChanged, currApplyHashParams, currDescribeSource, currProxyUrl, currCanProxy,
         currCannotFetchLocally,
         currLoadFromUrl, currHandleFile, currDragOver, currDropFile, currReadFile, currCourses,
         currByCode, currNormTitle, currTitleIndex, currResolveTitle, currTermKey, currTermParse,
@@ -2747,7 +2786,7 @@ function currOnRender(toolId) {
         'window.CURR_ARM_MS = ' + CURR_ARM_MS + '; window.currArmed = {};\n' +
         'window.CURR_NODE_W = ' + CURR_NODE_W + '; window.CURR_NODE_H = ' + CURR_NODE_H + ';\n' +
         'window.CURR_GAP_X = ' + CURR_GAP_X + '; window.CURR_GAP_Y = ' + CURR_GAP_Y + ';\n' +
-        'window.currDragCode = null; window.currSaveTimer = null;\n' +
+        'window.currDragCode = null; window.currSaveTimer = null; window.currDraftTimer = null;\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         currFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
