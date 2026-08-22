@@ -43,6 +43,11 @@
 .curr-empty { padding: 16px; color: var(--text-secondary); text-align: center; }
 
 .curr-controls { display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px; }
+.curr-search-row { display: flex; gap: 4px; align-items: center; }
+.curr-collapse { flex: 0 0 auto; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary); border-radius: 4px; cursor: pointer; font-size: 11px; line-height: 1; padding: 4px 6px; }
+.curr-collapse:hover { background: var(--table-hover); color: var(--text-primary); }
+.curr-catalog.collapsed { flex: 0 0 26px; align-items: center; gap: 8px; padding: 2px 0 0; }
+.curr-collapse-label { writing-mode: vertical-rl; font-size: 10px; color: var(--text-secondary); white-space: nowrap; }
 .curr-search { width: 100%; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; }
 .curr-filters { display: flex; gap: 4px; flex-wrap: wrap; }
 .curr-filters select { flex: 1 1 auto; min-width: 74px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 10px; }
@@ -83,14 +88,14 @@
 .curr-pane { flex: 1; overflow: auto; min-height: 0; }
 
 /* ---- The plan grid ---- */
-.curr-grid-head { display: flex; gap: 4px; font-size: 10px; color: var(--text-secondary); padding: 0 0 3px 54px; }
+.curr-grid-head { display: flex; gap: 4px; font-size: 10px; color: var(--text-secondary); padding: 0 0 3px 68px; }
 .curr-grid-head span { text-align: center; }
 .curr-head-sems { flex: 1; display: flex; gap: 4px; }
 .curr-head-sems span { flex: 1; }
 .curr-head-sum { flex: 0 0 80px; }
 .curr-year { display: flex; gap: 4px; align-items: stretch; margin-bottom: 6px; }
-.curr-year-head { flex: 0 0 50px; font-size: 10px; color: var(--text-secondary); display: flex; flex-direction: column; justify-content: center; }
-.curr-year-head b { font-size: 12px; color: var(--text-primary); }
+.curr-year-head { flex: 0 0 64px; min-width: 0; font-size: 10px; color: var(--text-secondary); display: flex; flex-direction: column; justify-content: center; }
+.curr-year-head b { font-size: 12px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .curr-terms { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .curr-sems { display: flex; gap: 4px; min-width: 0; }
 .curr-sems .curr-cell { flex: 1 1 50%; min-width: 0; }
@@ -107,6 +112,12 @@
 .curr-card.has-warning { border-left-color: #e67e22; }
 .curr-card-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 .curr-card-x { border: none; background: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; line-height: 1; padding: 0 2px; }
+/* Where a dragged course would land, drawn on the card it is over. */
+.curr-card.drop-before { box-shadow: 0 -2px 0 #3498db; }
+.curr-card.drop-after { box-shadow: 0 2px 0 #3498db; }
+.curr-card-move { border: none; background: none; color: var(--text-secondary); cursor: pointer; font-size: 8px; line-height: 1; padding: 0 1px; }
+.curr-card-move:hover:not(:disabled) { color: #3498db; }
+.curr-card-move:disabled { opacity: 0.25; cursor: default; }
 .curr-card-x:hover { color: #e74c3c; }
 .curr-badge { border-radius: 8px; padding: 0 5px; font-size: 10px; }
 .curr-badge.err { background: #e74c3c; color: #fff; }
@@ -136,8 +147,18 @@
 .curr-clean { padding: 12px; text-align: center; color: #27ae60; }
 
 /* ---- Prerequisite tree ---- */
-.curr-grow { display: flex; gap: 6px; padding: 2px 0 6px 54px; }
+.curr-grow { display: flex; gap: 6px; padding: 2px 0 6px 68px; }
 .curr-grow .curr-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* The off-screen copy the picture is taken of: laid out at full height, so nothing
+   is cut off at a scroll position. */
+.curr-shot { position: fixed; left: -20000px; top: 0; width: 900px; padding: 16px;
+    background: var(--bg-secondary); display: block; }
+.curr-shot-head { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.curr-shot-sub { font-size: 12px; color: var(--text-secondary); padding-bottom: 8px; }
+.curr-shot-head + .curr-shot-sub { padding-top: 2px; }
+.curr-shot-head:last-of-type { padding-bottom: 8px; }
+.curr-shot .curr-cell { min-height: 30px; }
 
 .curr-schema { font-size: 11px; }
 .curr-schema-read { border: 1px solid var(--border-light); border-radius: 5px; padding: 6px; margin-bottom: 6px; line-height: 1.5; }
@@ -170,6 +191,8 @@
 
 /* Stacked layout when the tool is too narrow for two panes side by side. */
 .curr-widget.narrow .curr-explorer { flex-direction: column; }
+.curr-widget.narrow .curr-catalog.collapsed { flex: 0 0 auto; flex-direction: row; max-height: none; border-bottom: 1px solid var(--border-light); }
+.curr-widget.narrow .curr-collapse-label { writing-mode: horizontal-tb; }
 .curr-widget.narrow .curr-catalog { flex: 0 0 auto; max-height: 45%; border-right: none; border-bottom: 1px solid var(--border-light); padding-right: 0; padding-bottom: 6px; }
 `;
     document.head.appendChild(style);
@@ -522,7 +545,7 @@ const CURR_SCHEMA = {
             }
         },
         school: { type: 'object', description: 'Optional. Carried through untouched.' },
-        document: { type: 'object', description: 'Optional. The document\'s own title and academic year, where it gives them.' },
+        document: { type: 'object', description: 'Optional. The document\'s own title and academic year, where it gives them. Used to head the picture the PNG button saves.' },
         guide: { type: 'object', description: 'Optional. The earlier name for `document`. Either is read.' }
     }
 };
@@ -569,6 +592,7 @@ PluginRegistry.registerTool({
 <button class="curr-btn" onclick="currLoadSource(this)" title="Read the JSON in the editor into the explorer">Load</button>
 <label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="currHandleFile(this)"></label>
 <button class="curr-btn" onclick="currLoadSample(this)" title="Fill the box with a small invented catalog">Sample</button>
+<button class="curr-btn" onclick="currExportPng(this)" title="Save the plan as a picture">PNG</button>
 </div>
 <div class="curr-status"></div>
 <div class="authoring-split">
@@ -632,7 +656,7 @@ function currDefaults() {
         ui: {
             tab: 'grid', search: '', department: '', level: '', grade: '', semester: '',
             flag: '', program: '', selected: null, treeRoot: null, showDependents: true,
-            showHidden: false, onlyMet: false, collapsed: [], openReqs: []
+            showHidden: false, onlyMet: false, catalogCollapsed: false, collapsed: [], openReqs: []
         }
     };
 }
@@ -1353,9 +1377,35 @@ function currRender(widget) {
     }
 
     const validation = currValidate(data);
+    const scrolled = {};
+    ['.curr-list', '.curr-pane'].forEach(function(sel) {
+        const el = explorer.querySelector(sel);
+        if (el) scrolled[sel] = el.scrollTop;
+    });
+
+    const folded = Boolean(data.ui.catalogCollapsed);
     explorer.innerHTML =
-        '<div class="curr-catalog">' + currCatalogHtml(data) + '</div>' +
+        '<div class="curr-catalog' + (folded ? ' collapsed' : '') + '">' +
+            (folded ? currCatalogFoldedHtml(data) : currCatalogHtml(data)) + '</div>' +
         '<div class="curr-right">' + currRightHtml(data, validation) + '</div>';
+
+    Object.keys(scrolled).forEach(function(sel) {
+        const el = explorer.querySelector(sel);
+        if (el) el.scrollTop = scrolled[sel];
+    });
+
+    // Selecting a course fills the details panel, which takes room from the list
+    // below it. Keeping the scroll position is then not quite enough — the row just
+    // clicked can end up under the fold — so it is brought back if it has gone.
+    const chosen = explorer.querySelector('.curr-course.selected');
+    const list = explorer.querySelector('.curr-list');
+    if (chosen && list) {
+        const rowBox = chosen.getBoundingClientRect();
+        const listBox = list.getBoundingClientRect();
+        if (rowBox.bottom > listBox.bottom || rowBox.top < listBox.top) {
+            chosen.scrollIntoView({ block: 'nearest' });
+        }
+    }
 }
 
 function currRenderFor(el) {
@@ -1456,8 +1506,12 @@ function currCatalogHtml(data) {
 
     let html =
         '<div class="curr-controls">' +
-            '<input class="curr-search" type="text" placeholder="Search courses…" value="' +
-                escapeHtml(ui.search || '') + '" oninput="currSetSearch(this)">' +
+            '<div class="curr-search-row">' +
+                '<input class="curr-search" type="text" placeholder="Search courses…" value="' +
+                    escapeHtml(ui.search || '') + '" oninput="currSetSearch(this)">' +
+                '<button class="curr-collapse" title="Put the course list away" ' +
+                    'onclick="currToggleCatalog(this)">&#9666;</button>' +
+            '</div>' +
             '<div class="curr-filters">' +
                 '<select onchange="currSetFilter(this, \'department\')" title="Department">' +
                     currOptions(departments, ui.department, 'All departments') + '</select>' +
@@ -1539,6 +1593,15 @@ function currListHtml(data, shown) {
         html += '</div>';
     });
     return html;
+}
+
+// Folded away, the course list is a strip you can bring back — the plan gets the
+// width, which is what you want once the courses you are choosing between are on it.
+function currCatalogFoldedHtml(data) {
+    const view = currCatalogView(data);
+    return '<button class="curr-collapse" title="Bring the course list back" ' +
+            'onclick="currToggleCatalog(this)">&#9656;</button>' +
+        '<span class="curr-collapse-label">' + view.courses.length + ' courses</span>';
 }
 
 function currLevelTagClass(level) {
@@ -1675,7 +1738,8 @@ function currGridHtml(data, validation) {
         const credits = currLevelCredits(data, level, planner);
         html +=
             '<div class="curr-year">' +
-                '<div class="curr-year-head"><b>' + escapeHtml(currLevelLabel(planner, level)) + '</b>' +
+                '<div class="curr-year-head" title="' + escapeHtml(currLevelLabel(planner, level)) + '">' +
+                    '<b>' + escapeHtml(currLevelLabel(planner, level)) + '</b>' +
                     '<span>' + currFormatCredits(credits) + ' cr</span></div>' +
                 '<div class="curr-terms">' +
                     currCellHtml(data, validation, planner, level, planner.spanId) +
@@ -1738,12 +1802,24 @@ function currCardHtml(data, validation, course, code, term) {
             escapeHtml(issues.map(function(i) { return i.message; }).join('\n')) + '">' + errors + '</span>' :
         (warnings ? '<span class="curr-badge warn" title="' +
             escapeHtml(issues.map(function(i) { return i.message; }).join('\n')) + '">' + warnings + '</span>' : '');
+    const selected = data.ui.selected === code;
+    const siblings = (data.plan[term] || []);
+    const at = siblings.indexOf(code);
+    // The arrows are on the selected card only: every card carrying a pair of them
+    // would crowd the cell, and dragging is the ordinary way to do this.
+    const arrows = selected && siblings.length > 1 ?
+        '<button class="curr-card-move" title="Move up" onclick="currMoveCard(event, this, -1)"' +
+            (at <= 0 ? ' disabled' : '') + '>▲</button>' +
+        '<button class="curr-card-move" title="Move down" onclick="currMoveCard(event, this, 1)"' +
+            (at === siblings.length - 1 ? ' disabled' : '') + '>▼</button>' : '';
     return '<div class="curr-card' + (errors ? ' has-error' : warnings ? ' has-warning' : '') +
-            (data.ui.selected === code ? ' selected' : '') + '" data-code="' + escapeHtml(code) + '"' +
+            (selected ? ' selected' : '') + '" data-code="' + escapeHtml(code) + '"' +
             ' draggable="true" ondragstart="currCourseDragStart(event, this)"' +
+            ' ondragover="currCardDragOver(event, this)" ondragleave="currCardDragLeave(this)"' +
+            ' ondrop="currCardDrop(event, this)"' +
             ' onclick="currCardClick(event, this)" title="' + escapeHtml(title) + '">' +
         '<span class="curr-code">' + escapeHtml(code) + '</span>' +
-        '<span class="curr-card-title">' + escapeHtml(title) + '</span>' + badge +
+        '<span class="curr-card-title">' + escapeHtml(title) + '</span>' + badge + arrows +
         '<button class="curr-card-x" title="Take it out of the plan" onclick="currRemove(event, this)">×</button>' +
     '</div>';
 }
@@ -1956,6 +2032,86 @@ function currIssuesHtml(data, validation) {
             '</div>' +
         '</div>';
     }).join('');
+}
+
+// ---- The plan as a picture -------------------------------------------------
+
+// The board can already photograph a tool, but that captures what is on screen:
+// half of it catalog, cut off at whatever the panes are scrolled to. A plan is
+// worth having whole — every year, the credits, and what the guide still wants —
+// so it is drawn again off-screen at full height and photographed there.
+async function currExportPng(btn) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const data = currGetData(toolId);
+    if (!data.catalog) {
+        currSetStatus(widget, 'err', 'There is no plan to draw yet — load a curriculum first.');
+        return;
+    }
+    if (typeof html2canvas !== 'function') {
+        currSetStatus(widget, 'err', 'Saving a picture needs html2canvas, which this page has not loaded.');
+        return;
+    }
+
+    currSetStatus(widget, '', 'Drawing the plan…');
+    const planner = currPlanner(data);
+    const validation = currValidate(data);
+    const catalog = data.catalog;
+    // The tool's own header is where a name goes — rename the window to the
+    // student's name and the picture is theirs. It leads, and what the document
+    // calls itself follows underneath.
+    const named = currToolTitle(toolId);
+    const about = [currDocTitle(catalog), (catalog.school || {}).name,
+        ((catalog.document || catalog.guide || {}).academic_year)].filter(Boolean);
+
+    const shot = document.createElement('div');
+    shot.className = 'curr-widget curr-shot';
+    shot.innerHTML =
+        (named ? '<div class="curr-shot-head">' + escapeHtml(named) + '</div>' : '') +
+        (about.length ? '<div class="curr-shot-sub' + (named ? '' : ' curr-shot-head') + '">' +
+            about.map(function(part) { return escapeHtml(part); }).join(' · ') + '</div>' : '') +
+        currGridHtml(data, validation);
+    document.body.appendChild(shot);
+    // The buttons belong to the tool, not to a picture of it.
+    shot.querySelectorAll('.curr-card-x, .curr-card-move, .curr-grow, .curr-req-caret')
+        .forEach(function(el) { el.remove(); });
+
+    try {
+        const canvas = await html2canvas(shot, {
+            scale: 2, logging: false,
+            backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-secondary') || '#ffffff'
+        });
+        const name = (named || currDocTitle(catalog) || 'curriculum-plan')
+            .replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+        const link = document.createElement('a');
+        link.download = name + '-plan.png';
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        currSetStatus(widget, 'ok', 'Saved ' + link.download + ' — ' +
+            Math.round(canvas.width / 2) + '×' + Math.round(canvas.height / 2) + ', ' +
+            planner.levels.length + ' years.');
+    } catch (e) {
+        currSetStatus(widget, 'err', 'The picture could not be drawn: ' + e.message);
+    } finally {
+        shot.remove();
+    }
+}
+
+// What the tool window is called, when that has been made to say something — the
+// name on the header is the obvious place for whose plan this is.
+function currToolTitle(toolId) {
+    const title = ((toolCustomizations[toolId] || {}).title || '').trim();
+    const registered = (PluginRegistry.getTool('curriculum-explorer') || {}).title || 'Curriculum Explorer';
+    return title && title !== registered ? title : '';
+}
+
+// What the document calls itself, by whichever name its version uses.
+function currDocTitle(catalog) {
+    const doc = catalog.document || catalog.guide || {};
+    return doc.title || (catalog.school || {}).name || '';
 }
 
 // ---- The schema ------------------------------------------------------------
@@ -2265,6 +2421,10 @@ function currToggleSection(el, name) {
     });
 }
 
+function currToggleCatalog(el) {
+    currUpdate(el, function(data) { data.ui.catalogCollapsed = !data.ui.catalogCollapsed; });
+}
+
 function currToggleShowHidden(el) {
     currUpdate(el, function(data) { data.ui.showHidden = !data.ui.showHidden; });
 }
@@ -2410,15 +2570,75 @@ function currCellClick(e, el) {
 
 // A course sits in one term at a time: placing it somewhere else moves it rather
 // than leaving a copy behind.
-function currPlace(el, code, term) {
+// `at` puts the course at a position within the term rather than at the end, which
+// is what dropping it onto another card means. Undefined appends.
+function currPlace(el, code, term, at) {
     currUpdate(el, function(data) {
+        // Where it sits now matters: taking it out of the same term shifts anything
+        // after it up by one, and the position asked for was read before that.
+        const from = (data.plan[term] || []).indexOf(code);
+        let index = at;
+        if (typeof index === 'number' && from !== -1 && from < index) index -= 1;
+
         Object.keys(data.plan).forEach(function(key) {
             data.plan[key] = (data.plan[key] || []).filter(function(c) { return c !== code; });
             if (!data.plan[key].length) delete data.plan[key];
         });
-        data.plan[term] = (data.plan[term] || []).concat([code]);
+        const list = data.plan[term] || [];
+        if (typeof index === 'number' && index >= 0 && index < list.length) list.splice(index, 0, code);
+        else list.push(code);
+        data.plan[term] = list;
         data.ui.selected = code;
         data.ui.treeRoot = code;
+    });
+}
+
+// Dropping onto a card means "put it here": before or after, by which half of the
+// card the pointer is over.
+function currCardDragOver(e, el) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!currDragCode) return;
+    const box = el.getBoundingClientRect();
+    const after = e.clientY > box.top + box.height / 2;
+    el.classList.toggle('drop-after', after);
+    el.classList.toggle('drop-before', !after);
+    const cell = el.closest('.curr-cell');
+    if (cell) cell.classList.remove('drop-ok', 'drop-bad');
+}
+
+function currCardDragLeave(el) {
+    el.classList.remove('drop-before', 'drop-after');
+}
+
+function currCardDrop(e, el) {
+    e.preventDefault();
+    e.stopPropagation();
+    const after = el.classList.contains('drop-after');
+    el.classList.remove('drop-before', 'drop-after');
+    const code = currDragCode || e.dataTransfer.getData('text/plain');
+    currDragCode = null;
+    if (!code) return;
+    const cell = el.closest('.curr-cell');
+    const cards = Array.from(cell.querySelectorAll('.curr-card'));
+    const index = cards.indexOf(el) + (after ? 1 : 0);
+    currPlace(el, code, cell.getAttribute('data-term'), index);
+}
+
+// The same move without a mouse to drag with: the selected card can be walked up
+// and down its cell.
+function currMoveCard(e, el, by) {
+    e.stopPropagation();
+    const card = el.closest('.curr-card');
+    const code = card.getAttribute('data-code');
+    const term = card.closest('.curr-cell').getAttribute('data-term');
+    currUpdate(el, function(data) {
+        const list = data.plan[term] || [];
+        const from = list.indexOf(code);
+        const to = from + by;
+        if (from === -1 || to < 0 || to >= list.length) return;
+        list.splice(to, 0, list.splice(from, 1)[0]);
+        data.ui.selected = code;
     });
 }
 
@@ -2487,13 +2707,13 @@ function currOnRender(toolId) {
         currTermLabel, currTermPos, currTermStart, currTermEnd, currAllowedSlots, currPlacementOf,
         currTermSlug, currTermOrder, currTermKind, currPlanner, currLevelLabel, currTermById,
         currSlotLabel, currAddLevel, currRemoveLevel, currSchemaRows, currSchemaHtml,
-        currCopySchema, currLoadSchemaIntoEditor,
+        currCopySchema, currLoadSchemaIntoEditor, currExportPng, currToolTitle, currDocTitle,
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
         currBestTerm, currRender, currRenderFor, currMatchesFilters, currIsHidden,
         currUniqueValues, currFlagLabel, currFlagsInUse, currOptions, currCatalogView, currCountHtml, currCatalogHtml, currListHtml,
         currRenderCatalogList, currLevelTagClass, currShortSemester,
-        currCourseRowHtml, currDetailsHtml, currRightHtml, currGridHtml, currCellHtml,
+        currCourseRowHtml, currCatalogFoldedHtml, currToggleCatalog, currDetailsHtml, currRightHtml, currGridHtml, currCellHtml,
         currCardHtml, currLevelCredits, currFineArtsIndex, currCountsToward, currTotalsHtml,
         currIssuesHtml, currTreeGraph, currDepth,
         currWalk, currTreeLayout, currTreeHtml, currUpdate, currSetSearch, currSetFilter,
@@ -2502,7 +2722,8 @@ function currOnRender(toolId) {
         currToggleHideDepartment, currToggleHideSubject, currSelectCourse, currCardClick,
         currSetTab, currToggleDependents, currToggleReq, currSelectCode, currTreeSetRoot,
         currGoToIssue, currCourseDragStart,
-        currCellDragOver, currCellDragLeave, currCellDrop, currCellClick, currPlace, currRemove,
+        currCellDragOver, currCellDragLeave, currCellDrop, currCellClick, currCardDragOver,
+        currCardDragLeave, currCardDrop, currMoveCard, currPlace, currRemove,
         currAutoPlace, currAutoPlaceCode, currSampleCourse, currInit, currOnRender];
 
     var code = '(function() {\n' +
