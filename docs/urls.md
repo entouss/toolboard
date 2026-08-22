@@ -14,6 +14,26 @@ Every board and every tool is addressable by URL hash. A tool link works for som
 
 Both segments are percent-encoded, and the hash is split on `/` before decoding, so a `/` in a board name is never mistaken for a separator.
 
+## Parameters
+
+A hash may end in `?key=value&…`, which opens the tool *on something in particular*:
+
+```
+#Ideas/tool/curriculum-explorer?curriculum=https://example.org/guide.json
+```
+
+The router splits the query off, decodes it, and hands it to the tool named by the hash — it never interprets it. A tool opts in by naming a function in its registration:
+
+```js
+PluginRegistry.registerTool({ id: 'curriculum-explorer', hashParams: 'currApplyHashParams', … });
+```
+
+`applyToolHashParams` calls `window[hashParams](instanceId, params)` once the tool exists — for a tool the link created, after `onReady`; for one already on the board, right after it is maximized. So the same link works whether or not the visitor has the tool already.
+
+Anything the parameters name has to be reachable from the browser: `http`/`https`, and a host that allows cross-origin reads. Where a host does not, the Curriculum Explorer retries through the board's CORS proxy (`functions/ics-proxy`), which answers only the published origins — so the fallback works on `toolboard.me` and refuses elsewhere, and the tool says which route the document came by.
+
+**A page opened from `file://` cannot read files from disk** — Chrome refuses both `fetch` and `XMLHttpRequest` — so a link naming a local path can only be answered with an explanation.
+
 ## Behaviour
 
 - **Maximizing and the URL stay in sync.** Maximizing a tool writes its hash; restoring it (button, backdrop, `Esc`) writes the board hash back. Navigating back to a bare board hash restores the maximized tool.

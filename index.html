@@ -3973,6 +3973,9 @@ const PluginRegistry = {
             // Opt in to the shared edit/preview modes. Omit it and nothing below
             // touches the tool. See normalizeAuthoring for the shape.
             authoring: normalizeAuthoring(plugin.authoring),
+            // Name a function here to be handed the parameters of the link a tool
+            // was opened from — see applyToolHashParams and docs/urls.md.
+            hashParams: typeof plugin.hashParams === 'string' ? plugin.hashParams : null,
             source: plugin.source || 'embedded' // 'embedded' or 'external'
         };
         this.tools.set(plugin.id, normalizedPlugin);
@@ -11041,19 +11044,28 @@ const TOOL_HASH_SEGMENT = 'tool';
 // Splitting happens before decoding: board names are percent-encoded, so a "/"
 // in a board name can never be mistaken for a separator.
 function parseToolboardHash(rawHash) {
-    const raw = (rawHash || '').replace(/^#/, '');
-    if (!raw) return { boardName: '', toolId: '' };
+    let raw = (rawHash || '').replace(/^#/, '');
+    if (!raw) return { boardName: '', toolId: '', params: {} };
+
+    // A hash may carry parameters for the tool it opens, after a '?' — the tool
+    // decides what they mean, so they are only split off and decoded here.
+    const params = {};
+    const query = raw.indexOf('?');
+    if (query !== -1) {
+        new URLSearchParams(raw.slice(query + 1)).forEach(function(value, key) { params[key] = value; });
+        raw = raw.slice(0, query);
+    }
 
     const parts = raw.split('/');
     const decode = (s) => { try { return decodeURIComponent(s).trim(); } catch { return s.trim(); } };
 
     if (parts.length >= 2 && parts[0].toLowerCase() === TOOL_HASH_SEGMENT) {
-        return { boardName: '', toolId: decode(parts.slice(1).join('/')) };
+        return { boardName: '', toolId: decode(parts.slice(1).join('/')), params };
     }
     if (parts.length >= 3 && parts[1].toLowerCase() === TOOL_HASH_SEGMENT) {
-        return { boardName: decode(parts[0]), toolId: decode(parts.slice(2).join('/')) };
+        return { boardName: decode(parts[0]), toolId: decode(parts.slice(2).join('/')), params };
     }
-    return { boardName: decode(raw), toolId: '' };
+    return { boardName: decode(raw), toolId: '', params };
 }
 
 function buildToolboardHash(boardName, toolId) {
@@ -11180,7 +11192,19 @@ function findToolInstanceOnBoard(toolId) {
     return onBoard.find(id => (toolCustomizations[id] || {}).templateId === toolId) || null;
 }
 
-async function openToolByHashId(toolId) {
+// A tool can be handed the link's parameters, so a link can open a tool on
+// something in particular — a document to load, a view to start in. The tool names
+// the function in its registration (`hashParams`); nothing tool-specific lives here.
+function applyToolHashParams(instanceId, templateId, params) {
+    if (!params || !Object.keys(params).length) return;
+    const template = NOTE_TEMPLATES[templateId] || PluginRegistry.getTool(templateId);
+    const hook = template && template.hashParams;
+    if (hook && typeof window[hook] === 'function') {
+        try { window[hook](instanceId, params); } catch (e) { console.error(e); }
+    }
+}
+
+async function openToolByHashId(toolId, params) {
     if (!toolId) return;
 
     const existing = findToolInstanceOnBoard(toolId);
@@ -11192,6 +11216,7 @@ async function openToolByHashId(toolId) {
             // enterToolFullscreen is a no-op when the tool was restored already
             // maximized, so make sure the URL still names board and tool
             updateLocationHashForTool(existing);
+            applyToolHashParams(existing, toolId, params);
         }
         return;
     }
@@ -11210,7 +11235,10 @@ async function openToolByHashId(toolId) {
 
     createNoteWithTemplate(toolId, {
         skipEditor: true,
-        onReady: (newToolId, el) => enterToolFullscreen(el)
+        onReady: (newToolId, el) => {
+            enterToolFullscreen(el);
+            applyToolHashParams(newToolId, toolId, params);
+        }
     });
 }
 
@@ -11218,7 +11246,7 @@ async function openToolByHashId(toolId) {
 // maximized in a previous session should stay maximized. Later hash changes are
 // navigation: going back to a bare board hash restores the maximized tool.
 async function applyLocationHash(rawHash, options = {}) {
-    const { boardName, toolId } = parseToolboardHash(rawHash);
+    const { boardName, toolId, params } = parseToolboardHash(rawHash);
     let switchedBoard = false;
 
     if (boardName) {
@@ -11230,7 +11258,7 @@ async function applyLocationHash(rawHash, options = {}) {
     }
 
     if (toolId) {
-        await openToolByHashId(toolId);
+        await openToolByHashId(toolId, params);
     } else if (!options.initial && !switchedBoard) {
         exitToolFullscreen();
     }
