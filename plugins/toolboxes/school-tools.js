@@ -130,13 +130,16 @@
 .curr-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--bg-tertiary); overflow: hidden; }
 .curr-bar i { display: block; height: 100%; background: #3498db; }
 .curr-bar i.done { background: #27ae60; }
-.curr-req-num { flex: 0 0 62px; text-align: right; color: var(--text-secondary); font-size: 10px; }
+.curr-bar.none { background: transparent; }
+.curr-req-num { flex: 0 0 88px; text-align: right; color: var(--text-secondary); font-size: 10px; white-space: nowrap; }
 .curr-req.openable { cursor: pointer; }
 .curr-req.openable:hover { background: var(--table-hover); }
 .curr-req-caret { flex: 0 0 9px; color: var(--text-muted); font-size: 9px; }
 .curr-req-courses { padding: 1px 0 4px 14px; }
 .curr-req-course { display: flex; gap: 5px; align-items: baseline; font-size: 10px; color: var(--text-secondary); padding: 1px 2px; border-radius: 3px; cursor: pointer; }
 .curr-req-course:hover { background: var(--table-hover); color: var(--text-primary); }
+.curr-req-course.curr-req-off { opacity: 0.55; }
+.curr-req-course:not([onclick]) { cursor: default; }
 .curr-req-where { margin-left: auto; white-space: nowrap; opacity: 0.75; }
 
 /* ---- Issues ---- */
@@ -528,7 +531,8 @@ const CURR_SCHEMA = {
                 groups: { type: 'array', items: { type: 'object', properties: {
                     name: { type: 'string' },
                     courses: { type: 'array', items: { type: 'string' } },
-                    required_course: { type: 'boolean' }
+                    required_course: { type: 'boolean' },
+                    min_courses: { type: 'number', description: 'Optional. How many of the group are needed. Absent: the row shows what is taken of what is offered, and draws no progress bar, since nothing states what progress would be towards.' }
                 } } }
             } }
         },
@@ -2021,28 +2025,67 @@ function currTotalsHtml(data) {
 
     // A document may print pathways — a diploma made of groups of courses — which
     // are counted in courses rather than credits.
-    const inPlan = {};
-    counting.forEach(function(course) {
-        [course.title].concat(course.title_variants || []).forEach(function(title) {
-            inPlan[currNormTitle(title)] = true;
-        });
-    });
-    (data.catalog.program_groupings || []).forEach(function(program) {
+    const titleIndex = currTitleIndex(data);
+    (data.catalog.program_groupings || []).forEach(function(program, pi) {
         html += '<div class="curr-req"><span class="curr-req-caret"></span>' +
             '<span class="curr-req-name" title="' + escapeHtml(program.description || '') + '"><b>' +
             escapeHtml(program.name) + '</b></span></div>';
-        (program.groups || []).forEach(function(group) {
+        (program.groups || []).forEach(function(group, gi) {
             const titles = group.courses || [];
-            const got = titles.filter(function(title) { return inPlan[currNormTitle(title)]; }).length;
-            const need = group.required_course ? 1 : Math.max(1, 0);
-            const pct = titles.length ? Math.min(100, Math.round((got / Math.max(need, 1)) * 100)) : 0;
-            html += '<div class="curr-req">' +
-                '<span class="curr-req-caret"></span>' +
+            // Every title the group names, resolved to the course it names, so the
+            // count and the list underneath it are one answer rather than two.
+            const members = titles.map(function(title) {
+                const code = currResolveTitle(titleIndex, title);
+                const course = code ? byCode[code] : null;
+                return {
+                    code: code,
+                    title: (course || {}).title || title,
+                    placed: code ? currPlacementOf(data, code) : null,
+                    met: code ? currIsCompleted(data, code) : false
+                };
+            });
+            const got = members.filter(function(m) { return m.placed || m.met; }).length;
+            // How many of the group are needed is the document's to say: `min_courses`
+            // outright, or one for a group it marks required. Where it says nothing,
+            // a bar would be this code's guess drawn as the document's answer, so the
+            // row carries the count alone and no bar at all.
+            const stated = typeof group.min_courses === 'number' && isFinite(group.min_courses) &&
+                group.min_courses > 0 ? group.min_courses : (group.required_course ? 1 : 0);
+            const need = stated || titles.length;
+            const pct = stated ? Math.min(100, Math.round((got / stated) * 100)) : 0;
+            // Keyed by position: a group name is the document's words and would have
+            // to be escaped into the handler, and this only has to survive a redraw.
+            const key = 'group:' + pi + ':' + gi;
+            const showing = open.indexOf(key) !== -1;
+            html += '<div class="curr-req' + (members.length ? ' openable' : '') + '"' +
+                    (members.length ? ' onclick="currToggleReq(this, \'' + key + '\')"' : '') + '>' +
+                '<span class="curr-req-caret">' + (members.length ? (showing ? '▾' : '▸') : '') + '</span>' +
                 '<span class="curr-req-name" title="' + escapeHtml(titles.join(', ')) + '">' +
                     escapeHtml(group.name) + '</span>' +
-                '<span class="curr-bar"><i class="' + (got >= need ? 'done' : '') + '" style="width:' + pct + '%"></i></span>' +
-                '<span class="curr-req-num">' + got + ' of ' + titles.length + '</span>' +
+                '<span class="curr-bar' + (stated ? '' : ' none') + '">' + (stated ?
+                    '<i class="' + (got >= stated ? 'done' : '') + '" style="width:' + pct + '%"></i>' : '') +
+                '</span>' +
+                '<span class="curr-req-num">' + got + ' of ' + need +
+                    (stated ? ' needed' : '') + '</span>' +
             '</div>';
+            // A group lists its courses outright, unlike a subject requirement that
+            // matches whatever fits it, so the whole list is worth showing: what is
+            // being taken towards the group, and what else would have counted.
+            if (showing) {
+                html += '<div class="curr-req-courses">' + members.map(function(m) {
+                    const where = m.placed ? currTermLabel(planner, m.placed)
+                        : (m.met ? 'already met'
+                            : (m.code ? 'not planned' : 'not in this catalog'));
+                    return '<div class="curr-req-course' +
+                            (m.placed || m.met ? '' : ' curr-req-off') + '"' +
+                            (m.code ? ' onclick="currSelectCode(event, this, \'' +
+                                escapeHtml(m.code) + '\')"' : '') + '>' +
+                        (m.code ? '<span class="curr-code">' + escapeHtml(m.code) + '</span> ' : '') +
+                        escapeHtml(m.title) +
+                        '<span class="curr-req-where">' + escapeHtml(where) + '</span>' +
+                    '</div>';
+                }).join('') + '</div>';
+            }
         });
     });
 
