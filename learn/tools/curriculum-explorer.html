@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curriculum Explorer — Toolboard</title>
+<meta name="description" content="Plan four years of high school classes in about fifteen minutes. Prerequisites, credit requirements and term restrictions, checked as you go.">
+<link rel="stylesheet" href="../assets/learn.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="site-mark" href="../index.html"><span class="glyph">▦</span>Toolboard</a>
+    <nav>
+        <a href="../index.html">Guides</a>
+        <a href="https://toolboard.me">Open Toolboard</a>
+    </nav>
+</header>
+
+<div class="wrap">
+
+<section class="hero">
+    <p class="eyebrow">School Tools</p>
+    <h1>Curriculum Explorer</h1>
+    <p class="tagline">Plan four years of classes in about fifteen minutes.</p>
+    <p class="lede">
+        A course catalog is a list. A schedule is a plan. Turning one into the other means
+        holding prerequisite chains, credit minimums and which year each course is open to
+        all in your head at once — which is why it usually takes an afternoon and a legal pad.
+        Drag courses onto a grid instead, and let the tool do the checking.
+    </p>
+
+    <div class="actions">
+        <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/westhaven-2026-2027.json">
+            Try it with an example catalog
+            <small>280 courses · nothing to install</small>
+        </a>
+        <a class="btn" href="https://toolboard.me">Open Toolboard</a>
+    </div>
+    <p class="note">
+        That link opens Toolboard, installs the School Tools plugin, adds a Curriculum Explorer
+        and loads the catalog into it. Everything stays in your browser — no account, no upload,
+        nothing sent anywhere.
+    </p>
+</section>
+
+<figure>
+    <img src="../assets/curriculum-explorer.png" alt="The Curriculum Explorer: a searchable course catalog on the left, a four-year grid of planned courses in the middle, and credit progress against each graduation requirement below.">
+    <figcaption>
+        A finished four-year plan. Catalog on the left, the plan on the right, and every
+        graduation requirement counted underneath — here, twenty credits with no open issues.
+    </figcaption>
+</figure>
+
+<h2>What it checks for you</h2>
+<div class="grid">
+    <div class="card">
+        <div class="card-head">Prerequisites</div>
+        <div class="card-body">
+            Every course you place is checked against what has to come first — and whether that
+            course finishes early enough. A prerequisite tree shows the whole chain behind any
+            course, so you can see how deep it goes before you commit to it.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Requirements</div>
+        <div class="card-body">
+            Credits are counted against each requirement in your catalog as you plan, including
+            courses that satisfy two at once. Open any requirement to see exactly which courses
+            are making up the number.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">When it is offered</div>
+        <div class="card-body">
+            Some courses run one semester only, some only in summer, some only for juniors and
+            seniors. Put one where it cannot go and the tool says so, rather than letting you
+            find out at registration.
+        </div>
+    </div>
+</div>
+
+<h2>How to build a plan in fifteen minutes</h2>
+<p>
+    The order matters more than the speed. Working outwards from the courses with the least
+    freedom leaves the easy choices for last, when the shape of the plan is already settled.
+</p>
+
+<ol class="steps">
+    <li>
+        <strong>Tick off what is already done</strong>
+        Anything taken before the plan starts counts towards graduation without taking a seat in
+        it. Select a course and press <em>Already met</em>.
+        <span class="eg">Students often arrive with high school credit earned in middle school —
+            Algebra 1 and a world language are the usual ones.</span>
+    </li>
+    <li>
+        <strong>Decide the yearly course load</strong>
+        Six or seven credits a year, whatever your school runs. Each year in the grid shows its
+        own credit total, so you will see immediately when one is overloaded.
+    </li>
+    <li>
+        <strong>Place the courses that have no alternative</strong>
+        The required sequences, one per year, straight down the grid. This is most of the plan
+        and it takes about a minute.
+        <span class="eg">English 1, 2, 3, 4 in grades 9 through 12.</span>
+    </li>
+    <li>
+        <strong>Work the longest chain backwards</strong>
+        Find the course you most want to reach, put it in the final year, then place each of its
+        prerequisites in the year before. The Tree tab shows the chain if you are not sure how
+        deep it runs.
+        <span class="eg">Calculus in grade 12 means Pre-Calculus in 11, Algebra II in 10 and
+            Geometry in 9 — so Algebra 1 has to have been taken already.</span>
+    </li>
+    <li>
+        <strong>Balance the years</strong>
+        Drag courses between years until the credit totals even out. Anything that lands where it
+        cannot go says so as you drop it.
+    </li>
+    <li>
+        <strong>Fill the gaps with electives</strong>
+        Filter the catalog by department or requirement to find courses that count for something
+        you are still short on, rather than picking blind.
+    </li>
+    <li>
+        <strong>Clear the Issues tab</strong>
+        Every prerequisite conflict, ordering problem and unmet requirement is listed in one
+        place. Click one to jump to the course it concerns. When the tab is empty, the plan holds
+        together.
+    </li>
+    <li>
+        <strong>Take it to your counselor</strong>
+        Save the plan as a PNG, or print the catalog as a PDF, and go through it with someone who
+        knows this year's master schedule. A plan that validates is still a plan — the school
+        decides what actually runs.
+    </li>
+</ol>
+
+<h2>Example catalogs</h2>
+<p>
+    Two complete catalogs to try the tool on. Both describe <strong>fictitious schools</strong>:
+    the course data is real in shape and structure, but the schools, their staff and their
+    documents are invented, and neither one is anyone's official curriculum.
+</p>
+
+<div class="card">
+    <div class="card-head">
+        Westhaven High School
+        <span class="meta">2026–2027 · 280 courses</span>
+    </div>
+    <div class="card-body">
+        <p>
+            A large public high school with a Cambridge AICE diploma pathway, dual enrolment,
+            AP and honors tracks, and a full set of graduation requirements to plan against.
+        </p>
+        <div class="actions">
+            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/westhaven-2026-2027.json">Open it in Toolboard</a>
+            <a class="btn" href="../data/westhaven-2026-2027.json">Download the JSON</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        Ashford Meridian High School
+        <span class="meta">2025–2026 · 129 courses</span>
+    </div>
+    <div class="card-body">
+        <p>
+            A smaller independent college-preparatory school. Fewer courses, longer prerequisite
+            chains, and a required subject that most public schools do not have.
+        </p>
+        <div class="actions">
+            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/ashford-2025-2026.json">Open it in Toolboard</a>
+            <a class="btn" href="../data/ashford-2025-2026.json">Download the JSON</a>
+        </div>
+    </div>
+</div>
+
+<h2>Starting from scratch</h2>
+<p>If you would rather set it up yourself instead of following a link:</p>
+<ol class="steps">
+    <li><strong>Open <a href="https://toolboard.me">toolboard.me</a></strong></li>
+    <li><strong>Add the School Tools plugin</strong> from the plugin menu in the header</li>
+    <li><strong>Add a Curriculum Explorer</strong> to a board</li>
+    <li>
+        <strong>Load a catalog</strong>
+        Press <em>JSON</em>, then <em>File</em> to pick one from your computer, or paste it in and
+        press <em>Load</em>. <em>Sample</em> fills the tool with a small invented catalog if you
+        just want to look around.
+    </li>
+</ol>
+
+<h2>Building a catalog for your own school</h2>
+<p>
+    The tool reads one JSON file. There is no library of schools behind it — you make the file
+    once, and it is yours.
+</p>
+<ol class="steps">
+    <li>
+        <strong>Gather the source documents</strong>
+        Your school's course catalog or selection card, as a PDF if you can get one. You will
+        usually need more than that: the district's graduation requirements, and the rules for
+        any special programme — AICE, AP Capstone, IB, a career academy.
+    </li>
+    <li>
+        <strong>Get the schema</strong>
+        In the tool, press <em>JSON</em>, switch to <em>Schema</em>, and press
+        <em>Show the JSON</em>. That is the full description of what the tool reads, and it is
+        the version that matches the tool you are running.
+    </li>
+    <li>
+        <strong>Hand both to an AI assistant</strong>
+        The documents and the schema, and ask for a catalog file. Expect to go a few rounds:
+        course numbers get transposed, prerequisites get flattened, credit values get guessed at.
+    </li>
+    <li>
+        <strong>Load it and read the Issues tab</strong>
+        This is the fastest way to find what the conversion got wrong. A prerequisite naming a
+        course that is not in the catalog, or a course open to no year at all, shows up
+        immediately — fix the file and load it again.
+    </li>
+</ol>
+<p class="note">
+    <strong>A catalog is a description, not an authority.</strong> Every file — the examples here
+    included — is somebody's reading of a school document, and readings contain mistakes. Treat a
+    finished plan as a well-checked draft to take to your counselor, never as a registration.
+</p>
+
+<footer>
+    <p>
+        <a href="../index.html">All guides</a> · <a href="https://toolboard.me">Toolboard</a>
+    </p>
+    <p>
+        Toolboard runs entirely in your browser. Your catalog and your plan are stored on your own
+        device and are never uploaded.
+    </p>
+</footer>
+
+</div>
+</body>
+</html>
