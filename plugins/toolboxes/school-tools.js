@@ -494,6 +494,7 @@ const CURR_SCHEMA = {
                         properties: {
                             raw: { type: ['string', 'null'], description: 'The requirement as printed. Quoted back in messages, and a line containing " or " softens a missing prerequisite to a warning.' },
                             courses: { type: 'array', items: { type: 'string' }, description: 'Prerequisite courses by title. Matched case- and punctuation-insensitively, then by unique prefix.' },
+                            choice: { type: 'boolean', description: 'Optional. True when the listed courses are alternatives and any one of them will do. One that is met settles the line; where none is, a single warning names the choice. Absent: every listed course is required.' },
                             min_gpa: { type: ['number', 'null'], description: 'Carried as a note; no plan can verify it.' },
                             grade_requirements: { type: 'array', items: { type: 'string' }, description: 'Carried as notes.' }
                         }
@@ -826,6 +827,7 @@ function currNormalizeDoc(doc) {
             description: course.description || '',
             prerequisites: {
                 raw: prereq.raw || null,
+                choice: prereq.choice === true,
                 min_gpa: typeof prereq.min_gpa === 'number' ? prereq.min_gpa : null,
                 courses: Array.isArray(prereq.courses) ? prereq.courses : [],
                 grade_requirements: Array.isArray(prereq.grade_requirements) ? prereq.grade_requirements : []
@@ -1313,9 +1315,18 @@ function currValidate(data) {
 
         // The parse behind `prerequisites.courses` flattens alternate paths, so when
         // the line it came from offers a choice, a missing one is only a warning.
+        // `choice: true` is the stronger statement: any one of these will do, so one
+        // that is met settles the line and nothing is said at all. A raw line is not
+        // read that way — "Chemistry or Biology, and Algebra II" is a choice and a
+        // requirement in one sentence, and only the document can tell them apart.
         const raw = course.prerequisites.raw || '';
+        const choice = course.prerequisites.choice === true;
         const alternates = / or /i.test(raw);
-        const severity = alternates ? 'warning' : 'error';
+        const severity = (choice || alternates) ? 'warning' : 'error';
+        const missing = [];
+        const late = [];
+        const unmet = [];
+        let anyMet = false;
         course.prerequisites.courses.forEach(function(name) {
             const prereqCode = currResolveTitle(index, name);
             if (!prereqCode) {
@@ -1326,24 +1337,48 @@ function currValidate(data) {
             }
             // Something taken before the plan begins is met, whenever the course
             // that needs it is scheduled.
-            if (currIsCompleted(data, prereqCode)) return;
+            if (currIsCompleted(data, prereqCode)) { anyMet = true; return; }
             const placed = currAllPlacements(data, prereqCode);
             const prereqTitle = (byCode[prereqCode] || {}).title || name;
             if (!placed.length) {
-                issues.push(currIssue(severity, alternates ? 'prereq-alt' : 'prereq-missing', p.code, p.term,
-                    title + ' needs ' + prereqTitle + ', which is not in the plan.' +
-                    (alternates ? ' The guide offers a choice here: ' + raw : '')));
+                missing.push({ title: prereqTitle });
+                unmet.push({ title: prereqTitle, at: null });
                 return;
             }
             const inTime = placed.some(function(key) {
                 return currTermEnd(planner, key) < currTermStart(planner, p.term);
             });
-            if (!inTime) {
-                issues.push(currIssue(severity, 'prereq-order', p.code, p.term,
-                    prereqTitle + ' has to finish before ' + title + ' starts, but it is in ' +
-                    currTermLabel(planner, placed[0]) + '.'));
+            if (inTime) {
+                anyMet = true;
+            } else {
+                late.push({ title: prereqTitle, at: placed[0] });
+                unmet.push({ title: prereqTitle, at: placed[0] });
             }
         });
+
+        if (choice) {
+            // Named in the order the document lists them, so the message reads the way
+            // the line does. One that is planned but too late is the more useful thing
+            // to say, since moving it is the fix.
+            const named = unmet.map(function(x) { return x.title; }).join(' or ');
+            if (!anyMet && unmet.length) {
+                issues.push(currIssue('warning', 'prereq-alt', p.code, p.term,
+                    late.length
+                        ? title + ' needs one of ' + named + ' to finish first, and none of them does.'
+                        : title + ' needs one of ' + named + ', and none of them is in the plan.'));
+            }
+        } else {
+            missing.forEach(function(x) {
+                issues.push(currIssue(severity, alternates ? 'prereq-alt' : 'prereq-missing', p.code, p.term,
+                    title + ' needs ' + x.title + ', which is not in the plan.' +
+                    (alternates ? ' The guide offers a choice here: ' + raw : '')));
+            });
+            late.forEach(function(x) {
+                issues.push(currIssue(severity, 'prereq-order', p.code, p.term,
+                    x.title + ' has to finish before ' + title + ' starts, but it is in ' +
+                    currTermLabel(planner, x.at) + '.'));
+            });
+        }
 
         if (course.prerequisites.min_gpa) {
             issues.push(currIssue('note', 'gpa', p.code, p.term,
