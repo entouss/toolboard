@@ -27,6 +27,11 @@
 .curr-source { display: flex; flex-direction: column; gap: 6px; min-height: 0; min-width: 0; }
 .curr-drop { border: 1px dashed var(--border-color); border-radius: 6px; padding: 8px; text-align: center; color: var(--text-secondary); font-size: 11px; }
 .curr-drop.dragover { border-color: #3498db; color: var(--text-primary); }
+.curr-doc { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
+.curr-source-actions { display: flex; gap: 6px; flex-wrap: wrap; flex: 0 0 auto; }
+.curr-schema-pane { display: none; flex: 1; overflow: auto; min-height: 0; }
+.curr-source.showing-schema .curr-doc { display: none; }
+.curr-source.showing-schema .curr-schema-pane { display: block; }
 .curr-json { flex: 1; min-height: 80px; resize: none; font-family: 'Monaco', 'Courier New', monospace; font-size: 11px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
 /* Outside the JSON pane on purpose: what the tool has to say about loading has to
    be readable in the explorer, which is the mode a link opens in. */
@@ -56,6 +61,8 @@
 .curr-chip.active { background: #3498db; border-color: #3498db; color: #fff; }
 
 .curr-list { flex: 1; overflow-y: auto; min-height: 0; }
+.curr-catalog-foot { flex: 0 0 auto; display: flex; padding-top: 6px; margin-top: 4px; border-top: 1px solid var(--border-light); }
+.curr-catalog-foot .curr-btn { flex: 1; }
 .curr-section-head { display: flex; align-items: center; gap: 4px; position: sticky; top: 0; background: var(--bg-secondary); padding: 4px 2px; font-weight: 600; font-size: 11px; border-bottom: 1px solid var(--border-light); z-index: 1; }
 .curr-section-head .curr-caret { cursor: pointer; width: 12px; color: var(--text-secondary); }
 .curr-section-title { flex: 1; cursor: pointer; }
@@ -84,6 +91,8 @@
 .curr-tabs { display: flex; gap: 4px; padding-bottom: 6px; }
 .curr-tab { flex: 1; padding: 3px 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary); font-size: 11px; cursor: pointer; }
 .curr-tab.active { background: #3498db; border-color: #3498db; color: #fff; }
+.curr-stab { flex: 1; padding: 3px 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary); font-size: 11px; cursor: pointer; }
+.curr-stab.active { background: #3498db; border-color: #3498db; color: #fff; }
 .curr-tab .curr-badge { font-size: 9px; }
 .curr-pane { flex: 1; overflow: auto; min-height: 0; }
 
@@ -139,6 +148,8 @@
 .curr-req-course { display: flex; gap: 5px; align-items: baseline; font-size: 10px; color: var(--text-secondary); padding: 1px 2px; border-radius: 3px; cursor: pointer; }
 .curr-req-course:hover { background: var(--table-hover); color: var(--text-primary); }
 .curr-req-course.curr-req-off { opacity: 0.55; }
+.curr-req.curr-note { position: relative; padding-left: 13px; margin-top: 2px; }
+.curr-req.curr-note::before { content: '•'; position: absolute; left: 2px; top: 0; color: var(--text-muted); }
 .curr-req-course:not([onclick]) { cursor: default; }
 .curr-req-where { margin-left: auto; white-space: nowrap; opacity: 0.75; }
 
@@ -600,17 +611,25 @@ PluginRegistry.registerTool({
     title: 'Curriculum Explorer',
     content: `<div class="curr-widget">
 <div class="curr-actions">
-<button class="curr-btn" onclick="currLoadSource(this)" title="Read the JSON in the editor into the explorer">Load</button>
-<label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="currHandleFile(this)"></label>
-<button class="curr-btn" onclick="currLoadSample(this)" title="Fill the box with a small invented catalog">Sample</button>
 <button class="curr-btn" onclick="currExportPng(this)" title="Save the plan as a picture">PNG</button>
-<button class="curr-btn" onclick="currExportPdf(this)" title="Print the course catalog, or save it as a PDF">PDF</button>
 </div>
 <div class="curr-status"></div>
 <div class="authoring-split">
 <div class="authoring-source curr-source">
+<div class="curr-tabs">
+<button class="curr-stab active" onclick="currSetSourceView(this, 'document')">Document</button>
+<button class="curr-stab" onclick="currSetSourceView(this, 'schema')">Schema</button>
+</div>
+<div class="curr-doc">
+<div class="curr-source-actions">
+<button class="curr-btn" onclick="currLoadSource(this)" title="Read the JSON below into the explorer">Load</button>
+<label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="currHandleFile(this)"></label>
+<button class="curr-btn" onclick="currLoadSample(this)" title="Fill the box with a small invented catalog">Sample</button>
+</div>
 <div class="curr-drop" ondragover="currDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="currDropFile(event, this)">Paste the curriculum JSON below, or drop a .json file here</div>
 <textarea class="curr-json" spellcheck="false" oninput="currDraftChanged(this)" placeholder="{ &quot;courses&quot;: [ ... ] }"></textarea>
+</div>
+<div class="curr-schema-pane"></div>
 </div>
 <div class="authoring-resizer"></div>
 <div class="authoring-result curr-explorer"></div>
@@ -1110,7 +1129,7 @@ function currReadFile(widget, toolId, file) {
     const reader = new FileReader();
     reader.onload = function() {
         widget.querySelector('.curr-json').value = String(reader.result);
-        currLoadSource(widget.querySelector('.curr-actions .curr-btn'));
+        currLoadSource(widget.querySelector('.curr-json'));
     };
     reader.onerror = function() { currSetStatus(widget, 'err', 'That file could not be read.'); };
     reader.readAsText(file);
@@ -1419,6 +1438,7 @@ function currRender(widget) {
     if (!explorer) return;
 
     widget.classList.toggle('narrow', widget.offsetWidth > 0 && widget.offsetWidth < 640);
+    currRenderSource(widget, data);
 
     if (!data.catalog) {
         explorer.innerHTML = '<div class="curr-empty">No curriculum loaded yet.<br>' +
@@ -1590,6 +1610,13 @@ function currCatalogHtml(data) {
 
     html += '<div class="curr-list">' + currListHtml(data, shown) + '</div>';
     html += currDetailsHtml(data);
+    // What it prints is what this column is showing — the search, the filters and
+    // whatever is hidden all apply — so it belongs under them, saying how many.
+    html += '<div class="curr-catalog-foot">' +
+        '<button class="curr-btn" onclick="currExportPdf(this)" ' +
+            'title="Print these courses as a catalog, or save them as a PDF">' +
+            escapeHtml(currPdfLabel(shown.length)) + '</button>' +
+        '</div>';
     return html;
 }
 
@@ -1749,8 +1776,10 @@ function currDetailsHtml(data) {
 // ---- The right pane: grid, tree, issues -----------------------------------
 
 function currRightHtml(data, validation) {
-    const tab = data.ui.tab || 'grid';
-    const tabs = [['grid', 'Grid'], ['tree', 'Tree'], ['issues', 'Issues'], ['schema', 'Schema']];
+    // Schema is about the shape of the document, so it sits beside the JSON pane
+    // rather than beside the plan. A tool last left on it opens on the grid.
+    const tab = data.ui.tab === 'schema' ? 'grid' : (data.ui.tab || 'grid');
+    const tabs = [['grid', 'Grid'], ['tree', 'Tree'], ['issues', 'Issues']];
     let html = '<div class="curr-tabs">' + tabs.map(function(pair) {
         const badge = pair[0] === 'issues' && validation.errors ?
             ' <span class="curr-badge err">' + validation.errors + '</span>' :
@@ -1763,7 +1792,6 @@ function currRightHtml(data, validation) {
     html += '<div class="curr-pane">' +
         (tab === 'tree' ? currTreeHtml(data) :
             tab === 'issues' ? currIssuesHtml(data, validation) :
-            tab === 'schema' ? currSchemaHtml(data) :
             currGridHtml(data, validation)) +
         '</div>';
     return html;
@@ -2687,6 +2715,8 @@ function currSetSearch(input) {
     currRenderCatalogList(widget, data);
 }
 
+function currPdfLabel(n) { return 'PDF \u00b7 ' + n + (n === 1 ? ' course' : ' courses'); }
+
 function currRenderCatalogList(widget, data) {
     const list = widget.querySelector('.curr-list');
     const count = widget.querySelector('.curr-count');
@@ -2694,6 +2724,11 @@ function currRenderCatalogList(widget, data) {
     const view = currCatalogView(data);
     list.innerHTML = currListHtml(data, view.shown);
     if (count) count.innerHTML = currCountHtml(data, view);
+    // The PDF button says what it would print, and searching changes that.
+    const pdf = widget.querySelector('.curr-catalog-foot button');
+    if (pdf) {
+        pdf.textContent = currPdfLabel(view.shown.length);
+    }
 }
 
 function currSetFilter(select, key) {
@@ -2983,6 +3018,30 @@ function currInit() {
     });
 }
 
+// The source pane shows either the document or the shape a document has to be in.
+// Both live in it: the textarea holds the draft whichever face is showing, so
+// switching never costs an edit.
+function currRenderSource(widget, data) {
+    const pane = widget.querySelector('.curr-source');
+    if (!pane) return;
+    const schema = (data.ui || {}).sourceView === 'schema';
+    pane.classList.toggle('showing-schema', schema);
+    pane.querySelectorAll('.curr-stab').forEach(function(tab, i) {
+        tab.classList.toggle('active', (i === 1) === schema);
+    });
+    const box = pane.querySelector('.curr-schema-pane');
+    if (box) box.innerHTML = schema ? currSchemaHtml(data) : '';
+}
+
+function currSetSourceView(el, view) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(widget);
+    const data = currGetData(toolId);
+    data.ui.sourceView = view === 'schema' ? 'schema' : 'document';
+    currSaveData(toolId, data);
+    currRenderSource(widget, data);
+}
+
 function currOnRender(toolId) {
     const widget = currWidgetFor(toolId);
     if (widget) currRender(widget);
@@ -3001,13 +3060,14 @@ function currOnRender(toolId) {
         currTermLabel, currTermPos, currTermStart, currTermEnd, currAllowedSlots, currPlacementOf,
         currTermSlug, currTermOrder, currTermKind, currPlanner, currLevelLabel, currTermById,
         currSlotLabel, currAddLevel, currRemoveLevel, currSchemaRows, currSchemaHtml,
+        currRenderSource, currSetSourceView,
         currCopySchema, currLoadSchemaIntoEditor, currExportPng, currToolTitle, currDocTitle,
         currPrintFields, currPrintValue, currCatalogPrintHtml, currExportPdf,
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
         currBestTerm, currRender, currRenderFor, currMatchesFilters, currIsHidden,
         currUniqueValues, currFlagLabel, currFlagsInUse, currOptions, currCatalogView, currCountHtml, currCatalogHtml, currListHtml,
-        currRenderCatalogList, currLevelTagClass, currShortSemester,
+        currRenderCatalogList, currPdfLabel, currLevelTagClass, currShortSemester,
         currCourseRowHtml, currCatalogFoldedHtml, currToggleCatalog, currDetailsHtml, currRightHtml, currGridHtml, currCellHtml,
         currCardHtml, currLevelCredits, currFineArtsIndex, currCountsToward, currTotalsHtml,
         currIssuesHtml, currTreeGraph, currDepth,
