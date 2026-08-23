@@ -652,6 +652,8 @@ PluginRegistry.registerTool({
     },
     // A link may name the document to open with — see currApplyHashParams.
     hashParams: 'currApplyHashParams',
+    // The page written about this tool, opened from the ? in its header.
+    guide: 'learn/tools/curriculum-explorer.html',
     contentType: 'html',
     onInit: 'currInit',
     defaultWidth: 900,

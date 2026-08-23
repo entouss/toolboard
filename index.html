@@ -3983,6 +3983,9 @@ const PluginRegistry = {
             // Name a function here to be handed the parameters of the link a tool
             // was opened from — see applyToolHashParams and docs/urls.md.
             hashParams: typeof plugin.hashParams === 'string' ? plugin.hashParams : null,
+            // A page explaining the tool, opened from the ? in its header. Relative
+            // to the app, so it travels with whatever host serves it.
+            guide: typeof plugin.guide === 'string' ? plugin.guide : null,
             source: plugin.source || 'embedded' // 'embedded' or 'external'
         };
         this.tools.set(plugin.id, normalizedPlugin);
@@ -5285,6 +5288,15 @@ function setupToolControls() {
 
     // Fullscreen button — enter/exit live in enterToolFullscreen/exitToolFullscreen
     const fullscreenBackdrop = document.getElementById('fullscreenBackdrop');
+
+    // The ? on a tool that has a page written about it.
+    toolboard.addEventListener('click', (e) => {
+        if (!e.target.closest('.guide-btn')) return;
+        e.stopPropagation();
+        const tool = e.target.closest('.tool');
+        const url = tool && guideFor(tool.getAttribute('data-tool'));
+        if (url) window.open(url, '_blank', 'noopener');
+    });
 
     toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.fullscreen-btn')) {
@@ -7227,6 +7239,7 @@ function createTool(toolId) {
             <div class="header-buttons">
                 <button class="header-btn minimize-btn${isMinimized ? ' minimized' : ''}" title="Minimize">&#8211;</button>
                 <button class="header-btn fullscreen-btn" title="Fullscreen"><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="12" height="12" rx="1" stroke="currentColor" stroke-width="4" fill="none"/></svg></button>
+                ${guideFor(toolId) ? '<button class="header-btn guide-btn" title="How this tool works">?</button>' : ''}
                 <button class="header-btn settings-btn" title="Settings">&#8942;</button>
                 <button class="header-btn delete-btn" title="Delete">&times;</button>
             </div>
@@ -8824,6 +8837,15 @@ function setupPluginSettings() {
     const pluginBtn = document.getElementById('managePluginsBtn');
     if (!pluginBtn) return;
     pluginBtn.onclick = openPluginSettingsModal;
+}
+
+// The page written about a tool, if there is one. A tool names it when it
+// registers; nothing here knows about any particular tool.
+function guideFor(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const templateId = custom.templateId || toolId;
+    const template = NOTE_TEMPLATES[templateId] || PluginRegistry.getTool(templateId);
+    return (template && template.guide) || null;
 }
 
 const OFFICIAL_PLUGINS = [
