@@ -1182,12 +1182,18 @@ function currTermLabel(planner, key) {
 function currTermPos(planner, key) {
     const t = currTermParse(key);
     const levelIndex = Math.max(0, planner.levels.indexOf(t.level));
-    const base = levelIndex * planner.terms.length;
+    // A document of nothing but year-long courses divides its levels into no terms
+    // at all. Each level is still a step of its own, so it is one slot wide, not none
+    // — otherwise every level starts where the last one did and nothing is ever
+    // before anything else.
+    const width = planner.terms.length || 1;
+    const base = levelIndex * width;
     const ids = planner.terms.map(function(term) { return term.id; });
     if (t.slot === planner.spanId) {
-        const first = ids.indexOf(planner.main[0].id);
+        if (!ids.length) return { start: base, end: base };
+        const first = Math.max(0, ids.indexOf(planner.main[0].id));
         const last = ids.indexOf(planner.main[planner.main.length - 1].id);
-        return { start: base + first, end: base + last };
+        return { start: base + first, end: base + (last === -1 ? width - 1 : last) };
     }
     const at = ids.indexOf(t.slot);
     const pos = base + (at === -1 ? 0 : at);
