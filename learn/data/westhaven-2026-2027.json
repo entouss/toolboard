@@ -2186,7 +2186,7 @@
     "The AICE pathway groups print four course names that do not match the catalog titles (AICE Math (Pre-Calculus), AICE Environmental Mgmt., AICE U.S. History, AICE International World History); each is recorded as a `title_variants` entry on the course it names. Two further lines, AICE Spanish Language and AICE English General Paper, name one syllabus that Westhaven enrols as two courses, so the group lists both.",
     "`graduation_requirements.credits_by_subject` is the 24-credit standard diploma flattened by subject. Each row carries `requirement_ids` pointing back at the chart lines it rolls up, and every course carries `satisfies_requirement_ids`, so a finer count can be made from the same data without re-reading the chart.",
     "The Cambridge AICE Diploma rules in `program_groupings[].diploma_requirements` were taken from Cambridge Assessment International Education on 2026-08-22, not from either course card. They describe the qualification in general; they say nothing about which of Westhaven's courses are entered for which syllabus.",
-    "Where a course lists more than one prerequisite, the cards mean any one of them — every such line in this catalog is a course and its honours or double-block twin. Those lines carry `prerequisites.choice: true` so the explorer treats them as a choice rather than demanding all of them."
+    "Where a course lists more than one prerequisite, most are one course and its honours or double-block twin, or two routes to the same place (AP Pre-Calculus or AICE Pre-Calculus before AP Calculus AB). Those carry `prerequisites.choice: true`. The physical education sequences are not flagged: the card prints no prerequisite text, and whether Team Sports II wants Team Sports I *or* HOPE, or both, cannot be read off it. An unflagged line over-warns; a wrongly flagged one would let an unmet prerequisite pass in silence."
   ],
   "course_count": 280,
   "courses": [
@@ -16297,7 +16297,7 @@
           "Pre-AICE Physical Education (HOPE)"
         ],
         "grade_requirements": [],
-        "choice": true
+        "choice": false
       },
       "flags": {
         "meets_pe_requirement": true
@@ -16419,7 +16419,7 @@
           "Pre-AICE Physical Education (HOPE)"
         ],
         "grade_requirements": [],
-        "choice": true
+        "choice": false
       },
       "flags": {
         "meets_pe_requirement": true
@@ -16488,7 +16488,7 @@
           "Pre-AICE Physical Education (HOPE)"
         ],
         "grade_requirements": [],
-        "choice": true
+        "choice": false
       },
       "flags": {
         "teacher_approval_required": true,
