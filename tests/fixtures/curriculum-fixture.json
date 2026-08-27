@@ -1,0 +1,2303 @@
+{
+  "$schema_version": "1.0",
+  "source_document": "sample-curriculum.pdf — Sample Curriculum Guide",
+  "generated_from": "Invented data written for testing. Not derived from any real guide.",
+  "school": {
+    "name": "Sample High School",
+    "short_name": "SHS",
+    "type": "Secondary"
+  },
+  "guide": {
+    "title": "Curriculum Guide",
+    "academic_year": "2026-2027",
+    "disclaimer": "Course offerings are subject to change.",
+    "weight_notation": {
+      "**": "Honors weight",
+      "***": "Advanced weight"
+    }
+  },
+  "graduation_requirements": {
+    "minimum_career_gpa": 2,
+    "credits_by_subject": [
+      {
+        "subject": "English",
+        "credits_required": 4,
+        "required_courses": [
+          "English 9",
+          "English 10",
+          "English 11",
+          "English 12"
+        ],
+        "notes": null
+      },
+      {
+        "subject": "Mathematics",
+        "credits_required": 4,
+        "notes": "Must include Algebra I and Geometry."
+      },
+      {
+        "subject": "Science",
+        "credits_required": 3,
+        "notes": "Two must be laboratory sciences."
+      },
+      {
+        "subject": "Social Studies",
+        "credits_required": 3,
+        "notes": null
+      },
+      {
+        "subject": "Theology",
+        "credits_required": 4,
+        "notes": null
+      },
+      {
+        "subject": "World Languages",
+        "credits_required": 2,
+        "notes": "Two credits in the same language."
+      },
+      {
+        "subject": "Physical Education",
+        "credits_required": 1,
+        "notes": null
+      },
+      {
+        "subject": "Practical/Fine Arts",
+        "credits_required": 1,
+        "notes": "May be met by a flagged elective."
+      },
+      {
+        "subject": "Electives",
+        "credits_required": 5,
+        "notes": null
+      }
+    ],
+    "total_credits_listed": 27
+  },
+  "placement_criteria": {
+    "advanced_placement": {
+      "minimum_gpa": 3.5,
+      "rules": [
+        "Teacher recommendation required."
+      ]
+    },
+    "honors": {
+      "minimum_gpa": 3.25,
+      "rules": [
+        "80 or better in the previous course in the sequence."
+      ]
+    },
+    "dual_enrollment": {
+      "minimum_gpa": 3,
+      "provider": "Partner College",
+      "rules": [
+        "Placement test required."
+      ]
+    }
+  },
+  "course_credit_policies": [
+    "A year-long course earns one credit.",
+    "A semester course earns one half credit."
+  ],
+  "schedule_change_policy": {
+    "notes": [
+      "Changes are accepted during the first two weeks only."
+    ],
+    "late_change_fee_usd": 25
+  },
+  "registration_procedure": [
+    "Meet with a counsellor.",
+    "Submit the course selection form."
+  ],
+  "gpa_scale": {
+    "notes": [
+      "Weighted points apply to Honors and Advanced courses."
+    ],
+    "scale": [
+      {
+        "grade_range": "90-100",
+        "simple": 4,
+        "amhs": 4,
+        "honors": 4.5,
+        "ap_de": 5
+      },
+      {
+        "grade_range": "80-89",
+        "simple": 3,
+        "amhs": 3,
+        "honors": 3.5,
+        "ap_de": 4
+      },
+      {
+        "grade_range": "70-79",
+        "simple": 2,
+        "amhs": 2,
+        "honors": 2.5,
+        "ap_de": 3
+      },
+      {
+        "grade_range": "60-69",
+        "simple": 1,
+        "amhs": 1,
+        "honors": 1.5,
+        "ap_de": 2
+      },
+      {
+        "grade_range": "0-59",
+        "simple": 0,
+        "amhs": 0,
+        "honors": 0,
+        "ap_de": 0
+      }
+    ]
+  },
+  "honor_roll": {
+    "frequency": "Each quarter",
+    "levels": [
+      {
+        "name": "Honours",
+        "criteria": "3.50 or better with no grade below 80."
+      },
+      {
+        "name": "Merit",
+        "criteria": "3.00 or better with no grade below 70."
+      }
+    ]
+  },
+  "college_planning": "Students should meet with a counsellor each year to plan for college admission.",
+  "practical_fine_arts_index": {
+    "meets_requirement": [
+      "Digital Art",
+      "Concert Band",
+      "Music Theory",
+      "Theatre I",
+      "Introduction to Programming",
+      "Web Development",
+      "Robotics Honors",
+      "Advanced Studio Art"
+    ],
+    "does_not_meet_requirement": [
+      "Yearbook",
+      "Speech and Debate",
+      "Team Sports"
+    ]
+  },
+  "field_definitions": {
+    "credits": "Credit earned on successful completion."
+  },
+  "course_count": 47,
+  "courses": [
+    {
+      "course_code": "1000",
+      "state_course_number": null,
+      "title": "Algebra I",
+      "department": "Mathematics",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Linear equations, functions and graphing.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1001",
+      "state_course_number": null,
+      "title": "Geometry",
+      "department": "Mathematics",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Algebra I",
+        "min_gpa": null,
+        "courses": [
+          "Algebra I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Plane and solid geometry with proofs.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1002",
+      "state_course_number": null,
+      "title": "Algebra II",
+      "department": "Mathematics",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Geometry",
+        "min_gpa": null,
+        "courses": [
+          "Geometry"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Polynomials, logarithms and conic sections.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1003",
+      "state_course_number": null,
+      "title": "Pre-Calculus Honors",
+      "department": "Mathematics",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Honors",
+      "weight_indicator": "**",
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Algebra II with an 80 or better; 3.25 GPA",
+        "min_gpa": 3.25,
+        "courses": [
+          "Algebra II"
+        ],
+        "grade_requirements": [
+          "80+ in Algebra II"
+        ]
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Trigonometry and analytic geometry.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1004",
+      "state_course_number": null,
+      "title": "Calculus AB",
+      "department": "Mathematics",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "AP",
+      "weight_indicator": "***",
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Pre-Calculus Honors; 3.50 GPA",
+        "min_gpa": 3.5,
+        "courses": [
+          "Pre-Calculus Honors"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": true,
+        "ap_exam_required": true,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Limits, derivatives and integrals.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1005",
+      "state_course_number": null,
+      "title": "Statistics",
+      "department": "Mathematics",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Semester 2",
+      "prerequisites": {
+        "raw": "Algebra II",
+        "min_gpa": null,
+        "courses": [
+          "Algebra II"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Descriptive and inferential statistics.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1006",
+      "state_course_number": null,
+      "title": "Physical Science",
+      "department": "Science",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": true
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Matter, energy and motion.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1007",
+      "state_course_number": null,
+      "title": "Biology",
+      "department": "Science",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": true,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": true
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Cells, genetics and ecology.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1008",
+      "state_course_number": null,
+      "title": "Chemistry",
+      "department": "Science",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Biology and Algebra I",
+        "min_gpa": null,
+        "courses": [
+          "Biology",
+          "Algebra I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": true
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Atomic structure and reactions.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1009",
+      "state_course_number": null,
+      "title": "Physics",
+      "department": "Science",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Chemistry or Biology, and Algebra II",
+        "min_gpa": null,
+        "courses": [
+          "Chemistry",
+          "Biology",
+          "Algebra II"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": true
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Mechanics, waves and electricity.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1010",
+      "state_course_number": null,
+      "title": "Anatomy Honors",
+      "department": "Science",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Honors",
+      "weight_indicator": "**",
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Biology and Chemistry; 3.25 GPA",
+        "min_gpa": 3.25,
+        "courses": [
+          "Biology",
+          "Chemistry"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": true
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Human body systems.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1011",
+      "state_course_number": null,
+      "title": "English 9",
+      "department": "English",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Literature and composition.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1012",
+      "state_course_number": null,
+      "title": "English 10",
+      "department": "English",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "English 9",
+        "min_gpa": null,
+        "courses": [
+          "English 9"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "World literature.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1013",
+      "state_course_number": null,
+      "title": "English 11",
+      "department": "English",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "English 10",
+        "min_gpa": null,
+        "courses": [
+          "English 10"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": true,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "American literature.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1014",
+      "state_course_number": null,
+      "title": "English 12",
+      "department": "English",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "English 11",
+        "min_gpa": null,
+        "courses": [
+          "English 11"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "British literature and the research paper.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1015",
+      "state_course_number": null,
+      "title": "Creative Writing",
+      "department": "English",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "One Semester",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Fiction and poetry workshop.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1016",
+      "state_course_number": null,
+      "title": "World History",
+      "department": "Social Studies",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Antiquity to the modern era.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1017",
+      "state_course_number": null,
+      "title": "United States History",
+      "department": "Social Studies",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "World History",
+        "min_gpa": null,
+        "courses": [
+          "World History"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Reconstruction to the present.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1018",
+      "state_course_number": null,
+      "title": "Government",
+      "department": "Social Studies",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        12
+      ],
+      "semester_offered": "Semester 1",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Constitutional principles and civic life.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1019",
+      "state_course_number": null,
+      "title": "Economics",
+      "department": "Social Studies",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        12
+      ],
+      "semester_offered": "Semester 2",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Micro and macroeconomics.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1020",
+      "state_course_number": null,
+      "title": "Psychology",
+      "department": "Social Studies",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "One Semester",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Behaviour and mental processes.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1021",
+      "state_course_number": null,
+      "title": "Theology 9",
+      "department": "Theology",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": "1/2 credit per semester",
+      "grade_levels": [
+        9
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Scripture and the person of faith.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": [
+        {
+          "code": "9101",
+          "title": "Theology 9: Revelation",
+          "semester": "Semester 1",
+          "credits": 0.5
+        },
+        {
+          "code": "9102",
+          "title": "Theology 9: Discipleship",
+          "semester": "Semester 2",
+          "credits": 0.5
+        }
+      ]
+    },
+    {
+      "course_code": "1022",
+      "state_course_number": null,
+      "title": "Theology 10",
+      "department": "Theology",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Church history and sacraments.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1023",
+      "state_course_number": null,
+      "title": "Theology 11",
+      "department": "Theology",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Morality and social teaching.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1024",
+      "state_course_number": null,
+      "title": "Theology 12",
+      "department": "Theology",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Vocation and service.",
+      "is_elective": false,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1025",
+      "state_course_number": null,
+      "title": "Spanish I",
+      "department": "World Languages",
+      "subject_area": null,
+      "language": "Spanish",
+      "track": "Spanish",
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Introductory Spanish.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1026",
+      "state_course_number": null,
+      "title": "Spanish II",
+      "department": "World Languages",
+      "subject_area": null,
+      "language": "Spanish",
+      "track": "Spanish",
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Spanish I",
+        "min_gpa": null,
+        "courses": [
+          "Spanish I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Intermediate Spanish.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1027",
+      "state_course_number": null,
+      "title": "Spanish III Honors",
+      "department": "World Languages",
+      "subject_area": null,
+      "language": "Spanish",
+      "track": "Spanish",
+      "level": "Honors",
+      "weight_indicator": "**",
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Spanish II with an 80 or better",
+        "min_gpa": null,
+        "courses": [
+          "Spanish II"
+        ],
+        "grade_requirements": [
+          "80+ in Spanish II"
+        ]
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Advanced conversation and literature.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1028",
+      "state_course_number": null,
+      "title": "French I",
+      "department": "World Languages",
+      "subject_area": null,
+      "language": "French",
+      "track": "French",
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Introductory French.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1029",
+      "state_course_number": null,
+      "title": "French II",
+      "department": "World Languages",
+      "subject_area": null,
+      "language": "French",
+      "track": "French",
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "French I",
+        "min_gpa": null,
+        "courses": [
+          "French I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Intermediate French.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1030",
+      "state_course_number": null,
+      "title": "Personal Fitness",
+      "department": "Physical Education",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10
+      ],
+      "semester_offered": "Semester 1",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": true,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Fitness assessment and training.",
+      "is_elective": true,
+      "required_for_graduation": true,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1031",
+      "state_course_number": null,
+      "title": "Team Sports",
+      "department": "Physical Education",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "One Semester",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Rules and play of team sports.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1032",
+      "state_course_number": null,
+      "title": "Weight Training",
+      "department": "Physical Education",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Semester 2",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Strength and conditioning.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1033",
+      "state_course_number": null,
+      "title": "Introduction to Programming",
+      "department": "Electives",
+      "subject_area": "Technology & Engineering",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Semester 1",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Variables, loops and functions.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1034",
+      "state_course_number": null,
+      "title": "Web Development",
+      "department": "Electives",
+      "subject_area": "Technology & Engineering",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Semester 2",
+      "prerequisites": {
+        "raw": "Introduction to Programming",
+        "min_gpa": null,
+        "courses": [
+          "Introduction to Programming"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Markup, styling and scripting for the web.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1035",
+      "state_course_number": null,
+      "title": "Robotics Honors",
+      "department": "Electives",
+      "subject_area": "Technology & Engineering",
+      "language": null,
+      "track": null,
+      "level": "Honors",
+      "weight_indicator": "**",
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Introduction to Programming; 3.25 GPA",
+        "min_gpa": 3.25,
+        "courses": [
+          "Introduction to Programming"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": true,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": true,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Design, build and program a robot.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1036",
+      "state_course_number": null,
+      "title": "Digital Art",
+      "department": "Electives",
+      "subject_area": "Visual Arts",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "One Semester",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Raster and vector image making.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1037",
+      "state_course_number": null,
+      "title": "Advanced Studio Art",
+      "department": "Electives",
+      "subject_area": "Visual Arts",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Studio Art II and portfolio review",
+        "min_gpa": null,
+        "courses": [
+          "Studio Art II"
+        ],
+        "grade_requirements": [
+          "Portfolio review"
+        ]
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Independent portfolio work.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1038",
+      "state_course_number": null,
+      "title": "Concert Band",
+      "department": "Electives",
+      "subject_area": "Music",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": true,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [
+        "Evening performances are required."
+      ],
+      "description": "Ensemble rehearsal and performance.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1039",
+      "state_course_number": null,
+      "title": "Music Theory",
+      "department": "Electives",
+      "subject_area": "Music",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Semester 1",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Notation, harmony and ear training.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1040",
+      "state_course_number": null,
+      "title": "Theatre I",
+      "department": "Electives",
+      "subject_area": "Theatre",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": true,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": true,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Acting technique and stagecraft.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1041",
+      "state_course_number": null,
+      "title": "Yearbook",
+      "department": "Electives",
+      "subject_area": "Journalism",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": true,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Producing the school yearbook.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1042",
+      "state_course_number": null,
+      "title": "Speech and Debate",
+      "department": "Electives",
+      "subject_area": "Journalism",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "One Semester",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Argument, evidence and delivery.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1043",
+      "state_course_number": null,
+      "title": "Culinary Arts",
+      "department": "Electives",
+      "subject_area": "Family & Consumer",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Semester 2",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": true,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Kitchen safety, technique and nutrition.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1044",
+      "state_course_number": null,
+      "title": "Health",
+      "department": "Electives",
+      "subject_area": "Family & Consumer",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        9
+      ],
+      "semester_offered": "Semester 2",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [],
+      "description": "Personal health and wellness.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1045",
+      "state_course_number": null,
+      "title": "Driver Education",
+      "department": "Electives",
+      "subject_area": "Family & Consumer",
+      "language": null,
+      "track": null,
+      "level": "Standard",
+      "weight_indicator": null,
+      "credits": 0.5,
+      "credit_note": null,
+      "grade_levels": [
+        10,
+        11,
+        12
+      ],
+      "semester_offered": "Summer Only",
+      "prerequisites": {
+        "raw": null,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": false,
+        "additional_fee": true,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": null,
+      "notes": [
+        "Offered in the summer term only."
+      ],
+      "description": "Classroom and behind-the-wheel instruction.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "sub_courses": null
+    },
+    {
+      "course_code": "1046",
+      "state_course_number": null,
+      "title": "College Composition",
+      "department": "English",
+      "subject_area": null,
+      "language": null,
+      "track": null,
+      "level": "Dual Enrollment",
+      "weight_indicator": "***",
+      "credits": 1,
+      "credit_note": null,
+      "grade_levels": [
+        11,
+        12
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "English 10; 3.00 GPA",
+        "min_gpa": 3,
+        "courses": [
+          "English 10"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "ncaa_approved": false,
+        "ap_exam_required": false,
+        "dual_enrollment": true,
+        "additional_fee": false,
+        "summer_reading_required": false,
+        "meets_practical_fine_arts": false,
+        "meets_pe_requirement": false,
+        "fulfills_virtual_credit": false,
+        "min_enrollment_10": false,
+        "performance_required": false,
+        "has_lab": false
+      },
+      "college_credit": {
+        "provider": "Partner College",
+        "college_courses": [
+          "COMP101",
+          "COMP102"
+        ],
+        "college_course_titles": [
+          "Composition I",
+          "Composition II"
+        ],
+        "dual_enrollment_min_gpa": 3
+      },
+      "notes": [],
+      "description": "College-level composition taken for dual credit.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "sub_courses": null
+    }
+  ],
+  "data_notes": [
+    "Invented data. Any resemblance to a real guide is coincidental."
+  ]
+}

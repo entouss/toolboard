@@ -4,7 +4,16 @@ A browser-based widget workspace — a customizable dashboard where users add, a
 
 ## Development
 
-No build, lint, or test commands. Open `index.html` directly in a browser. Refresh to see changes.
+No build or lint step. Open `index.html` directly in a browser. Refresh to see changes.
+
+Tests live in `tests/` and drive a real Chrome through Playwright:
+
+```
+node tests/run.mjs              # everything
+node tests/run.mjs curr-grid    # just the suites whose name contains that
+```
+
+See [tests/README.md](../tests/README.md).
 
 External dependencies (loaded via CDN): `html2canvas` (screenshots), `marked.js` (markdown rendering), Google Fonts.
 
@@ -17,3 +26,4 @@ External dependencies (loaded via CDN): `html2canvas` (screenshots), `marked.js`
 - [URL Hashes](urls.md) — Board and tool links, on-the-fly plugin install
 - [Storage](storage.md) — localStorage layout, board-scoped keys, helpers
 - [Key Patterns](patterns.md) — Instance isolation, rendering, event handlers, theming
+- [Tests](../tests/README.md) — Running the browser suites, and writing one
