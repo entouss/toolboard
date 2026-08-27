@@ -147,6 +147,8 @@
 .curr-req-courses { padding: 1px 0 4px 14px; }
 .curr-req-course { display: flex; gap: 5px; align-items: baseline; font-size: 10px; color: var(--text-secondary); padding: 1px 2px; border-radius: 3px; cursor: pointer; }
 .curr-req-course:hover { background: var(--table-hover); color: var(--text-primary); }
+.curr-tag.earns { border-color: #27ae60; color: #27ae60; }
+.curr-details .curr-earns { color: #27ae60; }
 .curr-req-course.curr-req-off { opacity: 0.55; }
 .curr-req.curr-note { position: relative; padding-left: 13px; margin-top: 2px; }
 .curr-req.curr-note::before { content: '•'; position: absolute; left: 2px; top: 0; color: var(--text-muted); }
@@ -460,10 +462,35 @@ const CURR_FLAG_NAMES = {
     eoc_course: 'End-of-course exam'
 };
 
+// Most flags belong in the filter and nowhere else. A few say something about the
+// course itself — what it earns, what it ends in — and those belong on the row,
+// where they can be seen without knowing to go looking.
+const CURR_FLAG_BADGES = {
+    high_school_credit: { tag: 'HS', title: 'Earns high school credit' },
+    eoc_course: { tag: 'EOC', title: 'Ends in a state end-of-course exam' }
+};
+
 function currFlagLabel(key) {
     if (CURR_FLAG_NAMES[key]) return CURR_FLAG_NAMES[key];
     const words = String(key).replace(/_/g, ' ').trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+// A badge the level already shows is not worth showing twice.
+function currFlagBadgesHtml(course) {
+    const flags = course.flags || {};
+    const shown = course.level && course.level !== 'Standard' ? currLevelAbbr(course.level) : '';
+    return Object.keys(CURR_FLAG_BADGES).filter(function(key) {
+        return flags[key] && CURR_FLAG_BADGES[key].tag !== shown;
+    }).map(function(key) {
+        const badge = CURR_FLAG_BADGES[key];
+        let title = badge.title;
+        if (key === 'high_school_credit' && typeof course.high_school_credits === 'number') {
+            title += ' — ' + currFormatCredits(course.high_school_credits);
+        }
+        return '<span class="curr-tag earns" title="' + escapeHtml(title) + '">' +
+            badge.tag + '</span>';
+    }).join('');
 }
 
 function currFlagsInUse(courses) {
@@ -518,6 +545,7 @@ const CURR_SCHEMA = {
                     credits_basis: { type: 'string', description: 'printed, inferred or unknown. Shown with the credit when it is not printed.' },
                     subject_area: { type: ['string', 'null'], description: 'A finer grouping inside a department, and a second name a requirement may match.' },
                     level: { type: 'string', description: 'Rigour tier, shown as a badge and filterable. Absent: "Standard".' },
+                    high_school_credits: { type: 'number', description: 'Optional. Credit this course earns at another school — a middle school course taken for high school credit. Kept apart from `credits`, which is what it counts for where it is taken.' },
                     credits: { type: 'number', description: 'Counted per level, in the totals, and towards requirements. Absent: 0.' },
                     grade_levels: {
                         type: 'array', items: { type: 'number' },
@@ -1810,6 +1838,7 @@ function currCourseRowHtml(data, course, planner) {
         (course.level && course.level !== 'Standard' ?
             '<span class="curr-tag' + currLevelTagClass(course.level) + '" title="' + escapeHtml(course.level) +
             '">' + escapeHtml(currLevelAbbr(course.level)) + '</span>' : '') +
+        currFlagBadgesHtml(course) +
         '<span class="curr-tag sem" title="' + escapeHtml(course.semester_offered || 'Any term') + '">' +
             currShortSemester(course, planner) + '</span>' +
         '<span class="curr-tag">' + currFormatCredits(course.credits) + '</span>' +
@@ -1844,6 +1873,14 @@ function currDetailsHtml(data) {
     (course.notes || []).forEach(function(note) {
         html += '<p class="curr-note">' + escapeHtml(note) + '</p>';
     });
+    // A course taken in one school for another school's credit carries two credit
+    // values, and they must not be confused: `credits` counts here, this counts there.
+    if (course.flags && course.flags.high_school_credit) {
+        html += '<p class="curr-earns">Earns high school credit' +
+            (typeof course.high_school_credits === 'number'
+                ? ': ' + currFormatCredits(course.high_school_credits) + ' credits, counted at the ' +
+                  'school it transfers to rather than here.' : '.') + '</p>';
+    }
     const met = currIsCompleted(data, code);
     html += '<p>' + (met ? 'Already met, before this plan' :
             placed ? 'Planned for ' + escapeHtml(currTermLabel(planner, placed)) : 'Not in the plan') +
@@ -3814,7 +3851,7 @@ function cdocOnRender(toolId) {
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
         currBestTerm, currRender, currRenderFor, currMatchesFilters, currIsHidden,
-        currUniqueValues, currFlagLabel, currFlagsInUse, currOptions, currCatalogView, currCountHtml, currCatalogHtml, currListHtml,
+        currUniqueValues, currFlagLabel, currFlagBadgesHtml, currFlagsInUse, currOptions, currCatalogView, currCountHtml, currCatalogHtml, currListHtml,
         currRenderCatalogList, currPdfLabel, currLevelTagClass, currShortSemester,
         currCourseRowHtml, currCatalogFoldedHtml, currToggleCatalog, currDetailsHtml, currRightHtml, currGridHtml, currCellHtml,
         currCardHtml, currLevelCredits, currFineArtsIndex, currCountsToward, currTotalsHtml,
@@ -3844,6 +3881,7 @@ function cdocOnRender(toolId) {
         'window.CURR_SPAN_TERM = ' + CURR_SPAN_TERM.toString() + ';\n' +
         'window.CURR_ANY_TERM = ' + CURR_ANY_TERM.toString() + ';\n' +
         'window.CURR_FLAG_NAMES = ' + JSON.stringify(CURR_FLAG_NAMES) + ';\n' +
+        'window.CURR_FLAG_BADGES = ' + JSON.stringify(CURR_FLAG_BADGES) + ';\n' +
         // The rules carry regular expressions, so they are rebuilt rather than JSON'd.
         'window.CURR_REQUIREMENT_FLAGS = [' + CURR_REQUIREMENT_FLAGS.map(function(rule) {
             return '{flag:' + JSON.stringify(rule.flag) + ',subject:' + rule.subject.toString() + '}';
