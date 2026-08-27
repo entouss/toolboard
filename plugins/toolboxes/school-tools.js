@@ -213,6 +213,49 @@
 .curr-widget.narrow .curr-catalog.collapsed { flex: 0 0 auto; flex-direction: row; max-height: none; border-bottom: 1px solid var(--border-light); }
 .curr-widget.narrow .curr-collapse-label { writing-mode: horizontal-tb; }
 .curr-widget.narrow .curr-catalog { flex: 0 0 auto; max-height: 45%; border-right: none; border-bottom: 1px solid var(--border-light); padding-right: 0; padding-bottom: 6px; }
+
+/* ---- Curriculum Doctor ---- */
+.cdoc-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; font-size: 12px; color: var(--text-primary); }
+.cdoc-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cdoc-source { display: flex; flex-direction: column; gap: 6px; min-height: 0; min-width: 0; }
+.cdoc-source-actions { display: flex; gap: 6px; flex-wrap: wrap; flex: 0 0 auto; }
+.cdoc-drop { border: 1px dashed var(--border-color); border-radius: 6px; padding: 8px; text-align: center; color: var(--text-secondary); font-size: 11px; }
+.cdoc-drop.dragover { border-color: #3498db; color: var(--text-primary); }
+.cdoc-json { flex: 1; min-height: 80px; resize: none; font-family: 'Monaco', 'Courier New', monospace; font-size: 11px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
+.cdoc-status { font-size: 11px; padding: 3px 0; white-space: pre-wrap; flex: 0 0 auto; }
+.cdoc-status:empty { display: none; }
+.cdoc-status.ok { color: #27ae60; }
+.cdoc-status.err { color: #e74c3c; }
+.cdoc-report { flex: 1; overflow: auto; min-height: 0; min-width: 0; }
+.cdoc-empty { padding: 16px; color: var(--text-secondary); text-align: center; }
+.cdoc-score { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 0 8px; border-bottom: 1px solid var(--border-light); margin-bottom: 8px; }
+.cdoc-tally { font-size: 12px; }
+.cdoc-tally b { font-size: 15px; }
+.cdoc-tally.err b { color: #e74c3c; }
+.cdoc-tally.warn b { color: #e67e22; }
+.cdoc-tally.note b { color: var(--text-secondary); }
+.cdoc-clean { color: #27ae60; font-weight: 600; }
+.cdoc-group { border: 1px solid var(--border-light); border-radius: 5px; margin-bottom: 6px; overflow: hidden; }
+.cdoc-group-head { display: flex; align-items: center; gap: 6px; padding: 5px 8px; cursor: pointer; background: var(--bg-tertiary); font-size: 11px; }
+.cdoc-group-head:hover { background: var(--table-hover); }
+.cdoc-group-head .cdoc-caret { width: 10px; color: var(--text-muted); font-size: 9px; }
+.cdoc-group-head .cdoc-name { flex: 1; font-weight: 600; }
+.cdoc-group-head .cdoc-count { color: var(--text-secondary); font-size: 10px; }
+.cdoc-pill { flex: 0 0 auto; border-radius: 8px; padding: 0 6px; font-size: 9px; text-transform: uppercase; letter-spacing: .4px; }
+.cdoc-pill.err { background: #e74c3c; color: #fff; }
+.cdoc-pill.warn { background: #e67e22; color: #fff; }
+.cdoc-pill.note { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+.cdoc-why { padding: 6px 8px; font-size: 10px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); }
+.cdoc-item { padding: 5px 8px; border-bottom: 1px solid var(--border-light); font-size: 11px; }
+.cdoc-item:last-child { border-bottom: 0; }
+.cdoc-path { font-family: 'Monaco', 'Courier New', monospace; font-size: 9px; color: var(--text-muted); }
+.cdoc-detail { font-size: 10px; color: var(--text-secondary); padding-left: 10px; }
+.cdoc-detail b { color: var(--text-primary); font-weight: 600; }
+.cdoc-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.cdoc-table td { padding: 2px 6px; border-bottom: 1px solid var(--border-light); }
+.cdoc-table td:last-child { text-align: right; color: var(--text-secondary); }
+.cdoc-table tr.thin td:first-child { color: var(--text-muted); }
+.cdoc-widget.narrow .cdoc-score { gap: 6px; }
 `;
     document.head.appendChild(style);
 })();
@@ -228,7 +271,7 @@ PluginRegistry.registerToolbox({
     icon: '🎓',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['curriculum-explorer'],
+    tools: ['curriculum-explorer', 'curriculum-doctor'],
     source: 'external'
 });
 
@@ -733,6 +776,9 @@ function currSaveData(toolId, data) {
 // A whole curriculum is serialised on every write, which is far too much work to
 // do once per keystroke. The change is live in memory at once; the write follows.
 let currSaveTimer = null;
+
+// The doctor keeps a draft the same way, and needs a timer of its own.
+let cdocDraftTimer = null;
 
 function currSaveDataSoon(toolId, data) {
     toolCustomizations[toolId] = toolCustomizations[toolId] || {};
@@ -3084,6 +3130,671 @@ function currOnRender(toolId) {
     if (widget) currRender(widget);
 }
 
+PluginRegistry.registerTool({
+    id: 'curriculum-doctor',
+    name: 'Curriculum Doctor',
+    description: 'Check a curriculum document for the problems that make a plan quietly wrong',
+    icon: '🩺',
+    version: CURR_VERSION,
+    toolbox: 'school-tools',
+    tags: ['curriculum', 'school', 'validate', 'json', 'schema', 'lint', 'education'],
+    title: 'Curriculum Doctor',
+    content: `<div class="cdoc-widget">
+<div class="cdoc-actions"></div>
+<div class="cdoc-status"></div>
+<div class="authoring-split">
+<div class="authoring-source cdoc-source">
+<div class="cdoc-source-actions">
+<button class="curr-btn" onclick="cdocLoadSource(this)" title="Read the JSON below and check it">Check</button>
+<label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="cdocHandleFile(this)"></label>
+</div>
+<div class="cdoc-drop" ondragover="cdocDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="cdocDropFile(event, this)">Paste the curriculum JSON below, or drop a .json file here</div>
+<textarea class="cdoc-json" spellcheck="false" oninput="cdocDraftChanged(this)" placeholder="{ &quot;courses&quot;: [ ... ] }"></textarea>
+</div>
+<div class="authoring-resizer"></div>
+<div class="authoring-result cdoc-report"></div>
+</div>
+</div>`,
+    // Same framework the explorer uses: the JSON is the source, the report is the
+    // result. A new tool has no document, so it opens where you put one.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'edit',
+        source: '.cdoc-source',
+        result: '.cdoc-report',
+        actions: '.cdoc-actions',
+        labels: { edit: 'JSON' },
+        titles: { edit: 'The curriculum document', render: 'What is wrong with it' },
+        onRender: 'cdocOnRender'
+    },
+    hashParams: 'cdocApplyHashParams',
+    guide: 'learn/tools/curriculum-explorer.html',
+    contentType: 'html',
+    onInit: 'cdocInit',
+    defaultWidth: 900,
+    defaultHeight: 620,
+    source: 'external'
+});
+
+// =============================================
+// CURRICULUM DOCTOR
+// =============================================
+// The explorer checks a plan against a document. This checks the document itself,
+// before there is a plan — which is where nearly every real problem has been. It
+// reads by exactly the rules the explorer reads by, so what it reports is what the
+// explorer will actually do, not a second opinion about the same file.
+
+function cdocGetWidget(el) {
+    return el && el.closest ? el.closest('.cdoc-widget') : null;
+}
+
+function cdocWidgetFor(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    return tool ? tool.querySelector('.cdoc-widget') : null;
+}
+
+function cdocGetData(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const d = custom.doctor || {};
+    // Every field this tool keeps has to be named here, or it is written and then
+    // dropped on the next read.
+    return {
+        catalog: d.catalog || null,
+        draft: d.draft || null,
+        sourceUrl: d.sourceUrl || null,
+        ui: Object.assign({ open: [] }, d.ui || {})
+    };
+}
+
+function cdocSaveData(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].doctor = data;
+    try {
+        saveToolCustomizations(toolCustomizations);
+        return true;
+    } catch (e) {
+        cdocSetStatus(cdocWidgetFor(toolId), 'err', 'This document is too large for the space ' +
+            'this board has left. It is checked and readable, but it will not survive a reload.');
+        return false;
+    }
+}
+
+function cdocSetStatus(widget, kind, message) {
+    const status = widget && widget.querySelector('.cdoc-status');
+    if (!status) return;
+    status.className = 'cdoc-status' + (kind ? ' ' + kind : '');
+    status.textContent = message || '';
+}
+
+// ---- What a title might have meant -----------------------------------------
+
+// Tokens the two share over the tokens either has, so "AICE U.S. History" reaches
+// "AICE United States History" without reaching everything else beginning "AICE".
+// A near miss is offered as a question, never applied as an answer.
+function cdocSuggest(index, title, limit) {
+    const want = currNormTitle(title).split(' ').filter(Boolean);
+    if (!want.length) return [];
+    const out = [];
+    Object.keys(index).forEach(function(key) {
+        const have = key.split(' ').filter(Boolean);
+        if (!have.length) return;
+        let shared = 0;
+        want.forEach(function(t) { if (have.indexOf(t) !== -1) shared++; });
+        if (!shared) return;
+        const score = shared / Math.max(want.length, have.length);
+        if (score >= 0.45) out.push({ key: key, score: score, codes: index[key] });
+    });
+    out.sort(function(a, b) { return b.score - a.score; });
+    return out.slice(0, limit || 3);
+}
+
+function cdocFinding(severity, kind, path, message, detail) {
+    return { severity: severity, kind: kind, path: path, message: message, detail: detail || [] };
+}
+
+// What each kind of finding is, and why it is worth saying. Order is report order.
+const CDOC_KINDS = [
+    { kind: 'duplicate-code', severity: 'error', name: 'The same course code twice',
+      why: 'Prerequisites and the plan both key on the course code, so of two courses sharing one, the second can never be reached.' },
+    { kind: 'stray-level', severity: 'error', name: 'A year far outside the others',
+      why: 'The plan runs over whatever years the courses name, so a single mistyped grade number stretches the grid to reach it — and leaves empty years in between.' },
+    { kind: 'no-requirements', severity: 'warning', name: 'Nothing to plan against',
+      why: 'The explorer counts credits against `graduation_requirements.credits_by_subject`. Without it a plan has no target, and the panel under the grid stays empty.' },
+    { kind: 'prereq-unresolved', severity: 'warning', name: 'Prerequisites naming no course',
+      why: 'The title is matched against course titles and their `title_variants`. One that matches nothing is dropped silently, so the course looks like it has no prerequisite at all.' },
+    { kind: 'pathway-unresolved', severity: 'warning', name: 'Pathway groups naming no course',
+      why: 'A group counts the courses it lists. A title matching nothing is simply not counted, which is how a group reads "1 of 9" when three are planned.' },
+    { kind: 'requirement-unmatched', severity: 'warning', name: 'Requirements matching no course',
+      why: 'The subject is matched against each course’s department, subject area, cross credit and satisfying flags. Matching nothing means the bar can never move.' },
+    { kind: 'requirement-unreachable', severity: 'warning', name: 'Requirements that cannot be met',
+      why: 'Every course that could count towards this requirement, added together, is still short of what it asks for.' },
+    { kind: 'title-collision', severity: 'warning', name: 'Two courses with the same title',
+      why: 'A prerequisite naming that title cannot tell them apart, and resolves to whichever comes first in the file.' },
+    { kind: 'choice-unclear', severity: 'warning', name: 'Prerequisite lines to read yourself',
+      why: 'Several courses are listed and the printed text does not settle whether all are required or any one will do. This cannot be read off the data, and it is reported whichever way the file currently has it — a line wrongly marked as a choice lets an unmet prerequisite pass in silence, which is worse than a line that over-warns.' },
+    { kind: 'prereq-cycle', severity: 'warning', name: 'Prerequisites that loop',
+      why: 'Each course in the loop needs another that needs it back, so none of them can ever be placed first.' },
+    { kind: 'prereq-impossible', severity: 'warning', name: 'Prerequisites that cannot come first',
+      why: 'There is no year this course is open to that leaves room for what it needs to have finished beforehand.' },
+    { kind: 'coverage', severity: 'note', name: 'What the document carries',
+      why: 'A field left empty across the whole catalog is usually a section the conversion skipped rather than a school that does not print it.' }
+];
+
+function cdocKind(kind) {
+    for (let i = 0; i < CDOC_KINDS.length; i++) {
+        if (CDOC_KINDS[i].kind === kind) return CDOC_KINDS[i];
+    }
+    return { kind: kind, severity: 'note', name: kind, why: '' };
+}
+
+// ---- The examination --------------------------------------------------------
+
+function cdocCheck(catalog) {
+    const findings = [];
+    const empty = { findings: findings, errors: 0, warnings: 0, notes: 0, courses: 0 };
+    if (!catalog || !Array.isArray(catalog.courses) || !catalog.courses.length) return empty;
+
+    // The explorer's own helpers read a `data` object, and a catalog is all they need.
+    const data = { catalog: catalog };
+    const courses = currCourses(data);
+    const byCode = currByCode(data);
+    const index = currTitleIndex(data);
+    const planner = currPlanner(data);
+    const fineArts = currFineArtsIndex(data);
+    const at = function(i) { return '/courses/' + i; };
+
+    // 1 ── the same code twice
+    const firstAt = {};
+    courses.forEach(function(course, i) {
+        const code = String(course.course_code);
+        if (firstAt[code] === undefined) { firstAt[code] = i; return; }
+        findings.push(cdocFinding('error', 'duplicate-code', at(i),
+            'Code ' + code + ' is used by both "' + courses[firstAt[code]].title +
+            '" and "' + course.title + '".'));
+    });
+
+    // 2 ── a year nothing else is near. The levels are read off the courses, so an
+    //      outlier is not rejected — it is obeyed, and the grid grows to reach it.
+    const stated = Array.isArray((catalog.planner || {}).levels) && catalog.planner.levels.length;
+    if (!stated) {
+        const run = planner.levels.slice().sort(function(a, b) { return a - b; });
+        for (let k = 1; k < run.length; k++) {
+            if (run[k] - run[k - 1] <= 1) continue;
+            const strays = run.slice(k);
+            const who = courses.filter(function(c) {
+                return c.grade_levels.some(function(l) { return strays.indexOf(l) !== -1; });
+            });
+            findings.push(cdocFinding('error', 'stray-level', '/courses',
+                'The years run ' + run.slice(0, k).join(', ') + ' and then jump to ' +
+                strays.join(', ') + '.',
+                who.slice(0, 6).map(function(c) {
+                    return c.title + ' is open to ' + c.grade_levels.join(', ') + '.';
+                })));
+            break;
+        }
+    }
+
+    // 3 ── prerequisites naming nothing, and what they might have meant
+    courses.forEach(function(course, i) {
+        (course.prerequisites.courses || []).forEach(function(name, n) {
+            if (currResolveTitle(index, name)) return;
+            const guesses = cdocSuggest(index, name, 3).map(function(g) {
+                const c = byCode[g.codes[0]];
+                return (c ? c.title : g.key) + (g.codes.length > 1 ? ' (and ' + (g.codes.length - 1) + ' more)' : '');
+            });
+            findings.push(cdocFinding('warning', 'prereq-unresolved',
+                at(i) + '/prerequisites/courses/' + n,
+                '"' + course.title + '" needs "' + name + '", which is not a course here.',
+                guesses.length ? ['Did you mean: ' + guesses.join(' · ')] : []));
+        });
+    });
+
+    // 4 ── pathway groups naming nothing
+    (catalog.program_groupings || []).forEach(function(program, pi) {
+        (program.groups || []).forEach(function(group, gi) {
+            (group.courses || []).forEach(function(name, ci) {
+                if (currResolveTitle(index, name)) return;
+                const guesses = cdocSuggest(index, name, 2).map(function(g) {
+                    const c = byCode[g.codes[0]];
+                    return c ? c.title : g.key;
+                });
+                findings.push(cdocFinding('warning', 'pathway-unresolved',
+                    '/program_groupings/' + pi + '/groups/' + gi + '/courses/' + ci,
+                    (program.name || 'A pathway') + ' → ' + (group.name || 'a group') +
+                    ' lists "' + name + '", which is not a course here.',
+                    guesses.length ? ['Did you mean: ' + guesses.join(' · ')] : []));
+            });
+        });
+    });
+
+    // 5 ── requirements
+    const reqs = ((catalog.graduation_requirements || {}).credits_by_subject) || [];
+    if (!reqs.length) {
+        findings.push(cdocFinding('warning', 'no-requirements', '/graduation_requirements',
+            catalog.graduation_requirements
+                ? 'There is a graduation_requirements block, but credits_by_subject is empty.'
+                : 'The document states no graduation requirements.'));
+    }
+    reqs.forEach(function(req, ri) {
+        let matched = 0;
+        let available = 0;
+        courses.forEach(function(course) {
+            if (!currCountsToward(data, course, req.subject, fineArts)) return;
+            matched++;
+            available += course.credits || 0;
+        });
+        const path = '/graduation_requirements/credits_by_subject/' + ri;
+        if (!matched) {
+            findings.push(cdocFinding('warning', 'requirement-unmatched', path,
+                '"' + req.subject + '" asks for ' + currFormatCredits(req.credits_required || 0) +
+                ' credits, and no course in this catalog counts towards it.'));
+            return;
+        }
+        if (available < (req.credits_required || 0)) {
+            findings.push(cdocFinding('warning', 'requirement-unreachable', path,
+                '"' + req.subject + '" asks for ' + currFormatCredits(req.credits_required) +
+                ' credits, and every course that counts adds up to ' + currFormatCredits(available) + '.'));
+        }
+    });
+
+    // 6 ── two courses answering to one title
+    Object.keys(index).forEach(function(key) {
+        if (index[key].length < 2) return;
+        const titles = index[key].map(function(c) { return (byCode[c] || {}).title || c; });
+        findings.push(cdocFinding('warning', 'title-collision', '/courses',
+            index[key].length + ' courses answer to the title "' + titles[0] + '": ' +
+            index[key].join(', ') + '.'));
+    });
+
+    // 7 ── lines only a person can settle. Reported whichever way the file has
+    //      them: the flag is a claim about the source document, and a wrong claim
+    //      in the permissive direction passes an unmet prerequisite in silence.
+    courses.forEach(function(course, i) {
+        const p = course.prerequisites;
+        if ((p.courses || []).length < 2) return;
+        if (/ or /i.test(p.raw || '')) return;
+        findings.push(cdocFinding('warning', 'choice-unclear', at(i) + '/prerequisites',
+            '"' + course.title + '" lists ' + p.courses.length + ' prerequisites: ' +
+            p.courses.join(', ') + '.',
+            [p.raw ? 'The guide says: ' + p.raw
+                   : 'The guide prints no prerequisite text for this course.',
+             p.choice === true
+                ? 'Currently read as: any one of them will do — and nothing in the printed text says so.'
+                : 'Currently read as: all of them are required.']));
+    });
+
+    // 8 ── loops
+    const seen = {};
+    const stack = {};
+    const reported = {};
+    const walk = function(code, trail) {
+        if (stack[code]) {
+            const loop = trail.slice(trail.indexOf(code)).concat([code]);
+            const key = loop.slice().sort().join('>');
+            if (!reported[key]) {
+                reported[key] = true;
+                findings.push(cdocFinding('warning', 'prereq-cycle', '/courses',
+                    loop.map(function(c) { return (byCode[c] || {}).title || c; }).join(' → ') + '.'));
+            }
+            return;
+        }
+        if (seen[code]) return;
+        seen[code] = true;
+        stack[code] = true;
+        const course = byCode[code];
+        if (course) {
+            (course.prerequisites.courses || []).forEach(function(name) {
+                const next = currResolveTitle(index, name);
+                if (next) walk(next, trail.concat([code]));
+            });
+        }
+        stack[code] = false;
+    };
+    courses.forEach(function(c) { walk(c.course_code, []); });
+
+    // 9 ── nothing early enough to put it after
+    courses.forEach(function(course, i) {
+        const names = course.prerequisites.courses || [];
+        if (!names.length || !course.grade_levels.length) return;
+        const needs = names.map(function(n) { return currResolveTitle(index, n); })
+            .filter(Boolean).map(function(c) { return byCode[c]; })
+            .filter(function(c) { return c && c.grade_levels.length; });
+        if (!needs.length) return;
+        const choice = course.prerequisites.choice === true || / or /i.test(course.prerequisites.raw || '');
+        const works = course.grade_levels.some(function(level) {
+            const fits = function(n) { return n.grade_levels.some(function(l) { return l < level; }); };
+            return choice ? needs.some(fits) : needs.every(fits);
+        });
+        if (works) return;
+        findings.push(cdocFinding('warning', 'prereq-impossible', at(i),
+            '"' + course.title + '" is open to ' + course.grade_levels.join(', ') +
+            ', and ' + (choice ? 'none of' : 'not all of') + ' what it needs can be taken earlier.',
+            [needs.map(function(n) { return n.title + ' (' + n.grade_levels.join(', ') + ')'; }).join(' · ')]));
+    });
+
+    // 10 ── what the document carries at all
+    const filled = { credits: 0, grade_levels: 0, semester_offered: 0, description: 0,
+        prerequisites: 0, 'prerequisites.raw': 0 };
+    courses.forEach(function(c) {
+        if (c.credits) filled.credits++;
+        if (c.grade_levels.length) filled.grade_levels++;
+        if (c.semester_offered) filled.semester_offered++;
+        if (c.description) filled.description++;
+        if ((c.prerequisites.courses || []).length) filled.prerequisites++;
+        if (c.prerequisites.raw) filled['prerequisites.raw']++;
+    });
+    findings.push(cdocFinding('note', 'coverage', '/courses',
+        courses.length + ' courses.', Object.keys(filled).map(function(k) {
+            return k + '\t' + filled[k];
+        })));
+
+    let errors = 0, warnings = 0, notes = 0;
+    findings.forEach(function(f) {
+        if (f.severity === 'error') errors++;
+        else if (f.severity === 'warning') warnings++;
+        else notes++;
+    });
+    return { findings: findings, errors: errors, warnings: warnings, notes: notes,
+        courses: courses.length };
+}
+
+// ---- The report -------------------------------------------------------------
+
+function cdocReportHtml(data) {
+    if (!data.catalog) {
+        return '<div class="cdoc-empty">No document to check yet.<br>' +
+            'Paste a curriculum in the JSON pane, drop a file on it, or open one by link.</div>';
+    }
+    const result = cdocCheck(data.catalog);
+    const open = data.ui.open || [];
+    const tally = function(n, cls, word) {
+        return '<span class="cdoc-tally ' + cls + '"><b>' + n + '</b> ' +
+            word + (n === 1 ? '' : 's') + '</span>';
+    };
+    let html = '<div class="cdoc-score">' +
+        tally(result.errors, 'err', 'error') +
+        tally(result.warnings, 'warn', 'warning') +
+        tally(result.notes, 'note', 'note') +
+        '<span class="cdoc-tally note">' + result.courses + ' courses</span>' +
+        (result.errors + result.warnings === 0
+            ? '<span class="cdoc-clean">Nothing to fix.</span>' : '') +
+        '<button class="curr-btn" style="margin-left:auto" onclick="cdocCopyBrief(this)" ' +
+            'title="A description of every finding, to hand back to whatever wrote the file">' +
+            'Copy repair brief</button>' +
+        '</div>';
+
+    CDOC_KINDS.forEach(function(spec) {
+        const mine = result.findings.filter(function(f) { return f.kind === spec.kind; });
+        if (!mine.length) return;
+        const showing = open.indexOf(spec.kind) !== -1;
+        html += '<div class="cdoc-group">' +
+            '<div class="cdoc-group-head" onclick="cdocToggleGroup(this, \'' + spec.kind + '\')">' +
+                '<span class="cdoc-caret">' + (showing ? '▾' : '▸') + '</span>' +
+                '<span class="cdoc-pill ' + (spec.severity === 'error' ? 'err' :
+                    spec.severity === 'warning' ? 'warn' : 'note') + '">' + spec.severity + '</span>' +
+                '<span class="cdoc-name">' + escapeHtml(spec.name) + '</span>' +
+                '<span class="cdoc-count">' + mine.length + '</span>' +
+            '</div>';
+        if (showing) {
+            html += '<div class="cdoc-why">' + escapeHtml(spec.why) + '</div>';
+            if (spec.kind === 'coverage') {
+                html += '<div class="cdoc-item"><table class="cdoc-table">' +
+                    mine[0].detail.map(function(row) {
+                        const bits = row.split('\t');
+                        const n = parseInt(bits[1], 10);
+                        return '<tr' + (n ? '' : ' class="thin"') + '><td>' + escapeHtml(bits[0]) +
+                            '</td><td>' + bits[1] + ' of ' + result.courses + '</td></tr>';
+                    }).join('') + '</table></div>';
+            } else {
+                html += mine.map(function(f) {
+                    return '<div class="cdoc-item">' + escapeHtml(f.message) +
+                        f.detail.map(function(d) {
+                            return '<div class="cdoc-detail">' + escapeHtml(d) + '</div>';
+                        }).join('') +
+                        '<div class="cdoc-path">' + escapeHtml(f.path) + '</div>' +
+                    '</div>';
+                }).join('');
+            }
+        }
+        html += '</div>';
+    });
+    return html;
+}
+
+function cdocRender(widget) {
+    if (!widget) return;
+    const toolId = currGetToolId(widget);
+    if (!toolId) return;
+    const report = widget.querySelector('.cdoc-report');
+    if (!report) return;
+    widget.classList.toggle('narrow', widget.offsetWidth > 0 && widget.offsetWidth < 640);
+    const kept = report.scrollTop;
+    report.innerHTML = cdocReportHtml(cdocGetData(toolId));
+    report.scrollTop = kept;
+}
+
+function cdocToggleGroup(el, kind) {
+    const widget = cdocGetWidget(el);
+    const toolId = currGetToolId(widget);
+    const data = cdocGetData(toolId);
+    data.ui.open = data.ui.open || [];
+    const at = data.ui.open.indexOf(kind);
+    if (at === -1) data.ui.open.push(kind); else data.ui.open.splice(at, 1);
+    cdocSaveData(toolId, data);
+    cdocRender(widget);
+}
+
+// ---- The brief --------------------------------------------------------------
+
+// Written to be pasted back to whatever produced the file, alongside the file
+// itself. It says what is wrong, where, and — for the one class of finding that
+// cannot be settled from the data — what not to guess.
+function cdocBrief(data) {
+    const result = cdocCheck(data.catalog);
+    const lines = [];
+    lines.push('Please correct this curriculum JSON. It was checked against the schema the');
+    lines.push('Toolboard Curriculum Explorer reads, and ' + result.errors + ' errors and ' +
+        result.warnings + ' warnings were found across ' + result.courses + ' courses.');
+    lines.push('');
+    lines.push('Paths below are JSON pointers into the file. Change only what is named.');
+    lines.push('');
+
+    CDOC_KINDS.forEach(function(spec) {
+        const mine = result.findings.filter(function(f) {
+            return f.kind === spec.kind && f.severity !== 'note';
+        });
+        if (!mine.length) return;
+        lines.push('## ' + spec.name.toUpperCase() + ' (' + mine.length + ', ' + spec.severity + ')');
+        lines.push(spec.why);
+        lines.push('');
+        mine.forEach(function(f) {
+            lines.push('- ' + f.path);
+            lines.push('  ' + f.message);
+            f.detail.forEach(function(d) { lines.push('  ' + d); });
+        });
+        lines.push('');
+    });
+
+    if (result.findings.some(function(f) { return f.kind === 'choice-unclear'; })) {
+        lines.push('## ON THE AMBIGUOUS PREREQUISITE LINES');
+        lines.push('Do not guess these from the shape of the list. Go back to the source');
+        lines.push('document and read the sentence. Add "choice": true to the prerequisites');
+        lines.push('object only where the document says one of the listed courses will do.');
+        lines.push('Leaving it off makes the planner warn when it should not, which is a');
+        lines.push('nuisance. Putting it on wrongly makes the planner accept a plan that has');
+        lines.push('not met the prerequisite, and say nothing, which is worse.');
+        lines.push('');
+    }
+    lines.push('## DO NOT');
+    lines.push('- Do not invent courses to satisfy an unresolved title. If the course is');
+    lines.push('  genuinely absent from the catalog, remove the reference or say so.');
+    lines.push('- Do not rename a course to match a prerequisite. Add the printed form to');
+    lines.push('  that course\'s title_variants instead, so both spellings resolve.');
+    lines.push('- Do not change course codes. The plan is keyed on them.');
+    return lines.join('\n');
+}
+
+function cdocCopyBrief(btn) {
+    const widget = cdocGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const data = cdocGetData(toolId);
+    if (!data.catalog) {
+        cdocSetStatus(widget, 'err', 'There is nothing to write a brief about yet.');
+        return;
+    }
+    const text = cdocBrief(data);
+    const done = function() {
+        cdocSetStatus(widget, 'ok', 'Repair brief copied — ' + text.split('\n').length +
+            ' lines. Paste it back with the file.');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function() {
+            cdocSetStatus(widget, 'err', 'The brief could not be copied.');
+        });
+        return;
+    }
+    const box = widget.querySelector('.cdoc-json');
+    box.value = text;
+    box.select();
+    done();
+}
+
+// ---- Getting a document in ---------------------------------------------------
+
+function cdocLoadDoc(widget, toolId, doc, note) {
+    const data = cdocGetData(toolId);
+    data.catalog = doc;
+    delete data.draft;
+    cdocSaveData(toolId, data);
+    const result = cdocCheck(doc);
+    cdocSetStatus(widget, result.errors ? 'err' : (result.warnings ? '' : 'ok'),
+        note || (doc.courses.length + ' courses checked — ' + result.errors + ' errors, ' +
+            result.warnings + ' warnings.'));
+    if (typeof setToolMode === 'function') setToolMode(toolId, 'render');
+    cdocRender(widget);
+}
+
+function cdocLoadSource(btn) {
+    const widget = cdocGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const text = widget.querySelector('.cdoc-json').value.trim();
+    if (!text) {
+        cdocSetStatus(widget, 'err', 'Nothing to check: paste a curriculum document first.');
+        return;
+    }
+    // A document too broken to parse is exactly what this tool is for, so the
+    // parser's own complaints are the report.
+    const parsed = currParse(text);
+    if (!parsed.ok) {
+        cdocSetStatus(widget, 'err', 'This document cannot be read at all:\n' +
+            parsed.errors.join('\n') + (parsed.more ? '\n…and ' + parsed.more + ' more' : ''));
+        return;
+    }
+    cdocLoadDoc(widget, toolId, parsed.doc);
+}
+
+function cdocDraftChanged(box) {
+    const widget = cdocGetWidget(box);
+    const toolId = currGetToolId(box);
+    if (!widget || !toolId) return;
+    clearTimeout(cdocDraftTimer);
+    const text = box.value;
+    cdocDraftTimer = setTimeout(function() {
+        const data = cdocGetData(toolId);
+        const loaded = data.catalog ? JSON.stringify(data.catalog, null, 2) : '';
+        if (text === loaded || !text.trim()) {
+            delete data.draft;
+            cdocSaveData(toolId, data);
+            return;
+        }
+        data.draft = text;
+        if (cdocSaveData(toolId, data)) {
+            cdocSetStatus(widget, '', 'Edited — press Check to read it. Kept for now, either way.');
+        }
+    }, 500);
+}
+
+function cdocHandleFile(input) {
+    const widget = cdocGetWidget(input);
+    const toolId = currGetToolId(input);
+    if (input.files && input.files[0]) cdocReadFile(widget, toolId, input.files[0]);
+    input.value = '';
+}
+
+function cdocDragOver(e, el) {
+    e.preventDefault();
+    el.classList.add('dragover');
+}
+
+function cdocDropFile(e, el) {
+    e.preventDefault();
+    el.classList.remove('dragover');
+    const widget = cdocGetWidget(el);
+    const toolId = currGetToolId(el);
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) cdocReadFile(widget, toolId, file);
+}
+
+function cdocReadFile(widget, toolId, file) {
+    if (!widget || !toolId) return;
+    const reader = new FileReader();
+    reader.onload = function() {
+        widget.querySelector('.cdoc-json').value = String(reader.result);
+        cdocLoadSource(widget.querySelector('.cdoc-json'));
+    };
+    reader.onerror = function() { cdocSetStatus(widget, 'err', 'That file could not be read.'); };
+    reader.readAsText(file);
+}
+
+async function cdocApplyHashParams(toolId, params) {
+    const url = params.curriculum || params.url || params.src;
+    if (!url) return;
+    const widget = cdocWidgetFor(toolId);
+    if (!widget) return;
+    const data = cdocGetData(toolId);
+    if (data.catalog && data.sourceUrl === url) return;
+    let text;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        text = await res.text();
+    } catch (e) {
+        cdocSetStatus(widget, 'err', 'That document could not be fetched: ' + e.message);
+        return;
+    }
+    const parsed = currParse(text);
+    if (!parsed.ok) {
+        cdocSetStatus(widget, 'err', 'This document cannot be read at all:\n' + parsed.errors.join('\n'));
+        return;
+    }
+    widget.querySelector('.cdoc-json').value = text;
+    const fresh = cdocGetData(toolId);
+    fresh.sourceUrl = url;
+    cdocSaveData(toolId, fresh);
+    cdocLoadDoc(widget, toolId, parsed.doc);
+}
+
+function cdocInit() {
+    document.querySelectorAll('.cdoc-widget').forEach(function(widget) {
+        const toolId = currGetToolId(widget);
+        if (!toolId) return;
+        const data = cdocGetData(toolId);
+        const box = widget.querySelector('.cdoc-json');
+        if (box && !box.value) {
+            if (data.draft) box.value = data.draft;
+            else if (data.catalog) box.value = JSON.stringify(data.catalog, null, 2);
+        }
+        cdocRender(widget);
+    });
+}
+
+function cdocOnRender(toolId) {
+    const widget = cdocWidgetFor(toolId);
+    if (widget) cdocRender(widget);
+}
+
 (function injectScriptsForExport() {
     if (document.getElementById('school-tools-scripts')) return;
 
@@ -3116,7 +3827,12 @@ function currOnRender(toolId) {
         currGoToIssue, currCourseDragStart,
         currCellDragOver, currCellDragLeave, currCellDrop, currCellClick, currCardDragOver,
         currCardDragLeave, currCardDrop, currMoveCard, currPlace, currRemove,
-        currAutoPlace, currAutoPlaceCode, currSampleCourse, currInit, currOnRender];
+        currAutoPlace, currAutoPlaceCode, currSampleCourse, currInit, currOnRender,
+        cdocGetWidget, cdocWidgetFor, cdocGetData, cdocSaveData, cdocSetStatus,
+        cdocSuggest, cdocFinding, cdocKind, cdocCheck, cdocReportHtml, cdocRender,
+        cdocToggleGroup, cdocBrief, cdocCopyBrief, cdocLoadDoc, cdocLoadSource,
+        cdocDraftChanged, cdocHandleFile, cdocDragOver, cdocDropFile, cdocReadFile,
+        cdocApplyHashParams, cdocInit, cdocOnRender];
 
     var code = '(function() {\n' +
         'if (typeof currInit !== "undefined") return;\n' +
@@ -3142,6 +3858,8 @@ function currOnRender(toolId) {
         'window.CURR_NODE_W = ' + CURR_NODE_W + '; window.CURR_NODE_H = ' + CURR_NODE_H + ';\n' +
         'window.CURR_GAP_X = ' + CURR_GAP_X + '; window.CURR_GAP_Y = ' + CURR_GAP_Y + ';\n' +
         'window.currDragCode = null; window.currSaveTimer = null; window.currDraftTimer = null;\n' +
+        'window.cdocDraftTimer = null;\n' +
+        'window.CDOC_KINDS = ' + JSON.stringify(CDOC_KINDS) + ';\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         currFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -3155,4 +3873,4 @@ function currOnRender(toolId) {
 
 // The version is logged so it is possible to tell, from the console, which copy of
 // this file a page is actually running — a cached one looks identical otherwise.
-console.log('School Tools plugin loaded (1 tool) v' + CURR_VERSION);
+console.log('School Tools plugin loaded (2 tools) v' + CURR_VERSION);
