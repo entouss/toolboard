@@ -145,10 +145,12 @@
 
 <h2>Example catalogs</h2>
 <p>
-    Two complete catalogs to try the tool on. Both describe <strong>fictitious schools</strong>:
-    the course data is real in shape and structure, but the schools, their staff and their
-    documents are invented, and neither one is anyone's official curriculum.
+    Four catalogs to try the tool on, covering a school career end to end. All four describe
+    <strong>fictitious schools</strong>: the course data is real in shape and structure, but the
+    schools, their staff, their mascots and their documents are invented, and none of them is
+    anyone's official curriculum.
 </p>
+<h3>High school — where there is a plan to make</h3>
 
 <div class="card">
     <div class="card-head">
@@ -180,6 +182,62 @@
         <div class="actions">
             <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/ashford-2025-2026.json">Open it in Toolboard</a>
             <a class="btn" href="../data/ashford-2025-2026.json">Download the JSON</a>
+        </div>
+    </div>
+</div>
+
+<h3>Before high school — where there is not</h3>
+<p>
+    These two are worth loading for a different reason. Neither is something you plan: a middle
+    schooler picks two electives, and an elementary pupil picks nothing at all. What they show is
+    the tool reading a document that does not fit the shape it was built for, and saying so rather
+    than pretending otherwise — every year reads 0.0 credits, because that is the truth.
+</p>
+
+<div class="card">
+    <div class="card-head">
+        Iron Ridge Middle School
+        <span class="meta">2026–2027 · grades 6–8 · 47 entries</span>
+    </div>
+    <div class="card-body">
+        <p>
+            Twenty-nine electives with applications and prerequisites, plus two accelerated
+            tracks — GEM in mathematics, GEARS in science — that reach Algebra I Honors,
+            Geometry Honors and Honors Biology 1 before ninth grade even starts. Nine courses
+            earn high school credit, badged <strong>HS</strong> in the catalog, and they carry
+            their high school credit value separately from the zero they count for here.
+        </p>
+        <p>
+            This is the catalog that explains the <em>Already met</em> checkbox: it is where the
+            credits a student arrives with actually come from.
+        </p>
+        <div class="actions">
+            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/ironridge-2026-2027.json">Open it in Toolboard</a>
+            <a class="btn" href="../data/ironridge-2026-2027.json">Download the JSON</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        Braewood County Public Schools
+        <span class="meta">2025–2026 · Kindergarten to grade 5 · 31 entries</span>
+    </div>
+    <div class="card-body">
+        <p>
+            A whole district's elementary curriculum: six subjects a year, and 768 individual
+            skills kept exactly as the source documents print them. There is nothing to choose
+            and nothing to plan — every child takes everything — so this one is a description
+            rather than a planner.
+        </p>
+        <p>
+            Load it to see what the tool does with a document that states no graduation
+            requirements at all. The Curriculum Doctor reports that, correctly, as the one thing
+            worth knowing about it.
+        </p>
+        <div class="actions">
+            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/braewood-elementary-2025-2026.json">Open it in Toolboard</a>
+            <a class="btn" href="../data/braewood-elementary-2025-2026.json">Download the JSON</a>
         </div>
     </div>
 </div>

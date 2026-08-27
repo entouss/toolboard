@@ -1,0 +1,2665 @@
+{
+  "$schema_version": "2.0",
+  "source_documents": [
+    {
+      "id": "roadmap_k",
+      "title": "Kindergarten Roadmap to Success",
+      "document_type": "curriculum_roadmap",
+      "grade_levels_covered": [
+        0
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "roadmap_1",
+      "title": "Grade 1 Roadmap to Success",
+      "document_type": "curriculum_roadmap",
+      "grade_levels_covered": [
+        1
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "roadmap_2",
+      "title": "Grade 2 Roadmap to Success",
+      "document_type": "curriculum_roadmap",
+      "grade_levels_covered": [
+        2
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "roadmap_3",
+      "title": "Grade 3 Roadmap to Success",
+      "document_type": "curriculum_roadmap",
+      "grade_levels_covered": [
+        3
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "roadmap_4",
+      "title": "Grade 4 Roadmap to Success",
+      "document_type": "curriculum_roadmap",
+      "grade_levels_covered": [
+        4
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "roadmap_5",
+      "title": "Grade 5 Roadmap to Success",
+      "document_type": "curriculum_roadmap",
+      "grade_levels_covered": [
+        5
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    }
+  ],
+  "generated_from": "The six public \"Roadmap to Success\" documents, one per elementary grade, converted one section at a time. Nothing was added that the roadmaps do not say.",
+  "school": {
+    "name": "Braewood County Public Schools",
+    "short_name": "BCPS",
+    "type": "Public school district",
+    "district": "Braewood County Public Schools"
+  },
+  "document": {
+    "title": "Elementary Roadmaps to Success",
+    "academic_year": "2025-2026",
+    "document_type": "curriculum_roadmap",
+    "grade_levels_covered": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "planner": {
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "level_names": {
+      "0": "Kindergarten",
+      "1": "Grade 1",
+      "2": "Grade 2",
+      "3": "Grade 3",
+      "4": "Grade 4",
+      "5": "Grade 5"
+    }
+  },
+  "course_count": 31,
+  "courses": [
+    {
+      "course_code": "BCPS-K-ELA",
+      "title": "English Language Arts, Kindergarten",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "foundational skills: 12 skills listed.",
+        "reading: 8 skills listed.",
+        "communication (including writing): 12 skills listed.",
+        "vocabulary: 3 skills listed."
+      ],
+      "description": "Braewood County Schools is committed to preparing all of our students for a 21st century world through high quality instruction. The implementation of a rigorous and relevant ELA curriculum that embraces the six major common core shifts can provide students with the skills necessary to be successful in their college and careers. This year, your child’s instruction will include a balance of informational and literary texts, a deep understanding of disciplines, and the use of academic vocabulary in speaking and writing. Your child will be expected to write from sources and support their answers with text-based evidence. Below you will find what your child will learn for each area of Language Arts.",
+      "strands": [
+        {
+          "name": "foundational skills",
+          "skills": [
+            "Demonstrates basic concepts of print, such as locating a printed word on a page, identifying parts of a book (front cover, back cover, title page), move top to bottom, left to right on the printed page, returning to the beginning of the next line",
+            "Identifies all upper- and lower-case letters",
+            "Distinguishes letters from words within sentences",
+            "Understands that pictures may support the specific meaning of print and language is represented by print",
+            "Blends and segments syllables in spoken words, and onset and rimes of single-syllable words",
+            "Identifies and produces alliterative (Adam’s alligator ate an apple.) and rhyming words (sun, fun)",
+            "Identifies beginning, middle, and ending sounds (phonemes: ex dog = /d/ /o/ /g/; boat = /b/ /oa/ /t/) in spoken words",
+            "Adds or deletes phonemes at the beginning or end of a spoken word and say the new word",
+            "Breaks apart and blends phonemes in single-syllable spoken words",
+            "Knows basic consonant sounds and short and long sounds for the five major vowels (a, e, i, o, u)",
+            "Decodes (reads) and encodes (determining the spelling of a word based on the sounds in the word) consonantvowel-consonant (CVC) words",
+            "Independently reads and recognizes grade-level highfrequency words"
+          ]
+        },
+        {
+          "name": "reading",
+          "skills": [
+            "Retells a text orally by describing main characters, setting, and important events of a story or using topic and details for an informational text",
+            "Compares and contrasts characters’ experiences in stories",
+            "Explains the roles of author and illustrator of a story",
+            "Identifies rhyme in a poem",
+            "Predicts and confirm the topic of texts using titles, headings, and illustrations",
+            "Identifies the topic and multiple details in a text",
+            "Explains the differences between opinions and facts about a topic",
+            "Identifies and explains descriptive words in texts"
+          ]
+        },
+        {
+          "name": "communication (including writing)",
+          "skills": [
+            "Prints many upper- and lowercase letters",
+            "Using any combination of drawing, dictating, and/or writing",
+            "Creates narratives with the events in chronological order",
+            "Expresses opinions about a topic or text with at least one supporting reason",
+            "Provides facts about a topic",
+            "Improves their drawing and writing by planning, revising, and editing",
+            "Uses complete sentences to present information orally",
+            "Begins sentences with a capital letter and uses ending punctuation including question marks for questions",
+            "Capitalizes the days of the week, months of the year, and the pronoun I",
+            "Adds /s/ or /es/ to make nouns plural (orally)",
+            "Recalls information to answer a question about a single topic",
+            "Uses a multimedia element (drawing, picture, artifact, audio or digital) to enhance oral or written tasks"
+          ]
+        },
+        {
+          "name": "vocabulary",
+          "skills": [
+            "Uses and recognizes grade-level academic vocabulary in speaking and writing",
+            "Asks and answers questions about unfamiliar words",
+            "Identifies and sorts common words into basic categories, relating vocabulary to background knowledge"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_k"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-K-SOC",
+      "title": "Social Studies, Kindergarten",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "history: 9 skills listed.",
+        "geography: 9 skills listed.",
+        "economics: 4 skills listed.",
+        "civics and government: 6 skills listed."
+      ],
+      "description": "Social Studies centers around understanding how the world works on a social level. Students in the elementary grades are taught how to interact with the community, society, and the world around them. Social Studies instruction includes fundamental concepts of history, culture, economics, and political skills to produce responsible and productive citizens, and allows your child to develop critical thinking, research, and writing skills. Below you will find what your child will learn within each area of focus.",
+      "strands": [
+        {
+          "name": "history",
+          "skills": [
+            "Develops an understanding of how to use and create a timeline",
+            "Develops an awareness of a primary source",
+            "Compares children and families of today with those in the past",
+            "Recognizes the importance of celebrations and national holidays as a way of remembering and honoring people, events, and our nation’s ethnic heritage.",
+            "Compares our nation’s holidays with holidays of other cultures",
+            "Listens to and retells stories about people in the past who have shown character ideals and principles including honesty, courage, and responsibility",
+            "Recognizes the importance of U.S. symbols",
+            "Uses words and phrases related to chronology and time to explain how things change and to sequentially order events that have occurred in school",
+            "Explains that calendars represent days of the week and months of the year"
+          ]
+        },
+        {
+          "name": "geography",
+          "skills": [
+            "Describes the relative location of people, places, and things by using positional words",
+            "Explains that maps and globes help to locate various places and that globes are a model of the Earth",
+            "Identifies cardinal directions",
+            "Differentiates land and water features on simple maps and globes",
+            "Locates and describes places in the school and community",
+            "Knows one’s own phone number, street address, city or town and that Florida is the state in which the student lives",
+            "Identifies basic landforms",
+            "Identifies basic bodies of water",
+            "Describes and gives examples of seasonal weather changes, and illustrates how weather affects people and the environment"
+          ]
+        },
+        {
+          "name": "economics",
+          "skills": [
+            "Describes different kinds of jobs that people do, and the tools or equipment used",
+            "Recognizes that United States currency comes in different forms",
+            "Recognizes that people work to earn money to buy things they need or want",
+            "Identifies the difference between basic needs and wants"
+          ]
+        },
+        {
+          "name": "civics and government",
+          "skills": [
+            "Defines and gives examples of rules and laws, and why they are important",
+            "Explains the purpose and necessity of rules and laws at home, school, and community",
+            "Explains the rights and responsibilities students have in the school community",
+            "Demonstrates the characteristics of being a good citizen",
+            "Demonstrates that conflicts among friends can be resolved in ways that are consistent with being a good citizen",
+            "Describes fair ways for groups to make decisions"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_k"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-K-MATH",
+      "title": "Mathematics, Kindergarten",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Skills: 28 skills listed."
+      ],
+      "description": "Kindergarten students will get an early start on mastering mathematical concepts by focusing on three critical areas: (1) developing an understanding of counting to represent the total number of objects in a set and to order the objects within a set; (2) developing an understanding of addition and subtraction and the relationship of these operations to counting and (3) measuring, comparing and categorizing objects according to various attributes, including their two- and three-dimensional shapes. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
+      "strands": [
+        {
+          "name": "Skills",
+          "skills": [
+            "Counts to 100 by ones and tens and counts forward and backwards within 20 beginning from a given number",
+            "Reads and writes numbers from 0-20 and represents a number of objects with a written numeral in this range",
+            "Understands the relationship between numbers and quantities",
+            "Uses ordinal numbers (first, second, third, fourth, and fifth) to describe the position of objects",
+            "Counts to answer questions about as many as 20 things arranged in various ways",
+            "Identifies whether the number of objects in one group is greater than, less than, or equal to the number of objects in another group",
+            "Locates, orders, and compares two numbers between 1 and 20 as written numerals",
+            "Adds and subtracts within 10 with procedural reliability",
+            "Represents addition and subtraction in a variety of ways and solves word problems within 10 using objects, drawings, and equations with symbols for the unknown numbers",
+            "Adds to make a 10 when given any number 1 to 9",
+            "Represents numbers 0 to 10 as the sum of two numbers in different ways",
+            "Represent whole number 10 to 20 using a ten and a group of ones with objects, drawing, and expressions/ equations",
+            "Explains why addition and subtraction equations are true using objects of drawings",
+            "Understands the meaning of the equal sign",
+            "Describes measurable attributes of objects (e.g., length, weight, and volume) and directly compares two objects with a measurable attribute in common",
+            "Expresses the length of an object as a whole number of length units, by laying non-standard objects end to end with no gaps or overlaps",
+            "Collects, sorts, and counts objects into given categories and report the results",
+            "Describes objects in the environment using names of shapes and describes the position of these objects (e.g., above, below, next to)",
+            "Names, identifies, compares, and analyzes two and three-dimensional shapes regardless of their size or orientation (squares, rectangles, circles, triangles, cubes, cones, cylinders, and spheres)",
+            "Creates and composes larger shapes from simple shapes or components In the Practice of Mathematics: In learning and understanding mathematics, students need to develop “habits of mind” so they can utilize math strategies, talk about the math they are learning, and solve problems. These mathematical standards will help your student learn content and apply mathematics to real world situations.",
+            "Makes sense of math and does not give up if the problem is unfamiliar or difficult",
+            "Uses words and numbers to make sense of mathematical problems",
+            "Explains how he/she solved a problem and actively listens and makes sense of others’ solutions",
+            "Shows mathematical thinking using pictures, objects, drawings, or symbols",
+            "Chooses and uses mathematical tools to explore and understand mathematics",
+            "Shares ideas and thinking using accurate math vocabulary and computations",
+            "Identifies a pattern or structure in the number system or shapes",
+            "Notices when calculations are repeated and then finds more general methods and short cuts"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_k"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-K-SCI",
+      "title": "Science, Kindergarten",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The Practice of Science: 5 skills listed.",
+        "Earth in Space and Time: 6 skills listed.",
+        "Properties of Matter: 1 skills listed.",
+        "Changes in Matter: 1 skills listed.",
+        "Forms of Energy: 1 skills listed.",
+        "Motion of Objects: 1 skills listed.",
+        "Forces and Changes in Motion: 4 skills listed."
+      ],
+      "description": "In our everchanging world, understanding and internalizing scientific content is critical to success and achievement. Braewood County Schools is committed to developing these vital skills through hands-on activities and highquality instruction that is focused on the Scientific Big Ideas. These Big Ideas are grade specific; however, they flow through all grade levels and build in rigor as students matriculate through each grade. In kindergarten, your child’s science instruction will include opportunities to interact with content associated with the following Big Ideas: The Practice of Science, Earth in Space and Time, Forms of Energy, Motion of Objects, Forces and Changes, Properties of Matter, Changes in Matter, and Organization and Development of Living Things. Below you will find what your child will be learning for each Big Idea.",
+      "strands": [
+        {
+          "name": "The Practice of Science",
+          "skills": [
+            "Collaborates with a partner to collect information",
+            "Makes observations of the natural world and knows that they are descriptors collected using the five senses",
+            "Keeps records as appropriate – such as pictorial records – of investigations conducted",
+            "Observes and creates a visual representation of an object, which includes its major features",
+            "Recognizes that learning can come from careful observation"
+          ]
+        },
+        {
+          "name": "Earth in Space and Time",
+          "skills": [
+            "Explores the Law of Gravity by investigating how objects are pulled toward the ground unless something holds them up",
+            "Recognizes the repeating patterns of day and night",
+            "Recognizes that the Sun can only be seen in the daytime",
+            "Observes that sometimes the Moon can be seen at night and sometimes during the day",
+            "Observes that things can be big, and things can be small as seen from Earth",
+            "Observes that some objects are far away, and some are nearby as seen from Earth"
+          ]
+        },
+        {
+          "name": "Properties of Matter",
+          "skills": [
+            "Sorts objects by observable properties, such as size, shape, color, temperature (hot or cold), weight (heavy or light) and texture"
+          ]
+        },
+        {
+          "name": "Changes in Matter",
+          "skills": [
+            "Recognizes that the shape of materials such as paper and clay can be changed by cutting, tearing, crumpling, smashing, or rolling"
+          ]
+        },
+        {
+          "name": "Forms of Energy",
+          "skills": [
+            "Observes that things that make sound vibrate"
+          ]
+        },
+        {
+          "name": "Motion of Objects",
+          "skills": [
+            "Investigates that things move in different ways, such as fast, slow, etc."
+          ]
+        },
+        {
+          "name": "Forces and Changes in Motion",
+          "skills": [
+            "Observes that a push or a pull can change the way an object is moving In Organization and Development of Living Organisms,",
+            "Recognizes the five senses and related body parts",
+            "Recognizes that some books and other media portray animals and plants with characteristics and behaviors they do not have in real life",
+            "Observes plants and animals, describes how they are alike and how they are different in the way they look and in the things they do"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_k"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-K-ART",
+      "title": "Fine Arts Education, Kindergarten",
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_k"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-K-PE",
+      "title": "Physical Education, Kindergarten",
+      "department": "Physical Education",
+      "department_canonical": "Physical Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "BCPS Elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit www.fldoe.org. Parents play an integral role in their child’s academic performance. Children thrive when parents are committed to actively participate in their child’s education. Consistent parental involvement yields greater academic success, improved selfesteem, a positive attitude, and higher levels of intrinsic motivation. Below are some simple activities you can do with your child to support their love of learning at home.",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_k"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-1-ELA",
+      "title": "English Language Arts, Grade 1",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Kindergarten.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Kindergarten"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Foundational Skills: 12 skills listed.",
+        "Reading: 10 skills listed.",
+        "Communication (including Writing): 10 skills listed.",
+        "Vocabulary: 3 skills listed."
+      ],
+      "description": "Braewood County Public Schools is committed to preparing all of our students for a 21st century world through high quality instruction. The implementation of a rigorous and relevant curriculum that embraces the major instructional shifts can provide students with the skills necessary to be successful in college and careers. This year, your child’s instruction will include a balance of informational and literary texts, a deep understanding of disciplines, and the use of academic vocabulary in speaking and writing. Your child will be expected to write from sources and support their answers with text-based evidence. Below you will find what your child will learn for each area of Language Arts.",
+      "strands": [
+        {
+          "name": "Foundational Skills",
+          "skills": [
+            "Locates the title, table of contents, names of author(s) and illustrator(s) and glossary of books.",
+            "Segments spoken words into beginning, middle and ending phonemes (Students identify phonemes as words are pronounced or heard. The first sound in “smile” is /s/.) including words with digraphs (two letters which work together to make a single sound like sh in shell or fish) blends (e.g., br, dr, fl, gr) or trigraphs (e.g, ore as in “bore” ear as in “dear).",
+            "Orally blend initial, medial, and final phonemes together to produce a single-syllable word that includes digraphs, blends, or trigraphs",
+            "Blends and breaks apart single-syllable spoken words with at least five phonemes.",
+            "Segments and blends phonemes in multi-syllable spoken words",
+            "Decodes (reads) words that have a final -e or vowel team to make long vowel sounds (e.g., kite, line, heat, main, feet)",
+            "Decodes (reads) words with inflectional endings (e.g. -s, -ing, -ed).",
+            "Decodes (reads) words using knowledge of spellingsound connections for common consonant digraphs, trigraphs, and blends.",
+            "Decodes (reads) simple words with r-controlled vowels (e.g., her, dirt, first)",
+            "Decode(reads) and encodes (determining the spelling of a word based on the sounds in the word) regularly spelled one-syllable words.",
+            "Decodes (reads) two-syllable words with regular patterns by breaking the words into syllables",
+            "Recognizes and reads grade-level texts automatically with accuracy, and appropriate expression"
+          ]
+        },
+        {
+          "name": "Reading",
+          "skills": [
+            "Identifies and explains descriptive words and phrases in a text",
+            "Compares and contrasts two texts on the same topic",
+            "Identifies and describes the main elements in a story",
+            "Identifies and explains the moral of a story",
+            "Explains who is telling the story using context clues, or hints the author gives within the story",
+            "Identifies stanzas and line breaks in poems",
+            "Uses text features including titles, headings, captions, graphs, maps, glossaries and illustrations to demonstrate understanding of text",
+            "Explains similarities and differences between information provided in visuals and words in an informational text",
+            "Identifies the author(s) opinion about the topic",
+            "Retells a text in oral or written form to enhance comprehension, using main story elements at the beginning, middle and end for a literary text and the topic and important details for an informational text"
+          ]
+        },
+        {
+          "name": "Communication (including Writing)",
+          "skills": [
+            "Writes expository texts about a topic using a source providing facts and provides a sense of closure",
+            "Writes an opinion statement about a topic/text along with at least one supporting reason from the source and provides a sense of closure",
+            "Prints all upper and lower-case letters",
+            "Writes narratives that retell two or more appropriately sequenced events, including relevant details and a sense of closure",
+            "With guidance and support from adults, improve writing, as needed, by planning, revising, and editing",
+            "Follows the rules of standard grade level appropriate English grammar, punctuation, capitalization and spelling",
+            "Presents information orally using complete sentences and appropriate volume",
+            "Participates in research to gather information to answer a question about a single topic",
+            "Uses a multimedia element (e.g., apps, Power Point, artifacts, video, etc.) to enhance oral or written tasks",
+            "Identifies and use digital tools to produce and publish writing individually or with peers and with support from adults"
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "skills": [
+            "Recognizes and appropriately uses grade-level academic vocabulary in speaking and writing.",
+            "Identifies and uses frequently occurring base words and their common inflections (e.g. look, looks, looked, looking) in grade-level content.",
+            "Identifies and uses picture clues, context clues (hints from the author in the text), word relationships, reference materials, and/or background knowledge to determine the meaning of unknown words"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_1"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-1-SOC",
+      "title": "Social Studies, Grade 1",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Kindergarten.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Kindergarten"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "History: 8 skills listed.",
+        "Geography: 6 skills listed.",
+        "Economics: 6 skills listed.",
+        "Civics and Government: 7 skills listed."
+      ],
+      "description": "Social Studies centers around understanding how the world works on a social level. Students in the elementary grades are taught how to interact with the community, society, and the world around them. Social Studies instruction includes fundamental concepts of history, culture, economics, and political skills to produce responsible and productive citizens, and allows your child to develop critical thinking, research, and writing skills. Below you will find what your child will learn for each area of Social Studies.",
+      "strands": [
+        {
+          "name": "History",
+          "skills": [
+            "Develops an understanding of a primary source",
+            "Understands how to use the media center/other sources to find answer to questions about a historical topic",
+            "Understands history tells the story of people and events of other times and places",
+            "Identifies celebrations and national holidays as a way of remembering and honoring the heroism and achievements of the people, events, and our nation’s ethnic heritage",
+            "Identifies people from the past who have shown character ideals and principles",
+            "Distinguishes between historical fact and fiction using various materials",
+            "Uses terms related to time to sequentially order events that have occurred",
+            "Creates a timeline based on the student’s life or school events, using primary sources"
+          ]
+        },
+        {
+          "name": "Geography",
+          "skills": [
+            "Uses physical and political/cultural maps to locate places in Florida",
+            "Identifies key elements of maps and globes",
+            "Constructs a basic map using key elements",
+            "Identifies a variety of physical features using a map and globe",
+            "Locates the student’s local community, Florida, the Atlantic Ocean, and the Gulf of America on maps and globes",
+            "Describes how location, weather, and physical environment affect the way people live in our community"
+          ]
+        },
+        {
+          "name": "Economics",
+          "skills": [
+            "Recognizes that money is a method of exchanging goods and services",
+            "Defines opportunity costs as giving up on thing for another",
+            "Distinguishes between goods and services",
+            "Distinguishes people as buyers, sellers, and producers of goods and services",
+            "Recognizes the importance of saving money for future purchases",
+            "Identifies that people need to make choices because of scarce resources"
+          ]
+        },
+        {
+          "name": "Civics and Government",
+          "skills": [
+            "Explains the purpose of rules and laws in the school and community",
+            "Gives examples of people who have the power and authority to make and enforce rules and laws in the school and community",
+            "Explains the rights and responsibility students’ have in the school community",
+            "Describes the characteristics of a responsible citizenship in the school community",
+            "Identifies ways students can participate in the betterment of their school community",
+            "Explains how decisions can be made or how conflicts might be resolved in fair and just ways",
+            "Recognizes symbols and individuals that represent American constitutional democracy"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_1"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-1-MATH",
+      "title": "Mathematics, Grade 1",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Kindergarten.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Kindergarten"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "General: 34 skills listed."
+      ],
+      "description": "First grade marks an important milestone in your child’s academic career in mathematics. Your student will begin to grasp more abstract mathematical concepts by an increased focus on four critical areas:",
+      "strands": [
+        {
+          "name": "General",
+          "skills": [
+            "understanding the place value of tens and ones within two-digit whole numbers;",
+            "extending understanding of addition and subtraction and the relationship between them;",
+            "developing an understanding of measurement of physical objects, money and time and",
+            "categorizing, composing and decomposing geometric figures. Below you will find what your child will learn for each area of Mathematics.",
+            "Models addition (2 or 3 addends) and subtraction within 20 in a variety of ways to solve word problems using the concepts “adding to”, “taking from”, “putting together”, and “comparing” with unknowns in all positions",
+            "Applies properties of operations such as the Commutative and Associative Properties as strategies to add and subtract. (Example, 2 + 7 = 9 and 7 + 2 = 9)",
+            "Understands subtraction as an unknown-addend problem",
+            "Relates counting to addition and subtraction (count on, counting back)",
+            "Recalls addition and subtraction facts within 10 with automaticity",
+            "Understands the meaning of the equal sign and determines if equations involving addition and subtraction are true or false and determines unknown whole numbers in equations",
+            "Counts forward and backwards by ones to 120 starting at a given number and skip counts by 2s to 20 and 5s to 100",
+            "Reads numbers 0 to 100 in standard, expanded, and word form and writes numbers 0 to 100 in standard and expanded form",
+            "Composes and decomposes two-digit numbers in multiple ways using tens and ones",
+            "Plots, orders, and compares whole numbers up to 100 using >, <, or =",
+            "Explores addition of a two-digit number and a one-digit number with sums to 100",
+            "Explores subtraction of a one-digit number from a twodigit number",
+            "Calculates mentally 1 more, 1 less, 10 more, or 10 less than a given two-digit number",
+            "Finds the sum of three or more whole numbers",
+            "Estimates the length of an object to the nearest inch or centimeter",
+            "Orders and compares three objects by length",
+            "Understands how to use a ruler to measure length to the nearest inch",
+            "Tells and writes time in hours and half-hours using analog and digital clocks",
+            "Identifies values of coins and finds the value of combinations of and cents up to $1 and dollars up to $100",
+            "Organizes, represents, interprets, and answers questions about data with up to three categories",
+            "Distinguishes between defining versus non-defining attributes of shapes and builds or draws shapes to possess defining attributes",
+            "Composes two-dimensional (rectangles, squares, trapezoids, triangles, half-circles, and quarter-circles) or three-dimensional (cubes, rectangular prisms, cones, and cylinders) to create composite shapes",
+            "Partitions circles and rectangles into two and four equal shares and describes the shares using the words “halves”, “fourths”, and “quarters” In the Practice of Mathematics: In learning and understanding mathematics, students need to develop “habits of mind” so they can utilize math strategies, talk about the math they are learning and solve problems. These mathematical standards will help your student learn content and apply mathematics to real world situations.",
+            "Uses words and numbers to make sense of mathematical problems",
+            "Explains how he/she solved a problem and actively listens and makes sense of others’ solutions",
+            "Shows mathematical thinking using pictures, objects, drawings, or symbols",
+            "Chooses and uses mathematical tools to explore and understand mathematics",
+            "Shares ideas and thinking using accurate math vocabulary and computations",
+            "Identifies a pattern or structure in the number system or shapes",
+            "Notices when calculations are repeated and then finds more general methods and short cuts Teaching technological literacy, critical thinking and problem-solving through science education gives students the skills and knowledge they need to succeed in school and beyond. In First Grade, students are learning about concepts related to the vast number of stars, the heat, and light of the Sun; the Law of Gravity; the effects of pushes and pulls; understandings related to soil and water; and the study of living things. They learn to ask questions, explore the world around them, draw conclusions, and share their thinking with others. Below you will find what your child will learn for each area of science."
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_1"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-1-SCI",
+      "title": "Science, Grade 1",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Kindergarten.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Kindergarten"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The Practice of Science: 4 skills listed.",
+        "Earth in Space and Time: 4 skills listed.",
+        "Properties of Matter: 1 skills listed.",
+        "Earth Structures: 3 skills listed.",
+        "Motion of Objects: 1 skills listed.",
+        "Forces and Changes in Motion: 4 skills listed.",
+        "Heredity and Reproduction: 1 skills listed.",
+        "Interdependence: 1 skills listed."
+      ],
+      "description": "",
+      "strands": [
+        {
+          "name": "The Practice of Science",
+          "skills": [
+            "Raises questions about the natural world, investigates them in teams through free exploration, and generates appropriate explanations based on those explorations",
+            "Using the five senses as tools, makes careful observations, describes objects in terms of number, shape, texture, size, weight, color, and motion, and compares their observations with others",
+            "Keeps records as appropriate, such as pictorial and written records, of investigations conducted",
+            "Asks, “How do you know?” in appropriate situations"
+          ]
+        },
+        {
+          "name": "Earth in Space and Time",
+          "skills": [
+            "Observes and discusses that there are more stars in the sky than anyone can easily count and that they are not scattered evenly in the sky",
+            "Explores the Law of Gravity by demonstrating that Earth’s gravity pulls any object on or near Earth toward it even though nothing is touching the object",
+            "Investigates how magnifiers make things appear bigger and help people see things they could not see without them",
+            "Identifies the beneficial and harmful properties of the Sun"
+          ]
+        },
+        {
+          "name": "Properties of Matter",
+          "skills": [
+            "Sorts objects by observable properties, such as size, shape, color, temperature (hot or cold), weight (heavy or light) and texture"
+          ]
+        },
+        {
+          "name": "Earth Structures",
+          "skills": [
+            "Recognizes that water, rocks, soil, and living organisms are found on Earth’s surface",
+            "Describes the need for water and how to be safe around water",
+            "Recognizes that some things in the world around us happen fast and some happen slowly"
+          ]
+        },
+        {
+          "name": "Motion of Objects",
+          "skills": [
+            "Demonstrates and describes the various ways that objects can move, such as in a straight line, zigzag, back-and-forth, round-and-round, fast, and slow"
+          ]
+        },
+        {
+          "name": "Forces and Changes in Motion",
+          "skills": [
+            "Demonstrates that the way to change the motion of an object is by applying a push or a pull In Organization and Development of Living Organisms,",
+            "Makes observations of living things and their environment using the five senses",
+            "Identifies the major parts of plants, including stem, roots, leaves, and flowers",
+            "Differentiates between living and nonliving things"
+          ]
+        },
+        {
+          "name": "Heredity and Reproduction",
+          "skills": [
+            "Makes observations that plants and animals closely resemble their parents, but variations exist among individuals within a population"
+          ]
+        },
+        {
+          "name": "Interdependence",
+          "skills": [
+            "Through observation, recognizes that all plants and animals, including humans, need the basic necessities of air, water, food, and space"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_1"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-1-PE",
+      "title": "Physical Education, Grade 1",
+      "department": "Physical Education",
+      "department_canonical": "Physical Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Kindergarten.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Physical Education, Kindergarten"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_1"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-2-ELA",
+      "title": "English Language Arts, Grade 2",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 1.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Grade 1"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Foundational Skills: 6 skills listed.",
+        "Reading: 11 skills listed.",
+        "Communication (including Writing): 10 skills listed.",
+        "Vocabulary: 3 skills listed."
+      ],
+      "description": "Braewood County Schools is committed to preparing all of our students for a 21st century world through high-quality instruction. The implementation of a rigorous and relevant ELA curriculum that embraces the six major common core shifts can provide students with the skills necessary to be successful in their college and careers. This year, your child’s instruction will include a balance of informational and literary texts, a deep understanding of disciplines, and the use of academic vocabulary in speaking and writing. Your child will be expected to write from sources and support their answers with text-based evidence. Below you will find what your child will learn for each area of Language Arts.",
+      "strands": [
+        {
+          "name": "Foundational Skills",
+          "skills": [
+            "Decodes (reads) words with variable vowel teams (e.g., oo, oa, ou) and vowel diphthongs (e.g., oi, oy, ow)",
+            "Decodes (reads) regularly spelled two-syllable words with long and short vowels",
+            "Decodes (reads) words with open (e.g., hi, baby, moment) and closed (e.g., bag, sunshine, chop) syllables and consonant -le (e.g., purple, circle, stumble)",
+            "Decodes (reads) words with common prefixes and suffixes",
+            "Decodes (reads) words with silent letter combinations (e.g., knight, comb, island, ghost)",
+            "Reads grade-level texts with accuracy, automaticity and appropriate prosody or expression"
+          ]
+        },
+        {
+          "name": "Reading",
+          "skills": [
+            "Identifies plot structure and describes main story elements in a literary text",
+            "Identifies and explains a theme of a literary text",
+            "Identifies different characters’ perspectives in a literary text",
+            "Identifies rhyme schemes in poems",
+            "Explains how text features – including titles, headings, captions, graphs, maps, glossaries, and/or illustrations – contribute to the meaning of texts",
+            "Identifies the central idea and relevant details in a text",
+            "Explains an author’s purpose in an informational text",
+            "Explains an author’s opinion(s) and supporting evidence",
+            "Identifies and explains similes, idioms, and alliteration in text(s)",
+            "Retells a text to enhance comprehension using main story elements in a logical sequence for a literary text and the central idea and relevant details for an informational text",
+            "Compares and contrasts important details presented by two texts on the same topic or theme"
+          ]
+        },
+        {
+          "name": "Communication (including Writing)",
+          "skills": [
+            "Demonstrates legible printing skills",
+            "Writes personal or fictional narratives using a logical sequence of events, transitions, and an ending",
+            "Writes opinions about a topic or text with reasons supported by details from a source, uses transitions and provides a conclusion",
+            "Writes expository texts about a topic, using a source providing an introduction, facts, transitions, and a conclusion",
+            "Improves writing as needed by planning, revising, and editing with guidance and support from adults and feedback from peers",
+            "Presents information orally using complete sentences, appropriate volume, and clear pronunciation",
+            "Follows the rules of standard English grammar, punctuation, capitalization, and spelling appropriate to grade level",
+            "Participates in research to gather information to answer a question about a single topic using multiple sources",
+            "Uses one or more multimedia element(s) (e.g., apps, Power Point, artifacts, video, etc.) to enhance oral or written tasks",
+            "Uses digital tools to produce and publish writing individually or with peers and with support from adults"
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "skills": [
+            "Recognizes and appropriately uses grade-level academic vocabulary in speaking and writing",
+            "Identifies and uses base words and affixes (prefixes and suffixes) to determine the meaning of unfamiliar words in grade-level content",
+            "Identifies and uses context clues (hints from the author in the text), word relationships, reference materials, and/ or background knowledge to determine the meaning on unknown words"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_2"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-2-SOC",
+      "title": "Social Studies, Grade 2",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 1.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Grade 1"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "History: 11 skills listed.",
+        "Geography: 4 skills listed.",
+        "Economics: 4 skills listed.",
+        "Civics and Government: 9 skills listed."
+      ],
+      "description": "Social Studies centers around understanding how the world works on a social level. Students in the elementary grades are taught how to interact with the community, society, and the world around them. Social Studies instruction includes fundamental concepts of history, culture, economics, and political skills to produce responsible and productive citizens, and allows students to develop critical thinking, research, and writing skills. Below you will find what your child will learn within each area of Social Studies.",
+      "strands": [
+        {
+          "name": "History",
+          "skills": [
+            "Examine primary and secondary sources",
+            "Utilize the media center, technology, or other informational sources to locate information that provides answers to questions about a historical topic",
+            "Recognize that Native Americans were the first inhabitants in North America",
+            "Compare the cultures of Native American tribes from various geographic regions of the United States",
+            "Describe the impact of immigrants on the Native Americans",
+            "Explore ways the daily life of people living in Colonial America changes over time",
+            "Identify reasons people came to the United States throughout history",
+            "Discuss the importance of Ellis Island and the Statue of Liberty to immigration from 1892-1954",
+            "Discuss why immigration continues today",
+            "Explain the cultural influences and contributions of immigrants today",
+            "Identify terms and designations of time sequence"
+          ]
+        },
+        {
+          "name": "Geography",
+          "skills": [
+            "Use different types of maps to identify map elements",
+            "Using maps and globes, locate the student’s hometown, Florida, and North America, and locate the state capital and the national capital",
+            "Label on a map or globe the continents, oceans, Equator, Prime Meridian, North and South Pole",
+            "Use a map to locate the countries in North America"
+          ]
+        },
+        {
+          "name": "Economics",
+          "skills": [
+            "Recognize that people make choices because of limited resources",
+            "Recognize that people supply goods and services based on consumer demands",
+            "Recognize that the United States trades with other nations to exchange goods and services",
+            "Explain the personal benefits and costs involved in saving and spending"
+          ]
+        },
+        {
+          "name": "Civics and Government",
+          "skills": [
+            "Explain why people form governments",
+            "Explain the consequences of an absence of rules and laws",
+            "Identify what it means to be a United States citizen either by birth or by naturalization",
+            "Define and apply characteristics of responsible citizenship",
+            "Explain why United States citizens have guaranteed rights and identify right",
+            "Identify ways citizens can make a positive contribution in their community",
+            "Evaluate the contributions of various African Americans, Hispanics, Native Americans, veterans, and women",
+            "Identify the Constitution as the document which establishes the structure, function, powers, and limits of American government",
+            "Recognize symbols, individuals, events, and documents that represent the United States"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_2"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-2-MATH",
+      "title": "Mathematics, Grade 2",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 1.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Grade 1"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Skills: 28 skills listed."
+      ],
+      "description": "Second grade marks an important milestone in your child’s academic career. The second grade student will begin to grasp more abstract mathematical concepts by an increased focus on several critical areas: (1) extending understanding of place value in three-digit numbers; (2) building fluency and algebraic reasoning with addition and subtraction; (3) extending understanding of measurement of objects, time and the perimeter of geometric figures and (4) developing spatial reasoning with number representations and two-dimensional figures. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
+      "strands": [
+        {
+          "name": "Skills",
+          "skills": [
+            "Determines whether a group of objects up to 20 has an odd or even number of members",
+            "Uses addition to find the total number of objects in rectangular arrays with up to 5 rows and 5 columns",
+            "Understands place value of a three-digit number using hundreds, tens and ones and compares two three-digit numbers using >, <, or =",
+            "Counts, reads, and writes numbers to 1000 using number form, word form, and expanded form",
+            "Counts within 1000 and skip-counts by 5’s, 10’s, and 100’s",
+            "Adds and subtracts fluently within 100 using a variety of strategies and explains why these strategies work",
+            "Adds up to four two-digit numbers using strategies based on place value and properties of operations",
+            "Adds and subtracts within 1000 using models or drawings and a variety of strategies",
+            "Adds and subtracts 10 or 100 mentally to/from a given number (range 100-900)",
+            "Measures and estimates the length of an object to the nearest inch, foot, yard, centimeter, or meter",
+            "Describes the relationship between the size of a unit and number of units needed to measure given objects",
+            "Measures to determine how much longer one object is than another",
+            "Uses addition and subtraction within 100 to solve word problems involving lengths that are given in the same units using drawings, number lines, and equations with unknown numbers.",
+            "Tells and writes time from analog and digital clocks to the nearest 5 minutes",
+            "Identifies the value of coins and paper currency and solves one- and two-step word problems (addition/ subtraction) involving paper currency or coins using the appropriate money symbols",
+            "Draws picture graphs and bar graphs to represent a data set with up to four categories",
+            "Generates measurement data by measuring lengths of several objects to the nearest whole unit and shows the measurement by making a line plot",
+            "Recognizes and draws shapes having specific attributes (triangles, quadrilaterals, pentagons, hexagons, and cubes)",
+            "Partitions a rectangle into rows and columns of samesize squares and counts to find the total number.",
+            "Partitions circles and rectangles into two, three, or four equal shares and describes the shares using the words “halves”, “thirds”, and “fourths” In the Practice of Mathematics: In learning and understanding mathematics, students need to develop “habits of mind” so they can utilize math strategies, talk about the math they are learning and solve problems. These mathematical practices will help your student learn content and apply mathematics to real world situations.",
+            "Makes sense of the math and does not give up if the problem is unfamiliar or difficult",
+            "Uses words and numbers to make sense of mathematical problems",
+            "Explains how he/she solved a problem and actively listens and makes sense of others’ solutions",
+            "Shows his/her mathematical thinking using pictures, objects, drawings or symbols",
+            "Chooses and uses mathematical tools to explore and understand mathematics",
+            "Shares his/her ideas and thinking using accurate math vocabulary and computations",
+            "Identifies a pattern or structure in the number system or shapes",
+            "Notices when calculations are repeated then finds more general methods and short cuts"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_2"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-2-SCI",
+      "title": "Science, Grade 2",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 1.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Grade 1"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The Practice of Science: 6 skills listed.",
+        "Earth Structures: 3 skills listed.",
+        "Earth Systems and Patterns: 5 skills listed.",
+        "Properties of Matter: 6 skills listed.",
+        "Changes in Matter: 1 skills listed.",
+        "Forms of Energy: 1 skills listed.",
+        "Forces and Changes in Motion: 5 skills listed.",
+        "Heredity and Reproduction: 1 skills listed.",
+        "Interdependence: 2 skills listed."
+      ],
+      "description": "In our ever-changing world, understanding and internalizing scientific content is critical to success and achievement. Braewood County Schools is committed to developing these vital skills through hands-on activities and high-quality instruction that is focused on the Scientific Big Ideas. These Big Ideas are grade specific, however, they flow through all grade levels and build in rigor as students matriculate through each grade. In second grade, your child’s science instruction will include opportunities to interact with content associated with the following Big Ideas: The Practice of Science, Earth Structures, Earth Systems and Patterns, Properties of Matter, Changes in Matter, Forces and Changes in Motion, and the Organization and Development of Living, Heredity and Reproduction, and Interdependence of Living Organisms. Below you will find what your child will learn for each Big Idea.",
+      "strands": [
+        {
+          "name": "The Practice of Science",
+          "skills": [
+            "Raises questions about the natural world, investigates them in teams through free exploration and systematic observations and generates appropriate explanations based on those explorations",
+            "Compares the observations made by different groups using the same tools",
+            "Asks, “How do you know?” in appropriate situations and attempts reasonable answers when asked the same question by others",
+            "Explains how particular scientific investigations should yield similar conclusions when repeated",
+            "Distinguishes between empirical observations (what you see, hear, feel, smell, or taste) and ideas or inferences (what you think)",
+            "Explains how scientists alone or in groups are always investigating new ways to solve problems"
+          ]
+        },
+        {
+          "name": "Earth Structures",
+          "skills": [
+            "Recognizes that Earth is made up of rocks. Rocks come in many sizes and shapes",
+            "Describes how small pieces of rock and dead plant and animal parts can be the basis of soil and explains the process by which soil is formed",
+            "Classifies soil types based on color, texture (size of particles), the ability to retain water, and the ability to support the growth of plants"
+          ]
+        },
+        {
+          "name": "Earth Systems and Patterns",
+          "skills": [
+            "Compares and describes changing patterns in nature that repeat themselves, such as weather conditions including temperature and precipitation, day to day and season to season",
+            "Investigates by observing and measuring, that the Sun’s energy directly and indirectly warms the water, land, and air",
+            "Investigates, observes and describes how water left in an open container disappears (evaporates), but water in a closed container does not disappear (evaporate)",
+            "Investigates that air is all around us and that moving air is wind",
+            "States the importance of preparing for severe weather, lightning, and other weather-related events"
+          ]
+        },
+        {
+          "name": "Properties of Matter",
+          "skills": [
+            "Observes and measures objects in terms of their properties, including size, shape, color, temperature, weight, texture, sinking or floating in water, and attraction and repulsion of magnets",
+            "Identifies objects and materials as solid, liquid, or gas",
+            "Recognizes that solids have a definite shape and that liquids and gases take the shape of their container",
+            "Observes and describes water in its solid, liquid, and gaseous states",
+            "Measures and compares temperatures taken every day at the same time",
+            "Measures and compares the volume of liquids using containers of various shapes and sizes"
+          ]
+        },
+        {
+          "name": "Changes in Matter",
+          "skills": [
+            "Investigates that materials can be altered to change some of their properties, but not all materials respond the same way to any one alteration"
+          ]
+        },
+        {
+          "name": "Forms of Energy",
+          "skills": [
+            "Discusses that people use electricity or other forms of energy to cook their food, cool or warm their homes, and power their cars"
+          ]
+        },
+        {
+          "name": "Forces and Changes in Motion",
+          "skills": [
+            "Investigates the effect of applying various pushes and pulls on different objects",
+            "Demonstrates that magnets can be used to make some things move without touching them",
+            "Recognizes that objects are pulled toward the ground unless something holds them up",
+            "Demonstrates that the greater the force (push or pull) applied to an object, the greater the change in motion of the object In Organization and Development of Living Organisms,",
+            "Distinguish human body parts (brain, heart, lungs, stomach, muscles, and skeleton) and their basic functions"
+          ]
+        },
+        {
+          "name": "Heredity and Reproduction",
+          "skills": [
+            "Observe and describe major stages in the life cycles of plants and animals, including beans and butterflies"
+          ]
+        },
+        {
+          "name": "Interdependence",
+          "skills": [
+            "Compare and contrast the basic needs that all living things, including humans, have for survival",
+            "Recognize and explain that living things are found all over Earth, but each is only able to live in habitats that meet its basic needs"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_2"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-2-PE",
+      "title": "Physical Education, Grade 2",
+      "department": "Physical Education",
+      "department_canonical": "Physical Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 1.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Physical Education, Grade 1"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_2"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-3-ELA",
+      "title": "English Language Arts, Grade 3",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 2.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Grade 2"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Foundational Skills: 2 skills listed.",
+        "Reading: 11 skills listed.",
+        "Communication (including Writing): 10 skills listed.",
+        "Vocabulary: 3 skills listed."
+      ],
+      "description": "Braewood County Schools is committed to preparing all of our students for a 21st century world through high-quality instruction. The implementation of a rigorous and relevant ELA curriculum that embraces the six major common core shifts can provide students with the skills necessary to be successful in their college and careers. This year, your child’s instruction will include a balance of informational and literary texts, a deep understanding of disciplines, and the use of academic vocabulary in speaking and writing. Your child will be expected to write from sources and support their answers with text-based evidence. Below you will find what your child will learn for each area of Language Arts.",
+      "strands": [
+        {
+          "name": "Foundational Skills",
+          "skills": [
+            "Uses knowledge of grade-level phonics and wordanalysis skills to decode words o Decodes words with common Greek and Latin roots and affixes o Decodes words with common derivational suffixes and describes how they turn words into different parts of speech o Decodes multisyllabic words.",
+            "Reads grade level texts with accuracy, automaticity, and appropriate prosody or expression"
+          ]
+        },
+        {
+          "name": "Reading",
+          "skills": [
+            "Explains how one or more characters develop throughout the plot in a literary text",
+            "Explains a theme and how it develops, using details, in a literary text",
+            "Explains different characters’ perspectives in literacy text",
+            "Identifies types of poems: free verse, rhymed verse, haiku, and limerick",
+            "Explains how text features contribute to meaning and identify the text structures of chronology, comparison, and cause/effect in texts",
+            "Identifies the central idea and explains how relevant details support that idea in a text",
+            "Explains the development of an author’s purpose in an informational text",
+            "Identifies an author’s claim and explains how an author uses evidence to support the claim",
+            "Identifies and explains metaphors, personification, hyperboles, similes, alliterations and idioms in text(s)",
+            "Summarizes a text to enhance comprehension o Includes plot and theme for a literary text o Uses the central idea and relevant details for an informational text.",
+            "Compares and contrasts how two authors present information on the same topic or theme"
+          ]
+        },
+        {
+          "name": "Communication (including Writing)",
+          "skills": [
+            "Writes in cursive all upper- and lowercase letters",
+            "Writes personal or fictional narratives using a logical sequence of events, appropriate descriptions, dialogue, a variety of transitional words or phrases, and an ending",
+            "Writes opinions about a topic or text, including reasons supported by details from one or more sources, using transitions, and providing a conclusion",
+            "Writes expository texts about a topic, using one or more sources, providing an introduction, facts and details, some elaboration, transitions, and a conclusion",
+            "Improves writing as needed by planning, revising, and editing with guidance and support from adults and feedback from peers",
+            "Presents information orally, in a logical sequence, using nonverbal cues, appropriate volume, and clear pronunciation",
+            "Follows the rules of standard English grammar, punctuation, capitalization, and spelling appropriate to grade level",
+            "Conducts research to answer a question, organizing information about the topic from multiple sources.",
+            "Uses two or more multimedia elements to enhance oral or written tasks",
+            "Uses digital writing tools individually or collaboratively to plan, draft, and revise writing"
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "skills": [
+            "Recognizes and appropriately uses grade-level academic vocabulary in speaking and writing",
+            "Identifies and applies knowledge of common Greek and Latin roots, base words, and affixes to determine the meaning of unfamiliar words n grade-level content",
+            "Uses context clues, figurative language, word relationships, reference materials, and/or background knowledge to determine the meaning of multiplemeaning and unknown words and phrases, appropriate to grade level"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_3"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-3-SOC",
+      "title": "Social Studies, Grade 3",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 2.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Grade 2"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "History: 3 skills listed.",
+        "Geography: 18 skills listed.",
+        "Economics: 4 skills listed.",
+        "Civics and Government: 8 skills listed."
+      ],
+      "description": "Social Studies centers around understanding how the world works on a social level. Students in the elementary grades are taught how to interact with the community, society, and the world around them. Social Studies instruction includes fundamental concepts of history, culture, economics, and political skills to produce responsible and productive citizens, and allows your child to develop critical thinking, research, and writing skills. Below you will find what your child will learn within each area of focus.",
+      "strands": [
+        {
+          "name": "History",
+          "skills": [
+            "Analyze primary and secondary sources",
+            "Utilize technology resources to gather information from primary and secondary sources",
+            "Define terms related to the social sciences"
+          ]
+        },
+        {
+          "name": "Geography",
+          "skills": [
+            "Use thematic maps, tables, charts, graphs, and photos to analyze geographic information",
+            "Review basic map elements",
+            "Label the continents and oceans on a world map",
+            "Name and identify the purpose of maps",
+            "Compare maps and globes to develop an understanding of the concept of distortion",
+            "Use maps to identify different types of scale to measure distances between two places",
+            "Label the countries and commonwealths in North America",
+            "Identify the five regions of the United States",
+            "Label the states in each of the five regions of the United States",
+            "Describe the physical features of the United States, Canada, Mexico, and the Caribbean",
+            "Identify natural and man-made landmarks in the United States, Canada, Mexico, and the Caribbean",
+            "Investigate how people perceive places and regions differently by conducting interviews, mental mapping, and studying news, poems, legends, and songs about a region or area",
+            "Describe the climate and vegetation in the United States, Canada, Mexico, and the Caribbean",
+            "Describe the natural resources in the United States, Canada, Mexico, and the Caribbean",
+            "Explain how the environment influences settlement patterns in the United States, Canada, Mexico, and the Caribbean",
+            "Identify the cultures that have settled the United States, Canada, Mexico, and the Caribbean",
+            "Compare the cultural characteristics of diverse populations in the one of the five regions of the United States with Canada, Mexico, or the Caribbean",
+            "Identify contributions from various ethnic groups to the United States"
+          ]
+        },
+        {
+          "name": "Economics",
+          "skills": [
+            "Give examples of how scarcity results in trade",
+            "List characteristics of money",
+            "Recognize that buyers and sellers interact to exchange goods and services through the use of trade or money",
+            "Distinguish between currencies used in the United States, Canada, Mexico, and the Caribbean"
+          ]
+        },
+        {
+          "name": "Civics and Government",
+          "skills": [
+            "Explain the purpose and need for government",
+            "Describe how government gains its power from the people",
+            "Explain how government was established through a written Constitution",
+            "Identify group and individual actions of citizens that demonstrate civility, cooperation, volunteerism, and other civic virtues",
+            "Identify the levels of government",
+            "Describe how government is organized at the local level",
+            "Recognize that every state has a state constitution",
+            "Recognize that the Constitution of the United States is the supreme law of the land"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_3"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-3-MATH",
+      "title": "Mathematics, Grade 3",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 2.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Grade 2"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "General: 36 skills listed."
+      ],
+      "description": "Third grade marks a significant transition year for child’s academic career. The third grade student will begin to grasp more abstract mathematical concepts by an increased focus on several critical areas:",
+      "strands": [
+        {
+          "name": "General",
+          "skills": [
+            "adding and subtracting multi-digit whole numbers, including using a standard algorithm;",
+            "building an understanding of multiplication and division, the relationship between them and the connection to area of rectangles;",
+            "developing an understanding of fractions and",
+            "extending geometric reasoning to lines and attributes of quadrilaterals. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
+            "Interprets the products of whole numbers and wholenumber quotients of whole numbers (groups of objects/ equal shares)",
+            "Uses multiplication and division within 100 to solve word problems in situations involving equal groups, arrays, and measurement quantities",
+            "Determines the unknown whole number in a multiplication or division equation relating three whole numbers and understands division as an unknown factor problem",
+            "Applies properties of operations such as the Commutative, Associative, and Distributive Properties as strategies to multiply and divide",
+            "Multiplies and divides fluently within 100 using a variety of strategies",
+            "Solves two-step word problems using the four operations represents these problems using equations with letters standing for the unknown quantity",
+            "Identifies arithmetic patterns and explains them using properties of operations",
+            "Uses place value to round whole numbers to the nearest 10 or 100",
+            "Adds and subtracts fluently within 1000 using a variety of strategies and algorithms",
+            "Multiplies one-digit whole numbers by multiples of 10 using strategies based on place value and properties of operations (range 10-90)",
+            "Understands fractions as a whole number being partitioned into equal parts",
+            "Understands fractions as numbers that can be represented on a number line",
+            "Recognizes and generates simple equivalent fractions.",
+            "Expresses whole numbers as fractions",
+            "Compares two fractions with the same numerator or same denominator",
+            "Tells and writes time to the nearest minute, measures time intervals in minutes, and solves word problems involving addition and subtraction of time intervals in minutes",
+            "Measures and estimates liquid volume and masses of objects using standard units (g, kg, and l). Solves one- step word problems involving masses or volumes that are given in the same units",
+            "Draws scaled picture graphs and bar graphs to represent a data set with several categories and solves one- and two-step word problems using information in the scaled graphs",
+            "Generates measurement data by measuring lengths using rulers marked with halves and fourths of an inch and shows the measurement by making a line plot",
+            "Recognizes area as an attribute of plane figures and understands concepts of area measurement, relating area to the operations of multiplication and addition",
+            "Measures area by counting unit squares",
+            "Solves real world and mathematical problems involving perimeter of polygons",
+            "Understands that shapes in different categories may share attributes and that the shared attributes can define a larger category (quadrilaterals)",
+            "Partitions shapes into parts with equal areas In the Practice of Mathematics: In learning and understanding mathematics, students need to develop “habits of mind” so they can utilize math strategies, talk about the math they are learning and solve problems. These mathematical practices will help your student learn content and apply mathematics to real world situations.",
+            "Makes sense of the math and does not give up if the problem is unfamiliar or difficult",
+            "Uses words and numbers to make sense of mathematical problems",
+            "Can explain how he/she solved a problem and actively listen and make sense of others’ solutions",
+            "Shows mathematical thinking using pictures, objects, drawings or symbols",
+            "Chooses and uses mathematical tools to explore and understand mathematics",
+            "Shares ideas and thinking using accurate math vocabulary and computations",
+            "Identifies a pattern or structure in the number system or shapes",
+            "Notices when calculations are repeated then finds more general methods and short cuts"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_3"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-3-SCI",
+      "title": "Science, Grade 3",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 2.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Grade 2"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The Practice of Science: 7 skills listed.",
+        "General: 3 skills listed.",
+        "Earth in Space and Time: 5 skills listed.",
+        "Earth Structures: 1 skills listed.",
+        "Properties of Matter: 3 skills listed.",
+        "Changes in Matter: 1 skills listed.",
+        "Forms of Energy: 10 skills listed.",
+        "Interdependence: 2 skills listed."
+      ],
+      "description": "",
+      "strands": [
+        {
+          "name": "The Practice of Science",
+          "skills": [
+            "Raises questions about the natural world, investigates them individually and in teams through free exploration and systematic investigations, and generates appropriate explanations based on those explorations",
+            "Compares the observations made by different groups using the same tools and seeks reasons to explain the differences across groups",
+            "Keeps records as appropriate, such as pictorial, written, or simple charts and graphs, of investigations conducted",
+            "Recognizes the importance of communication among scientists",
+            "Recognizes that scientists question, discuss, and check each other’s evidence and explanations",
+            "Infers based on observations",
+            "Explains that empirical evidence is information, such as observations or measurements that is used to help validate explanations of natural phenomena"
+          ]
+        },
+        {
+          "name": "General",
+          "skills": [
+            "Recognizes that words in science can have different or more specific meanings than their use in everyday language; for example, energy, cell, heat/cold, and evidence",
+            "Recognizes that scientists use models to help understand and explain how things work",
+            "Recognizes that all models are approximations of natural phenomena; as such, they do not perfectly account for all observations"
+          ]
+        },
+        {
+          "name": "Earth in Space and Time",
+          "skills": [
+            "Explains that stars can be different; some are smaller, some are larger, and some appear brighter than others; all except the Sun are so far away that they look like points of light",
+            "Identifies the Sun as a star that emits energy; some of it in the form of light",
+            "Recognizes that the Sun appears large and bright because it is the closest star to Earth",
+            "Explores the Law of Gravity by demonstrating that gravity is a force that can be overcome",
+            "Investigates that the number of stars that can be seen through telescopes is dramatically greater than those seen by the unaided eye"
+          ]
+        },
+        {
+          "name": "Earth Structures",
+          "skills": [
+            "Demonstrates that radiant energy from the Sun can heat objects and when the Sun is not present, heat may be lost"
+          ]
+        },
+        {
+          "name": "Properties of Matter",
+          "skills": [
+            "Measures and compares temperatures of various samples of solids and liquids",
+            "Measures and compares the mass and volume of solids and liquids",
+            "Compares materials and objects according to properties such as size, shape, color, texture, and hardness"
+          ]
+        },
+        {
+          "name": "Changes in Matter",
+          "skills": [
+            "Describes the changes water undergoes when it changes state through heating and cooling by using familiar scientific terms such as melting, freezing, boiling, evaporation, and condensation"
+          ]
+        },
+        {
+          "name": "Forms of Energy",
+          "skills": [
+            "Identifies some basic forms of energy such as light, heat, sound, electrical, and mechanical",
+            "Recognizes that energy has the ability to cause motion or create change",
+            "Demonstrates that light travels in a straight line until it strikes an object or travels from one medium to another",
+            "Demonstrates that light can be reflected, refracted, and absorbed In Energy Transfer and Transformations,",
+            "Investigates, observes, and explains that things that give off light often also give off heat",
+            "Investigates, observes, and explains that heat is produced when one object rubs against another, such as rubbing one’s hands together In Organization and Development of Living Organisms,",
+            "Describes structures in plants and their roles in food production, support, water and nutrient transport, and reproduction",
+            "Investigates and describes how plants respond to stimuli (heat, light, gravity), such as the way plant stems grow toward light and their roots grow downward in response to gravity In Diversity and Evolution of Living Organisms,",
+            "Classifies animals into major groups (mammals, birds, reptiles, amphibians, fish, arthropods, vertebrates and invertebrates, those having live births and those which lay eggs) according to their physical characteristics and behaviors",
+            "Classifies flowering and nonflowering plants into major groups such as those that produce seeds, or those like ferns and mosses that produce spores, according to their physical characteristics"
+          ]
+        },
+        {
+          "name": "Interdependence",
+          "skills": [
+            "Describes how animals and plants respond to changing seasons",
+            "Recognizes that plants use energy from the Sun, air, and water to make their own food"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_3"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-3-PE",
+      "title": "Physical Education, Grade 3",
+      "department": "Physical Education",
+      "department_canonical": "Physical Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 2.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Physical Education, Grade 2"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_3"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-4-ELA",
+      "title": "English Language Arts, Grade 4",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 3.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Grade 3"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Foundational Skills: 4 skills listed.",
+        "Reading: 16 skills listed.",
+        "Communication (including Writing): 29 skills listed.",
+        "Vocabulary: 3 skills listed."
+      ],
+      "description": "Braewood County Schools is committed to preparing all of our students for a 21st century world through high quality instruction. The implementation of a rigorous and relevant ELA curriculum that embraces the six major common core shifts can provide students with the skills necessary to be successful in their college and careers. This year, your child’s instruction will include a balance of informational and literary texts, a deep understanding of disciplines, and the use of academic vocabulary in speaking and writing. Your child will be expected to write from sources, and support their answers with textbased evidence. Below you will find what your child will learn for each area of Language Arts.",
+      "strands": [
+        {
+          "name": "Foundational Skills",
+          "skills": [
+            "Reads grade-level texts fluently with accuracy, automaticity, and appropriate prosody or expression",
+            "Decodes (reads) and writes unfamiliar single-syllable and multi-syllabic words in and out of context",
+            "Applies knowledge of all letter-sound correspondences, syllabication patterns (i.e., “en-tertain”), and morphology (“enter-tain”) to read and write unfamiliar words",
+            "Decodes (reads) words using grade-level phonics and word-analysis skills"
+          ]
+        },
+        {
+          "name": "Reading",
+          "skills": [
+            "Explains how setting, events, conflict, and character development contribute to the plot in a literary text",
+            "Explains stated or implied themes in literary texts",
+            "Explains how themes develop in literary texts",
+            "Explains how characters respond to situations",
+            "Identifies the narrator’s point of view in literary texts",
+            "Explains the difference between the narrator’s point of view and a character’s perspective in literary texts",
+            "Explains how rhyme and structure create meaning in a poem",
+            "Identifies text structures of problem/solution, sequence, and description in texts",
+            "Explains how text features contribute to the meaning in texts",
+            "Explains how relevant details support an implied or explicit central idea",
+            "Explains an author’s perspective or attitude toward a topic in an informational text",
+            "Explains an author’s claim",
+            "Identifies the reasons and evidence used to support an author’s claim",
+            "Explains how figurative language (e.g., simile, metaphor, alliteration, personification, hyperbole, and idiom) contributes to meaning in texts",
+            "Summarizes a text, including plot and theme in literary texts; or the central idea and relevant details in informational texts, to enhance comprehension",
+            "Compares and contrasts accounts of the same event using primary and/or secondary sources"
+          ]
+        },
+        {
+          "name": "Communication (including Writing)",
+          "skills": [
+            "Demonstrates legible cursive writing skills",
+            "Writes personal or fictional narratives using a logical sequence of events",
+            "Writes to make a claim supporting a perspective with logical reasons",
+            "Writes expository texts about a topic",
+            "Demonstrates effective use of writing techniques such as descriptions and dialogue",
+            "Uses evidence from multiple sources in writing",
+            "Uses elaborative techniques in writing. (i.e., example, definition, quote, explanation)",
+            "Includes an organizational structure with transitions in writing",
+            "Uses a variety of transitional words and phrases",
+            "Conducts research to answer a question using multiple valid sources",
+            "Identifies trustworthy and untrustworthy sources",
+            "Identifies relevant and irrelevant information to include in research",
+            "Organizes information about the research topic logically",
+            "With guidance and support from adults and feedback from peers, improves writing by planning, revising, and editing",
+            "Presents information orally in a logical sequence",
+            "Uses nonverbal cues (e.g., posture, tone, expressive delivery, focus on the audience, and facial expression), appropriate volume, and clear pronunciation when presenting orally",
+            "Produces complete sentences, recognizing and correcting inappropriate fragments and run-ons",
+            "Uses subject-verb agreement with intervening clauses and phrases",
+            "Uses principal modals to indicate the mood of a verb (e.g., can, could, may, might, must, ought, shall, should, will, and would).",
+            "Uses appositives, main clauses, and subordinate clauses",
+            "Recognizes and corrects inappropriate shifts in tense (past tense, present tense, future tense) and number",
+            "Uses conjunctions correctly to join words and phrases in sentences",
+            "Uses verbals including gerunds (words formed with verbs but act as nouns), infinitives (i.e., to have, to hold, to plan), and participial phrases (words based off a verb that expresses a state of being)",
+            "Uses pronouns correctly with regard to case, number and person",
+            "Corrects vague pronoun references",
+            "Arranges multimedia elements (i.e., drawings, pictures, artifacts, audio, or digital representations) to create emphasis in oral or written tasks",
+            "Smoothly integrates multimedia elements in oral and/or written tasks, that directly relate to the task and emphasize a point made within the task (i.e., showing examples or data)",
+            "Uses more than one multimedia element in oral and/or written tasks (i.e., two pictures, one picture and one audio recording, etc.)",
+            "Uses digital writing tools individually or collaboratively to plan, draft, and revise writing"
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "skills": [
+            "Recognizes and appropriately uses grade-level academic vocabulary in speaking and writing",
+            "Applies knowledge of common Greek and Latin roots, base words, and affixes to determine the meaning of unfamiliar words in gradelevel content",
+            "Determines the meaning of multiple-meaning and unknown words and phrases using context clues (e.g., definition, synonym, antonym, example, inference), figurative language, word relationships (e.g., synonyms, antonyms, homonyms, homophones), reference materials, and/or background knowledge"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_4"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-4-SOC",
+      "title": "Social Studies, Grade 4",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 3.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Grade 3"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "History: 10 skills listed.",
+        "Geography: 4 skills listed.",
+        "Financial Literacy: 6 skills listed.",
+        "Civics and Government: 5 skills listed."
+      ],
+      "description": "Social Studies centers around understanding how the world works on a social level. Students in the elementary grades are taught how to interact with the community, society, and the world around them. Social Studies instruction includes fundamental concepts of history, culture, economics, and political skills to produce responsible and productive citizens and allows your child to develop critical thinking, research, and writing skills. Below you will find what your child will learn within each area of Social Studies.",
+      "strands": [
+        {
+          "name": "History",
+          "skills": [
+            "Analyze primary and secondary resources to identify significant individuals and events throughout Florida history",
+            "Synthesize information related to Florida history through print and electronic media",
+            "Know and understand pre-Columbian Florida to contemporary Florida",
+            "Know and understand exploration and settlement of Florida",
+            "Know and understand the growth of Florida",
+            "Know and understand the crisis of the union: Civil War and Reconstruction in Florida",
+            "Know and understand industrialization and emergence of modern Florida",
+            "Know and understand the Roaring 20’s, the Great Depression and WWII in Florida",
+            "Know and understand contemporary Florida into the 21st century",
+            "Utilize timelines to sequence key events in Florida history"
+          ]
+        },
+        {
+          "name": "Geography",
+          "skills": [
+            "Identify physical features of Florida",
+            "Locate and label cultural features on a Florida map",
+            "Explain how weather impacts Florida",
+            "Interpret political and physical maps using map elements"
+          ]
+        },
+        {
+          "name": "Financial Literacy",
+          "skills": [
+            "Understand the difference between goods and services",
+            "Identify ways that income is saved, spent on goods and services, or used to pay taxes",
+            "Understand how people use credit and how interest is paid",
+            "Identify how income is invested and how interest is earned",
+            "Discuss how income is earned through renting property, starting a new business, or working a job and that income is taxed",
+            "Discuss how to create a budget for saving, spending, and managing income"
+          ]
+        },
+        {
+          "name": "Civics and Government",
+          "skills": [
+            "Describe how Florida’s constitution protects the rights of citizens and provides for the structure, function, and purposes of state government",
+            "Discuss public issues in Florida that impact the daily lives of its citizens",
+            "Identify ways citizens work together to influence government and help solve community and state problems",
+            "Identify the three branches of government in Florida and the powers of each",
+            "Distinguish between state and local government"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_4"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-4-MATH",
+      "title": "Mathematics, Grade 4",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 3.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Grade 3"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "General: 32 skills listed."
+      ],
+      "description": "Fourth grade marks an integral milestone in your child’s academic career. The fourth-grade student will begin to grasp more abstract mathematical concepts by an increased focus on four critical areas: (1) extending understanding of multi-digit multiplication and division; (2) developing the relationship between fractions and decimals and beginning operations with both; (3) classifying and measuring angles and (4) developing an understanding for interpreting data to include mode, median and range. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
+      "strands": [
+        {
+          "name": "General",
+          "skills": [
+            "Generates a number or shape pattern that follows a rule",
+            "Recognizes the value of a digit in a multi-digit number is 10 times the value of the digit to its right",
+            "Reads and writes multi-digit whole numbers using standard form, word form, and expanded form and compares two multi-digit numbers using >, <, or =",
+            "Uses place value to round multi-digit whole numbers to a given place",
+            "Adds and subtracts multi-digit whole numbers fluently using the standard algorithm",
+            "Multiplies a whole number (up to 4 digits) by a one-digit number and multiplies two two-digit numbers using a variety of strategies",
+            "Finds whole-number quotients and remainders (up to 4-digit dividends/one-digit divisors) using a variety of strategies.",
+            "Solve problems that involve a remainder that must be interpreted",
+            "Explains why two fractions are equivalent and compares two fractions with different numerators and denominators",
+            "Understands addition and subtraction of fractions as a joining and separating of parts and solves word problems with like denominators (same whole)",
+            "Decomposes fractions into the sum of fractions with the same denominator in more than one way.",
+            "Adds and subtracts mixed numbers with like denominators",
+            "Multiplies a fraction by a whole number and solves word problems using visual models and equations",
+            "Understands decimal notation for fractions by expressing a fraction with a denominator of 10 as an equivalent fraction with a denominator of 100 and compares two decimals to hundredths",
+            "Knows relative sizes of measurement units within one system of units and expresses measurements in a larger unit in terms of a smaller unit (km, m, cm; kg, g; lb, oz; l, ml; hr, min, sec)",
+            "Uses the four operations to solve word problems involving distances, intervals of time, and money (includes simple fractions and decimals)",
+            "Applies the area and perimeter formulas for rectangles in real world and mathematical problems",
+            "Makes a line plot to display a data set of measurements in fractions of a unit (1/2, 1/4, 1/8) and uses addition and subtraction of fractions to solve problems using information from the line plot",
+            "Recognizes angles are formed wherever two rays share a common endpoint and understands concepts of angle measurement",
+            "Measures angles in whole number of degrees using a protractor and sketches angles of a specified measure.",
+            "Recognizes angle measures are additive and solves addition and subtraction problems to find unknown angles on a diagram",
+            "Draws and identifies points, lines, line segments, rays, angles, perpendicular lines, and parallel lines",
+            "Classifies two-dimensional figures based on given attributes",
+            "Identifies the mode, median, and range in a set of data In the Practice of Mathematics: In learning and understanding mathematics, students need to develop “habits of mind” so they can utilize math strategies, talk about the math they are learning and solve problems. These mathematical practices will help your student learn content and apply mathematics to real world situations.",
+            "Makes sense of the math and does not give up if the problem is unfamiliar or difficult",
+            "Uses words and numbers to make sense of mathematical problems",
+            "Can explain how he/she solved a problem and actively listens and makes sense of others’ solutions",
+            "Shows mathematical thinking using pictures, objects, drawings, or symbols",
+            "Chooses and uses mathematical tools to explore and understand mathematics",
+            "Shares ideas and thinking using accurate math vocabulary and computations",
+            "Identifies a pattern or structure in the number system or shapes",
+            "Notices when calculations are repeated and then finds more general methods and short cuts In our ever-changing world, understanding and internalizing scientific content is critical to success and achievement. Braewood County Schools is committed to developing these vital skills through hands-on activities and high-quality instruction that is focused on the Scientific Big Ideas. These Big Ideas are grade specific; however, they flow through all grade levels and build in rigor as students matriculate through each grade. In fourth grade, your child’s science instruction will include opportunities to interact with content associated with the following Big Ideas: the Practice of Science, the Characteristics of Scientific Knowledge, the Role of Theories, Laws, Hypotheses and Models, Earth in Space and Time, Earth Structures, matter, Forms of Energy, Energy Transfer and Transformations, Motions of Objects, Properties of Matter, Changes in Matter, and Heredity and Reproduction, and Interdependence. Below you will find what your child will learn for each big idea."
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_4"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-4-SCI",
+      "title": "Science, Grade 4",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 3.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Grade 3"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The Practice of Science: 8 skills listed.",
+        "General: 2 skills listed.",
+        "Earth in Space and Time: 5 skills listed.",
+        "Earth Structures: 6 skills listed.",
+        "Changes in Matter: 1 skills listed.",
+        "Forms of Energy: 6 skills listed.",
+        "Motion of Objects: 2 skills listed.",
+        "Heredity and Reproduction: 4 skills listed.",
+        "Interdependence: 4 skills listed."
+      ],
+      "description": "",
+      "strands": [
+        {
+          "name": "The Practice of Science",
+          "skills": [
+            "Raises questions about the natural world, uses appropriate reference materials that support understanding to obtain information (identifying the source), conducts both individual and team investigations through free exploration and systematic investigations, and generates appropriate explanations based on those explorations",
+            "Compares the observations made by different groups using multiple tools and seeks reasons to explain the differences across groups",
+            "Explains that science does not always follow a rigidly defined method (“the scientific method”), but that science does involve the use of observations and empirical evidence",
+            "Attempts reasonable answers to scientific questions and cites evidence in support",
+            "Compares the methods and results of investigations done by other classmates",
+            "Keeps records that describe observations made, carefully distinguishing actual observations from ideas and inferences about the observations",
+            "Recognizes and explains that scientists base their explanations on evidence",
+            "Recognizes that science involves creativity in designing experiments"
+          ]
+        },
+        {
+          "name": "General",
+          "skills": [
+            "Explains that science focuses solely on the natural world In The Role of Theories, Laws, Hypotheses, and Models,",
+            "Explains that models can be three dimensional, two-dimensional, an explanation in your mind, or a computer model"
+          ]
+        },
+        {
+          "name": "Earth in Space and Time",
+          "skills": [
+            "Observes that the patterns of stars in the sky stay the same although they appear to shift across the sky nightly, and different stars can be seen in different seasons",
+            "Describes the changes in the observable shape of the moon over the course of about a month",
+            "Recognizes that Earth revolves around the Sun in a year and rotates on its axis in a 24-hour day",
+            "Relates that the rotation of Earth (day and night) and apparent movements of the Sun, Moon, and stars are connected",
+            "Investigates and reports the effects of space research and exploration on the economy and culture of Florida"
+          ]
+        },
+        {
+          "name": "Earth Structures",
+          "skills": [
+            "Identifies the three categories of rocks: igneous (formed from molten rock); sedimentary (pieces of other rocks and fossilized organisms); and metamorphic (formed from heat and pressure)",
+            "Identifies the physical properties of common earth-forming minerals, including hardness, color, luster, cleavage, and streak color, and recognizes the role of minerals in the formation of rocks",
+            "Recognizes that humans need resources found on Earth and that these are either renewable or non-renewable",
+            "Describes the basic differences between physical weathering (breaking down of rock by wind, water, ice, temperature change, and plants) and erosion (movement of rock by gravity, wind, water, and ice)",
+            "Investigates how technology and tools help to extend the ability of humans to observe very small things and very large things",
+            "Identifies resources available in Florida (water, phosphate, oil, limestone, silicon, wind, and solar energy)"
+          ]
+        },
+        {
+          "name": "Changes in Matter",
+          "skills": [
+            "Identifies some familiar changes in materials that result in other materials with different characteristics, such as decaying animal or plant matter, burning, rusting, and cooking"
+          ]
+        },
+        {
+          "name": "Forms of Energy",
+          "skills": [
+            "Observes and describes some basic forms of energy, including light, heat, sound, electrical, and the energy of motion.",
+            "Investigates and describes that energy has the ability to cause motion or create change",
+            "Investigates and explains that sound is produced by vibrating objects and that pitch depends on how fast or slow the object vibrates.",
+            "Describes how moving water and air are sources of energy and can be used to move things In Energy Transfer and Transformations,",
+            "Recognizes that heat flows from a hot object to a cold object and that heat flow may cause materials to change temperature",
+            "Identifies common materials that conduct heat well"
+          ]
+        },
+        {
+          "name": "Motion of Objects",
+          "skills": [
+            "Recognizes that an object in motion always changes its position and may change its direction",
+            "Investigates and describes that the speed of an object is determined by the distance it travels in a unit of time and that objects can move at different speeds"
+          ]
+        },
+        {
+          "name": "Heredity and Reproduction",
+          "skills": [
+            "Identifies processes of sexual reproduction in flowering plants, including pollination, fertilization (seed production), seed dispersal, and germination",
+            "Explains that although characteristics of plants and animals are inherited, some characteristics can be affected by the environment",
+            "Recognizes that animal behaviors may be shaped by heredity and learning",
+            "Compares and contrasts the major stages in the life cycles of Florida plants and animals, such as those that undergo incomplete and complete metamorphosis, and flowering and non-flowering seed- bearing plants"
+          ]
+        },
+        {
+          "name": "Interdependence",
+          "skills": [
+            "Compares the seasonal changes in Florida plants and animals to those in other regions of the country",
+            "Explains that animals, including humans, cannot make their own food and that when animals eat plants or other animals, the energy stored in the food source is passed to them",
+            "Traces the flow of energy from the Sun as it is transferred along the food chain through the producers to the consumers",
+            "Recognizes ways plants and animals, including humans can impact the environment"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_4"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-4-PE",
+      "title": "Physical Education, Grade 4",
+      "department": "Physical Education",
+      "department_canonical": "Physical Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 3.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Physical Education, Grade 3"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.o",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_4"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-5-ELA",
+      "title": "English Language Arts, Grade 5",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 4.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Grade 4"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Foundational Skills: 4 skills listed.",
+        "Reading: 39 skills listed.",
+        "Vocabulary: 4 skills listed."
+      ],
+      "description": "Braewood County Schools is committed to preparing all of our students for a 21st century world through high quality instruction. The implementation of a rigorous and relevant ELA curriculum that embraces the six major common core shifts can provide students with the skills necessary to be successful in their college and careers. This year, your child’s instruction will include a balance of informational and literary texts, a deep understanding of disciplines, and the use of academic vocabulary in speaking and writing. Your child will be expected to write from sources and support their answers with text-based evidence. Below you will find what your child will learn for each area of Language Arts.",
+      "strands": [
+        {
+          "name": "Foundational Skills",
+          "skills": [
+            "Reads grade-level texts fluently with accuracy, automaticity, and appropriate prosody or expression",
+            "Decodes (reads) and writes unfamiliar single-syllable and multisyllabic words in and out of context",
+            "Applies knowledge of all letter-sound correspondences, syllabication patterns (i.e., “en-ter-tain”), and morphology (“enter-tain”) to read and write unfamiliar words",
+            "Decodes (reads) words using gradeappropriate phonics and wordanalysis skills"
+          ]
+        },
+        {
+          "name": "Reading",
+          "skills": [
+            "Analyzes how setting, events, conflict, and characterization contribute to the plot in a literary text.",
+            "Explains the development of stated or implied theme(s) in literary texts",
+            "Describes how an author develops a character’s perspective (a particular attitude toward or way of regarding something) in a literary text",
+            "Explains how figurative language (e.g., metaphor, simile, alliteration, personification, hyperbole, imagery, and idiom) and other poetic elements (e.g., form, rhyme, meter, line breaks, and imagery) work together in a poem",
+            "Explains how text structures (description, problem/solution, chronology, compare/contrast, cause/ effect, sequence) and/or features (e.g., annotation, appendix, caption, chart, footnote, glossary, graph, heading, illustration, photograph, table of contents, title) contribute to the overall meaning of texts",
+            "Explains how relevant details support an implied or explicit central idea",
+            "Analyzes an author’s purpose and/or perspective in an informational text",
+            "Tracks the development of an argument.",
+            "Identifies the specific claim(s), evidence, and reasoning of an argument",
+            "Summarizes a text, including plot and theme in literary texts; or the central idea and relevant details in informational texts, to enhance comprehension",
+            "Compares and contrasts primary and secondary sources related to the same topic In Communication (including Writing),",
+            "Demonstrates fluent and legible cursive writing skills",
+            "Writes personal or fictional narratives using a logical sequence of events",
+            "Writes to make a claim supporting a perspective with logical reasons",
+            "Writes expository texts about a topic",
+            "Uses evidence from multiple sources in writing",
+            "Uses effective and relevant elaborative techniques in writing (i.e., dialogue, descriptions, example, definition, quote, anecdote, explanation)",
+            "Includes an organizational structure with transitions in writing",
+            "Uses a variety of transitional words and phrases",
+            "Conducts research to answer a question using multiple reliable and valid sources",
+            "Identifies trustworthy and untrustworthy sources",
+            "Identifies relevant and irrelevant information to include in research",
+            "Organizes information about the research topic logically",
+            "With guidance and support from adults and feedback from peers, improves writing by planning, revising, and editing.",
+            "Presents information orally in a logical sequence",
+            "Uses nonverbal cues (e.g., posture, tone, expressive delivery, focus on the audience, and facial expression), appropriate volume, clear pronunciation, and appropriate pacing when presenting information orally",
+            "Uses principal modals to indicate the mood of a verb (e.g., can, could, may, might, must, ought, shall, should, will, and would)",
+            "Uses appositives, main clauses, and subordinate clauses",
+            "Recognizes and corrects inappropriate shifts in tense (past tense, present tense, future tense) and number",
+            "Uses conjunctions correctly to join words and phrases in sentences",
+            "Uses verbals including gerunds (words formed with verbs but act as nouns), infinitives (i.e., to have, to hold, to plan), and participial phrases (words based off of a verb that express a state of being)",
+            "Uses comparative and superlative forms of adjectives",
+            "Uses pronouns correctly with regard to case, number and person",
+            "Corrects vague pronoun references",
+            "Varies sentence structure in writing",
+            "Arranges multimedia elements (i.e., drawings, pictures, artifacts, audio, or digital representations) to create emphasis in oral or written tasks",
+            "Smoothly integrates multimedia elements in oral and/or written tasks, that directly relate to the task and emphasize a point made within the task (i.e., showing examples or data)",
+            "Uses more than one multimedia element in oral and/or written tasks (i.e., two pictures, one picture and one audio recording, etc.)",
+            "Uses digital writing tools individually or collaboratively to plan, draft, and revise writing"
+          ]
+        },
+        {
+          "name": "Vocabulary",
+          "skills": [
+            "Recognizes and appropriately uses gradelevel academic vocabulary in speaking and writing",
+            "Applies knowledge of common Greek and Latin roots and affixes to determine the meaning of unfamiliar words in gradelevel content",
+            "Recognizes the connection between affixes and parts of speech",
+            "Determines the meaning of multiplemeaning and unknown words and phrases using context clues (e.g., definition, synonym, antonym, example, inference), figurative language, word relationships (e.g., synonyms, antonyms, homonyms, homophones), reference materials, and/or background knowledge"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_5"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-5-SOC",
+      "title": "Social Studies, Grade 5",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 4.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Grade 4"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "History: 7 skills listed.",
+        "Geography: 10 skills listed.",
+        "Economics: 4 skills listed.",
+        "Civics and Government: 17 skills listed."
+      ],
+      "description": "Social Studies centers around understanding how the world works on a social level. Students in the elementary grades are taught how to interact with the community, society, and the world around them. Social Studies instruction includes fundamental concepts of history, culture, economics, and political skills to produce responsible and productive citizens, and allows your child to develop critical thinking, research and writing skills. Below you will find what your child will learn within each area of Social Studies.",
+      "strands": [
+        {
+          "name": "History",
+          "skills": [
+            "Use primary and secondary sources to understand history",
+            "Utilize timelines to identify and discuss American History time periods",
+            "Know and understand pre-Columbian North America",
+            "Know and understand exploration and settlement of North America",
+            "Know and understand colonization of North America",
+            "Know and understand American Revolution and birth of a new nation",
+            "Know and understand growth and Westward Expansion"
+          ]
+        },
+        {
+          "name": "Geography",
+          "skills": [
+            "Interpret current and historical information using a variety of geographic tools",
+            "Use latitude and longitude to locate places",
+            "Identify major United States physical features on a map of North America",
+            "Construct maps, charts, and graphs to display geographic information",
+            "Identify and locate the original thirteen colonies on a map of North America",
+            "Locate and identify states, capitals, and United States Territories on a map",
+            "Describe the push-pull factors that influenced boundary changes within the United States",
+            "Describe the impact that past natural events have had on human and physical environments in the United States through 1850",
+            "Use geographic knowledge and skills when discussing current events",
+            "Use geography concepts and skills such as recognizing patterns, mapping, graphing to find solutions for local, state, or national problems"
+          ]
+        },
+        {
+          "name": "Economics",
+          "skills": [
+            "Identify how trade promoted economic growth in North America from pre-Columbian times to 1850",
+            "Describe a market economy, and give examples of how the colonial and early American economy exhibited these characteristics",
+            "Trace the development of technology and the impact of major inventions on business productivity during the early development of the United States",
+            "Recognize the positive and negative effects of voluntary trade among Native Americans, European explorers, and colonists"
+          ]
+        },
+        {
+          "name": "Civics and Government",
+          "skills": [
+            "Explain how and why the United States government was created",
+            "Define a constitution, and discuss its purposes",
+            "Explain the definition and origin of rights",
+            "Identify the Declaration of Independence’s grievances and Articles of Confederation’s weaknesses",
+            "Describe how concerns about individual rights led to inclusion of the Bill of Rights in the U.S. Constitution",
+            "Compare Federalist and Anti-Federalist views of government",
+            "Differentiate political ideas of Patriot, Loyalist, and “undecided” during the American Revolution",
+            "Compare forms of political participation in the colonial period to today",
+            "Analyze how the Constitution has expanded voting rights from our nation’s early history to today",
+            "Evaluate the importance of civic responsibilities in American democracy",
+            "Identify ways good citizens go beyond basic civic and political responsibilities to improve government and society",
+            "Describe the organizational structure and powers of the federal government as defined in Articles I, II, and III of the U.S. Constitution",
+            "Explain how popular sovereignty, rule of law, separation of powers, checks and balances, federalism, and individual rights limit the powers of the federal government as expressed in the Constitution and Bill of Rights",
+            "Give examples of powers granted to the federal government and those reserved for the states",
+            "Describe the amendment process as defined in Article V of the Constitution and give examples",
+            "Identify the fundamental rights of all citizens as enumerated in the Bill of Rights",
+            "Examine the foundations of the United States legal system by recognizing the role of the courts in interpreting law and setting conflicts"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_5"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-5-MATH",
+      "title": "Mathematics, Grade 5",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 4.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Grade 4"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "General: 31 skills listed."
+      ],
+      "description": "Fifth grade marks an integral milestone in your child’s academic career. The fifth grade student will begin to grasp more abstract mathematical concepts by an increased focus on five critical areas: (1) multiplying and dividing multi-digit whole numbers, including using a standard algorithm; (2) adding and subtracting fractions and decimals with procedural fluency, developing an understanding of multiplication and division of fractions and decimals; (3) developing an understanding of the coordinate plane and plotting pairs of numbers in the first quadrant; (4) extending geometric reasoning to include volume and (5) extending understanding of data to include the mean. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
+      "strands": [
+        {
+          "name": "General",
+          "skills": [
+            "Use grouping symbols such as parenthesis, brackets, and braces in numerical expressions and evaluates expressions with these symbols",
+            "Writes and interprets simple numerical expressions without evaluating",
+            "Generates two numerical patterns using two given rules and identifies relationships between corresponding terms to form ordered pairs",
+            "Understands the comparative value of each digit in multi-digit numbers",
+            "Understands and explains multiplying and dividing by powers of 10",
+            "Reads, writes, and compares decimals to thousandths using number form, word form, and expanded form",
+            "Uses place value understanding to round decimals to a given place",
+            "Multiplies multi-digit whole numbers fluently using the standard algorithm",
+            "Divides multi-digit whole numbers using a variety of strategies",
+            "Adds, subtracts, multiplies, and divides decimals to hundredths, using models, drawings, and a variety of other strategies",
+            "Adds and subtracts fractions with unlike denominators (including mixed numbers) using equivalent fractions",
+            "Solves word problems for addition and subtraction of fractions using various strategies",
+            "Interprets a fraction as division of the numerator by the denominator and solves word problems involving division of whole numbers leading to answers in the form of fractions or mixed numbers",
+            "Multiplies a fraction or whole number by a fraction and solves word problems involving multiplication of fractions and mixed numbers",
+            "Interprets multiplication as scaling or resizing when multiplying a given number by a fraction greater than 1 or less than 1",
+            "Divides unit fractions by whole numbers and whole numbers by unit fractions",
+            "Converts among different-sized standard measurement units within a given measurement system (km, m, cm; kg, g; lb, oz; l, ml; hr, min, sec) and solves multi-step real-world problems using these conversions",
+            "Makes a line plot to display a data set of measurements in fractions of a unit (1/2, ¼, 1/8) and uses operations with these fractions to solve problems using information from the line plot",
+            "Recognizes volume as an attribute of solid figures and measures volume by counting unit cubes (cubic cm, cubic in, cubic ft, etc.)",
+            "Finds volume of rectangular prisms using a variety of methods",
+            "Graphs ordered pairs on the coordinate plane (first quadrant only) to solve real-world and mathematical problems",
+            "Classifies two-dimensional figures into categories based on their properties",
+            "Identifies the mean, median, mode, and range of a given set of data In the Practice of Mathematics: In learning and understanding mathematics, students need to develop “habits of mind” so they can utilize math strategies, talk about the math they are learning and solve problems. These mathematical practices will help your student learn content and apply mathematics to real world situations.",
+            "Makes sense of the math and does not give up if the problem is unfamiliar or difficult",
+            "Uses words and numbers to make sense of mathematical problems",
+            "Can explain how he/she solved a problem and actively listens and makes sense of others’ solutions",
+            "Shows mathematical thinking using pictures, objects, drawings, or symbols",
+            "Chooses and uses mathematical tools to explore and understand mathematics",
+            "Shares ideas and thinking using accurate math vocabulary and computations",
+            "Identifies a pattern or structure in the number system or shapes",
+            "Notices when calculations are repeated then finds more general methods and short cuts Big Ideas are grade specific; however, they flow through all grade levels and build in rigor as students matriculate through each grade. In fifth grade, your child’s science instruction will include opportunities to interact with content associated with the following Big Ideas: The Practice of Science, The Characteristics of Scientific Knowledge, Earth in Space and Time, Earth Systems and Patterns, Properties of Matter, Changes in Matter, Forms of Energy, Energy Transfers and Transformations, Forces and Changes in Motion, and the Organization and Development of Living Organisms, Diversity and Evolution of Living Organisms and Interdependence. Below you will find what your child will learn for each Big Idea."
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_5"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-5-SCI",
+      "title": "Science, Grade 5",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 4.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Grade 4"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The Practice of Science: 8 skills listed.",
+        "Earth in Space and Time: 1 skills listed.",
+        "General: 9 skills listed.",
+        "Properties of Matter: 4 skills listed.",
+        "Changes in Matter: 1 skills listed.",
+        "Forms of Energy: 4 skills listed.",
+        "Energy Transfer and Transformations: 2 skills listed.",
+        "Forces and Changes in Motion: 7 skills listed.",
+        "Interdependence: 1 skills listed."
+      ],
+      "description": "",
+      "strands": [
+        {
+          "name": "The Practice of Science",
+          "skills": [
+            "Defines a problem, uses appropriate reference materials to support scientific understanding, plan and carry out scientific investigations of various types such as: systematic observations, experiments requiring the identification of variables, collecting and organizing data, interpreting data in charts, tables, and graphics, analyze information, make predictions, and defend conclusions",
+            "Explains the difference between an experiment and other types of scientific investigation",
+            "Recognizes and explains the need for repeated experiment trials",
+            "Identifies a control group and explains its importance in an experiment.",
+            "Recognizes and explains that authentic scientific investigation frequently does not parallel the steps of “the scientific method”",
+            "Recognizes and explains the difference between personal opinion/ interpretation and verified observation In The Characteristics of Scientific Knowledge,",
+            "Recognizes and explains that science is grounded in empirical observations that are testable, and that explanation must always be linked with evidence",
+            "Recognizes and explains that when scientific investigations are carried out, the evidence produced by those investigations should be replicable by others"
+          ]
+        },
+        {
+          "name": "Earth in Space and Time",
+          "skills": [
+            "Recognizes that a galaxy consists of gas, dust, and many stars, including any objects orbiting the stars. Identifies"
+          ]
+        },
+        {
+          "name": "General",
+          "skills": [
+            "Recognizes the major common characteristics of all planets and compare/contrast the properties of inner and outer planets",
+            "Distinguishes among the following objects of the Solar System – Sun, planets, moons, asteroids, comets – and identify Earth’s position in it In Earth Systems and Patterns,",
+            "Creates a model to explain the parts of the water cycle. Water can be a gas, a liquid, or a solid and can go back and forth from one state to another",
+            "Recognizes that the ocean is an integral part of the water cycle and is connected to all of Earth’s water reservoirs via evaporation and precipitation processes",
+            "Recognizes how air temperature, barometric pressure, humidity, wind speed and direction, and precipitation determine the weather in a particular place and time",
+            "Distinguishes among the various forms of precipitation (rain, snow, sleet, and hail), making connections to the weather in a particular place and time",
+            "Recognizes that some of the weather-related differences, such as temperature and humidity, are found among different environments, such as swamps, deserts, and mountains",
+            "Describes characteristics (temperature and precipitation) of different climate zones as they relate to latitude, elevation, and proximity to bodies of water",
+            "Designs a family preparedness plan for natural disasters and identifies the reasons for having such a plan"
+          ]
+        },
+        {
+          "name": "Properties of Matter",
+          "skills": [
+            "Compares and contrasts the basic properties of solids, liquids, and gases, such as mass, volume, color, texture, and temperature",
+            "Investigates and identifies materials that will dissolve in water and those that will not and identifies the conditions that will speed up or slow down the dissolving process",
+            "Demonstrates and explains that the mixtures of solids can be separated based on observable properties of their parts such as particle size, shape, color, and magnetic attraction",
+            "Explores the scientific theory of atoms (also called atomic theory) by recognizing that all matter is composed of parts that are too small to be seen without magnification"
+          ]
+        },
+        {
+          "name": "Changes in Matter",
+          "skills": [
+            "Investigates and describes that many physical and chemical changes are affected by temperature"
+          ]
+        },
+        {
+          "name": "Forms of Energy",
+          "skills": [
+            "Investigates and describes some basic forms of energy, including light, heat, sound, electrical, chemical, and mechanical",
+            "Investigates and explains that energy has the ability to cause motion or create change",
+            "Investigates and explains that an electrically-charged object can attract an uncharged object and can either attract or repel another charged object without any contact between the objects",
+            "Investigates and explains that electrical energy can be transformed into heat, light, and sound energy, as well as the energy of motion"
+          ]
+        },
+        {
+          "name": "Energy Transfer and Transformations",
+          "skills": [
+            "Investigates and illustrates the fact that the flow of electricity requires a closed circuit (a complete loop)",
+            "Identifies and classifies materials that conduct electricity and materials that do not"
+          ]
+        },
+        {
+          "name": "Forces and Changes in Motion",
+          "skills": [
+            "Identifies familiar forces that cause objects to move, such as pushes or pulls, including gravity acting on falling objects",
+            "Investigates and describes that the greater the force applied to it, the greater the change in motion of a given object",
+            "Investigates and describes that the more mass an object has, the less effect a given force will have on the object’s motion",
+            "Investigates and explains that when a force is applied to an object, but it does not move, it is because another opposing force is being applied by something in the environment so that the forces are balanced In Organization and Development of Living Organisms,",
+            "Identifies the organs in the human body and describes their functions, including the skin, brain, heart, lungs, stomach, liver, intestines, pancreas, muscles and skeleton, reproductive organs, kidneys, bladder, and sensory organs",
+            "Compares and contrasts the function of organs and other physical structures of plants and animals, including humans, for example: some animals have skeletons for support – some with internal skeletons others with exoskeletons – while some plants have stems for support In Diversity and Evolution of Living Organisms,",
+            "Describes how, when the environment changes, differences between individuals allow some plants and animals to survive and reproduce while others die or move to new locations"
+          ]
+        },
+        {
+          "name": "Interdependence",
+          "skills": [
+            "Compares and contrasts adaptations displayed by animals and plants that enable them to survive in different environments such as life cycles variations, animal behaviors and physical characteristic"
+          ]
+        }
+      ],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_5"
+        }
+      ]
+    },
+    {
+      "course_code": "BCPS-5-PE",
+      "title": "Physical Education, Grade 5",
+      "department": "Physical Education",
+      "department_canonical": "Physical Education",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit. Every course here is taken by every student in the year.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The same subject in Grade 4.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Physical Education, Grade 4"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "The roadmap describes this subject in prose without listing skills."
+      ],
+      "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "roadmap_5"
+        }
+      ]
+    }
+  ],
+  "data_notes": [
+    "This is an elementary curriculum, and it does not fit the shape of a course catalog. Elementary pupils do not choose courses: every child in a year takes every subject in it. There is nothing to plan, and the explorer will show a grid with one unavoidable entry per subject per year.",
+    "Credits are zero throughout, because elementary grades carry none. Any credit total the explorer shows will be zero, and that is correct rather than missing data.",
+    "No graduation requirements are stated, because elementary school has none. The Curriculum Doctor reports this, correctly.",
+    "The prerequisite on each entry is the same subject in the year below. The roadmaps do not state this — it is the sequence implied by the grades themselves, added so the subject progression can be seen as a chain. It is an inference, not a rule from the document.",
+    "Skills are kept per strand in a `strands` field on each course, exactly as the roadmap prints them. The explorer does not read that field; it is carried so nothing from the source is lost.",
+    "Text was extracted from the PDFs, which wrap words across lines with a hyphen. Those are rejoined where the next line begins in lower case, so a genuine hyphenated compound ending a line may have lost its hyphen.",
+    "The \"Activities to practise with your child\" pages are parent guidance rather than curriculum, and are not represented here.",
+    "One roadmap prints its SCIENCE heading as a graphic, so the heading never appears in the extracted text. That section is recognised by its opening strand, \"The Practice of Science\", which every Florida science section uses. Without that rule its skills would have been filed under the subject printed above it.",
+    "Every bullet in the six roadmaps outside the parent-activity pages is present: 768 in the source, 768 here, checked grade by grade.",
+    "The county is fictitious. Braewood County Public Schools does not exist: the district name, and every mention of it inside the roadmap prose, replaced a real one. The curriculum itself is unchanged — every subject, strand and skill is exactly as the source documents print it, and the source links have been removed rather than redirected.",
+    "State-level references are left alone. Florida, the B.E.S.T. standards and fldoe.org are a state and its education department, not the district, and the curriculum does not make sense without them."
+  ]
+}

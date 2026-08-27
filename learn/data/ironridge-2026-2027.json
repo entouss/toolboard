@@ -1,0 +1,1954 @@
+{
+  "$schema_version": "2.0",
+  "source_documents": [
+    {
+      "id": "irms_electives",
+      "title": "Iron Ridge Middle Elective Course Guide 2026-2027",
+      "document_type": "elective_course_guide",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "irms_programs",
+      "title": "Iron Ridge Middle School — Specialized Programs",
+      "document_type": "web_page",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "bcps_gem",
+      "title": "Braewood County Public Schools — Great Explorations in Mathematics (GEM)",
+      "document_type": "web_page",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "bcps_gears",
+      "title": "Braewood County Public Schools — gifted and advanced academics (GEARS)",
+      "document_type": "web_page",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "bcps_counseling",
+      "title": "Braewood County Public Schools — Middle & High School Courses",
+      "document_type": "web_page",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "gears_sequence",
+      "title": "A Braewood middle school's published description of the GEARS sequence, which names its courses grade by grade",
+      "document_type": "web_page",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "irms_pathways",
+      "title": "Iron Ridge Middle School — Academic Pathways",
+      "document_type": "web_page",
+      "grade_levels_covered": [
+        6,
+        7,
+        8
+      ],
+      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+    }
+  ],
+  "generated_from": "The school's published elective course guide, one page per elective, plus the four core subjects as the school's own academic pathways page describes them.",
+  "school": {
+    "name": "Iron Ridge Middle School",
+    "short_name": "IRMS",
+    "type": "Public district middle school",
+    "district": "Braewood County Public Schools"
+  },
+  "document": {
+    "title": "Iron Ridge Middle Elective Course Guide",
+    "academic_year": "2026-2027",
+    "document_type": "elective_course_guide",
+    "grade_levels_covered": [
+      6,
+      7,
+      8
+    ]
+  },
+  "planner": {
+    "levels": [
+      6,
+      7,
+      8
+    ],
+    "level_names": {
+      "6": "Grade 6",
+      "7": "Grade 7",
+      "8": "Grade 8"
+    }
+  },
+  "credit_by_exam": {
+    "rule": "Currently, a student may earn high school credit in Algebra I, Geometry, U.S. History or Biology I if the student passes the statewide, standardized end-of-course (EOC) assessment with a level 3 or higher without the requirement of enrolling in or completing the course.",
+    "subjects": [
+      "Algebra I",
+      "Geometry",
+      "U.S. History",
+      "Biology I"
+    ],
+    "high_school_credits_each": 1,
+    "source": "bcps_counseling",
+    "note": "Three of the four are also taught here as courses — GEM-7 is Algebra I Honors, GEM-8 is Geometry Honors, and the GEARS sequence ends in Honors Biology 1. Only U.S. History is not taught at this school at any level, so for that one the exam is the only route."
+  },
+  "course_count": 47,
+  "courses": [
+    {
+      "course_code": "IRMS-3DART",
+      "title": "3D Art",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "required to complete Art I prior to enrolling",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "Art I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "prerequisite_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "3-D ART (8th Grade Elective) Students are required to complete Art I prior to enrolling in 3-D Art. This course highlights artists and art history as sources of inspiration for various art projects. Students will craft both two-dimensional and three-dimensional works. Students will have the chance to make personal decisions regarding their artistic creations.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-ARTI",
+      "title": "Art I",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6,
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Introductory Art, or Art I, provides students with a foundational understanding of key art elements like color, line, value, form, space, shape, and texture. By the end, students will gain insights into the potential of art, laying a strong foundation for future artistic endeavors.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-ARTII",
+      "title": "Art II",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "required to complete Art I prior to enrolling",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "Art I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "prerequisite_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "Students are required to complete Art I prior to enrolling in Art II. Students experiment with various media, techniques, and methods. Projects will concentrate on enhancing the elements of art (line, form, color, value, texture) and principles of design (balance, variety, harmony, emphasis). Focus on art history, culture, and heritage. Students will create a mix of two-dimensional and threedimensional projects.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-BANDII",
+      "title": "Band II",
+      "title_variants": [
+        "Concert Band"
+      ],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Prerequisite required; the guide marks it with an asterisk but does not name it. The numbered ladder is the only reading the titles allow.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "inferred",
+        "courses": [
+          "Beginning Band (Band I)"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "prerequisite_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade) Introduces students with limited/non-musical backgrounds to fundamentals. Instrument rental and daily practice required. Concert Band (Band II) (7th & 8th Grade) Continues development of skills from Beginning Band. Must practice 30 minutes per day. Must attend all rehearsals and concerts.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-BANDIII",
+      "title": "Band III",
+      "title_variants": [
+        "Symphonic Band"
+      ],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Prerequisite required; the guide marks it with an asterisk but does not name it. The numbered ladder is the only reading the titles allow.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "inferred",
+        "courses": [
+          "Band II"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "prerequisite_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th & 8th Grade) Students with 1-2 prior years of experience playing a band instrument This advanced class performs 3-4 concerts a year Represents IRMS at the annual Music Performance Assessment in March Jazz Band (Music Ensemble III) (7th & 8th Grade) Students with 1 year exp. with Trumpet, Saxophone, Trombone, Rhythm Section Students in Jazz Band must be enrolled in 2 band classes Performs exclusively Jazz at school and community functions",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-BANDIV",
+      "title": "Band IV",
+      "title_variants": [
+        "Honors Band"
+      ],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "The guide says this earns high school credit but does not say how much. One credit is recorded, the value every year-long course carries in the district's own high school catalogue. For Honors Band it is an option in eighth grade only.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Prerequisite required; the guide marks it with an asterisk but does not name it. The numbered ladder is the only reading the titles allow.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "inferred",
+        "courses": [
+          "Band III"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "prerequisite_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th & 8th Grade) Students with 2 prior years of experience playing a band instrument. This premier class performs 4-5 concerts a year! Ability to try out for Braewood All County Honor Band and Florida All State Honor Band High School credit option in 8th grade",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-BEGIBAND",
+      "title": "Beginning Band (Band I)",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6,
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade) Introduces students with limited/non-musical backgrounds to fundamentals. Instrument rental and daily practice required. Concert Band (Band II) (7th & 8th Grade) Continues development of skills from Beginning Band. Must practice 30 minutes per day. Must attend all rehearsals and concerts.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-CHES",
+      "title": "Chess",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Learn the basic rules of chess and more advanced strategies Students play against each other in rated games, tournaments, and recreational play",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-CREAARTS",
+      "title": "Creative Arts",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Creative Arts is all about storytelling. We do this through a variety of mediums including: Art Music Appreciation Technology Speeches/Presentations Drama Photography Videography We use both left and right brain to express ourselves creatively in a judgement free, try everything, inclusive environment.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-CULIARTS",
+      "title": "Culinary Arts",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(8th Grade) Understand food science principles related to cooking and baking Students prepare quality food products in hands-on kitchens, develop menus, and learn about nutrition. Class donations through the IRMS eStore appreciated for groceries and baking supplies!",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-DEBAI",
+      "title": "Debate I Honors",
+      "title_variants": [
+        "Debate I"
+      ],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Honors",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "The guide says this earns high school credit but does not say how much. One credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "application_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(8th Grade)",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-DIGITOOL",
+      "title": "Digital Tools",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th & 8th Grade) Students deepen their knowledge of technology and its application in various careers. 6th Grade Media Careers is a pre- requisite for Digital Tools. Course includes: Microsoft Word Microsoft Excel Basic employability skills needed to locate, secure, and maintain employment.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-ENTR",
+      "title": "Entrepreneurship",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Students develop leadership and business skills to prepare for success in their future careers. Students learn skills needed to establish themselves as business owners and community leaders through project based learning.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-FUNDOF",
+      "title": "Fundamentals of Finance (Financial Literacy I)",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(Financial Literacy I) Topics Covered: Banking, checking, budgeting Stocks, bonds, investments Economic trends Finance-based math questions Curriculum continues in Financial Literacy II in 7th Grade",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-INTRTO",
+      "title": "Intro to Finance (Financial Literacy II)",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": ". Fundamentals of Finance I prerequisite required",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "Fundamentals of Finance (Financial Literacy I)"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "prerequisite_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade) Students learn about financial management, investment strategies, and the insurance market. Fundamentals of Finance I prerequisite required.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-INTRTOX",
+      "title": "Intro to Speech and Debate",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Introductory course to IRMS’ award-winning Speech and Debate program, available as High School level courses in in 7th and 8th Grade. Topics include reasoning, audience analysis, research, outlining, and delivery. Emphasis is on the oral presentation of wellprepared speeches, using technology when appropriate.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-JOURI",
+      "title": "Journalism I",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "The guide says this earns high school credit but does not say how much. One credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "application_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade) High school credit elective offered to 7th grade students that excel in language arts, digital design, and or speech. Students create the Puma Press Student Newspaper, available for download on the school website. Daily Activities: Puma Press School Newspaper Photography Contests FSPA membership Disney’s Imagination Campus Canon Cameras Teamwork Digital Design (using Balfour Encore) Canva",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-JOURII",
+      "title": "Journalism II/Yearbook",
+      "title_variants": [
+        "Yearbook"
+      ],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "The guide says this earns high school credit but does not say how much. One credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "completed Journalism I.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "Journalism I"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "application_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "High School Credit High school credit elective offered to students that completed Journalism I. Every year, a group of highly-motivated students create our 248-page IRMS Yearbook from scratch! Emphasis on writing, editing, photography, marketing, teamwork, leadership, computer skills, time management, and more. Yearbook students are required to attend events outside of school hours. Students receive their yearbook and ½ page dedication ad complimentary for their hard work!",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-LAWSTUD",
+      "title": "Law Studies",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Become a Legal Expert! Dive into real-world legal topics and argue your side like a lawyer. Learn your legal rights. Perform mock trials and uncover what really happens in a courtroom. Explore what happens when laws are broken and why they exist in the first place. Taught to you by Dr. Gianna Hillis, an Attorney herself",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-MEDICARE",
+      "title": "Media Careers",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "6th Grade Technology/Research ElectiveCourse curriculum includes research skills, digital literacy, computer hardware, game design, and film studies. “Have you ever been curious about how the internet works?”",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-PEERCOUN",
+      "title": "Peer Counseling",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "application_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th & 8th Grade) Leadership and mentorship program designed to promote kindness, inclusivity, and socialemotional learning on campus Focus on communication, peer mentoring, conflict resolution, and problem-solving Peer Counselors lead school-wide initiatives such as Anti-Bullying and Red Ribbon Week Application and interview required for admission into the course",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-PHYSEDUC",
+      "title": "Physical Education",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6,
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th & 8th Grade) Get exercise and have fun while playing games and learning about personal fitness! Daily Activities Muscle Mondays Team Sports Dual Sports Students in PE are required to dress out in a PE uniform and use the locker room to store materials. Lost locks replaced for a fee.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-SPANI",
+      "title": "Spanish I",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "The guide says this earns high school credit but does not say how much. One credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(8th Grade) Introduces students to Spanish language and a variety of Spanish speaking cultures. High school credit course. Student will develop Spanish communicative skills in reading, writing, and speaking.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-SPEEI",
+      "title": "Speech I Honors",
+      "title_variants": [
+        "Speech I"
+      ],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Honors",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "The guide says this earns high school credit but does not say how much. One credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "application_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade)",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-STUDLEAD",
+      "title": "Student Leadership Development Corps",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "SLDC (7th & 8th Grade) Motivates students to become better citizens and scholars Education in leadership, character, citizenship, and life enhancing skills Builds self-confidence and selfesteem Course Activities: Life Skills Leadership lessons Drill and ceremonies Citizenship education Physical fitness",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-TVPROD",
+      "title": "TV Production",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "application_required": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th & 8th Grade) “Good Morning, Pumas!” Students in this hands-on course create the daily morning announcements as well as videos for our school website and social media. Audition, application, and behavior contract required.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-YOGA",
+      "title": "Yoga",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade) Yoga Introduces students to yoga to alleviate stress and gain flexibility & strength Class includes teacher-led yoga, class discussions, and group activities Students are required to dress out and have a Yoga mat for class. Culinary Arts Understand food science principles related to cooking and baking Students prepare quality food products, develop menus, and learn about nutrition. Class donations via the IRMS eStore appreciated for groceries!",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-YOGACULI",
+      "title": "Yoga/Culinary Arts (Semester Split)",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6,
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "(7th Grade) Yoga Introduces students to yoga to alleviate stress and gain flexibility & strength Class includes teacher-led yoga, class discussions, and group activities Students are required to dress out and have a Yoga mat for class. Culinary Arts Understand food science principles related to cooking and baking Students prepare quality food products, develop menus, and learn about nutrition. Class donations via the IRMS eStore appreciated for groceries!",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_electives"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-JAZZBAND",
+      "title": "Jazz Band",
+      "title_variants": [],
+      "department": "Electives",
+      "department_canonical": "Electives",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7,
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Part of the school's band programme, listed among its specialised programmes.",
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-6-ELA",
+      "title": "English Language Arts, Grade 6",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Instruction follows the state language arts standards, with emphasis on reading, writing, speaking, listening and language skills.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-6-M",
+      "title": "Mathematics, Grade 6",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Rich, challenging opportunities focused on problem solving.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-6-S",
+      "title": "Science, Grade 6",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Earth, life and physical sciences, taught through laboratory experiences.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-6-SS",
+      "title": "Social Studies, Grade 6",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "American History, World History, Geography, Economics, Financial Literacy, Civics and Government.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-7-ELA",
+      "title": "English Language Arts, Grade 7",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Grade 6"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Instruction follows the state language arts standards, with emphasis on reading, writing, speaking, listening and language skills.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-7-M",
+      "title": "Mathematics, Grade 7",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Grade 6"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Rich, challenging opportunities focused on problem solving.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-7-S",
+      "title": "Science, Grade 7",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Grade 6"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Earth, life and physical sciences, taught through laboratory experiences.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-7-SS",
+      "title": "Social Studies, Grade 7",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Grade 6"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "American History, World History, Geography, Economics, Financial Literacy, Civics and Government.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-8-ELA",
+      "title": "English Language Arts, Grade 8",
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "English Language Arts, Grade 7"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Instruction follows the state language arts standards, with emphasis on reading, writing, speaking, listening and language skills.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-8-M",
+      "title": "Mathematics, Grade 8",
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Mathematics, Grade 7"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Rich, challenging opportunities focused on problem solving.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-8-S",
+      "title": "Science, Grade 8",
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Science, Grade 7"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "Earth, life and physical sciences, taught through laboratory experiences.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-8-SS",
+      "title": "Social Studies, Grade 8",
+      "department": "Social Studies",
+      "department_canonical": "Social Studies",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [
+          "Social Studies, Grade 7"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [],
+      "description": "American History, World History, Geography, Economics, Financial Literacy, Civics and Government.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_pathways"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-GEM6",
+      "title": "GEM-6 (Pre-Algebra)",
+      "title_variants": [],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "track": "GEM",
+      "level": "Advanced",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Entry is by mastery score, parental approval and teacher recommendation.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": [
+          "Mathematics Mastery Score of Level 4.75 (SS 242) or higher, or an ELA Mastery Score of Level 4 (SS 232) with parental approval and a teacher recommendation."
+        ]
+      },
+      "flags": {
+        "accelerated": true,
+        "gifted_program": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "Compresses the sixth, seventh and eighth grade mathematics standards into one year. No high school credit. A district midterm and final count for 25% of the grade.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        },
+        {
+          "source": "bcps_gem"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-GEM7",
+      "title": "GEM-7 (Algebra I Honors)",
+      "title_variants": [],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "track": "GEM",
+      "level": "Honors",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "Earns high school credit. The district does not print the value; one credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The GEM sequence runs GEM-6, GEM-7, GEM-8 in order.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "GEM-6 (Pre-Algebra)"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "eoc_course": true,
+        "accelerated": true,
+        "gifted_program": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "A high school course taken in seventh grade, for high school credit. The state end-of-course exam counts for 30% of the final grade.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        },
+        {
+          "source": "bcps_gem"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-GEM8",
+      "title": "GEM-8 (Geometry Honors)",
+      "title_variants": [],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "track": "GEM",
+      "level": "Honors",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "Earns high school credit. The district does not print the value; one credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The GEM sequence runs GEM-6, GEM-7, GEM-8 in order.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "GEM-7 (Algebra I Honors)"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "eoc_course": true,
+        "accelerated": true,
+        "gifted_program": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "A high school course taken in eighth grade, for high school credit. The state end-of-course exam counts for 30% of the final grade.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        },
+        {
+          "source": "bcps_gem"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-GEARS6",
+      "title": "GEARS 1",
+      "title_variants": [],
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "track": "GEARS",
+      "level": "Advanced",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        6
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Entry is by prior attainment; see grade_requirements.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": null,
+        "courses": [],
+        "grade_requirements": [
+          "A Level 4 or 5 on the fifth grade state exams in Science, ELA and Mathematics is strongly recommended for entry in sixth grade."
+        ]
+      },
+      "flags": {
+        "accelerated": true,
+        "gifted_program": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "Genuine Explorations, Applications and Research in Science. The sixth grade Earth/Space Science standards together with the first half of the eighth grade Physical Science standards (Introduction to Physics).",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        },
+        {
+          "source": "bcps_gears"
+        },
+        {
+          "source": "gears_sequence"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-GEARS7",
+      "title": "GEARS 2",
+      "title_variants": [],
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "track": "GEARS",
+      "level": "Advanced",
+      "credits": 0,
+      "high_school_credits": null,
+      "credits_basis": "not printed",
+      "credit_note": "Middle school courses carry no credit.",
+      "grade_levels": [
+        7
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The GEARS sequence runs GEARS 1, GEARS 2, then Honors Biology 1.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "GEARS 1"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "accelerated": true,
+        "gifted_program": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "Genuine Explorations, Applications and Research in Science. The second half of Physical Science (Introduction to Chemistry) together with the seventh grade Life Science standards.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        },
+        {
+          "source": "bcps_gears"
+        },
+        {
+          "source": "gears_sequence"
+        }
+      ]
+    },
+    {
+      "course_code": "IRMS-GEARS8",
+      "title": "Honors Biology 1",
+      "title_variants": [],
+      "department": "Science",
+      "department_canonical": "Science",
+      "subject_area": null,
+      "track": "GEARS",
+      "level": "Honors",
+      "credits": 0,
+      "high_school_credits": 1,
+      "credits_basis": "not printed",
+      "credit_note": "Earns high school credit. One credit is recorded, the value every year-long course carries in the district's own high school catalogue.",
+      "grade_levels": [
+        8
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "The GEARS sequence runs GEARS 1, GEARS 2, then Honors Biology 1.",
+        "choice": false,
+        "min_gpa": null,
+        "basis": "stated",
+        "courses": [
+          "GEARS 2"
+        ],
+        "grade_requirements": []
+      },
+      "flags": {
+        "high_school_credit": true,
+        "eoc_course": true,
+        "accelerated": true,
+        "gifted_program": true
+      },
+      "cross_credit": null,
+      "notes": [],
+      "description": "Genuine Explorations, Applications and Research in Science. A high school course taken in eighth grade, for high school credit. The state end-of-course exam counts for 30% of the final grade.",
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "irms_programs"
+        },
+        {
+          "source": "bcps_gears"
+        },
+        {
+          "source": "gears_sequence"
+        }
+      ]
+    }
+  ],
+  "data_notes": [
+    "Middle school carries no credit, so every course here is zero. Four electives — Debate I, Journalism I, Spanish I and Speech I — are marked in the guide as earning high school credit, but the guide does not say how much, so no credit value was invented for them. They carry a `high_school_credit` flag instead.",
+    "The guide marks courses with ^ for an application and * for a prerequisite, and defines both keys on the list pages. Those become the `application_required` and `prerequisite_required` flags.",
+    "Prerequisites come from two places, and each course records which. Some are stated in the guide's own words — \"Students are required to complete Art I prior to enrolling in 3-D Art\", \"Fundamentals of Finance I prerequisite required\", \"offered to students that completed Journalism I\" — and carry `basis: \"stated\"`. The band ladder is not: the guide asks for \"prior years of experience playing a band instrument\" rather than naming a course, so Band II, III and IV are chained on the reading the numbered titles allow, and carry `basis: \"inferred\"`. Reading only the asterisks on the list pages, and none of the prose, missed three prerequisites the guide states plainly.",
+    "The school publishes no course names for English Language Arts, Mathematics, Science or Social Studies. Those four appear once per grade, described in the school's own words from its academic pathways page. They are subjects, not courses, and no course titles were invented for them. Their year-to-year sequence is inferred from the grades.",
+    "Teacher names and room numbers printed in the guide have been removed.",
+    "A course taken here for high school credit carries two credit values, and they are kept apart. `credits` is zero, because that is what it counts for in middle school. `high_school_credits` is one, because that is what it will count for at the high school it transfers to. Neither guide prints the second value; one credit is what every year-long course carries in the district's own high school catalogue, where 273 of its 280 courses are one credit and the seven exceptions are double-block classes.",
+    "Six electives earn high school credit, not four: the guide announces it in the page heading for some and in the body text for others, and Honors Band carries it as an option in eighth grade only. Reading headings alone missed two of them.",
+    "The band ladder is printed under two sets of names — Band II, III and IV on the elective lists, Concert, Symphonic and Honors Band on the specialised programmes page. Both are the school's own words, so both resolve, through `title_variants`.",
+    "The school publishes no honours version of its ordinary core classes, but it does name two accelerated tracks — GEM in mathematics and GEARS in science — and the district defines both. GEM is Great Explorations in Mathematics: GEM-6 compresses three years of middle school mathematics into one, GEM-7 is Algebra I Honors and GEM-8 is Geometry Honors, the last two for high school credit with a state end-of-course exam worth 30% of the grade. GEARS is Genuine Explorations, Applications and Research in Science, which compresses the science sequence so a high school science course can be taken in eighth grade. Every one of those records names both the school page saying it runs the programme and the district page defining it.",
+    "Biology is taught here, at the end of the GEARS sequence: GEARS 1 in sixth grade, GEARS 2 in seventh, then Honors Biology 1 in eighth for high school credit. Iron Ridge names the programme but not its courses, so the course names come from another Braewood middle school's published description of the same sequence. That is a weaker source than the district page behind GEM, and every GEARS record names all three sources so the join can be checked.",
+    "Separately from any course, the district allows a middle school pupil to earn high school credit in Algebra I, Geometry, U.S. History or Biology I by passing the state end-of-course exam at level 3 or higher, explicitly without enrolling in or completing the course. That is credit by examination, not a class, so it is recorded in `credit_by_exam` beside the catalogue rather than as courses that do not exist. Anyone looking for a Biology class here will not find one, and that absence is the fact rather than a gap in this file.",
+    "GEARS 1 and GEARS 2 are not single-subject courses: each covers part of one year's standards and part of another's, which is how two years of science are compressed into the room for one more.",
+    "This is one school's guide. Braewood County publishes no district-wide middle school course catalog; the counseling department points instead at CPALMS and the state course code directory, and notes that not every school offers every course.",
+    "The school and the county are fictitious. Iron Ridge Middle School in Braewood County does not exist: the school name, the district name, the mascot and the student newspaper named after it all replaced real ones. The curriculum is unchanged — every course, elective, prerequisite and programme is exactly as the source documents describe it, and the source links have been removed rather than redirected.",
+    "State-level references are left alone. Florida, its end-of-course exams and its scholastic press association are a state and its institutions, not the school, and the curriculum does not make sense without them."
+  ]
+}

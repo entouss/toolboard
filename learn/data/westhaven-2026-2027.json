@@ -28,7 +28,7 @@
     {
       "id": "broward_grad_chart",
       "filename": "gradreqchartallandprior.pdf",
-      "title": "Broward County Public Schools Graduation Requirements Chart - All 2021 and Prior",
+      "title": "Braewood County Public Schools Graduation Requirements Chart - All 2021 and Prior",
       "document_type": "other",
       "grade_levels_covered": [
         9,
@@ -40,12 +40,12 @@
       "notes": "District-wide chart, not specific to Westhaven High School. Covers the standard 24-credit diploma, the ACCEL 18-credit option, the CTE graduation pathway and the Scholar and Merit designations."
     }
   ],
-  "generated_from": "Both Westhaven High School 2026-2027 course selection cards, merged into a single catalog. Courses printed on both cards are represented once, with grade levels unioned and `source_refs` recording each card the entry came from. Graduation requirements are taken from the Broward County graduation requirements chart; prerequisite and requirement links are largely inferred and are labelled as such.",
+  "generated_from": "Both Westhaven High School 2026-2027 course selection cards, merged into a single catalog. Courses printed on both cards are represented once, with grade levels unioned and `source_refs` recording each card the entry came from. Graduation requirements are taken from the Braewood County graduation requirements chart; prerequisite and requirement links are largely inferred and are labelled as such.",
   "school": {
     "name": "Westhaven High School",
     "short_name": "WHS",
     "type": "Public district high school",
-    "district": "Broward County Public Schools",
+    "district": "Braewood County Public Schools",
     "principal": "Ms. Brennan"
   },
   "document": {
@@ -102,7 +102,7 @@
       },
       {
         "symbol": "**",
-        "meaning": "Early registration through Broward College required.",
+        "meaning": "Early registration through Braewood College required.",
         "source": "upper_card",
         "implies_flags": [
           "early_registration_required"
@@ -1977,10 +1977,10 @@
   "placement_criteria": {
     "dual_enrollment": {
       "minimum_unweighted_gpa": 3,
-      "provider": "Florida International University and Broward College",
+      "provider": "Fairhaven International University and Braewood College",
       "rules": [
         "Courses marked *** on the grades 10-12 card require an unweighted GPA of 3.0 and college readiness scores.",
-        "Courses marked ** require early registration through Broward College.",
+        "Courses marked ** require early registration through Braewood College.",
         "Strategies for Learning Success is open to students with a 2.5-2.9 unweighted GPA."
       ]
     },
@@ -2160,7 +2160,7 @@
     }
   ],
   "field_definitions": {
-    "course_code": "The Broward County course number printed beside the title on the card; the card issues no separate local registration number.",
+    "course_code": "The Braewood County course number printed beside the title on the card; the card issues no separate local registration number.",
     "source_markers": "Footnote symbols printed beside the title. The same symbol means different things on the two cards, so each marker records which card printed it.",
     "credits": "Inferred, not printed. The cards state that selected courses run for a full year."
   },
@@ -2186,7 +2186,9 @@
     "The AICE pathway groups print four course names that do not match the catalog titles (AICE Math (Pre-Calculus), AICE Environmental Mgmt., AICE U.S. History, AICE International World History); each is recorded as a `title_variants` entry on the course it names. Two further lines, AICE Spanish Language and AICE English General Paper, name one syllabus that Westhaven enrols as two courses, so the group lists both.",
     "`graduation_requirements.credits_by_subject` is the 24-credit standard diploma flattened by subject. Each row carries `requirement_ids` pointing back at the chart lines it rolls up, and every course carries `satisfies_requirement_ids`, so a finer count can be made from the same data without re-reading the chart.",
     "The Cambridge AICE Diploma rules in `program_groupings[].diploma_requirements` were taken from Cambridge Assessment International Education on 2026-08-22, not from either course card. They describe the qualification in general; they say nothing about which of Westhaven's courses are entered for which syllabus.",
-    "Where a course lists more than one prerequisite, most are one course and its honours or double-block twin, or two routes to the same place (AP Pre-Calculus or AICE Pre-Calculus before AP Calculus AB). Those carry `prerequisites.choice: true`. The physical education sequences are not flagged: the card prints no prerequisite text, and whether Team Sports II wants Team Sports I *or* HOPE, or both, cannot be read off it. An unflagged line over-warns; a wrongly flagged one would let an unmet prerequisite pass in silence."
+    "Where a course lists more than one prerequisite, most are one course and its honours or double-block twin, or two routes to the same place (AP Pre-Calculus or AICE Pre-Calculus before AP Calculus AB). Those carry `prerequisites.choice: true`. The physical education sequences are not flagged: the card prints no prerequisite text, and whether Team Sports II wants Team Sports I *or* HOPE, or both, cannot be read off it. An unflagged line over-warns; a wrongly flagged one would let an unmet prerequisite pass in silence.",
+    "The district is fictitious too. Braewood County Public Schools does not exist, and neither does Braewood College: both replaced real names, here and inside the requirement notes and the graduation chart title. The initials are unchanged, so the \"BC Dual\" course titles still read correctly. This matches the middle school and elementary catalogs, which are set in the same fictitious county.",
+    "The dual-enrolment partners are fictitious. Fairhaven International University and Braewood College replaced two real institutions in the provider block and in the prose. Both keep their initials, so the eight \"FIU Dual\" and \"BC Dual\" course titles read exactly as printed."
   ],
   "course_count": 280,
   "courses": [
@@ -6230,7 +6232,7 @@
         "dual_enrollment": true
       },
       "college_credit": {
-        "provider": "Broward College",
+        "provider": "Braewood College",
         "program": "BC Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -6712,7 +6714,7 @@
         "dual_enrollment": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -10007,7 +10009,7 @@
         "dual_enrollment": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -10087,7 +10089,7 @@
         "dual_enrollment": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -10871,7 +10873,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Algebra 1 EOC per the Broward graduation requirements chart."
+        "Ends in the Algebra 1 EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -10941,7 +10943,7 @@
       "cross_credit": null,
       "notes": [
         "Levels 1 & 2.",
-        "Ends in the Algebra 1 EOC per the Broward graduation requirements chart."
+        "Ends in the Algebra 1 EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -11015,7 +11017,7 @@
       "cross_credit": null,
       "notes": [
         "The grade 9 card prints a single asterisk beside this course but its legend does not define that symbol.",
-        "Ends in the Algebra 1 EOC per the Broward graduation requirements chart."
+        "Ends in the Algebra 1 EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -11374,7 +11376,7 @@
         "dual_enrollment": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -11520,7 +11522,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Geometry EOC per the Broward graduation requirements chart."
+        "Ends in the Geometry EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -11605,7 +11607,7 @@
       "cross_credit": null,
       "notes": [
         "The grade 9 card prints a single asterisk beside this course but its legend does not define that symbol.",
-        "Ends in the Geometry EOC per the Broward graduation requirements chart."
+        "Ends in the Geometry EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -14263,7 +14265,7 @@
         "meets_practical_fine_arts": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -15133,7 +15135,7 @@
         "meets_practical_fine_arts": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
@@ -17204,7 +17206,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Biology EOC per the Broward graduation requirements chart."
+        "Ends in the Biology EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -17265,7 +17267,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Biology EOC per the Broward graduation requirements chart."
+        "Ends in the Biology EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -17329,7 +17331,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Biology EOC per the Broward graduation requirements chart."
+        "Ends in the Biology EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -18192,7 +18194,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Civics Literacy Exam per the Broward graduation requirements chart."
+        "Ends in the Civics Literacy Exam per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -18258,7 +18260,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Civics Literacy Exam per the Broward graduation requirements chart."
+        "Ends in the Civics Literacy Exam per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -18510,7 +18512,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Civics Literacy Exam per the Broward graduation requirements chart."
+        "Ends in the Civics Literacy Exam per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -18576,7 +18578,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the Civics Literacy Exam per the Broward graduation requirements chart."
+        "Ends in the Civics Literacy Exam per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -18809,7 +18811,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the U.S. History EOC per the Broward graduation requirements chart."
+        "Ends in the U.S. History EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -18874,7 +18876,7 @@
       "college_credit": null,
       "cross_credit": null,
       "notes": [
-        "Ends in the U.S. History EOC per the Broward graduation requirements chart."
+        "Ends in the U.S. History EOC per the Braewood graduation requirements chart."
       ],
       "description": "",
       "is_elective": false,
@@ -19820,7 +19822,7 @@
         "dual_enrollment": true
       },
       "college_credit": {
-        "provider": "Florida International University",
+        "provider": "Fairhaven International University",
         "program": "FIU Dual @ WHS",
         "delivery": "On the Westhaven High School campus",
         "college_courses": [
