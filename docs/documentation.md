@@ -22,7 +22,7 @@ External dependencies (loaded via CDN): `html2canvas` (screenshots), `marked.js`
 - [Architecture](architecture.md) — Core framework, plugin system overview
 - [Toolbox Plugins](toolbox.md) — Plugin file structure, existing toolboxes
 - [Adding a Tool](tool.md) — Step-by-step guide for new tools
-- [Board Export](board.md) — Board JSON export format
+- [Boards](board.md) — Board JSON export format, and writing a board template plugin
 - [URL Hashes](urls.md) — Board and tool links, on-the-fly plugin install
 - [Storage](storage.md) — localStorage layout, board-scoped keys, helpers
 - [Key Patterns](patterns.md) — Instance isolation, rendering, event handlers, theming

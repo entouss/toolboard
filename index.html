@@ -8557,7 +8557,11 @@ function setupFeatureSelect() {
         if (!btn) return;
 
         const boardId = btn.getAttribute('data-board');
-        instantiateBoardTemplate(boardId);
+        // Setting a board up may have to fetch the plugins its tools come from, so
+        // this no longer finishes within the click. Nothing waits on it, but a
+        // rejected promise from a listener is invisible, so it is caught here.
+        instantiateBoardTemplate(boardId).catch(err =>
+            console.error('Board template could not be set up:', boardId, err));
         modal.classList.remove('open');
     });
 }
@@ -8711,11 +8715,28 @@ function populateBoardTemplatesList() {
     }
 
     list.innerHTML = boardTemplates.map(board => {
-        const toolPreviews = board.tools.slice(0, 4).map(t => {
-            const tool = PluginRegistry.getTool(t.toolId);
-            return tool ? `<span class="board-template-tool-preview">${tool.icon} ${tool.name}</span>` : '';
-        }).join('');
-        const moreCount = board.tools.length > 4 ? `<span class="board-template-tool-preview">+${board.tools.length - 4} more</span>` : '';
+        // What a board is made of, by kind rather than by instance: a study board is
+        // sixteen notes and three tools, and listing the first four instances of it
+        // said "Note" four times and "+15 more". Notes live in NOTE_TEMPLATES rather
+        // than the registry, and a tool from a plugin nobody has installed yet
+        // resolves to nothing at all — both used to render as an empty span, which is
+        // why these cards looked like they contained nothing.
+        const kinds = [];
+        const seen = new Map();
+        board.tools.forEach(t => {
+            if (seen.has(t.toolId)) { seen.get(t.toolId).n++; return; }
+            const tool = NOTE_TEMPLATES[t.toolId] || PluginRegistry.getTool(t.toolId);
+            const entry = {
+                n: 1,
+                label: tool ? tool.icon + ' ' + tool.name
+                     : t.toolId.replace(/(^|-)([a-z])/g, (m, d, c) => (d ? ' ' : '') + c.toUpperCase())
+            };
+            seen.set(t.toolId, entry);
+            kinds.push(entry);
+        });
+        const toolPreviews = kinds.slice(0, 4).map(e =>
+            `<span class="board-template-tool-preview">${escapeHtml(e.label)}${e.n > 1 ? ' \u00d7' + e.n : ''}</span>`).join('');
+        const moreCount = kinds.length > 4 ? `<span class="board-template-tool-preview">+${kinds.length - 4} more</span>` : '';
 
         return `
             <div class="board-template-card">
@@ -8739,11 +8760,23 @@ function addAllToolsFromToolbox(toolboxId) {
 }
 
 // Board Template System
-function instantiateBoardTemplate(boardId) {
+async function instantiateBoardTemplate(boardId) {
     const board = PluginRegistry.getBoard(boardId);
     if (!board) {
         console.error('Board template not found:', boardId);
         return;
+    }
+
+    // A template may place tools from a plugin this browser has never installed —
+    // only core-tools is there by default, so a board carrying a Mermaid diagram or
+    // a Pomodoro used to come up quietly missing them. ensureToolPlugin is the same
+    // resolution a #tool/ link uses: it finds the plugin providing the id, loads it,
+    // and keeps it installed. Every id is resolved before any board state is
+    // touched, because loading is asynchronous and half a board is worse than a
+    // slow one.
+    const templates = {};
+    for (const cfg of board.tools) {
+        if (!(cfg.toolId in templates)) templates[cfg.toolId] = await ensureToolPlugin(cfg.toolId);
     }
 
     // Create a new board with the template settings
@@ -8761,6 +8794,12 @@ function instantiateBoardTemplate(boardId) {
     currentBoardId = newBoardId;
     setCurrentBoardId(newBoardId);
 
+    // switchToBoard writes the board's name into the URL, and this is a board switch
+    // in every respect but that one. Without it the hash still names the board we
+    // came from, and the next reload routes straight back to it — the board the
+    // template just built left behind, present in the list and never opened.
+    history.replaceState(null, '', '#' + encodeURIComponent(boardName));
+
     // Initialize empty state for the new board
     variables = {};
     positions = {};
@@ -8776,7 +8815,7 @@ function instantiateBoardTemplate(boardId) {
 
     // Create tools from template
     board.tools.forEach(toolConfig => {
-        const template = PluginRegistry.getTool(toolConfig.toolId);
+        const template = templates[toolConfig.toolId];
         if (!template) {
             console.warn('Tool not found for template:', toolConfig.toolId);
             return;
@@ -8811,6 +8850,14 @@ function instantiateBoardTemplate(boardId) {
             padding: toolConfig.padding || '',
             textAlign: toolConfig.textAlign || ''
         };
+
+        // A tool's own state — the source of a Mermaid diagram, the items in a
+        // Checklist — lives under keys only that tool knows about. A template that
+        // places such a tool has to be able to fill it in, or it arrives as a blank
+        // widget. The keys belong to the tool, so they are copied across as given.
+        if (toolConfig.state && typeof toolConfig.state === 'object') {
+            Object.assign(toolCustomizations[toolId], toolConfig.state);
+        }
     });
 
     // Update maxZ
