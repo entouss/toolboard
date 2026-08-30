@@ -22,8 +22,9 @@ ok('and the file picker came with them', await page.evaluate(() =>
 ok('the pane offers the document or its schema',
     (await texts('.curr-source .curr-stab')).join(',') === 'Document,Schema',
     JSON.stringify(await texts('.curr-source .curr-stab')));
-ok('the plan keeps Grid, Tree and Issues alone',
-    (await texts('.curr-tab')).map(t => t.replace(/\d+/g, '').trim()).join(',') === 'Grid,Tree,Issues',
+ok('the plan keeps its own four tabs, and Schema is not one of them',
+    (await texts('.curr-tab')).map(t => t.replace(/\d+/g, '').trim()).join(',') ===
+        'Grid,Grades,Tree,Issues',
     JSON.stringify(await texts('.curr-tab')));
 
 const showing = () => page.evaluate(() => ({

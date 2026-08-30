@@ -20,9 +20,9 @@ ok('Schema sits beside the document', await page.evaluate(() =>
     Array.from(document.querySelectorAll('.curr-source .curr-stab')).map(t => t.textContent).join(',')));
 ok('and not among the tabs about the plan', await page.evaluate(() =>
     !Array.from(document.querySelectorAll('.curr-tab')).some(t => t.textContent.includes('Schema'))));
-ok('the plan keeps its three tabs', await page.evaluate(() =>
+ok('the plan keeps its own tabs', await page.evaluate(() =>
     Array.from(document.querySelectorAll('.curr-tab')).map(t => t.textContent.replace(/\d+/g, '').trim())
-        .join(',') === 'Grid,Tree,Issues'), await page.evaluate(() =>
+        .join(',') === 'Grid,Grades,Tree,Issues'), await page.evaluate(() =>
     Array.from(document.querySelectorAll('.curr-tab')).map(t => t.textContent).join(',')));
 const t = await table();
 ok('it lists the fields the tool reads', t.rows > 20, t.rows + ' rows');

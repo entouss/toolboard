@@ -66,7 +66,13 @@ export async function bar(page) {
     await page.waitForTimeout(250);
 }
 
-export const stored = (page) => page.evaluate(() =>
+// What the tool has actually kept for the school on screen. Storage holds a record
+// of schools now, so this goes through the app's own accessor rather than reaching
+// into the shape — which is the point of an accessor.
+export const stored = (page) => page.evaluate(() => currGetData('cur'));
+
+// The record behind it: every school, and which one is showing.
+export const record = (page) => page.evaluate(() =>
     JSON.parse(localStorage.getItem('finance_default_toolCustomizations')).cur.curriculum);
 
 export const rowFor = (page, title) => page.evaluateHandle((t) =>
@@ -85,10 +91,9 @@ export async function place(page, title, term) {
     await page.waitForTimeout(250);
 }
 
-export const issues = (page) => page.evaluate(() => {
-    const data = JSON.parse(localStorage.getItem('finance_default_toolCustomizations')).cur.curriculum;
-    return currValidate(data).issues.map((i) => ({ severity: i.severity, kind: i.kind, code: i.code, message: i.message }));
-});
+export const issues = (page) => page.evaluate(() =>
+    currValidate(currGetData('cur')).issues.map((i) =>
+        ({ severity: i.severity, kind: i.kind, code: i.code, message: i.message })));
 
 export const finish = async (browser, errors) => {
     console.log('  page errors:', errors.length ? errors.join(' | ') : 'none');

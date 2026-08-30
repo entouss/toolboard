@@ -39,12 +39,14 @@ for (const [path, name] of [['/learn/index.html', 'hub'], ['/learn/tools/curricu
     // Narrow.
     if (name === 'guide') {
         // Every catalog the page offers must load in the tool, not merely resolve.
+        // A catalog card is one you can download the file from; other cards on the
+        // page link to a catalog too, to open a tool on an example.
         const cards = await page.evaluate(() => Array.from(document.querySelectorAll('.card'))
-            .filter(c => c.querySelector('a[href*="/learn/data/"]'))
+            .filter(c => c.querySelector('a[href^="../data/"]'))
             .map(c => ({
                 name: c.querySelector('.card-head').childNodes[0].textContent.trim(),
-                open: c.querySelector('a[href*="#tool/"]').getAttribute('href'),
-                dl: c.querySelector('a[href$=".json"]').getAttribute('href')
+                open: c.querySelector('a[href*="?curriculum="]').getAttribute('href'),
+                dl: c.querySelector('a[href^="../data/"]').getAttribute('href')
             })));
         ok(name + ': four catalogs are offered', cards.length === 4,
             JSON.stringify(cards.map(c => c.name)));

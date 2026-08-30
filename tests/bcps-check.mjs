@@ -51,7 +51,7 @@ const shown = await p2.evaluate(() => document.body.innerText);
 ok('nothing on the page names the real county', !/Broward/i.test(shown),
     (shown.match(/.{0,40}Broward.{0,40}/i) || ['clean'])[0]);
 ok('and the fictitious one is what shows', /Braewood/.test(JSON.stringify(DOC)));
-await p2.screenshot({ path: 'bcps.png' });
+await p2.screenshot({ path: path.join(HERE, 'out', 'bcps.png') });
 await b2.close();
 fs.unlinkSync(path.join(HERE, '..', 'learn', 'data') + '/.bcps-tmp.json');
 console.log('  page errors: ' + (errors.length ? JSON.stringify(errors) : 'none'));

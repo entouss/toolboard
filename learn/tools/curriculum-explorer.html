@@ -256,11 +256,163 @@
     </li>
 </ol>
 
-<h2>Building a catalog for your own school</h2>
+<h2 id="grades">Recording grades</h2>
+<p>
+    A plan says what was taken. Grades say how it went, and together they are a
+    transcript. Every course you place can carry a mark for each grading period and a
+    final grade, and those roll up into a GPA per year, per school and across the whole
+    career.
+</p>
+
+<div class="grid">
+    <div class="card">
+        <div class="card-head">Marking periods</div>
+        <div class="card-body">
+            Taken from the school's own terms rather than assumed. Set how many marks
+            each term carries — two gives a semester school four quarters a year, one
+            gives it two semester grades, and a trimester school works the same way.
+            Turn on exams and each term gets one, weighted however the school weights it.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Whatever scale it uses</div>
+        <div class="card-body">
+            Letters, letters with plus and minus, percentages, points out of 4.0 or 5.0,
+            or numbers where 5 is best — or 1. If none of those is right, define your own
+            as a list of grades and what each is worth. The tool needs the point values
+            to be able to average anything at all.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Calculated, or yours</div>
+        <div class="card-body">
+            The final is the average of the marks by default, with the exam blended in at
+            its weight. Type a final over the top and it stays — shown as entered rather
+            than as arithmetic, so you can always tell which is which.
+        </div>
+    </div>
+</div>
+
+<ol class="steps">
+    <li>
+        <strong>Set the school's grading once</strong>
+        Scale, marks per term, exams, weighting — in the JSON pane beside the rest of
+        that school's setup. Each school has its own, because a middle school and a high
+        school rarely mark the same way.
+    </li>
+    <li>
+        <strong>Enter a report card in one pass</strong>
+        The <em>Grades</em> tab lists every course you have placed, a column per marking
+        period, grouped by year. A report card arrives with every course on it at once,
+        and this is the screen for that.
+        <span class="eg">One course at a time is easier from the course itself: select it
+            and its marks are under the details.</span>
+    </li>
+    <li>
+        <strong>Read it back off the grid</strong>
+        Each card shows its final grade, and each year shows credits and GPA beside each
+        other. The <em>Whole career</em> page adds a GPA per school and one for the
+        career — pooled by points, so two schools on different scales still add up.
+    </li>
+</ol>
+
+<p class="note">
+    <strong>The GPA is credit-weighted</strong> — a half-credit course counts half — over
+    the courses that have a grade. Turn on weighting and honors adds 0.5, AP and its
+    equivalents 1.0, read off the level the catalog already carries. Where nothing carries
+    credit at all, as in most middle schools, it falls back to a plain average rather than
+    dividing by nothing. It is your arithmetic, not the school's: a transcript is the
+    authority, and this is a well-checked estimate of it.
+</p>
+
+<h2 id="career">One student, several schools</h2>
+<p>
+    A school career is not one document. Elementary, middle and high school each publish
+    their own, and plenty of students attend two high schools. The Explorer holds all of
+    them at once — a dropdown at the top switches between them, and picking one gives you
+    the tool exactly as described above: that school's catalog, that school's plan, that
+    school's graduation requirements. Nothing is merged and nothing is averaged.
+</p>
+
+<ol class="steps">
+    <li>
+        <strong>Add a school for each one attended</strong>
+        Press <em>+ School</em>, load its curriculum document, and set the grades the
+        student was actually there for.
+        <span class="eg">The grades matter when two schools both publish a 9–12 catalog.
+            Westhaven 9–10 and Ashford 11–12 gives each of them a two-year grid, which is
+            what actually happened.</span>
+    </li>
+    <li>
+        <strong>Record the past, plan the future</strong>
+        For schools already behind you, place what was taken. For the current one, plan
+        forwards as normal.
+    </li>
+    <li>
+        <strong>Tick what transferred</strong>
+        Under <em>Transferred in</em>, every course recorded at an earlier school is
+        offered against the current school's catalog. Ticking one marks that course as
+        already met, so prerequisites and credit totals treat it exactly as they would
+        anything else you had already done.
+        <span class="eg">This is where a high-school-credit course taken in middle school
+            finally counts. <em>GEM-7 (Algebra I Honors)</em> at the middle school is
+            matched to <em>Algebra I</em> at the high school — and flagged as a close
+            match rather than asserted, because the titles are not the same and only you
+            know whether the credit was accepted.</span>
+    </li>
+    <li>
+        <strong>Add credit for anything that does not match</strong>
+        A school grants credit for courses it does not itself teach. Those have nothing
+        to tick, so record them as their own line — a title, a credit value and the
+        subject it counts towards — and the totals include them, listed underneath so the
+        number stays traceable.
+    </li>
+    <li>
+        <strong>Read the whole thing</strong>
+        The last entry in the dropdown is <em>Whole career</em>: every school in the order
+        attended, every year, what was taken in it and what it was worth. It is a record
+        rather than a plan — open a school to change anything — and the PNG button saves
+        it as one picture.
+    </li>
+</ol>
+
+<p class="note">
+    <strong>The catalogs stay separate on purpose.</strong> Two high schools in one
+    district share course titles by the dozen — Geometry, Algebra II, Chemistry. Merged
+    into a single document, a prerequisite naming "Geometry" would quietly resolve to
+    whichever school's version happened to load first. Kept apart, each school's
+    prerequisites can only ever mean that school's courses, and what crosses between them
+    is the list you ticked yourself.
+</p>
+
+<h2 id="builder">Building a catalog for your own school</h2>
 <p>
     The tool reads one JSON file. There is no library of schools behind it — you make the file
-    once, and it is yours.
+    once, and it is yours. Two other tools in the same toolbox exist for exactly that job:
+    the <strong>Curriculum Builder</strong> writes the file, and the
+    <strong>Curriculum Doctor</strong> tells you what is wrong with one.
 </p>
+
+<div class="card">
+    <div class="card-head">
+        Curriculum Builder
+        <span class="meta">School Tools</span>
+    </div>
+    <div class="card-body">
+        <p>
+            A structured editor over the catalog. Courses in a list you add to and edit in a form,
+            with every prerequisite title resolved against the titles that actually exist — typed
+            wrong, it says so and offers the spellings that would work. Subjects, pathways and the
+            shape of the plan get their own sections, and the running tally at the top is the
+            Doctor's own checks, applied while there is still someone at the keyboard.
+        </p>
+        <div class="actions">
+            <a class="btn primary" href="/#tool/curriculum-builder">Open the Builder</a>
+            <a class="btn" href="/#tool/curriculum-builder?curriculum=/learn/data/ashford-2025-2026.json">Open it on an example</a>
+        </div>
+    </div>
+</div>
+
 <ol class="steps">
     <li>
         <strong>Gather the source documents</strong>
@@ -269,23 +421,48 @@
         any special programme — AICE, AP Capstone, IB, a career academy.
     </li>
     <li>
-        <strong>Get the schema</strong>
-        In the tool, press <em>JSON</em>, switch to <em>Schema</em>, and press
-        <em>Show the JSON</em>. That is the full description of what the tool reads, and it is
-        the version that matches the tool you are running.
+        <strong>Set the shape before the courses</strong>
+        In the Builder, start an empty curriculum and fill in Document, Planner and Subjects
+        first: what the school is called, what years it runs, what terms divide them, and what it
+        asks for to graduate. It is five minutes, and every course you add afterwards is checked
+        against it.
     </li>
     <li>
-        <strong>Hand both to an AI assistant</strong>
-        The documents and the schema, and ask for a catalog file. Expect to go a few rounds:
-        course numbers get transposed, prerequisites get flattened, credit values get guessed at.
+        <strong>Type the first course of each sequence, then duplicate it</strong>
+        Most of a catalog is sequences. English 1, 2, 3 and 4 differ by a word and a year, so type
+        one and press <em>Duplicate</em> three times.
+        <span class="eg">The Subjects section counts, as you type, how many courses and how many
+            credits could ever satisfy each requirement — so a subject named differently from the
+            department it is meant to match says so immediately, rather than showing an empty bar
+            in someone's plan a month later.</span>
     </li>
     <li>
-        <strong>Load it and read the Issues tab</strong>
-        This is the fastest way to find what the conversion got wrong. A prerequisite naming a
-        course that is not in the catalog, or a course open to no year at all, shows up
-        immediately — fix the file and load it again.
+        <strong>Or convert it first, and open the result here</strong>
+        Handing the documents and the schema to an AI assistant gets you most of a file in one go.
+        Expect it to be wrong in specific ways: course numbers transposed, prerequisites
+        flattened, whole sections skipped. Open what it produced in the Builder and fix it in
+        place — nothing it wrote is lost, including the fields the form does not show.
+    </li>
+    <li>
+        <strong>Work the tally down to nothing</strong>
+        Open the count at the top of the Builder and it lists every finding by kind, with the
+        reason each one matters. Press one to go to the course it is about. The Curriculum Doctor
+        runs the same checks on their own, and writes a repair brief you can hand back to whatever
+        produced the file.
+    </li>
+    <li>
+        <strong>Save it, and plan against it</strong>
+        <em>Save</em> writes the .json. Load that into the Curriculum Explorer, and the file you
+        just built becomes four years of somebody's schooling.
     </li>
 </ol>
+
+<p>
+    If you would rather see the schema itself: in the Explorer press <em>JSON</em>, switch to
+    <em>Schema</em>, and press <em>Show the JSON</em>. That is the full description of what these
+    tools read, in the version that matches the tools you are running.
+</p>
+
 <p class="note">
     <strong>A catalog is a description, not an authority.</strong> Every file — the examples here
     included — is somebody's reading of a school document, and readings contain mistakes. Treat a

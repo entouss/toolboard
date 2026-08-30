@@ -1,5 +1,6 @@
 // School Tools Toolbox Plugin
-// Contains the Curriculum Explorer.
+// Contains the Curriculum Builder, the Curriculum Doctor and the Curriculum
+// Explorer — one document, made, checked, and planned against.
 //
 // The explorer reads a curriculum document — a catalog of courses with grade
 // levels, semesters and prerequisites — and lets you lay those courses out over
@@ -216,6 +217,118 @@
 .curr-widget.narrow .curr-collapse-label { writing-mode: horizontal-tb; }
 .curr-widget.narrow .curr-catalog { flex: 0 0 auto; max-height: 45%; border-right: none; border-bottom: 1px solid var(--border-light); padding-right: 0; padding-bottom: 6px; }
 
+/* ---- Grades ---- */
+.curr-mark { padding: 1px 3px; border: 1px solid var(--border-color); border-radius: 3px; background: var(--input-bg); color: var(--text-primary); font-size: 10px; width: 100%; min-width: 0; }
+.curr-mark.final { font-weight: 600; }
+.curr-card-grade { flex: 0 0 auto; font-size: 10px; font-weight: 600; color: var(--text-secondary); padding: 0 3px; border-radius: 3px; }
+.curr-card-grade.entered { color: var(--text-primary); background: var(--bg-tertiary); }
+.curr-year-gpa { font-size: 9px; color: var(--text-secondary); }
+
+.curr-marks { border-top: 1px solid var(--border-light); margin-top: 5px; padding-top: 4px; }
+.curr-marks-head { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+.curr-marks-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.curr-mark-cell { flex: 0 0 52px; display: flex; flex-direction: column; gap: 1px; }
+.curr-mark-cell span { font-size: 9px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.curr-mark-cell.exam span { color: #e67e22; }
+.curr-marks-final { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.curr-marks-final > span:first-child { font-size: 11px; font-weight: 600; }
+.curr-marks-final .curr-mark { flex: 0 0 62px; }
+.curr-mark-note { font-size: 10px; color: var(--text-secondary); }
+.curr-mark-note.entered { color: #e67e22; }
+
+.curr-grades { overflow: auto; flex: 1; min-height: 0; font-size: 11px; }
+.curr-grades-year { border: 1px solid var(--border-light); border-radius: 5px; margin-bottom: 6px; overflow: hidden; }
+.curr-grades-year-head { display: flex; align-items: baseline; gap: 8px; padding: 3px 7px; background: var(--bg-tertiary); }
+.curr-grades-year-head b { flex: 1 1 auto; }
+.curr-grades-year-head span { flex: 0 0 auto; font-size: 10px; color: var(--text-secondary); }
+.curr-grades-row { display: flex; align-items: center; gap: 4px; padding: 2px 7px; border-top: 1px solid var(--border-light); }
+.curr-grades-name { flex: 1 1 auto; min-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.curr-grades-name:hover { color: #3498db; }
+.curr-grades-cell { flex: 0 0 50px; }
+.curr-grades-row.heads { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .4px; padding-top: 3px; }
+.curr-grades-row.heads .curr-grades-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.curr-grades-row.heads .curr-grades-final { display: block; }
+.curr-grades-gap { display: block; text-align: center; color: var(--text-muted); opacity: .5; }
+.curr-grades-cell.exam .curr-mark { border-color: #e67e22; }
+.curr-grades-final { flex: 0 0 96px; display: flex; align-items: center; gap: 4px; }
+.curr-grades-final .curr-mark { flex: 0 0 52px; }
+.curr-grades-final i { font-style: normal; font-size: 10px; color: var(--text-secondary); }
+.curr-grades-final.entered i { color: #e67e22; }
+.curr-grades-total { display: flex; gap: 10px; align-items: baseline; padding: 5px 7px; border-top: 2px solid var(--border-color); }
+.curr-grades-total span { color: var(--text-secondary); font-size: 10px; }
+.curr-career-grade { flex: 0 0 34px; text-align: right; font-weight: 600; }
+
+.curr-grading { border-top: 1px solid var(--border-light); padding-top: 5px; margin-bottom: 6px; }
+.curr-grading-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 11px; }
+.curr-grading-lbl { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+.curr-grading-row select, .curr-grading-row input[type="number"] { padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; }
+.curr-grading-row input[type="number"] { width: 48px; }
+.curr-grading-row label { display: inline-flex; align-items: center; gap: 3px; color: var(--text-secondary); }
+.curr-grading-custom { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding-top: 4px; }
+.curr-grading-val { display: inline-flex; align-items: center; gap: 2px; }
+.curr-grading-val input { padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; }
+.curr-grading-val input:first-child { width: 42px; }
+.curr-grading-val input:nth-child(2) { width: 46px; }
+
+/* ---- Several schools, one student ---- */
+.curr-schools { display: flex; align-items: center; gap: 6px; padding: 4px 0 5px; flex: 0 0 auto; border-bottom: 1px solid var(--border-light); margin-bottom: 5px; flex-wrap: wrap; }
+.curr-schools:empty { display: none; }
+.curr-school-lbl { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+.curr-school-pick { flex: 1 1 auto; min-width: 120px; max-width: 420px; padding: 3px 5px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; }
+.curr-schools-bar:empty { display: none; }
+
+.curr-school-pane:empty { display: none; }
+.curr-school-list { display: flex; flex-direction: column; gap: 3px; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid var(--border-light); }
+.curr-school-row { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.curr-school-row.on .curr-school-name { font-weight: 600; }
+.curr-school-go { flex: 0 0 auto; background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 0 2px; }
+.curr-school-go:hover { color: #3498db; }
+.curr-school-row input { padding: 2px 5px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; min-width: 0; }
+.curr-school-name { flex: 1 1 auto; }
+.curr-school-grades { flex: 0 0 68px; }
+.curr-school-years { flex: 0 0 78px; }
+.curr-school-n { flex: 0 0 auto; font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.curr-x { background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 0 3px; }
+.curr-x:hover { color: #e74c3c; }
+.curr-x.armed { color: #e67e22; font-weight: bold; }
+
+.curr-year-when { font-size: 9px; color: var(--text-muted); }
+
+.curr-transfers { flex: 0 0 auto; border-top: 1px solid var(--border-light); margin-top: 5px; padding-top: 4px; max-height: 45%; display: flex; flex-direction: column; min-height: 0; }
+.curr-transfers-head { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 11px; padding: 2px 0; }
+.curr-transfers-head:hover { background: var(--table-hover); }
+.curr-transfer-body { overflow: auto; min-height: 0; padding: 3px 0 0 12px; }
+.curr-transfer { display: flex; align-items: baseline; gap: 6px; font-size: 11px; padding: 2px 0; flex-wrap: wrap; }
+.curr-transfer.unmatched { color: var(--text-secondary); }
+.curr-transfer-title { flex: 1 1 auto; min-width: 90px; }
+.curr-transfer-from { flex: 0 0 auto; font-size: 10px; color: var(--text-muted); }
+.curr-transfer-to { flex: 0 0 auto; font-size: 10px; color: #27ae60; }
+.curr-transfer-to.close { color: #e67e22; }
+.curr-transfer-to em { font-style: normal; opacity: .85; }
+.curr-transfer-to.none { color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; }
+.curr-loose { display: flex; align-items: center; gap: 4px; padding: 2px 0; }
+.curr-loose input, .curr-loose select { padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; min-width: 0; }
+.curr-loose-title { flex: 1 1 auto; }
+.curr-loose-credits { flex: 0 0 52px; }
+.curr-loose-subject { flex: 0 0 108px; }
+
+.curr-career { overflow: auto; flex: 1; min-height: 0; font-size: 11px; padding-right: 4px; }
+.curr-career-school { border: 1px solid var(--border-light); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
+.curr-career-head { display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); padding: 5px 8px; }
+.curr-career-head b { flex: 0 0 auto; font-size: 12px; }
+.curr-career-head span { flex: 1 1 auto; color: var(--text-secondary); font-size: 10px; }
+.curr-career-year { border-top: 1px solid var(--border-light); }
+.curr-career-year-head { display: flex; align-items: baseline; gap: 8px; padding: 3px 8px; background: var(--bg-tertiary); }
+.curr-career-year-head b { flex: 0 0 auto; }
+.curr-career-when { flex: 1 1 auto; color: var(--text-muted); font-size: 10px; }
+.curr-career-cr { flex: 0 0 auto; color: var(--text-secondary); font-size: 10px; }
+.curr-career-course { display: flex; align-items: baseline; gap: 8px; padding: 2px 8px 2px 18px; border-top: 1px solid var(--border-light); }
+.curr-career-title { flex: 1 1 auto; min-width: 0; }
+.curr-career-slot { flex: 0 0 auto; font-size: 10px; color: var(--text-muted); }
+.curr-career-note { padding: 4px 8px; font-size: 10px; color: var(--text-secondary); border-top: 1px solid var(--border-light); }
+.curr-career-total { display: flex; gap: 10px; align-items: baseline; padding: 6px 8px; border-top: 2px solid var(--border-color); }
+.curr-career-total span { color: var(--text-secondary); font-size: 10px; }
+
 /* ---- Curriculum Doctor ---- */
 .cdoc-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; font-size: 12px; color: var(--text-primary); }
 .cdoc-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -258,6 +371,100 @@
 .cdoc-table td:last-child { text-align: right; color: var(--text-secondary); }
 .cdoc-table tr.thin td:first-child { color: var(--text-muted); }
 .cdoc-widget.narrow .cdoc-score { gap: 6px; }
+
+/* ---- Curriculum Builder ---- */
+.cbld-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; font-size: 12px; color: var(--text-primary); }
+.cbld-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cbld-status { font-size: 11px; padding: 3px 0; white-space: pre-wrap; flex: 0 0 auto; }
+.cbld-status:empty { display: none; }
+.cbld-status.ok { color: #27ae60; }
+.cbld-status.err { color: #e74c3c; }
+.cbld-editor { display: flex; flex-direction: column; gap: 6px; min-height: 0; min-width: 0; flex: 1 1 62%; }
+.cbld-out { display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 38%; }
+.tool.authoring-split .cbld-editor { padding-right: 8px; }
+.tool.authoring-split .cbld-out { padding-left: 8px; }
+
+/* The empty tool: three ways to get a document in, and nothing else. */
+.cbld-start { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; }
+.cbld-start h4 { margin: 0; font-size: 13px; }
+.cbld-start p { margin: 0; color: var(--text-secondary); }
+.cbld-drop { border: 1px dashed var(--border-color); border-radius: 6px; padding: 8px; text-align: center; color: var(--text-secondary); font-size: 11px; }
+.cbld-drop.dragover { border-color: #3498db; color: var(--text-primary); }
+.cbld-import { min-height: 90px; resize: vertical; font-family: 'Monaco', 'Courier New', monospace; font-size: 11px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
+
+/* The tally sits above everything, because it is the answer to "is this right yet". */
+.cbld-check { border: 1px solid var(--border-light); border-radius: 5px; flex: 0 1 auto; max-height: 40%; display: flex; flex-direction: column; min-height: 0; }
+.cbld-check-head { display: flex; align-items: center; gap: 10px; padding: 4px 8px; cursor: pointer; background: var(--bg-tertiary); flex-wrap: wrap; }
+.cbld-check-head:hover { background: var(--table-hover); }
+.cbld-check-head .cbld-caret { color: var(--text-muted); font-size: 9px; }
+.cbld-check-body { overflow: auto; padding: 6px; min-height: 0; }
+.cbld-goto { cursor: pointer; }
+.cbld-goto:hover { background: var(--table-hover); }
+
+.cbld-body { display: flex; gap: 8px; flex: 1; min-height: 0; min-width: 0; }
+.cbld-nav { flex: 0 0 82px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border-light); padding-right: 6px; }
+.cbld-tab { text-align: left; background: none; border: 1px solid transparent; border-radius: 4px; padding: 4px 6px; font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+.cbld-tab:hover { background: var(--table-hover); color: var(--text-primary); }
+.cbld-tab.active { background: #3498db; border-color: #3498db; color: #fff; }
+.cbld-tab .cbld-n { float: right; opacity: 0.7; font-size: 10px; }
+.cbld-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.cbld-scroll { overflow: auto; min-height: 0; flex: 1; }
+
+.cbld-row { display: flex; align-items: baseline; gap: 6px; padding: 2px 0; }
+.cbld-label { flex: 0 0 106px; color: var(--text-secondary); font-size: 11px; text-align: right; }
+.cbld-in { flex: 1 1 auto; min-width: 40px; padding: 3px 5px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; }
+.cbld-in.short { flex: 0 0 74px; }
+textarea.cbld-in { min-height: 46px; resize: vertical; font-family: inherit; }
+.cbld-note { color: var(--text-secondary); font-size: 10px; padding: 2px 0 4px 112px; }
+.cbld-block { border-top: 1px solid var(--border-light); margin-top: 6px; padding-top: 5px; }
+.cbld-block-head { font-weight: 600; font-size: 11px; margin-bottom: 3px; }
+.cbld-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.cbld-check-lbl { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.cbld-x { background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 0 3px; }
+.cbld-x:hover { color: #e74c3c; }
+.cbld-add { background: none; border: 1px dashed var(--border-color); border-radius: 4px; color: var(--text-secondary); font-size: 10px; padding: 2px 8px; cursor: pointer; margin: 3px 0; }
+.cbld-add:hover { border-color: #3498db; color: var(--text-primary); }
+
+/* A title typed at a course that may not exist, answered as it is typed. */
+.cbld-mrow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; padding: 1px 0; }
+.cbld-mrow .cbld-in { flex: 1 1 140px; }
+.cbld-hint { flex: 1 1 100%; font-size: 10px; color: var(--text-secondary); padding-left: 4px; }
+.cbld-hit { color: #27ae60; }
+.cbld-miss { color: #e74c3c; }
+.cbld-guess { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; font-size: 10px; padding: 0 6px; cursor: pointer; color: var(--text-primary); margin-left: 3px; }
+.cbld-guess:hover { background: var(--table-hover); }
+
+/* The catalog itself: a list you pick from, and the picked course underneath. */
+.cbld-list-bar { display: flex; gap: 4px; align-items: center; padding-bottom: 4px; flex: 0 0 auto; }
+.cbld-list { overflow: auto; min-height: 60px; flex: 1 1 auto; border: 1px solid var(--border-light); border-radius: 4px; }
+.cbld-group-head { position: sticky; top: 0; background: var(--bg-tertiary); padding: 2px 6px; font-size: 10px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); }
+.cbld-crow { display: flex; gap: 6px; align-items: baseline; padding: 2px 6px; cursor: pointer; border-bottom: 1px solid var(--border-light); }
+.cbld-crow:hover { background: var(--table-hover); }
+.cbld-crow.on { background: rgba(52, 152, 219, 0.16); }
+.cbld-crow .c-code { flex: 0 0 56px; font-family: 'Monaco', 'Courier New', monospace; font-size: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
+.cbld-crow .c-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbld-crow .c-meta { flex: 0 0 auto; font-size: 10px; color: var(--text-secondary); }
+.cbld-form { flex: 0 0 auto; max-height: 58%; overflow: auto; border-top: 1px solid var(--border-color); margin-top: 6px; padding-top: 5px; }
+.cbld-form-head { display: flex; align-items: center; gap: 6px; padding-bottom: 4px; }
+.cbld-form-head b { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbld-none { padding: 10px; color: var(--text-secondary); text-align: center; font-size: 11px; }
+.cbld-cover { font-size: 10px; padding: 0 0 4px 112px; color: var(--text-secondary); }
+.cbld-cover.bad { color: #e74c3c; }
+.cbld-cover.thin { color: #e67e22; }
+.cbld-cover:empty { display: none; }
+.cbld-card { border: 1px solid var(--border-light); border-radius: 5px; padding: 5px 6px; margin-bottom: 6px; }
+.cbld-card-head { display: flex; align-items: center; gap: 6px; }
+.cbld-card-head b { flex: 1 1 auto; }
+
+.cbld-out-bar { display: flex; align-items: center; gap: 6px; padding-bottom: 5px; flex: 0 0 auto; }
+.cbld-size { flex: 1 1 auto; font-size: 10px; color: var(--text-secondary); }
+.cbld-json { flex: 1; overflow: auto; margin: 0; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); font-family: 'Monaco', 'Courier New', monospace; font-size: 10px; line-height: 1.45; white-space: pre; min-height: 0; }
+.cbld-empty { padding: 16px; color: var(--text-secondary); text-align: center; }
+
+.cbld-widget.narrow .cbld-body { flex-direction: column; }
+.cbld-widget.narrow .cbld-nav { flex: 0 0 auto; flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--border-light); padding: 0 0 4px; }
+.cbld-widget.narrow .cbld-label { flex: 0 0 76px; }
+.cbld-widget.narrow .cbld-note, .cbld-widget.narrow .cbld-cover { padding-left: 82px; }
 `;
     document.head.appendChild(style);
 })();
@@ -273,7 +480,7 @@ PluginRegistry.registerToolbox({
     icon: '🎓',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['curriculum-explorer', 'curriculum-doctor'],
+    tools: ['curriculum-explorer', 'curriculum-doctor', 'curriculum-builder'],
     source: 'external'
 });
 
@@ -351,9 +558,12 @@ function currPlanner(data) {
     const hints = catalog.planner || {};
     const courses = currCourses(data);
 
-    let levels = Array.isArray(hints.levels) && hints.levels.length
-        ? hints.levels.slice()
-        : [];
+    // The grades the student was at this school outrank the ones the document
+    // covers. Two high schools both print a 9-12 catalog, and a transfer means
+    // neither of them is four years long for this student.
+    let levels = Array.isArray(data.grades) && data.grades.length
+        ? data.grades.slice()
+        : (Array.isArray(hints.levels) && hints.levels.length ? hints.levels.slice() : []);
     if (!levels.length) {
         const seen = {};
         courses.forEach(function(course) {
@@ -686,6 +896,7 @@ PluginRegistry.registerTool({
 <button class="curr-btn" onclick="currExportPng(this)" title="Save the plan as a picture">PNG</button>
 </div>
 <div class="curr-status"></div>
+<div class="curr-schools-bar"></div>
 <div class="authoring-split">
 <div class="authoring-source curr-source">
 <div class="curr-tabs">
@@ -693,6 +904,7 @@ PluginRegistry.registerTool({
 <button class="curr-stab" onclick="currSetSourceView(this, 'schema')">Schema</button>
 </div>
 <div class="curr-doc">
+<div class="curr-school-pane"></div>
 <div class="curr-source-actions">
 <button class="curr-btn" onclick="currLoadSource(this)" title="Read the JSON below into the explorer">Load</button>
 <label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="currHandleFile(this)"></label>
@@ -766,39 +978,180 @@ function currDefaults() {
     };
 }
 
-function currGetData(toolId) {
-    const custom = toolCustomizations[toolId] || {};
-    const data = custom.curriculum || {};
-    const base = currDefaults();
+// =============================================
+// A CAREER, AS A LIST OF SCHOOLS
+// =============================================
+// A school career is not one document. Elementary, middle and high school each
+// publish their own, and a student may attend two high schools. So the tool holds
+// several, one on screen at a time.
+//
+// The whole design rests on one observation: a school entry has exactly the shape
+// currGetData already returned. So the record is a list of those, currGetData hands
+// back whichever is current, and every function below it — the planner, the grid,
+// validation, the totals, the tree, PNG, PDF — carries on being handed what it has
+// always been handed.
+//
+// It is also why the catalogs are kept apart rather than merged into one K-12
+// document. Two high schools in the same district share course titles by the dozen
+// (Geometry, Algebra II, Chemistry). Merged, a prerequisite naming "Geometry" would
+// resolve to whichever document happened to load first, silently. Kept apart,
+// currResolveTitle never sees two of anything.
+
+const CURR_CAREER = '__career__';
+
+function currSchoolDefaults() {
+    return Object.assign({ id: null, name: '', grades: null, years: '', credits_in: [],
+        grading: null, marks: {} }, currDefaults());
+}
+
+// Every field a school keeps has to be named here, or it is written and then
+// dropped on the next read.
+function currNormalizeSchool(school, i) {
+    const base = currSchoolDefaults();
+    const s = school || {};
     return {
-        catalog: data.catalog || null,
+        id: s.id || ('sch-' + (i + 1)),
+        // What the dropdown calls it. Taken from the document when it says, but
+        // editable — two schools can share a name and a person still has to tell
+        // them apart.
+        name: s.name || '',
+        // The grades the student was there for. Null means "whatever the document
+        // implies", which is right until two high schools both claim 9-12.
+        grades: Array.isArray(s.grades) && s.grades.length ? s.grades.map(Number) : null,
+        years: s.years || '',
+        // Credit granted on transfer for a course this school does not teach, so
+        // there is nothing in its catalog to tick. See currTransfersHtml.
+        credits_in: Array.isArray(s.credits_in) ? s.credits_in : [],
+        // How this school marks, and what it marked. A school's own business: a
+        // middle school and a high school grade differently for the same student.
+        grading: s.grading || null,
+        marks: s.marks || {},
+        catalog: s.catalog || null,
         // Text typed into the JSON pane that has not been loaded yet.
-        draft: data.draft || null,
-        sourceUrl: data.sourceUrl || null,
-        plan: data.plan || {},
+        draft: s.draft || null,
+        sourceUrl: s.sourceUrl || null,
+        plan: s.plan || {},
         // Years added past the ones the document implies, for a plan that runs long.
-        extraLevels: data.extraLevels || 0,
-        completed: data.completed || [],
-        hidden: Object.assign(base.hidden, data.hidden || {}),
-        ui: Object.assign(base.ui, data.ui || {})
+        extraLevels: s.extraLevels || 0,
+        completed: s.completed || [],
+        hidden: Object.assign(base.hidden, s.hidden || {}),
+        ui: Object.assign(base.ui, s.ui || {})
     };
+}
+
+// What to call a school. A name typed by hand wins; otherwise it is read from the
+// document, which means a school added before its document arrives is named the
+// moment it does. Deriving it on every read rather than storing it is what makes
+// that work — a stored placeholder would outlive the document that replaced it.
+function currSchoolName(school, i) {
+    if (school.name) return school.name;
+    return currDerivedSchoolName(school, i);
+}
+
+function currDerivedSchoolName(school, i) {
+    const catalog = school.catalog || {};
+    const meta = catalog.document || catalog.guide || {};
+    return (catalog.school || {}).name || meta.title || ('School ' + ((i || 0) + 1));
+}
+
+function currGetRecord(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const stored = custom.curriculum || {};
+    // Before this existed the tool kept a single school's worth of state at the top
+    // level. The shapes are identical, so the upgrade is a list of one — and no
+    // plan, no completed list and no course code is rewritten, because each school
+    // goes on keeping its own.
+    const schools = Array.isArray(stored.schools) && stored.schools.length
+        ? stored.schools.map(currNormalizeSchool)
+        : [currNormalizeSchool(stored, 0)];
+    const current = schools.some(function(s) { return s.id === stored.current; })
+        ? stored.current
+        : (stored.current === CURR_CAREER ? CURR_CAREER : schools[0].id);
+    return { schools: schools, current: current };
+}
+
+function currSaveRecord(toolId, record) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].curriculum = record;
+    try {
+        saveToolCustomizations(toolCustomizations);
+        return true;
+    } catch (e) {
+        currSetStatus(currWidgetFor(toolId), 'err', 'This record is too large for the space ' +
+            'this board has left. It is loaded and usable, but it will not survive a reload.');
+        return false;
+    }
+}
+
+function currSchoolAt(record, id) {
+    for (let i = 0; i < record.schools.length; i++) {
+        if (record.schools[i].id === id) return record.schools[i];
+    }
+    return null;
+}
+
+// The school on screen. On the career page there is none, so the first stands in —
+// nothing on that page edits, and the callers that read a catalog need one.
+function currCurrentSchool(record) {
+    return currSchoolAt(record, record.current) || record.schools[0];
+}
+
+function currShowingCareer(record) {
+    return record.current === CURR_CAREER && record.schools.length > 1;
+}
+
+// The order a career is lived in: by the first grade each school covers.
+function currSchoolLevels(school) {
+    if (school.grades && school.grades.length) return school.grades.slice();
+    const seen = {};
+    ((school.catalog || {}).courses || []).forEach(function(c) {
+        (c.grade_levels || []).forEach(function(l) {
+            if (typeof l === 'number' && isFinite(l)) seen[l] = true;
+        });
+    });
+    const levels = Object.keys(seen).map(Number).sort(function(a, b) { return a - b; });
+    return levels;
+}
+
+function currSchoolsInOrder(record) {
+    const added = {};
+    record.schools.forEach(function(s, i) { added[s.id] = i; });
+    return record.schools.slice().sort(function(a, b) {
+        const la = currSchoolLevels(a);
+        const lb = currSchoolLevels(b);
+        // A school with no document yet has no grades either. It sorts last rather
+        // than first, so adding one does not reorder the career under you.
+        const fa = la.length ? la[0] : 99;
+        const fb = lb.length ? lb[0] : 99;
+        if (fa !== fb) return fa - fb;
+        return added[a.id] - added[b.id];
+    });
+}
+
+// Every school the student attended before this one — the ones a course can have
+// transferred in from.
+function currEarlierSchools(record, school) {
+    const order = currSchoolsInOrder(record);
+    // By id, not by identity: every currGetRecord builds fresh objects, so the school
+    // being rendered is equal to one in the list without being the same object.
+    const at = order.findIndex(function(s) { return s.id === school.id; });
+    return at <= 0 ? [] : order.slice(0, at);
+}
+
+function currGetData(toolId) {
+    return currCurrentSchool(currGetRecord(toolId));
 }
 
 // A curriculum document is large enough to fill the storage a board has, so a
 // failed write is reported in the tool rather than thrown: the plan stays usable
 // in memory even when it cannot be kept.
+// Callers hand back the object currGetData gave them, which is one school out of the
+// record. Put it back where it came from and write the whole record.
 function currSaveData(toolId, data) {
-    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-    toolCustomizations[toolId].curriculum = data;
-    try {
-        saveToolCustomizations(toolCustomizations);
-        return true;
-    } catch (e) {
-        const widget = currWidgetFor(toolId);
-        currSetStatus(widget, 'err', 'This document is too large for the space this board has left. ' +
-            'It is loaded and usable, but it will not survive a reload.');
-        return false;
-    }
+    const record = currGetRecord(toolId);
+    const at = record.schools.findIndex(function(s) { return s.id === data.id; });
+    if (at === -1) record.schools[0] = data; else record.schools[at] = data;
+    return currSaveRecord(toolId, record);
 }
 
 // A whole curriculum is serialised on every write, which is far too much work to
@@ -809,8 +1162,13 @@ let currSaveTimer = null;
 let cdocDraftTimer = null;
 
 function currSaveDataSoon(toolId, data) {
+    // In memory at once, on disk shortly: the next read has to see this edit, or a
+    // second keystroke would be applied to the state before the first.
+    const record = currGetRecord(toolId);
+    const at = record.schools.findIndex(function(s) { return s.id === data.id; });
+    if (at === -1) record.schools[0] = data; else record.schools[at] = data;
     toolCustomizations[toolId] = toolCustomizations[toolId] || {};
-    toolCustomizations[toolId].curriculum = data;
+    toolCustomizations[toolId].curriculum = record;
     clearTimeout(currSaveTimer);
     currSaveTimer = setTimeout(function() { currSaveData(toolId, data); }, 400);
 }
@@ -820,6 +1178,1199 @@ function currSetStatus(widget, kind, message) {
     if (!status) return;
     status.className = 'curr-status' + (kind ? ' ' + kind : '');
     status.textContent = message || '';
+}
+
+// ---- The school bar ---------------------------------------------------------
+
+function currGradeRangeLabel(planner, levels) {
+    if (!levels || !levels.length) return '';
+    const sorted = levels.slice().sort(function(a, b) { return a - b; });
+    const short = function(level) {
+        const label = currLevelLabel(planner, level);
+        // "Grade 9" reads as "9" in a range; a named year keeps its name.
+        return /^(Grade|Year) \d+$/.test(label) ? String(level) : label;
+    };
+    const contiguous = sorted.every(function(n, i) { return i === 0 || n === sorted[i - 1] + 1; });
+    if (sorted.length === 1) return short(sorted[0]);
+    return contiguous
+        ? short(sorted[0]) + '–' + short(sorted[sorted.length - 1])
+        : sorted.map(short).join(', ');
+}
+
+function currSchoolSummary(school) {
+    const planner = currPlanner(school);
+    const grades = currGradeRangeLabel(planner, currSchoolLevels(school));
+    return [grades ? 'grades ' + grades : '', school.years].filter(Boolean).join(' · ');
+}
+
+// A career is only worth showing as one once there is more than one school in it.
+function currSchoolsBarHtml(record) {
+    const showing = record.schools.length > 1 || record.schools[0].catalog;
+    if (!showing) return '';
+    const order = currSchoolsInOrder(record);
+    const career = currShowingCareer(record);
+    const here = career ? null : currCurrentSchool(record);
+    let html = '<div class="curr-schools">' +
+        '<label class="curr-school-lbl">School</label>' +
+        '<select class="curr-school-pick" onchange="currPickSchool(this)">';
+    order.forEach(function(school) {
+        const summary = currSchoolSummary(school);
+        html += '<option value="' + escapeHtml(school.id) + '"' +
+            (!career && school.id === here.id ? ' selected' : '') + '>' +
+            escapeHtml(currSchoolName(school)) + (summary ? ' · ' + escapeHtml(summary) : '') + '</option>';
+    });
+    if (record.schools.length > 1) {
+        html += '<option value="' + CURR_CAREER + '"' + (career ? ' selected' : '') +
+            '>── Whole career ──</option>';
+    }
+    html += '</select>';
+    html += '<button class="curr-btn" onclick="currAddSchool(this)" ' +
+        'title="Another school this student attended">+ School</button>';
+    return html + '</div>';
+}
+
+function currPickSchool(el) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    if (!widget || !toolId) return;
+    const record = currGetRecord(toolId);
+    record.current = el.value;
+    currSaveRecord(toolId, record);
+    // Each school keeps its own JSON, so the source pane follows the choice.
+    const box = widget.querySelector('.curr-json');
+    if (box) {
+        const school = currSchoolAt(record, record.current);
+        box.value = school ? (school.draft || (school.catalog
+            ? JSON.stringify(school.catalog, null, 2) : '')) : '';
+    }
+    currSetStatus(widget, '', '');
+    currRender(widget);
+}
+
+function currNextSchoolId(record) {
+    let n = record.schools.length + 1;
+    const used = {};
+    record.schools.forEach(function(s) { used[s.id] = true; });
+    while (used['sch-' + n]) n++;
+    return 'sch-' + n;
+}
+
+function currAddSchool(btn) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const record = currGetRecord(toolId);
+    const school = currNormalizeSchool({ id: currNextSchoolId(record) }, record.schools.length);
+    record.schools.push(school);
+    record.current = school.id;
+    currSaveRecord(toolId, record);
+    const box = widget.querySelector('.curr-json');
+    if (box) box.value = '';
+    currSetStatus(widget, 'ok', 'Added a school. Load its curriculum document, then ' +
+        'set the grades the student was there for.');
+    // The document is what this school needs next, and that lives in the JSON pane.
+    if (typeof setToolMode === 'function') setToolMode(toolId, 'split');
+    currRender(widget);
+}
+
+function currRemoveSchool(btn, id) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const record = currGetRecord(toolId);
+    if (record.schools.length < 2) {
+        currSetStatus(widget, 'err', 'This is the only school on the record. Load a different ' +
+            'document over it rather than removing it.');
+        return;
+    }
+    const school = currSchoolAt(record, id);
+    if (!school) return;
+    const work = currWorkInProgress(school);
+    if (currNeedsConfirm(btn, 'rm:' + id, 'Removing ' + currSchoolName(school) + ' takes ' +
+        (work ? currEntries(work) + ' of plan' : 'its document') + ' with it, and cannot be ' +
+        'undone. Press × again to go ahead.')) return;
+    record.schools = record.schools.filter(function(s) { return s.id !== id; });
+    if (record.current === id) record.current = record.schools[0].id;
+    currSaveRecord(toolId, record);
+    currSetStatus(widget, 'ok', 'Removed ' + currSchoolName(school) + '.');
+    currRender(widget);
+}
+
+function currMoveSchool(btn, id, by) {
+    const toolId = currGetToolId(btn);
+    const record = currGetRecord(toolId);
+    const at = record.schools.findIndex(function(s) { return s.id === id; });
+    const to = at + by;
+    if (at === -1 || to < 0 || to >= record.schools.length) return;
+    const moved = record.schools.splice(at, 1)[0];
+    record.schools.splice(to, 0, moved);
+    currSaveRecord(toolId, record);
+    currRender(currGetWidget(btn));
+}
+
+// ---- Editing a school -------------------------------------------------------
+
+function currWithSchool(el, id, change) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    if (!widget || !toolId) return;
+    const record = currGetRecord(toolId);
+    const school = currSchoolAt(record, id);
+    if (!school) return;
+    change(school);
+    currSaveRecord(toolId, record);
+    return { widget: widget, toolId: toolId, record: record };
+}
+
+function currSetSchoolName(el, id) {
+    const value = el.value.trim();
+    // Cleared, it goes back to whatever the document calls itself.
+    const cx = currWithSchool(el, id, function(school) { school.name = value; });
+    // The bar shows the name, so it is the one thing to refresh while typing.
+    if (cx) currRefreshSchoolBar(cx.widget, cx.toolId);
+}
+
+function currSetSchoolYears(el, id) {
+    const value = el.value.trim();
+    const cx = currWithSchool(el, id, function(school) { school.years = value; });
+    if (cx) currRefreshSchoolBar(cx.widget, cx.toolId);
+}
+
+// Which grades the student was there for. Two high schools both print a 9-12
+// catalog; only the student knows which years they were at each.
+function currSetSchoolGrades(el, id) {
+    const raw = el.value.trim();
+    const cx = currWithSchool(el, id, function(school) {
+        const levels = raw.split(/[^0-9]+/).filter(Boolean).map(Number)
+            .filter(function(n) { return isFinite(n); });
+        school.grades = levels.length ? levels.sort(function(a, b) { return a - b; }) : null;
+    });
+    if (cx) currRender(cx.widget);
+}
+
+function currRefreshSchoolBar(widget, toolId) {
+    const bar = widget.querySelector('.curr-schools');
+    if (bar) bar.outerHTML = currSchoolsBarHtml(currGetRecord(toolId));
+}
+
+// The list in the JSON pane: what the record holds, and the only place a school is
+// named, dated, given its grades or taken off.
+function currSchoolListHtml(record) {
+    const order = currSchoolsInOrder(record);
+    let html = '<div class="curr-school-list">';
+    order.forEach(function(school) {
+        const planner = currPlanner(school);
+        const derived = currGradeRangeLabel(planner, currSchoolLevels(school));
+        const stated = school.grades && school.grades.length;
+        html += '<div class="curr-school-row' +
+            (school.id === record.current ? ' on' : '') + '">' +
+            '<button class="curr-school-go" onclick="currGoToSchool(this, \'' +
+                escapeHtml(school.id) + '\')" title="Show this school">' +
+                (school.id === record.current ? '●' : '○') + '</button>' +
+            '<input class="curr-school-name" value="' + escapeHtml(school.name) +
+                '" placeholder="' + escapeHtml(currDerivedSchoolName(school, order.indexOf(school))) +
+                '" oninput="currSetSchoolName(this, \'' +
+                escapeHtml(school.id) + '\')">' +
+            '<input class="curr-school-grades" value="' + escapeHtml(stated ? school.grades.join(', ') : '') +
+                '" placeholder="' + escapeHtml(derived || 'grades') +
+                '" title="The grades the student was at this school. Left empty, whatever the ' +
+                'document implies." onchange="currSetSchoolGrades(this, \'' + escapeHtml(school.id) + '\')">' +
+            '<input class="curr-school-years" value="' + escapeHtml(school.years) +
+                '" placeholder="years" title="Academic years, e.g. 2026-2028" ' +
+                'oninput="currSetSchoolYears(this, \'' + escapeHtml(school.id) + '\')">' +
+            '<span class="curr-school-n">' + (school.catalog
+                ? (school.catalog.courses || []).length + ' courses' : 'no document') + '</span>' +
+            '<button class="curr-x" title="Remove this school" onclick="currRemoveSchool(this, \'' +
+                escapeHtml(school.id) + '\')">×</button>' +
+            '</div>';
+    });
+    html += '</div>';
+    return html;
+}
+
+function currGoToSchool(btn, id) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const record = currGetRecord(toolId);
+    if (!currSchoolAt(record, id)) return;
+    record.current = id;
+    currSaveRecord(toolId, record);
+    const box = widget.querySelector('.curr-json');
+    if (box) {
+        const school = currSchoolAt(record, id);
+        box.value = school.draft || (school.catalog ? JSON.stringify(school.catalog, null, 2) : '');
+    }
+    currRender(widget);
+}
+
+// The academic year a given grade falls in, where the school says which years the
+// student was there. "2026-2028" over grades 11-12 makes grade 11 "2026-27".
+function currAcademicYear(school, planner, level) {
+    const match = /(\d{4})/.exec(school.years || '');
+    if (!match) return '';
+    const levels = currSchoolLevels(school);
+    if (!levels.length) return '';
+    const start = parseInt(match[1], 10) + (level - levels[0]);
+    if (!isFinite(start)) return '';
+    return start + '–' + String((start + 1) % 100).padStart(2, '0');
+}
+
+// ---- Transferred in ---------------------------------------------------------
+// A course taken at an earlier school and accepted here. Two cases, and both are
+// real: the new school teaches the same course, so ticking it is the Already met
+// mechanism the tool already has; or it does not, and the credit still has to land
+// somewhere or the totals come out quietly low.
+
+// What a course taken elsewhere is called here, if anything. Schools spell the same
+// course differently and the differences are systematic, so this tries the forms a
+// guide actually prints rather than only the title as written:
+//
+//   Spanish I                  → exact
+//   Band IV                    → its own title_variants say "Honors Band"
+//   GEM-7 (Algebra I Honors)   → the parenthetical is the real course name
+//
+// Then, and only then, the same list with the rigour dropped — Algebra I Honors
+// against Algebra I. That one is a guess, so it is returned as inexact and shown as
+// a close match. Nothing is applied until the student ticks it, which is what makes
+// a guess safe to offer here and not safe to make anywhere else.
+const CURR_RIGOUR = /\b(honou?rs?|advanced|gifted|accelerated|pre[- ]?ap|ap|ib|dual enrollment)\b/gi;
+
+function currTransferMatch(index, course) {
+    const tries = [course.title].concat(course.title_variants || []);
+    const paren = /\(([^)]+)\)/.exec(course.title || '');
+    if (paren) tries.push(paren[1]);
+    const outside = String(course.title || '').replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+    if (outside) tries.push(outside);
+
+    for (let i = 0; i < tries.length; i++) {
+        const hit = currResolveTitle(index, tries[i]);
+        if (hit) return { code: hit, exact: true };
+    }
+    for (let i = 0; i < tries.length; i++) {
+        const plain = String(tries[i] || '').replace(CURR_RIGOUR, ' ').replace(/\s+/g, ' ').trim();
+        if (!plain || currNormTitle(plain) === currNormTitle(tries[i])) continue;
+        const hit = currResolveTitle(index, plain);
+        if (hit) return { code: hit, exact: false };
+    }
+    return null;
+}
+
+// Everything the student has on the record at earlier schools — placed in a plan or
+// ticked off there. Matched against this school's catalog as we go, so nothing is
+// stored that could drift out of step with either catalog.
+function currTransferCandidates(record, school) {
+    const index = currTitleIndex(school);
+    const byCode = currByCode(school);
+    const out = [];
+    currEarlierSchools(record, school).forEach(function(from) {
+        const fromBy = currByCode(from);
+        const seen = {};
+        const take = function(code) {
+            if (seen[code]) return;
+            seen[code] = true;
+            const course = fromBy[code];
+            if (!course) return;
+            const match = currTransferMatch(index, course);
+            out.push({
+                from: currSchoolName(from),
+                fromId: from.id,
+                code: code,
+                title: course.title,
+                // What it was worth where it was taken. A middle school course taken
+                // for high school credit says so in a field of its own.
+                credits: course.high_school_credits || course.credits || 0,
+                level: (course.grade_levels || [])[0],
+                to: match ? match.code : null,
+                exact: match ? match.exact : false,
+                toTitle: match && byCode[match.code] ? byCode[match.code].title : null
+            });
+        };
+        Object.keys(from.plan || {}).forEach(function(term) {
+            (from.plan[term] || []).forEach(take);
+        });
+        (from.completed || []).forEach(take);
+    });
+    return out;
+}
+
+function currTransfersHtml(data, record) {
+    const earlier = currEarlierSchools(record, data);
+    if (!earlier.length) return '';
+    const candidates = currTransferCandidates(record, data);
+    const open = data.ui.transfersOpen === true;
+    const taken = candidates.filter(function(c) {
+        return c.to && currIsCompleted(data, c.to);
+    }).length;
+    const loose = data.credits_in || [];
+
+    let html = '<div class="curr-transfers">' +
+        '<div class="curr-transfers-head" onclick="currToggleTransfers(this)">' +
+            '<span class="curr-req-caret">' + (open ? '▾' : '▸') + '</span>' +
+            '<span class="curr-req-name"><b>Transferred in</b></span>' +
+            '<span class="curr-req-num">' + (taken + loose.length) + ' of ' +
+                (candidates.length + loose.length) + '</span>' +
+        '</div>';
+    if (!open) return html + '</div>';
+
+    html += '<div class="curr-transfer-body">';
+    if (!candidates.length) {
+        html += '<div class="curr-note">Nothing recorded at ' +
+            escapeHtml(earlier.map(currSchoolName).join(', ')) + ' yet.</div>';
+    }
+    candidates.forEach(function(c) {
+        const on = c.to && currIsCompleted(data, c.to);
+        html += '<label class="curr-transfer' + (c.to ? '' : ' unmatched') + '">' +
+            '<input type="checkbox"' + (on ? ' checked' : '') + (c.to ? '' : ' disabled') +
+                ' onchange="currToggleTransfer(this, \'' + escapeHtml(c.to || '') + '\')">' +
+            '<span class="curr-transfer-title">' + escapeHtml(c.title) + '</span>' +
+            '<span class="curr-transfer-from">' + escapeHtml(c.from) + '</span>' +
+            (c.to
+                ? '<span class="curr-transfer-to' + (c.exact ? '' : ' close') + '">→ ' +
+                  escapeHtml(c.to + ' ' + (c.toTitle || '')) +
+                  (c.exact ? '' : ' <em>close match — check it</em>') + '</span>'
+                : '<span class="curr-transfer-to none">no course by that name here' +
+                  '<button class="curr-btn" onclick="currAddLooseFrom(event, this, \'' +
+                      escapeHtml(c.fromId) + '\', \'' + escapeHtml(c.code) + '\')" ' +
+                      'title="Record it as credit anyway">as credit</button></span>') +
+            '</label>';
+    });
+
+    // Credit granted for something this school does not teach. Nothing in the
+    // catalog to tick, so it is recorded as itself and counted by subject.
+    const subjects = (((data.catalog || {}).graduation_requirements || {}).credits_by_subject) || [];
+    loose.forEach(function(entry, i) {
+        html += '<div class="curr-loose">' +
+            '<input class="curr-loose-title" value="' + escapeHtml(entry.title || '') +
+                '" placeholder="Course title" oninput="currSetLoose(this, ' + i + ', \'title\')">' +
+            '<input class="curr-loose-credits" type="number" step="0.5" value="' +
+                escapeHtml(String(entry.credits === undefined ? '' : entry.credits)) +
+                '" placeholder="cr" oninput="currSetLoose(this, ' + i + ', \'credits\')">' +
+            '<select class="curr-loose-subject" onchange="currSetLoose(this, ' + i + ', \'subject\')">' +
+                '<option value="">counts as…</option>' +
+                subjects.map(function(req) {
+                    return '<option value="' + escapeHtml(req.subject) + '"' +
+                        (entry.subject === req.subject ? ' selected' : '') + '>' +
+                        escapeHtml(req.subject) + '</option>';
+                }).join('') +
+            '</select>' +
+            '<span class="curr-transfer-from">' + escapeHtml(entry.from || '') + '</span>' +
+            '<button class="curr-x" title="Remove" onclick="currRemoveLoose(this, ' + i + ')">×</button>' +
+        '</div>';
+    });
+    html += '<button class="curr-btn" onclick="currAddLoose(this)">+ other credit</button>';
+    return html + '</div></div>';
+}
+
+function currToggleTransfers(el) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = currGetData(toolId);
+    data.ui.transfersOpen = !data.ui.transfersOpen;
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+// Ticking one marks the matching course here as already met — the same list, and
+// therefore the same prerequisite and credit rules, as ticking it in the catalog.
+function currToggleTransfer(el, code) {
+    if (!code) return;
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = currGetData(toolId);
+    const at = data.completed.indexOf(code);
+    if (at === -1) data.completed.push(code); else data.completed.splice(at, 1);
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+function currAddLoose(btn) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const data = currGetData(toolId);
+    data.credits_in = (data.credits_in || []).concat([{ title: '', credits: 1, subject: '', from: '' }]);
+    data.ui.transfersOpen = true;
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+function currAddLooseFrom(e, btn, fromId, code) {
+    e.preventDefault();
+    e.stopPropagation();
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const record = currGetRecord(toolId);
+    const from = currSchoolAt(record, fromId);
+    const course = from ? currByCode(from)[code] : null;
+    const data = currCurrentSchool(record);
+    data.credits_in = (data.credits_in || []).concat([{
+        title: course ? course.title : '',
+        credits: course ? (course.high_school_credits || course.credits || 0) : 0,
+        subject: course ? (course.department_canonical || course.department || '') : '',
+        from: from ? currSchoolName(from) : ''
+    }]);
+    data.ui.transfersOpen = true;
+    currSaveRecord(toolId, record);
+    currRender(widget);
+}
+
+function currSetLoose(el, i, field) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = currGetData(toolId);
+    const entry = (data.credits_in || [])[i];
+    if (!entry) return;
+    entry[field] = field === 'credits' ? (parseFloat(el.value) || 0) : el.value;
+    currSaveDataSoon(toolId, data);
+    // Only the totals move; rewriting the panel would take the caret with it.
+    const totals = widget.querySelector('.curr-totals');
+    if (totals) totals.outerHTML = currTotalsHtml(currGetData(toolId));
+}
+
+function currRemoveLoose(btn, i) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const data = currGetData(toolId);
+    (data.credits_in || []).splice(i, 1);
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+// What transferred credit adds to a subject, for the totals panel.
+function currLooseFor(data, subject) {
+    let sum = 0;
+    (data.credits_in || []).forEach(function(entry) {
+        if (currNormTitle(entry.subject) === currNormTitle(subject)) sum += entry.credits || 0;
+    });
+    return sum;
+}
+
+function currLooseTotal(data) {
+    let sum = 0;
+    (data.credits_in || []).forEach(function(entry) { sum += entry.credits || 0; });
+    return sum;
+}
+
+// ---- The whole career -------------------------------------------------------
+// Read-only, and the only page that shows more than one school at a time. Every
+// year the student has been through, what was taken in it, and what it was worth.
+
+function currSchoolCredits(school) {
+    const byCode = currByCode(school);
+    let planned = 0;
+    let earlyHs = 0;
+    Object.keys(school.plan || {}).forEach(function(term) {
+        (school.plan[term] || []).forEach(function(code) {
+            const course = byCode[code];
+            if (!course) return;
+            planned += course.credits || 0;
+            earlyHs += course.high_school_credits || 0;
+        });
+    });
+    return { planned: planned, earlyHs: earlyHs, transferred: currLooseTotal(school) };
+}
+
+function currCareerYearHtml(school, planner, level) {
+    const byCode = currByCode(school);
+    const slots = [planner.spanId].concat(planner.terms.map(function(t) { return t.id; }));
+    const seen = {};
+    const rows = [];
+    slots.forEach(function(slot) {
+        (school.plan[currTermKey(level, slot)] || []).forEach(function(code) {
+            if (seen[code]) return;
+            seen[code] = true;
+            const course = byCode[code];
+            if (!course) return;
+            rows.push({ course: course, slot: slot });
+        });
+    });
+    const year = currAcademicYear(school, planner, level);
+    let credits = 0;
+    rows.forEach(function(r) { credits += r.course.credits || 0; });
+
+    return '<div class="curr-career-year">' +
+        '<div class="curr-career-year-head">' +
+            '<b>' + escapeHtml(currLevelLabel(planner, level)) + '</b>' +
+            (year ? '<span class="curr-career-when">' + escapeHtml(year) + '</span>' : '') +
+            '<span class="curr-career-cr">' + (rows.length
+                ? currFormatCredits(credits) + ' cr' : 'nothing recorded') + '</span>' +
+        '</div>' +
+        rows.map(function(r) {
+            const hs = r.course.high_school_credits
+                ? ' <span class="curr-badge">HS ' + currFormatCredits(r.course.high_school_credits) + '</span>'
+                : '';
+            const grade = currCourseGrade(school, r.course.course_code, planner);
+            return '<div class="curr-career-course">' +
+                '<span class="curr-code">' + escapeHtml(r.course.course_code) + '</span>' +
+                '<span class="curr-career-title">' + escapeHtml(r.course.title) + hs + '</span>' +
+                '<span class="curr-career-slot">' + escapeHtml(currSlotLabel(planner, r.slot)) + '</span>' +
+                (grade.label ? '<span class="curr-career-grade">' + escapeHtml(grade.label) +
+                    '</span>' : '') +
+                '<span class="curr-career-cr">' + currFormatCredits(r.course.credits || 0) + '</span>' +
+            '</div>';
+        }).join('') +
+    '</div>';
+}
+
+function currCareerHtml(record) {
+    const order = currSchoolsInOrder(record);
+    let planned = 0;
+    let earlyHs = 0;
+    let transferred = 0;
+    // A career GPA has to add up schools that may not mark the same way, so it is
+    // pooled in points — never in labels, which are not comparable between scales.
+    let gpaPoints = 0;
+    let gpaCredits = 0;
+    let gpaPlain = 0;
+    let gpaN = 0;
+
+    let html = '<div class="curr-career">';
+    order.forEach(function(school) {
+        const planner = currPlanner(school);
+        const sums = currSchoolCredits(school);
+        if (school.catalog) {
+            const grading = currGrading(school);
+            const byCode = currByCode(school);
+            const shape = currPlanner(school);
+            currGradedCodes(school).forEach(function(code) {
+                const grade = currCourseGrade(school, code, shape);
+                if (grade.points === null) return;
+                const course = byCode[code];
+                const points = grade.points + (grading.weighted ? currLevelBonus(course) : 0);
+                const credit = (course && course.credits) || 0;
+                gpaPoints += points * credit;
+                gpaCredits += credit;
+                gpaPlain += points;
+                gpaN++;
+            });
+        }
+        planned += sums.planned;
+        earlyHs += sums.earlyHs;
+        transferred += sums.transferred;
+        const met = (school.completed || []).length;
+
+        html += '<div class="curr-career-school">' +
+            '<div class="curr-career-head">' +
+                '<b>' + escapeHtml(currSchoolName(school)) + '</b>' +
+                '<span>' + escapeHtml(currSchoolSummary(school) || 'no grades set') + '</span>' +
+                '<button class="curr-btn" onclick="currGoToSchool(this, \'' +
+                    escapeHtml(school.id) + '\')">Open</button>' +
+            '</div>';
+        if (!school.catalog) {
+            html += '<div class="curr-note">No document loaded for this school yet.</div>';
+        } else {
+            planner.levels.forEach(function(level) {
+                html += currCareerYearHtml(school, planner, level);
+            });
+            const notes = [];
+            const gpa = currSchoolGpa(school);
+            if (gpa !== null) {
+                notes.push('GPA ' + currFormatGpa(gpa) +
+                    (currGrading(school).weighted ? ' weighted' : ''));
+            }
+            if (sums.planned) notes.push(currFormatCredits(sums.planned) + ' credits here');
+            if (sums.earlyHs) notes.push(currFormatCredits(sums.earlyHs) + ' high school credits earned early');
+            if (met) notes.push(met + (met === 1 ? ' course' : ' courses') + ' counted as already met');
+            if (sums.transferred) notes.push(currFormatCredits(sums.transferred) + ' credits transferred in');
+            if (notes.length) {
+                html += '<div class="curr-career-note">' + escapeHtml(notes.join(' · ')) + '</div>';
+            }
+        }
+        html += '</div>';
+    });
+
+    const career = gpaN ? (gpaCredits > 0 ? gpaPoints / gpaCredits : gpaPlain / gpaN) : null;
+    html += '<div class="curr-career-total">' +
+        '<b>' + order.length + (order.length === 1 ? ' school' : ' schools') + '</b>' +
+        '<span>' + (career === null ? '' : 'GPA ' + currFormatGpa(career) + ' · ') +
+        currFormatCredits(planned) + ' credits recorded' +
+        (earlyHs ? ' · ' + currFormatCredits(earlyHs) + ' earned before high school' : '') +
+        (transferred ? ' · ' + currFormatCredits(transferred) + ' transferred in' : '') +
+        '</span></div>';
+
+    html += '<div class="curr-note">This page is a record, not a plan — open a school ' +
+        'to change anything. Credits are counted where they were taken; what each school ' +
+        'accepted from an earlier one is on that school\'s page, under Transferred in.</div>';
+    return html + '</div>';
+}
+
+// =============================================
+// GRADES
+// =============================================
+// What a student took is half a record; how they did is the other half. Grades hang
+// off a school rather than off the tool, because a middle school and a high school
+// grade differently and the same student has both. Which is also why everything here
+// works in *points* and only turns them back into a label at the last moment: "A",
+// "5" and "89%" are the same fact written three ways, and a career GPA has to be
+// able to add them up.
+
+// A scale is a list of labels and what each is worth, or a range and a rule. The
+// point values are not decoration — without them nothing can be averaged at all.
+const CURR_SCALES = {
+    'letter': { name: 'Letters (A–F)', values: [
+        { label: 'A', points: 4 }, { label: 'B', points: 3 }, { label: 'C', points: 2 },
+        { label: 'D', points: 1 }, { label: 'F', points: 0 }] },
+    'letter-pm': { name: 'Letters with +/−', values: [
+        { label: 'A+', points: 4 }, { label: 'A', points: 4 }, { label: 'A-', points: 3.7 },
+        { label: 'B+', points: 3.3 }, { label: 'B', points: 3 }, { label: 'B-', points: 2.7 },
+        { label: 'C+', points: 2.3 }, { label: 'C', points: 2 }, { label: 'C-', points: 1.7 },
+        { label: 'D+', points: 1.3 }, { label: 'D', points: 1 }, { label: 'D-', points: 0.7 },
+        { label: 'F', points: 0 }] },
+    'num-5': { name: 'Numbers (5 best)', values: [
+        { label: '5', points: 4 }, { label: '4', points: 3 }, { label: '3', points: 2 },
+        { label: '2', points: 1 }, { label: '1', points: 0 }] },
+    'num-1': { name: 'Numbers (1 best)', values: [
+        { label: '1', points: 4 }, { label: '2', points: 3 }, { label: '3', points: 2 },
+        { label: '4', points: 1 }, { label: '5', points: 0 }] },
+    // Continuous: the number typed is the grade. A percentage converts to points on
+    // the usual ten-point bands; a points scale is already in points.
+    'percent': { name: 'Percentage', min: 0, max: 100, step: 1, suffix: '%',
+        toPoints: function(n) { return Math.max(0, Math.min(4, Math.floor((n - 50) / 10))); } },
+    'points-4': { name: 'Points out of 4.0', min: 0, max: 4, step: 0.1 },
+    'points-5': { name: 'Points out of 5.0', min: 0, max: 5, step: 0.1 }
+};
+
+// What a level is worth above the standard course, where a school keeps a weighted
+// GPA. Read off the level the catalog already carries; first match wins.
+const CURR_LEVEL_BONUS = [
+    { re: /\b(ap|advanced placement|ib|aice|dual)\b/i, add: 1 },
+    { re: /honou?rs|gifted|accelerated|pre[- ]?ap/i, add: 0.5 }
+];
+
+function currGradingDefaults() {
+    return { scale: 'letter-pm', custom: [], marks: 2, exam: false, examWeight: 0.2, weighted: false };
+}
+
+function currGrading(school) {
+    return Object.assign(currGradingDefaults(), school.grading || {});
+}
+
+// The scale in use, custom or preset, always as something with either `values` or a
+// range. An unknown id falls back rather than throwing — a record can outlive a
+// preset being renamed.
+function currScale(grading) {
+    if (grading.scale === 'custom') {
+        return { name: 'Custom', values: (grading.custom || []).filter(function(v) {
+            return v && String(v.label).trim() !== '';
+        }) };
+    }
+    return CURR_SCALES[grading.scale] || CURR_SCALES['letter-pm'];
+}
+
+function currScaleIsList(scale) {
+    return Array.isArray(scale.values) && scale.values.length > 0;
+}
+
+// A grade as written → what it is worth. Everything downstream is points.
+function currGradePoints(grading, value) {
+    if (value === undefined || value === null || value === '') return null;
+    const scale = currScale(grading);
+    if (currScaleIsList(scale)) {
+        const want = String(value).trim().toLowerCase();
+        for (let i = 0; i < scale.values.length; i++) {
+            if (String(scale.values[i].label).trim().toLowerCase() === want) {
+                const p = scale.values[i].points;
+                return typeof p === 'number' && isFinite(p) ? p : null;
+            }
+        }
+        return null;
+    }
+    const n = parseFloat(value);
+    if (!isFinite(n)) return null;
+    return scale.toPoints ? scale.toPoints(n) : n;
+}
+
+// Points → the nearest thing the scale can actually say. A calculated 3.85 on a
+// letter scale is an A−, because there is no way to write 3.85 on a report card.
+function currGradeLabel(grading, points) {
+    if (points === null || points === undefined || !isFinite(points)) return '';
+    const scale = currScale(grading);
+    if (!currScaleIsList(scale)) {
+        return String(Math.round(points * 10) / 10) + (scale.suffix || '');
+    }
+    // Exactly between two grades — a 3.5 on a scale with B+ at 3.3 and A− at 3.7 —
+    // rounds *down*. The scale is listed best first, so letting a later value win a
+    // tie is what does it. Claiming the higher grade on a tie is the wrong direction
+    // to be wrong in on somebody's record.
+    let best = null;
+    scale.values.forEach(function(v) {
+        if (typeof v.points !== 'number' || !isFinite(v.points)) return;
+        const gap = Math.abs(v.points - points);
+        if (!best || gap <= best.gap + 1e-9) best = { gap: gap, label: v.label };
+    });
+    return best ? best.label : '';
+}
+
+// ---- Which marking periods a placement collects ------------------------------
+// From the school's own terms, so a semester school gets quarters and a trimester
+// school gets thirds. Numbering runs across the year: a course taken only in the
+// second semester is marked Q3 and Q4, which is what its report card says.
+
+function currMarkSlots(planner, grading, termKey) {
+    const per = Math.max(1, Math.min(6, parseInt(grading.marks, 10) || 1));
+    const terms = planner.main.length ? planner.main : [{ id: planner.spanId, label: planner.spanLabel }];
+    const parsed = currTermParse(termKey || '');
+    const covered = (!termKey || parsed.slot === planner.spanId)
+        ? terms
+        : terms.filter(function(t) { return t.id === parsed.slot; });
+    const slots = [];
+    terms.forEach(function(term, ti) {
+        if (covered.indexOf(term) === -1) return;
+        for (let m = 0; m < per; m++) {
+            slots.push({
+                id: term.id + '.' + (m + 1),
+                // One mark a term is that term's own grade and wants its name; more
+                // than one are quarters, numbered through the year.
+                label: per === 1 ? term.label : 'Q' + (ti * per + m + 1),
+                kind: 'mark'
+            });
+        }
+        if (grading.exam) {
+            slots.push({ id: term.id + '.X', label: term.label + ' exam', kind: 'exam' });
+        }
+    });
+    return slots;
+}
+
+function currMarksFor(school, code) {
+    const entry = (school.marks || {})[code] || {};
+    return { m: entry.m || {}, final: entry.final === undefined ? null : entry.final };
+}
+
+// ---- What a course came out at ----------------------------------------------
+// The one function everything asks. The card, the year header, the totals and the
+// career page all read this, so none of them can disagree with any other.
+
+function currCourseGrade(school, code, planner) {
+    const grading = currGrading(school);
+    const entry = currMarksFor(school, code);
+    if (entry.final !== null && entry.final !== '') {
+        const points = currGradePoints(grading, entry.final);
+        return { label: String(entry.final), points: points, source: 'entered' };
+    }
+    const shape = planner || currPlanner(school);
+    const slots = currMarkSlots(shape, grading, currPlacementOf(school, code));
+    const byTerm = {};
+    slots.forEach(function(slot) {
+        const points = currGradePoints(grading, entry.m[slot.id]);
+        if (points === null) return;
+        const term = slot.id.split('.')[0];
+        if (!byTerm[term]) byTerm[term] = { marks: [], exam: null };
+        if (slot.kind === 'exam') byTerm[term].exam = points;
+        else byTerm[term].marks.push(points);
+    });
+
+    const termScores = [];
+    Object.keys(byTerm).forEach(function(term) {
+        const t = byTerm[term];
+        const mean = t.marks.length
+            ? t.marks.reduce(function(a, b) { return a + b; }, 0) / t.marks.length : null;
+        if (mean === null && t.exam === null) return;
+        if (mean === null) { termScores.push(t.exam); return; }
+        if (t.exam === null) { termScores.push(mean); return; }
+        const w = Math.max(0, Math.min(1, grading.examWeight));
+        termScores.push(mean * (1 - w) + t.exam * w);
+    });
+    if (!termScores.length) return { label: '', points: null, source: 'none' };
+    const points = termScores.reduce(function(a, b) { return a + b; }, 0) / termScores.length;
+    return { label: currGradeLabel(grading, points), points: points, source: 'calculated' };
+}
+
+// ---- GPA ---------------------------------------------------------------------
+
+function currLevelBonus(course) {
+    const level = String((course || {}).level || '');
+    for (let i = 0; i < CURR_LEVEL_BONUS.length; i++) {
+        if (CURR_LEVEL_BONUS[i].re.test(level)) return CURR_LEVEL_BONUS[i].add;
+    }
+    return 0;
+}
+
+// Credit-weighted, over whatever has a grade. A middle school where every course is
+// worth zero credits would divide by nothing, so it falls back to a plain mean —
+// the grades are real even where the credits are not.
+function currGpaOf(school, codes, planner) {
+    const grading = currGrading(school);
+    const byCode = currByCode(school);
+    let weighted = 0;
+    let credits = 0;
+    let plain = 0;
+    let n = 0;
+    codes.forEach(function(code) {
+        const grade = currCourseGrade(school, code, planner);
+        if (grade.points === null) return;
+        const course = byCode[code];
+        const points = grade.points + (grading.weighted ? currLevelBonus(course) : 0);
+        const credit = (course && course.credits) || 0;
+        weighted += points * credit;
+        credits += credit;
+        plain += points;
+        n++;
+    });
+    if (!n) return null;
+    return credits > 0 ? weighted / credits : plain / n;
+}
+
+function currLevelCodes(school, level, planner) {
+    const codes = [];
+    [planner.spanId].concat(planner.terms.map(function(t) { return t.id; })).forEach(function(slot) {
+        (school.plan[currTermKey(level, slot)] || []).forEach(function(code) {
+            if (codes.indexOf(code) === -1) codes.push(code);
+        });
+    });
+    return codes;
+}
+
+// Everything with a grade at this school: planned, and ticked off before the plan.
+function currGradedCodes(school) {
+    const codes = [];
+    Object.keys(school.plan || {}).forEach(function(term) {
+        (school.plan[term] || []).forEach(function(code) {
+            if (codes.indexOf(code) === -1) codes.push(code);
+        });
+    });
+    (school.completed || []).forEach(function(code) {
+        if (codes.indexOf(code) === -1) codes.push(code);
+    });
+    return codes;
+}
+
+function currSchoolGpa(school) {
+    if (!school.catalog) return null;
+    return currGpaOf(school, currGradedCodes(school), currPlanner(school));
+}
+
+function currFormatGpa(n) {
+    return n === null || n === undefined ? '—' : (Math.round(n * 100) / 100).toFixed(2);
+}
+
+// ---- Entering one ------------------------------------------------------------
+// A scale with a list of labels gets a select, because a grade that is not on the
+// scale is not a grade. A continuous one gets a number bounded by the scale.
+
+function currGradeInput(grading, value, handler, extra) {
+    const scale = currScale(grading);
+    const attrs = ' class="curr-mark' + (extra || '') + '" onchange="' + handler + '"';
+    if (currScaleIsList(scale)) {
+        return '<select' + attrs + '><option value="">–</option>' +
+            scale.values.map(function(v) {
+                return '<option value="' + escapeHtml(v.label) + '"' +
+                    (String(value) === String(v.label) ? ' selected' : '') + '>' +
+                    escapeHtml(v.label) + '</option>';
+            }).join('') + '</select>';
+    }
+    return '<input type="number"' + attrs +
+        ' min="' + (scale.min || 0) + '" max="' + (scale.max || 100) + '"' +
+        ' step="' + (scale.step || 1) + '" value="' +
+        escapeHtml(value === undefined || value === null ? '' : String(value)) + '">';
+}
+
+function currSetMark(el, code, slot) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    if (!widget || !toolId) return;
+    const data = currGetData(toolId);
+    data.marks = data.marks || {};
+    const entry = data.marks[code] || { m: {}, final: null };
+    entry.m = entry.m || {};
+    if (el.value === '') delete entry.m[slot]; else entry.m[slot] = el.value;
+    if (!Object.keys(entry.m).length && (entry.final === null || entry.final === '')) {
+        delete data.marks[code];
+    } else {
+        data.marks[code] = entry;
+    }
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+// Typed over the top. It stays until it is cleared, and says so — a grade someone
+// entered and a grade the tool worked out must never look the same.
+function currSetFinal(el, code) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    if (!widget || !toolId) return;
+    const data = currGetData(toolId);
+    data.marks = data.marks || {};
+    const entry = data.marks[code] || { m: {}, final: null };
+    entry.final = el.value === '' ? null : el.value;
+    if (entry.final === null && !Object.keys(entry.m || {}).length) delete data.marks[code];
+    else data.marks[code] = entry;
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+function currClearFinal(btn, code) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const data = currGetData(toolId);
+    const entry = (data.marks || {})[code];
+    if (!entry) return;
+    entry.final = null;
+    if (!Object.keys(entry.m || {}).length) delete data.marks[code];
+    currSaveData(toolId, data);
+    currRender(widget);
+}
+
+// ---- The marks for one course, for the details panel -------------------------
+
+function currCourseMarksHtml(data, code) {
+    const planner = currPlanner(data);
+    const grading = currGrading(data);
+    const placed = currPlacementOf(data, code);
+    const met = currIsCompleted(data, code);
+    if (!placed && !met) return '';
+    const entry = currMarksFor(data, code);
+    const grade = currCourseGrade(data, code, planner);
+    const slots = placed ? currMarkSlots(planner, grading, placed) : [];
+
+    let html = '<div class="curr-marks"><div class="curr-marks-head">Grades</div>';
+    if (slots.length) {
+        html += '<div class="curr-marks-row">' + slots.map(function(slot) {
+            return '<label class="curr-mark-cell' + (slot.kind === 'exam' ? ' exam' : '') + '">' +
+                '<span>' + escapeHtml(slot.label) + '</span>' +
+                currGradeInput(grading, entry.m[slot.id],
+                    'currSetMark(this, \'' + escapeHtml(code) + '\', \'' + slot.id + '\')') +
+            '</label>';
+        }).join('') + '</div>';
+    } else {
+        html += '<div class="curr-note">Taken before this plan, so there are no marking ' +
+            'periods to fill in — just the final grade.</div>';
+    }
+
+    html += '<div class="curr-marks-final"><span>Final</span>' +
+        currGradeInput(grading, entry.final === null ? '' : entry.final,
+            'currSetFinal(this, \'' + escapeHtml(code) + '\')', ' final') +
+        (grade.source === 'entered'
+            ? '<span class="curr-mark-note entered">as entered' +
+              ' <button class="curr-btn" onclick="currClearFinal(this, \'' + escapeHtml(code) +
+              '\')">use the calculated one</button></span>'
+            : grade.source === 'calculated'
+                ? '<span class="curr-mark-note">calculated: <b>' + escapeHtml(grade.label) +
+                  '</b> · ' + currFormatGpa(grade.points) + ' points</span>'
+                : '<span class="curr-mark-note">no marks yet</span>') +
+        '</div></div>';
+    return html;
+}
+
+// ---- The Grades tab ----------------------------------------------------------
+// A report card arrives with every course on it at once, and entering it one course
+// at a time through the details panel would be miserable.
+
+function currGradesHtml(data) {
+    const planner = currPlanner(data);
+    const grading = currGrading(data);
+    const byCode = currByCode(data);
+    const scale = currScale(grading);
+
+    let html = '<div class="curr-grades">';
+    if (!currScaleIsList(scale) && !scale.min && scale.min !== 0) {
+        html += '<div class="curr-note">This school has no grading scale set.</div>';
+    }
+
+    let any = false;
+    planner.levels.forEach(function(level) {
+        const codes = currLevelCodes(data, level, planner);
+        if (!codes.length) return;
+        any = true;
+        const gpa = currGpaOf(data, codes, planner);
+        // Every column the year has, so a one-semester course sits under the quarters
+        // it was actually taken in rather than sliding along to the first free slot.
+        const columns = currMarkSlots(planner, grading, currTermKey(level, planner.spanId));
+        html += '<div class="curr-grades-year">' +
+            '<div class="curr-grades-year-head"><b>' +
+                escapeHtml(currLevelLabel(planner, level)) + '</b>' +
+            '<span>' + currFormatCredits(currLevelCredits(data, level, planner)) + ' cr</span>' +
+            '<span>GPA ' + currFormatGpa(gpa) + '</span></div>' +
+            '<div class="curr-grades-row heads"><span class="curr-grades-name"></span>' +
+                columns.map(function(slot) {
+                    return '<span class="curr-grades-cell' + (slot.kind === 'exam' ? ' exam' : '') +
+                        '">' + escapeHtml(slot.label) + '</span>';
+                }).join('') +
+                '<span class="curr-grades-final">Final</span></div>';
+        codes.forEach(function(code) {
+            const course = byCode[code];
+            const placed = currPlacementOf(data, code);
+            const mine = {};
+            currMarkSlots(planner, grading, placed).forEach(function(slot) { mine[slot.id] = true; });
+            const entry = currMarksFor(data, code);
+            const grade = currCourseGrade(data, code, planner);
+            html += '<div class="curr-grades-row">' +
+                '<span class="curr-grades-name" onclick="currSelectCode(event, this, \'' +
+                    escapeHtml(code) + '\')" title="' + escapeHtml((course || {}).title || code) + '">' +
+                    '<span class="curr-code">' + escapeHtml(code) + '</span> ' +
+                    escapeHtml((course || {}).title || code) + '</span>' +
+                columns.map(function(slot) {
+                    return '<span class="curr-grades-cell' + (slot.kind === 'exam' ? ' exam' : '') +
+                        '" title="' + escapeHtml(slot.label) + '">' +
+                        (mine[slot.id]
+                            ? currGradeInput(grading, entry.m[slot.id],
+                                'currSetMark(this, \'' + escapeHtml(code) + '\', \'' + slot.id + '\')')
+                            : '<span class="curr-grades-gap" title="Not taken this term">·</span>') +
+                    '</span>';
+                }).join('') +
+                '<span class="curr-grades-final' + (grade.source === 'entered' ? ' entered' : '') + '">' +
+                    currGradeInput(grading, entry.final === null ? '' : entry.final,
+                        'currSetFinal(this, \'' + escapeHtml(code) + '\')', ' final') +
+                    '<i>' + (grade.source === 'calculated' ? escapeHtml(grade.label) :
+                             grade.source === 'entered' ? 'entered' : '') + '</i>' +
+                '</span>' +
+            '</div>';
+        });
+        html += '</div>';
+    });
+
+    // Ticked off before the plan: no marking periods, but a grade that still counts.
+    const met = (data.completed || []).filter(function(code) { return byCode[code]; });
+    if (met.length) {
+        html += '<div class="curr-grades-year"><div class="curr-grades-year-head">' +
+            '<b>Already met</b><span>before this plan</span></div>';
+        met.forEach(function(code) {
+            const entry = currMarksFor(data, code);
+            html += '<div class="curr-grades-row">' +
+                '<span class="curr-grades-name"><span class="curr-code">' + escapeHtml(code) +
+                    '</span> ' + escapeHtml(byCode[code].title) + '</span>' +
+                '<span class="curr-grades-final">' +
+                    currGradeInput(grading, entry.final === null ? '' : entry.final,
+                        'currSetFinal(this, \'' + escapeHtml(code) + '\')', ' final') +
+                '</span></div>';
+        });
+        html += '</div>';
+        any = true;
+    }
+
+    if (!any) {
+        html += '<div class="curr-note">Nothing in the plan yet. Place a course and its ' +
+            'marking periods appear here.</div>';
+    }
+    const gpa = currSchoolGpa(data);
+    html += '<div class="curr-grades-total"><b>' + escapeHtml(currSchoolName(data)) + '</b>' +
+        '<span>GPA ' + currFormatGpa(gpa) + (grading.weighted ? ' · weighted' : '') + '</span></div>';
+    return html + '</div>';
+}
+
+// ---- Grading settings, beside the rest of a school's setup --------------------
+
+function currGradingHtml(record) {
+    const school = currCurrentSchool(record);
+    const grading = currGrading(school);
+    const scale = currScale(grading);
+    let html = '<div class="curr-grading"><div class="curr-grading-row">' +
+        '<span class="curr-grading-lbl">Grades</span>' +
+        '<select onchange="currSetGrading(this, \'scale\')" title="The scale this school marks on">' +
+            Object.keys(CURR_SCALES).map(function(id) {
+                return '<option value="' + id + '"' + (grading.scale === id ? ' selected' : '') +
+                    '>' + escapeHtml(CURR_SCALES[id].name) + '</option>';
+            }).join('') +
+            '<option value="custom"' + (grading.scale === 'custom' ? ' selected' : '') +
+                '>Custom…</option>' +
+        '</select>' +
+        '<label title="How many marks the school gives in each term">' +
+            '<select onchange="currSetGrading(this, \'marks\')">' +
+                [1, 2, 3, 4].map(function(n) {
+                    return '<option value="' + n + '"' + (grading.marks === n ? ' selected' : '') +
+                        '>' + n + ' per term</option>';
+                }).join('') +
+            '</select></label>' +
+        '<label title="An exam at the end of each term, counted separately">' +
+            '<input type="checkbox"' + (grading.exam ? ' checked' : '') +
+            ' onchange="currSetGrading(this, \'exam\')">exam</label>' +
+        (grading.exam ? '<label title="What the exam is worth inside its term">' +
+            '<input type="number" min="0" max="100" step="5" value="' +
+            Math.round(grading.examWeight * 100) + '" onchange="currSetGrading(this, \'examWeight\')">%' +
+            '</label>' : '') +
+        '<label title="Honors +0.5, AP and equivalent +1.0">' +
+            '<input type="checkbox"' + (grading.weighted ? ' checked' : '') +
+            ' onchange="currSetGrading(this, \'weighted\')">weighted</label>' +
+        '</div>';
+
+    if (grading.scale === 'custom') {
+        html += '<div class="curr-grading-custom">';
+        (grading.custom || []).forEach(function(v, i) {
+            html += '<span class="curr-grading-val">' +
+                '<input value="' + escapeHtml(v.label || '') + '" placeholder="A" ' +
+                    'oninput="currSetCustomGrade(this, ' + i + ', \'label\')">' +
+                '<input type="number" step="0.1" value="' +
+                    escapeHtml(v.points === undefined ? '' : String(v.points)) + '" placeholder="4.0" ' +
+                    'oninput="currSetCustomGrade(this, ' + i + ', \'points\')">' +
+                '<button class="curr-x" onclick="currRemoveCustomGrade(this, ' + i + ')">×</button>' +
+            '</span>';
+        });
+        html += '<button class="curr-btn" onclick="currAddCustomGrade(this)">+ grade</button>' +
+            '<div class="curr-note">Best first. The number is what it is worth towards a GPA.</div>';
+        html += '</div>';
+    } else if (currScaleIsList(scale)) {
+        html += '<div class="curr-note">' + scale.values.map(function(v) {
+            return escapeHtml(v.label) + ' ' + v.points;
+        }).join(' · ') + '</div>';
+    }
+    return html + '</div>';
+}
+
+function currSetGrading(el, field) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    const record = currGetRecord(toolId);
+    const school = currCurrentSchool(record);
+    const grading = currGrading(school);
+    if (field === 'marks') grading.marks = parseInt(el.value, 10) || 1;
+    else if (field === 'exam') grading.exam = el.checked;
+    else if (field === 'weighted') grading.weighted = el.checked;
+    else if (field === 'examWeight') grading.examWeight = Math.max(0, Math.min(1, (parseFloat(el.value) || 0) / 100));
+    else if (field === 'scale') {
+        grading.scale = el.value;
+        // Switching to Custom with nothing in it would leave no grade enterable, so
+        // it starts as a copy of what was showing.
+        if (el.value === 'custom' && !(grading.custom || []).length) {
+            const from = CURR_SCALES[school.grading && school.grading.scale] || CURR_SCALES['letter-pm'];
+            grading.custom = (from.values || []).map(function(v) {
+                return { label: v.label, points: v.points };
+            });
+        }
+    }
+    school.grading = grading;
+    currSaveRecord(toolId, record);
+    currRender(widget);
+}
+
+function currSetCustomGrade(el, i, field) {
+    const widget = currGetWidget(el);
+    const toolId = currGetToolId(el);
+    const record = currGetRecord(toolId);
+    const school = currCurrentSchool(record);
+    const grading = currGrading(school);
+    grading.custom = (grading.custom || []).slice();
+    if (!grading.custom[i]) return;
+    grading.custom[i] = Object.assign({}, grading.custom[i]);
+    grading.custom[i][field] = field === 'points' ? (parseFloat(el.value) || 0) : el.value;
+    school.grading = grading;
+    currSaveRecord(toolId, record);
+    // Typing a label must not rebuild the field being typed in.
+    const totals = widget.querySelector('.curr-totals');
+    if (totals) totals.outerHTML = currTotalsHtml(currGetData(toolId));
+}
+
+function currAddCustomGrade(btn) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const record = currGetRecord(toolId);
+    const school = currCurrentSchool(record);
+    const grading = currGrading(school);
+    grading.custom = (grading.custom || []).concat([{ label: '', points: 0 }]);
+    school.grading = grading;
+    currSaveRecord(toolId, record);
+    currRender(widget);
+}
+
+function currRemoveCustomGrade(btn, i) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    const record = currGetRecord(toolId);
+    const school = currCurrentSchool(record);
+    const grading = currGrading(school);
+    grading.custom = (grading.custom || []).slice();
+    grading.custom.splice(i, 1);
+    school.grading = grading;
+    currSaveRecord(toolId, record);
+    currRender(widget);
 }
 
 // =============================================
@@ -1551,6 +3102,15 @@ function currRender(widget) {
     widget.classList.toggle('narrow', widget.offsetWidth > 0 && widget.offsetWidth < 640);
     currRenderSource(widget, data);
 
+    const record = currGetRecord(toolId);
+    const bar = widget.querySelector('.curr-schools-bar');
+    if (bar) bar.innerHTML = currSchoolsBarHtml(record);
+
+    if (currShowingCareer(record)) {
+        explorer.innerHTML = currCareerHtml(record);
+        return;
+    }
+
     if (!data.catalog) {
         explorer.innerHTML = '<div class="curr-empty">No curriculum loaded yet.<br>' +
             'Paste a document in the JSON pane, drop a file on it, or press Sample.</div>';
@@ -1568,7 +3128,7 @@ function currRender(widget) {
     explorer.innerHTML =
         '<div class="curr-catalog' + (folded ? ' collapsed' : '') + '">' +
             (folded ? currCatalogFoldedHtml(data) : currCatalogHtml(data)) + '</div>' +
-        '<div class="curr-right">' + currRightHtml(data, validation) + '</div>';
+        '<div class="curr-right">' + currRightWithTransfers(toolId, data, validation) + '</div>';
 
     Object.keys(scrolled).forEach(function(sel) {
         const el = explorer.querySelector(sel);
@@ -1889,6 +3449,7 @@ function currDetailsHtml(data) {
         ' <button class="curr-btn' + (met ? ' active' : '') + '" onclick="currToggleCompletedCode(this, \'' +
         escapeHtml(code) + '\')" title="Taken before this plan begins">' +
         (met ? 'Not met after all' : 'Already met') + '</button></p>';
+    html += currCourseMarksHtml(data, code);
     html += '</div>';
     return html;
 }
@@ -1899,7 +3460,7 @@ function currRightHtml(data, validation) {
     // Schema is about the shape of the document, so it sits beside the JSON pane
     // rather than beside the plan. A tool last left on it opens on the grid.
     const tab = data.ui.tab === 'schema' ? 'grid' : (data.ui.tab || 'grid');
-    const tabs = [['grid', 'Grid'], ['tree', 'Tree'], ['issues', 'Issues']];
+    const tabs = [['grid', 'Grid'], ['grades', 'Grades'], ['tree', 'Tree'], ['issues', 'Issues']];
     let html = '<div class="curr-tabs">' + tabs.map(function(pair) {
         const badge = pair[0] === 'issues' && validation.errors ?
             ' <span class="curr-badge err">' + validation.errors + '</span>' :
@@ -1911,10 +3472,18 @@ function currRightHtml(data, validation) {
 
     html += '<div class="curr-pane">' +
         (tab === 'tree' ? currTreeHtml(data) :
+            tab === 'grades' ? currGradesHtml(data) :
             tab === 'issues' ? currIssuesHtml(data, validation) :
             currGridHtml(data, validation)) +
         '</div>';
     return html;
+}
+
+// currRightHtml is handed one school, as everything below it is. What transferred
+// into that school is a fact about the record, so it is added where the record is
+// in scope.
+function currRightWithTransfers(toolId, data, validation) {
+    return currRightHtml(data, validation) + currTransfersHtml(data, currGetRecord(toolId));
 }
 
 function currGridHtml(data, validation) {
@@ -1934,11 +3503,17 @@ function currGridHtml(data, validation) {
 
     planner.levels.forEach(function(level) {
         const credits = currLevelCredits(data, level, planner);
+        const year = currAcademicYear(data, planner, level);
+        const gpa = currGpaOf(data, currLevelCodes(data, level, planner), planner);
         html +=
             '<div class="curr-year">' +
                 '<div class="curr-year-head" title="' + escapeHtml(currLevelLabel(planner, level)) + '">' +
                     '<b>' + escapeHtml(currLevelLabel(planner, level)) + '</b>' +
-                    '<span>' + currFormatCredits(credits) + ' cr</span></div>' +
+                    (year ? '<span class="curr-year-when">' + escapeHtml(year) + '</span>' : '') +
+                    '<span>' + currFormatCredits(credits) + ' cr</span>' +
+                    (gpa === null ? '' : '<span class="curr-year-gpa" title="Credit-weighted, ' +
+                        'over the courses with a grade">GPA ' + currFormatGpa(gpa) + '</span>') +
+                '</div>' +
                 '<div class="curr-terms">' +
                     currCellHtml(data, validation, planner, level, planner.spanId) +
                     (planner.spanOnly ? '' :
@@ -1985,13 +3560,13 @@ function currCellHtml(data, validation, planner, level, slot) {
     } else {
         const byCode = currByCode(data);
         codes.forEach(function(code) {
-            html += currCardHtml(data, validation, byCode[code], code, key);
+            html += currCardHtml(data, validation, byCode[code], code, key, planner);
         });
     }
     return html + '</div>';
 }
 
-function currCardHtml(data, validation, course, code, term) {
+function currCardHtml(data, validation, course, code, term, planner) {
     const issues = (validation.byTerm[term] || []).filter(function(i) { return i.code === code; });
     const errors = issues.filter(function(i) { return i.severity === 'error'; }).length;
     const warnings = issues.filter(function(i) { return i.severity === 'warning'; }).length;
@@ -2001,6 +3576,15 @@ function currCardHtml(data, validation, course, code, term) {
         (warnings ? '<span class="curr-badge warn" title="' +
             escapeHtml(issues.map(function(i) { return i.message; }).join('\n')) + '">' + warnings + '</span>' : '');
     const selected = data.ui.selected === code;
+    // How it came out. Muted when the tool worked it out, solid when someone typed it.
+    // The planner comes down from the grid rather than being rebuilt per card — it
+    // reads every course in the catalog, and there are a lot of cards.
+    const mark = currCourseGrade(data, code, planner);
+    const grade = mark.label
+        ? '<span class="curr-card-grade' + (mark.source === 'entered' ? ' entered' : '') +
+          '" title="' + escapeHtml(mark.source === 'entered' ? 'As entered' :
+              'Calculated from the marking periods') + '">' + escapeHtml(mark.label) + '</span>'
+        : '';
     const siblings = (data.plan[term] || []);
     const at = siblings.indexOf(code);
     // The arrows are on the selected card only: every card carrying a pair of them
@@ -2017,7 +3601,7 @@ function currCardHtml(data, validation, course, code, term) {
             ' ondrop="currCardDrop(event, this)"' +
             ' onclick="currCardClick(event, this)" title="' + escapeHtml(title) + '">' +
         '<span class="curr-code">' + escapeHtml(code) + '</span>' +
-        '<span class="curr-card-title">' + escapeHtml(title) + '</span>' + badge + arrows +
+        '<span class="curr-card-title">' + escapeHtml(title) + '</span>' + grade + badge + arrows +
         '<button class="curr-card-x" title="Take it out of the plan" onclick="currRemove(event, this)">×</button>' +
     '</div>';
 }
@@ -2118,7 +3702,14 @@ function currTotalsHtml(data) {
         '<span class="curr-req-num">' + currFormatCredits(total) + ' credits</span></div>' +
         (priorTotal ? '<div class="curr-req"><span class="curr-req-caret"></span>' +
             '<span class="curr-req-name">Already met</span>' +
-            '<span class="curr-req-num">' + currFormatCredits(priorTotal) + ' credits</span></div>' : '');
+            '<span class="curr-req-num">' + currFormatCredits(priorTotal) + ' credits</span></div>' : '') +
+        (function() {
+            const gpa = currSchoolGpa(data);
+            return gpa === null ? '' : '<div class="curr-req"><span class="curr-req-caret"></span>' +
+                '<span class="curr-req-name">GPA' +
+                (currGrading(data).weighted ? ' <i>weighted</i>' : '') + '</span>' +
+                '<span class="curr-req-num">' + currFormatGpa(gpa) + '</span></div>';
+        })();
 
     const fineArts = currFineArtsIndex(data);
     const countedIn = {};
@@ -2132,12 +3723,19 @@ function currTotalsHtml(data) {
             made.push(course);
             countedIn[course.course_code] = (countedIn[course.course_code] || 0) + 1;
         });
+        // Credit accepted from an earlier school for something this one does not
+        // teach. There is no course here to count, so it is counted as itself.
+        const looseHere = (data.credits_in || []).filter(function(entry) {
+            return currNormTitle(entry.subject) === currNormTitle(req.subject);
+        });
+        looseHere.forEach(function(entry) { got += entry.credits || 0; });
         const need = req.credits_required || 0;
         const pct = need ? Math.min(100, Math.round((got / need) * 100)) : 100;
         const showing = open.indexOf(req.subject) !== -1;
-        html += '<div class="curr-req' + (made.length ? ' openable' : '') + '"' +
-                (made.length ? ' onclick="currToggleReq(this, \'' + escapeHtml(req.subject) + '\')"' : '') + '>' +
-            '<span class="curr-req-caret">' + (made.length ? (showing ? '▾' : '▸') : '') + '</span>' +
+        const anything = made.length + looseHere.length;
+        html += '<div class="curr-req' + (anything ? ' openable' : '') + '"' +
+                (anything ? ' onclick="currToggleReq(this, \'' + escapeHtml(req.subject) + '\')"' : '') + '>' +
+            '<span class="curr-req-caret">' + (anything ? (showing ? '▾' : '▸') : '') + '</span>' +
             '<span class="curr-req-name" title="' + escapeHtml(req.notes || '') + '">' +
                 escapeHtml(req.subject) + '</span>' +
             '<span class="curr-bar"><i class="' + (got >= need ? 'done' : '') + '" style="width:' + pct + '%"></i></span>' +
@@ -2146,7 +3744,16 @@ function currTotalsHtml(data) {
         // What the number is made of. A requirement is only useful if you can see
         // which classes it is counting, especially where one counts in two places.
         if (showing) {
-            html += '<div class="curr-req-courses">' + made.map(function(course) {
+            html += '<div class="curr-req-courses">' +
+                looseHere.map(function(entry) {
+                    return '<div class="curr-req-course">' +
+                        '<span class="curr-code">—</span> ' + escapeHtml(entry.title || 'Transferred credit') +
+                        '<span class="curr-req-where">transferred' +
+                            (entry.from ? ' from ' + escapeHtml(entry.from) : '') + ' · ' +
+                            currFormatCredits(entry.credits) + '</span>' +
+                    '</div>';
+                }).join('') +
+                made.map(function(course) {
                 const placed = currPlacementOf(data, course.course_code);
                 const where = placed ? currTermLabel(planner, placed) : 'already met';
                 return '<div class="curr-req-course" onclick="currSelectCode(event, this, \'' +
@@ -3118,13 +4725,20 @@ function currInit() {
     document.querySelectorAll('.curr-widget').forEach(function(widget) {
         const toolId = currGetToolId(widget);
         if (!toolId) return;
-        const data = currGetData(toolId);
         // A catalog can arrive without having been through the loader — a board
         // imported from someone else, state from an older version of this tool.
-        if (data.catalog && data.catalog.courses && !data.catalog.normalized_by_explorer) {
-            data.catalog = currNormalizeDoc(data.catalog);
-            currSaveData(toolId, data);
-        }
+        // Every school's, not just the one on screen: switching to another must not
+        // be the moment its document first gets read properly.
+        const record = currGetRecord(toolId);
+        let fixed = false;
+        record.schools.forEach(function(school) {
+            if (school.catalog && school.catalog.courses && !school.catalog.normalized_by_explorer) {
+                school.catalog = currNormalizeDoc(school.catalog);
+                fixed = true;
+            }
+        });
+        if (fixed) currSaveRecord(toolId, record);
+        const data = currGetData(toolId);
         const box = widget.querySelector('.curr-json');
         if (box && !box.value) {
             if (data.draft) {
@@ -3151,6 +4765,15 @@ function currRenderSource(widget, data) {
     });
     const box = pane.querySelector('.curr-schema-pane');
     if (box) box.innerHTML = schema ? currSchemaHtml(data) : '';
+    // The record's own list: Load, File and Sample act on whichever school is
+    // showing, so which one that is has to be visible from here.
+    const list = pane.querySelector('.curr-school-pane');
+    if (list) {
+        const record = currGetRecord(currGetToolId(pane));
+        list.innerHTML = (record.schools.length > 1 || record.schools[0].catalog)
+            ? currSchoolListHtml(record) + (currShowingCareer(record) ? '' : currGradingHtml(record))
+            : '';
+    }
 }
 
 function currSetSourceView(el, view) {
@@ -3832,6 +5455,1613 @@ function cdocOnRender(toolId) {
     if (widget) cdocRender(widget);
 }
 
+PluginRegistry.registerTool({
+    id: 'curriculum-builder',
+    name: 'Curriculum Builder',
+    description: 'Write a curriculum document a course at a time, checked as you go',
+    icon: '🏗️',
+    version: CURR_VERSION,
+    toolbox: 'school-tools',
+    tags: ['curriculum', 'school', 'course', 'catalog', 'author', 'json', 'education'],
+    title: 'Curriculum Builder',
+    content: `<div class="cbld-widget">
+<div class="cbld-actions">
+<button class="curr-btn" onclick="cbldStart(this)" title="Begin an empty curriculum">New</button>
+<label class="curr-btn curr-file" title="Open a curriculum file">Open<input type="file" accept=".json,application/json" onchange="cbldHandleFile(this)"></label>
+<button class="curr-btn" onclick="cbldLoadSample(this)" title="Fill the builder with a small invented catalog">Sample</button>
+</div>
+<div class="cbld-status"></div>
+<div class="authoring-split">
+<div class="authoring-source cbld-editor"></div>
+<div class="authoring-resizer"></div>
+<div class="authoring-result cbld-out"></div>
+</div>
+</div>`,
+    // The same framework the other two use, the other way round. Here the editing
+    // is the source and the JSON is what it produces, so Build is the mode you work
+    // in and JSON is the mode you read the result in.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'edit',
+        source: '.cbld-editor',
+        result: '.cbld-out',
+        actions: '.cbld-actions',
+        labels: { edit: 'Build', render: 'JSON' },
+        titles: { edit: 'The curriculum you are building', render: 'The document it produces' },
+        onRender: 'cbldOnRender'
+    },
+    hashParams: 'cbldApplyHashParams',
+    guide: 'learn/tools/curriculum-explorer.html',
+    contentType: 'html',
+    onInit: 'cbldInit',
+    defaultWidth: 940,
+    defaultHeight: 640,
+    source: 'external'
+});
+
+// =============================================
+// CURRICULUM BUILDER
+// =============================================
+// The explorer plans against a document; the doctor says what is wrong with one.
+// This is where a document comes from. It edits the catalog in structured form —
+// a course at a time, with every prerequisite title resolved against the titles
+// that actually exist — and writes the JSON out on the other side.
+//
+// Two rules run through all of it.
+//
+//   * The model is the document as authored, kept whole. currNormalizeDoc fills in
+//     defaults and stamps fields of its own, which is right for reading and wrong
+//     for a file you hand to a school, so it is only ever run on a copy. A document
+//     opened and saved without an edit comes back exactly as it went in.
+//   * A field this form does not show is still a field. An edit writes one key into
+//     the model and never rebuilds a course out of the inputs, so cross_credit,
+//     title_variants and whatever else a real catalog carries survive being edited
+//     by a form that has never heard of them.
+
+const CBLD_SECTIONS = [
+    { id: 'document', name: 'Document' },
+    { id: 'planner', name: 'Planner' },
+    { id: 'subjects', name: 'Subjects' },
+    { id: 'pathways', name: 'Pathways' },
+    { id: 'courses', name: 'Courses' }
+];
+
+// A whole catalog re-serialised into the JSON pane on every keystroke is more work
+// than a keystroke deserves, so the pane and the tally follow a beat behind.
+let cbldSaveTimer = null;
+let cbldRefreshTimer = null;
+
+// The reading copy is rebuilt only when the document has actually changed.
+const cbldRev = {};
+const cbldViews = {};
+
+// Past this the JSON pane shows the beginning and says so. Copy and Save are
+// unaffected — they always write the whole document.
+const CBLD_PREVIEW = 120000;
+
+// ---- Instance plumbing ------------------------------------------------------
+
+function cbldGetWidget(el) {
+    return el && el.closest ? el.closest('.cbld-widget') : null;
+}
+
+function cbldWidgetFor(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    return tool ? tool.querySelector('.cbld-widget') : null;
+}
+
+function cbldGetData(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const d = custom.builder || {};
+    // Every field this tool keeps has to be named here, or it is written and then
+    // dropped on the next read.
+    return {
+        catalog: d.catalog || null,
+        sourceUrl: d.sourceUrl || null,
+        ui: Object.assign({ section: 'courses', selected: null, search: '',
+            checkOpen: false, open: [] }, d.ui || {})
+    };
+}
+
+function cbldSaveData(toolId, data) {
+    cbldHold(toolId, data);
+    try {
+        saveToolCustomizations(toolCustomizations);
+        return true;
+    } catch (e) {
+        cbldSetStatus(cbldWidgetFor(toolId), 'err', 'This document is too large for the space ' +
+            'this board has left. It is here and editable, but it will not survive a reload — ' +
+            'save the JSON now.');
+        return false;
+    }
+}
+
+// In memory at once, on disk shortly. The edit has to be visible to the next read
+// immediately or a second keystroke would be applied to the state before the first.
+function cbldHold(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].builder = data;
+    cbldRev[toolId] = (cbldRev[toolId] || 0) + 1;
+}
+
+function cbldSaveSoon(toolId, data) {
+    cbldHold(toolId, data);
+    clearTimeout(cbldSaveTimer);
+    cbldSaveTimer = setTimeout(function() { cbldSaveData(toolId, data); }, 400);
+}
+
+function cbldSetStatus(widget, kind, message) {
+    const status = widget && widget.querySelector('.cbld-status');
+    if (!status) return;
+    status.className = 'cbld-status' + (kind ? ' ' + kind : '');
+    status.textContent = message || '';
+}
+
+// The explorer's own confirmation, with this tool's status line and its own label.
+function cbldNeedsConfirm(btn, key, message) {
+    const id = (currGetToolId(btn) || '') + ':cbld:' + key;
+    if (currArmed[id]) {
+        currDisarm(btn, id);
+        return false;
+    }
+    const widget = cbldGetWidget(btn);
+    if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', btn.textContent);
+    btn.textContent = 'Sure?';
+    btn.classList.add('armed');
+    cbldSetStatus(widget, 'err', message);
+    currArmed[id] = setTimeout(function() {
+        currDisarm(btn, id);
+        cbldSetStatus(widget, '', '');
+    }, CURR_ARM_MS);
+    return true;
+}
+
+// ---- The reading copy -------------------------------------------------------
+
+// Everything that reads a curriculum — the planner, the title index, requirement
+// matching, the doctor's checks — expects a document currNormalizeDoc has been
+// over. That function fills in defaults and adds fields of its own, so it runs on
+// a copy and the copy is never what gets written out.
+function cbldView(toolId, catalog) {
+    const rev = cbldRev[toolId] || 0;
+    const cached = cbldViews[toolId];
+    if (cached && cached.rev === rev && cached.src === catalog) return cached.view;
+    let copy = { courses: [] };
+    if (catalog) {
+        copy = JSON.parse(JSON.stringify(catalog));
+        if (!Array.isArray(copy.courses)) copy.courses = [];
+        copy.courses = copy.courses.filter(function(c) { return c && typeof c === 'object'; });
+        currNormalizeDoc(copy);
+    }
+    const view = { catalog: copy };
+    cbldViews[toolId] = { rev: rev, src: catalog, view: view };
+    return view;
+}
+
+function cbldBlank() {
+    return {
+        school: { name: '' },
+        document: { title: '', academic_year: '' },
+        planner: { levels: [9, 10, 11, 12], terms: ['Semester 1', 'Semester 2'] },
+        graduation_requirements: { credits_by_subject: [] },
+        courses: []
+    };
+}
+
+// Older documents carry this under `guide`; either is read, so whichever one the
+// document already uses is the one that gets edited.
+function cbldMetaKey(catalog) {
+    return (catalog && catalog.guide && !catalog.document) ? 'guide' : 'document';
+}
+
+function cbldCourses(data) {
+    return (data.catalog && Array.isArray(data.catalog.courses)) ? data.catalog.courses : [];
+}
+
+function cbldEmptyValue(value) {
+    return value === '' || value === undefined || value === null ||
+        (typeof value === 'number' && !isFinite(value));
+}
+
+function cbldBlankNode(node) {
+    if (Array.isArray(node)) return node.length === 0;
+    return node && typeof node === 'object' && Object.keys(node).length === 0;
+}
+
+// Writes one value at a dotted path, creating whatever has to exist on the way.
+// Emptying a field removes the key rather than writing "" into the file, and a
+// block left with nothing in it goes too — an empty section in a curriculum reads
+// as one somebody forgot to fill in, which is a different claim from silence.
+function cbldSetIn(doc, path, value) {
+    const keys = path.split('.');
+    const chain = [doc];
+    let node = doc;
+    for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        if (!node[key] || typeof node[key] !== 'object') {
+            if (cbldEmptyValue(value)) return;
+            node[key] = /^\d+$/.test(keys[i + 1]) ? [] : {};
+        }
+        node = node[key];
+        chain.push(node);
+    }
+    const last = keys[keys.length - 1];
+    if (!cbldEmptyValue(value)) { node[last] = value; return; }
+    // A cleared entry in a list stays in the list; removing it is what its × is for.
+    if (Array.isArray(node)) { node[last] = ''; return; }
+    // The catalog itself is the one thing a document cannot be without.
+    if (node === doc && last === 'courses') { doc.courses = []; return; }
+    delete node[last];
+    for (let i = chain.length - 1; i > 0; i--) {
+        const parent = chain[i - 1];
+        const key = keys[i - 1];
+        if (parent === doc && key === 'courses') break;
+        if (Array.isArray(parent) || !cbldBlankNode(chain[i])) break;
+        delete parent[key];
+    }
+}
+
+function cbldGetIn(doc, path) {
+    const keys = path.split('.');
+    let node = doc;
+    for (let i = 0; i < keys.length; i++) {
+        if (!node || typeof node !== 'object') return undefined;
+        node = node[keys[i]];
+    }
+    return node;
+}
+
+// Inline handlers carry course codes, flag names and titles from the document, and
+// a document is not required to be polite about quotes.
+function cbldArg(value) {
+    return escapeHtml(String(value === undefined || value === null ? '' : value)
+        .replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+}
+
+function cbldVal(value) {
+    return escapeHtml(value === undefined || value === null ? '' : String(value));
+}
+
+// ---- Rendering --------------------------------------------------------------
+
+function cbldRender(widget) {
+    if (!widget) return;
+    const toolId = currGetToolId(widget);
+    if (!toolId) return;
+    widget.classList.toggle('narrow', widget.offsetWidth > 0 && widget.offsetWidth < 700);
+    const data = cbldGetData(toolId);
+    const editor = widget.querySelector('.cbld-editor');
+    const out = widget.querySelector('.cbld-out');
+    if (editor) {
+        const list = editor.querySelector('.cbld-list');
+        const kept = list ? list.scrollTop : 0;
+        editor.innerHTML = cbldEditorHtml(toolId, data);
+        const again = editor.querySelector('.cbld-list');
+        if (again) again.scrollTop = kept;
+        // A course reached from the tally, or one just added, is no use scrolled
+        // past — the list is long and sorted by department, not by what you did last.
+        const on = editor.querySelector('.cbld-crow.on');
+        if (on && again && (on.offsetTop < again.scrollTop ||
+            on.offsetTop > again.scrollTop + again.clientHeight - on.offsetHeight)) {
+            again.scrollTop = Math.max(0, on.offsetTop - again.clientHeight / 2);
+        }
+    }
+    if (out) out.innerHTML = cbldOutHtml(data);
+}
+
+function cbldRenderFor(el) {
+    cbldRender(cbldGetWidget(el));
+}
+
+// A keystroke must not rebuild the form under the caret, so an edit refreshes only
+// what an edit can change from outside the field being typed in: the document on
+// the right, the tally above, the row in the list, and any title being matched
+// against the catalog. Structure — adding, deleting, selecting, switching section —
+// re-renders in full, as everything else in this app does.
+function cbldRefreshSoon(widget, toolId) {
+    clearTimeout(cbldRefreshTimer);
+    cbldRefreshTimer = setTimeout(function() { cbldRefresh(widget, toolId); }, 250);
+}
+
+function cbldRefresh(widget, toolId) {
+    if (!widget || !document.body.contains(widget)) return;
+    const data = cbldGetData(toolId);
+    const view = cbldView(toolId, data.catalog);
+    const out = widget.querySelector('.cbld-out');
+    if (out) out.innerHTML = cbldOutHtml(data);
+    const check = widget.querySelector('.cbld-check');
+    if (check) check.outerHTML = cbldCheckHtml(toolId, data);
+    const i = data.ui.selected;
+    if (typeof i === 'number') {
+        const row = widget.querySelector('.cbld-crow[data-i="' + i + '"]');
+        if (row && cbldCourses(data)[i]) row.outerHTML = cbldRowHtml(view, i, true);
+    }
+    cbldRefreshLive(widget, data, view);
+    cbldRefreshMatches(widget, view);
+}
+
+// Every place a title is typed at a course — a prerequisite, a pathway group —
+// answers the same way, so they are all one kind of row and all refresh together.
+// Some of what this tool says is an answer to the field being typed in: whether a
+// subject matches anything, whether a code is already taken, how a prerequisite
+// line is being read. Those spots are marked, and recomputed with everything else.
+function cbldRefreshLive(widget, data, view) {
+    const live = widget.querySelectorAll('[data-live]');
+    Array.prototype.forEach.call(live, function(el) {
+        el.outerHTML = cbldLiveHtml(data, view, el.getAttribute('data-live'));
+    });
+}
+
+function cbldLiveHtml(data, view, key) {
+    const bits = String(key).split(':');
+    const i = parseInt(bits[1], 10);
+    if (bits[0] === 'req') {
+        const reqs = (((data.catalog || {}).graduation_requirements || {}).credits_by_subject) || [];
+        return cbldCoverHtml(view, reqs[i], i);
+    }
+    if (bits[0] === 'code') return cbldClashHtml(data, i);
+    if (bits[0] === 'choice') return cbldChoiceHtml(data, i);
+    return '';
+}
+
+// How much of a requirement this catalog could ever meet. The failure it catches is
+// a subject spelled differently from the department it is meant to match, which is
+// silent everywhere else — the bar simply never moves.
+function cbldCoverHtml(view, req, i) {
+    const tag = function(cls, text) {
+        return '<div class="cbld-cover' + cls + '" data-live="req:' + i + '">' +
+            escapeHtml(text) + '</div>';
+    };
+    if (!req) return tag('', '');
+    if (!String(req.subject || '').trim()) return tag('', 'Name a subject.');
+    const fineArts = currFineArtsIndex(view);
+    let matched = 0;
+    let available = 0;
+    currCourses(view).forEach(function(course) {
+        if (!currCountsToward(view, course, req.subject, fineArts)) return;
+        matched++;
+        available += course.credits || 0;
+    });
+    if (!matched) return tag(' bad', 'No course in this catalog counts towards this.');
+    const need = typeof req.credits_required === 'number' ? req.credits_required : 0;
+    return tag(available < need ? ' thin' : '',
+        matched + (matched === 1 ? ' course counts' : ' courses count') + ' \u00b7 ' +
+        currFormatCredits(available) + ' credits available' +
+        (available < need ? ' \u2014 short of the ' + currFormatCredits(need) + ' asked for' : ''));
+}
+
+// A duplicate code is an error the tally reports, but it is worth saying where the
+// code is being typed rather than only at the top of the tool.
+function cbldClashHtml(data, i) {
+    const courses = cbldCourses(data);
+    const course = courses[i] || {};
+    const code = String(course.course_code || '');
+    const clash = code !== '' && courses.some(function(other, n) {
+        return n !== i && String(other.course_code || '') === code;
+    });
+    return '<div class="cbld-cover' + (clash ? ' bad' : '') + '" data-live="code:' + i + '">' +
+        (clash ? 'Another course already has this code.' : '') + '</div>';
+}
+
+// The one thing here that cannot be read off the data. A line wrongly marked as a
+// choice passes an unmet prerequisite in silence, which is worse than a line that
+// over-warns, so it says which way the document is currently being read.
+function cbldChoiceHtml(data, i) {
+    const prereq = (cbldCourses(data)[i] || {}).prerequisites || {};
+    const names = Array.isArray(prereq.courses) ? prereq.courses : [];
+    const unclear = names.length > 1 && prereq.choice !== true && !/ or /i.test(prereq.raw || '');
+    return '<div class="cbld-cover' + (unclear ? ' thin' : '') + '" data-live="choice:' + i + '">' +
+        (unclear ? 'Read as: all ' + names.length + ' are required. Check that against the ' +
+            'printed line.' : '') + '</div>';
+}
+
+function cbldRefreshMatches(widget, view) {
+    const rows = widget.querySelectorAll('.cbld-mrow');
+    if (!rows.length) return;
+    const index = currTitleIndex(view);
+    const byCode = currByCode(view);
+    Array.prototype.forEach.call(rows, function(row) {
+        const hint = row.querySelector('.cbld-hint');
+        const input = row.querySelector('input');
+        if (!hint || !input) return;
+        hint.innerHTML = cbldMatchHtml(index, byCode, input.value, row.getAttribute('data-path'));
+    });
+}
+
+function cbldEditorHtml(toolId, data) {
+    if (!data.catalog) return cbldStartHtml();
+    const view = cbldView(toolId, data.catalog);
+    const section = data.ui.section || 'courses';
+    let html = cbldCheckHtml(toolId, data);
+    html += '<div class="cbld-body"><div class="cbld-nav">';
+    CBLD_SECTIONS.forEach(function(s) {
+        const n = cbldSectionCount(data, s.id);
+        html += '<button class="cbld-tab' + (s.id === section ? ' active' : '') +
+            '" onclick="cbldSetSection(this, \'' + s.id + '\')">' + s.name +
+            (n === null ? '' : '<span class="cbld-n">' + n + '</span>') + '</button>';
+    });
+    html += '</div><div class="cbld-pane">';
+    if (section === 'document') html += cbldDocumentHtml(toolId, data, view);
+    else if (section === 'planner') html += cbldPlannerHtml(toolId, data, view);
+    else if (section === 'subjects') html += cbldSubjectsHtml(toolId, data, view);
+    else if (section === 'pathways') html += cbldPathwaysHtml(toolId, data, view);
+    else html += cbldCoursesHtml(toolId, data, view);
+    html += '</div></div>';
+    return html;
+}
+
+function cbldSectionCount(data, section) {
+    const catalog = data.catalog || {};
+    if (section === 'courses') return cbldCourses(data).length;
+    if (section === 'subjects') {
+        return (((catalog.graduation_requirements || {}).credits_by_subject) || []).length;
+    }
+    if (section === 'pathways') return (catalog.program_groupings || []).length;
+    return null;
+}
+
+function cbldStartHtml() {
+    return '<div class="cbld-start">' +
+        '<h4>No curriculum yet</h4>' +
+        '<p>Start an empty one and fill it in, open a document you already have to keep working ' +
+        'on it, or load the sample to see the shape of the thing.</p>' +
+        '<div><button class="curr-btn" onclick="cbldStart(this)">Start an empty curriculum</button></div>' +
+        '<div class="cbld-drop" ondragover="cbldDragOver(event, this)" ' +
+        'ondragleave="this.classList.remove(\'dragover\')" ondrop="cbldDropFile(event, this)">' +
+        'or drop a .json file here</div>' +
+        '<textarea class="cbld-import" spellcheck="false" ' +
+        'placeholder="…or paste a curriculum document here"></textarea>' +
+        '<div><button class="curr-btn" onclick="cbldImport(this)">Open what is pasted</button></div>' +
+        '</div>';
+}
+
+// ---- Small pieces of form ---------------------------------------------------
+
+function cbldTextRow(label, path, value, opts) {
+    const o = opts || {};
+    return '<label class="cbld-row"><span class="cbld-label">' + escapeHtml(label) + '</span>' +
+        '<input class="cbld-in' + (o.short ? ' short' : '') + '" type="' +
+        (o.number ? 'number' : 'text') + '"' +
+        (o.number ? ' step="' + (o.step || '0.5') + '"' : '') +
+        (o.list ? ' list="' + escapeHtml(o.list) + '"' : '') +
+        (o.placeholder ? ' placeholder="' + escapeHtml(o.placeholder) + '"' : '') +
+        ' value="' + cbldVal(value) + '"' +
+        ' oninput="cbldSetPath(this, \'' + cbldArg(path) + '\'' + (o.number ? ', true' : '') + ')">' +
+        '</label>' + (o.note ? '<div class="cbld-note">' + escapeHtml(o.note) + '</div>' : '');
+}
+
+function cbldAreaRow(label, path, value, placeholder) {
+    return '<label class="cbld-row"><span class="cbld-label">' + escapeHtml(label) + '</span>' +
+        '<textarea class="cbld-in" spellcheck="false" placeholder="' + escapeHtml(placeholder || '') +
+        '" oninput="cbldSetPath(this, \'' + cbldArg(path) + '\')">' + cbldVal(value) + '</textarea>' +
+        '</label>';
+}
+
+function cbldBoolRow(label, path, on, title) {
+    return '<label class="cbld-check-lbl"' + (title ? ' title="' + escapeHtml(title) + '"' : '') + '>' +
+        '<input type="checkbox"' + (on ? ' checked' : '') +
+        ' onchange="cbldSetBool(this, \'' + cbldArg(path) + '\')">' + escapeHtml(label) + '</label>';
+}
+
+// A list of plain strings — notes, grade requirements, things a school prints as
+// sentences. One row each, with its own way out.
+function cbldStringList(label, path, values, adder, placeholder) {
+    const list = Array.isArray(values) ? values : [];
+    let html = '<div class="cbld-row"><span class="cbld-label">' + escapeHtml(label) + '</span>' +
+        '<div style="flex:1 1 auto;min-width:0">';
+    list.forEach(function(value, i) {
+        html += '<div class="cbld-mrow" style="flex-wrap:nowrap">' +
+            '<input class="cbld-in" value="' + cbldVal(value) + '"' +
+            (placeholder ? ' placeholder="' + escapeHtml(placeholder) + '"' : '') +
+            ' oninput="cbldSetPath(this, \'' + cbldArg(path + '.' + i) + '\')">' +
+            '<button class="cbld-x" title="Remove" onclick="cbldDropAt(this, \'' +
+            cbldArg(path) + '\', ' + i + ')">×</button></div>';
+    });
+    html += '<button class="cbld-add" onclick="' + adder + '">+ ' + escapeHtml(label.toLowerCase()) +
+        '</button></div></div>';
+    return html;
+}
+
+// What a typed title found, or did not. The suggestions are offered as a question:
+// pressing one writes the catalog's own spelling, which is the only spelling that
+// will ever resolve.
+function cbldMatchHtml(index, byCode, title, path) {
+    const name = (title || '').trim();
+    if (!name) return '<span class="cbld-hint">Name a course as the catalog spells it.</span>';
+    const code = currResolveTitle(index, name);
+    if (code) {
+        const course = byCode[code] || {};
+        return '<span class="cbld-hit">\u2713 ' + escapeHtml(code + ' ' + (course.title || '')) + '</span>';
+    }
+    let html = '<span class="cbld-miss">\u2717 no course by that name</span>';
+    cdocSuggest(index, name, 3).forEach(function(g) {
+        const course = byCode[g.codes[0]] || {};
+        const guess = course.title || g.key;
+        html += '<button class="cbld-guess" onclick="cbldPickTitle(this, \'' + cbldArg(path) +
+            '\', \'' + cbldArg(guess) + '\')">' + escapeHtml(guess) + '</button>';
+    });
+    return html;
+}
+
+function cbldMatchRow(value, path, index, byCode) {
+    const list = path.replace(/\.\d+$/, '');
+    const at = Number(path.split('.').pop());
+    return '<div class="cbld-mrow" data-path="' + escapeHtml(path) + '">' +
+        '<input class="cbld-in" value="' + cbldVal(value) + '" placeholder="Course title" ' +
+        'oninput="cbldSetPath(this, \'' + cbldArg(path) + '\')">' +
+        '<button class="cbld-x" title="Remove" onclick="cbldDropAt(this, \'' + cbldArg(list) +
+        '\', ' + at + ')">\u00d7</button>' +
+        '<div class="cbld-hint">' + cbldMatchHtml(index, byCode, value, path) + '</div>' +
+        '</div>';
+}
+
+// ---- Document ---------------------------------------------------------------
+
+// Top-level keys this form does not edit. They are listed rather than hidden, so
+// it is plain that opening a real catalog here does not quietly shorten it.
+const CBLD_KNOWN_KEYS = ['courses', 'school', 'document', 'guide', 'planner',
+    'graduation_requirements', 'program_groupings'];
+
+function cbldDocumentHtml(toolId, data, view) {
+    const catalog = data.catalog;
+    const meta = cbldMetaKey(catalog);
+    const school = catalog.school || {};
+    const info = catalog[meta] || {};
+    let html = '<div class="cbld-scroll">';
+    html += cbldTextRow('School', 'school.name', school.name, { placeholder: 'Westhaven High School' });
+    html += cbldTextRow('District', 'school.district', school.district, { placeholder: 'optional' });
+    html += cbldTextRow('Title', meta + '.title', info.title,
+        { placeholder: 'Course Selection Guide' });
+    html += cbldTextRow('Academic year', meta + '.academic_year', info.academic_year,
+        { placeholder: '2026-2027', note: 'The title and year head the picture the explorer saves.' });
+
+    const extra = Object.keys(catalog).filter(function(k) {
+        return CBLD_KNOWN_KEYS.indexOf(k) === -1;
+    });
+    html += '<div class="cbld-block"><div class="cbld-block-head">Also in this document</div>';
+    html += extra.length
+        ? '<div class="cbld-note" style="padding-left:0">Carried through untouched, and written ' +
+          'back out unchanged: <b>' + extra.map(escapeHtml).join('</b>, <b>') + '</b>.</div>'
+        : '<div class="cbld-note" style="padding-left:0">Nothing beyond what this builder edits.</div>';
+    html += '</div></div>';
+    return html;
+}
+
+// ---- Planner ----------------------------------------------------------------
+
+function cbldPlannerHtml(toolId, data, view) {
+    const catalog = data.catalog;
+    const stated = catalog.planner || null;
+    const planner = currPlanner(view);
+    let html = '<div class="cbld-scroll">';
+
+    html += '<div class="cbld-note" style="padding-left:0">' +
+        (stated ? 'This document states its own shape. ' : 'This document states no shape, so it is ' +
+            'read off the courses — the years they are open to, and the distinct ways they say ' +
+            'they are offered. ') +
+        'As it stands the plan runs ' + planner.levels.length + ' ' +
+        (planner.levels.length === 1 ? 'year' : 'years') + ', ' +
+        escapeHtml(currLevelLabel(planner, planner.levels[0])) + ' to ' +
+        escapeHtml(currLevelLabel(planner, planner.levels[planner.levels.length - 1])) +
+        (planner.terms.length
+            ? ', divided into ' + planner.terms.map(function(t) {
+                return escapeHtml(t.label) + (t.optional ? ' (after the year)' : '');
+              }).join(', ')
+            : ', with no terms — every course covers a whole year') + '.</div>';
+
+    if (!stated) {
+        html += '<div><button class="cbld-add" onclick="cbldStatePlanner(this)">' +
+            'Write that shape into the document</button></div>';
+    }
+
+    const levels = (stated && Array.isArray(stated.levels)) ? stated.levels : null;
+    html += '<label class="cbld-row"><span class="cbld-label">Years</span>' +
+        '<input class="cbld-in" value="' + cbldVal(levels ? levels.join(', ') : '') +
+        '" placeholder="' + escapeHtml(planner.levels.join(', ')) +
+        '" oninput="cbldSetLevels(this)"></label>' +
+        '<div class="cbld-note">The rows of the grid — 9, 10, 11, 12 for a school guide, ' +
+        '1, 2, 3, 4 for a college one. Left empty, the years the courses name.</div>';
+    html += cbldTextRow('Year named', 'planner.level_label', (stated || {}).level_label,
+        { placeholder: 'Grade {n}', note: '{n} stands for the number.' });
+
+    html += '<div class="cbld-block"><div class="cbld-block-head">Terms</div>';
+    const terms = (stated && Array.isArray(stated.terms)) ? stated.terms : [];
+    if (!terms.length) {
+        html += '<div class="cbld-note" style="padding-left:0">None stated. The columns are ' +
+            'whatever distinct things the courses say under "offered".</div>';
+    }
+    terms.forEach(function(term, i) {
+        const label = typeof term === 'string' ? term : (term.label || term.id || '');
+        const optional = typeof term === 'object' && term !== null
+            ? term.optional === true : CURR_OPTIONAL_TERM.test(label);
+        html += '<div class="cbld-mrow" style="flex-wrap:nowrap">' +
+            '<input class="cbld-in" value="' + cbldVal(label) + '" placeholder="Semester 1" ' +
+            'oninput="cbldSetTerm(this, ' + i + ')">' +
+            '<label class="cbld-check-lbl" title="A summer or intersession term, which belongs ' +
+            'to the year it follows rather than dividing it">' +
+            '<input type="checkbox"' + (optional ? ' checked' : '') +
+            ' onchange="cbldSetTermOptional(this, ' + i + ')">after the year</label>' +
+            '<button class="cbld-x" title="Remove" onclick="cbldDropAt(this, \'planner.terms\', ' +
+            i + ')">×</button></div>';
+    });
+    html += '<button class="cbld-add" onclick="cbldAddTerm(this)">+ term</button>';
+    html += '</div></div>';
+    return html;
+}
+
+// ---- Subjects ---------------------------------------------------------------
+
+function cbldSubjectsHtml(toolId, data, view) {
+    const grad = data.catalog.graduation_requirements || {};
+    const reqs = Array.isArray(grad.credits_by_subject) ? grad.credits_by_subject : [];
+    const courses = currCourses(view);
+    let html = '<div class="cbld-scroll">';
+
+    if (!reqs.length) {
+        html += '<div class="cbld-note" style="padding-left:0">Nothing to plan against yet. ' +
+            'The explorer counts credits against the subjects listed here; with none, the panel ' +
+            'under its grid stays empty.</div>';
+    }
+
+    reqs.forEach(function(req, i) {
+        const path = 'graduation_requirements.credits_by_subject.' + i;
+        html += '<div class="cbld-card"><div class="cbld-card-head">' +
+            '<input class="cbld-in" value="' + cbldVal(req.subject) + '" placeholder="English" ' +
+            'oninput="cbldSetPath(this, \'' + path + '.subject\')">' +
+            '<input class="cbld-in short" type="number" step="0.5" value="' +
+            cbldVal(req.credits_required) + '" placeholder="credits" ' +
+            'oninput="cbldSetPath(this, \'' + path + '.credits_required\', true)">' +
+            '<button class="cbld-x" title="Remove" onclick="cbldDropAt(this, ' +
+            '\'graduation_requirements.credits_by_subject\', ' + i + ')">×</button></div>';
+        html += cbldCoverHtml(view, req, i);
+        html += cbldTextRow('Note', path + '.notes', req.notes, { placeholder: 'optional' });
+        html += '</div>';
+    });
+    html += '<button class="cbld-add" onclick="cbldAddRequirement(this)">+ subject</button>';
+
+    // The departments the catalog actually has, so a requirement can be added by
+    // the name that will match rather than by the name you would have typed.
+    const byDept = {};
+    courses.forEach(function(course) {
+        const name = course.department || 'Courses';
+        byDept[name] = (byDept[name] || 0) + 1;
+    });
+    const names = Object.keys(byDept).sort();
+    if (names.length) {
+        html += '<div class="cbld-block"><div class="cbld-block-head">Departments in this catalog</div>' +
+            '<div class="cbld-checks">';
+        names.forEach(function(name) {
+            const already = reqs.some(function(r) {
+                return currNormTitle(r.subject) === currNormTitle(name);
+            });
+            html += '<button class="cbld-add"' + (already ? ' disabled style="opacity:.45"' : '') +
+                ' onclick="cbldAddRequirement(this, \'' + cbldArg(name) + '\')">' +
+                (already ? '✓ ' : '+ ') + escapeHtml(name) + ' <span style="opacity:.6">' +
+                byDept[name] + '</span></button>';
+        });
+        html += '</div></div>';
+    }
+
+    html += '<div class="cbld-block"><div class="cbld-block-head">Other requirements</div>' +
+        '<div class="cbld-note" style="padding-left:0">Conditions that are not credits — service ' +
+        'hours, a test to pass. Listed under the totals as they are written.</div>';
+    html += cbldStringList('Requirements', 'graduation_requirements.other_requirements',
+        grad.other_requirements, 'cbldAddString(this, \'graduation_requirements.other_requirements\')',
+        '30 hours of community service');
+    html += '</div></div>';
+    return html;
+}
+
+// ---- Pathways ---------------------------------------------------------------
+
+function cbldPathwaysHtml(toolId, data, view) {
+    const programs = Array.isArray(data.catalog.program_groupings) ? data.catalog.program_groupings : [];
+    const index = currTitleIndex(view);
+    const byCode = currByCode(view);
+    let html = '<div class="cbld-scroll">';
+    if (!programs.length) {
+        html += '<div class="cbld-note" style="padding-left:0">Optional. A diploma or a career ' +
+            'pathway that asks for particular courses rather than for credits — an AICE diploma, ' +
+            'an academy sequence.</div>';
+    }
+    programs.forEach(function(program, pi) {
+        const base = 'program_groupings.' + pi;
+        html += '<div class="cbld-card"><div class="cbld-card-head">' +
+            '<input class="cbld-in" value="' + cbldVal(program.name) + '" placeholder="Pathway name" ' +
+            'oninput="cbldSetPath(this, \'' + base + '.name\')">' +
+            '<button class="cbld-x" title="Remove this pathway" onclick="cbldDropAt(this, ' +
+            '\'program_groupings\', ' + pi + ')">×</button></div>';
+        (program.groups || []).forEach(function(group, gi) {
+            const gbase = base + '.groups.' + gi;
+            html += '<div class="cbld-block"><div class="cbld-card-head">' +
+                '<input class="cbld-in" value="' + cbldVal(group.name) + '" placeholder="Group name" ' +
+                'oninput="cbldSetPath(this, \'' + gbase + '.name\')">' +
+                '<input class="cbld-in short" type="number" step="1" value="' +
+                cbldVal(group.min_courses) + '" placeholder="how many" title="How many of the ' +
+                'group are needed. Left empty, the row counts what is taken of what is offered ' +
+                'and draws no bar." oninput="cbldSetPath(this, \'' + gbase + '.min_courses\', true)">' +
+                '<button class="cbld-x" title="Remove this group" onclick="cbldDropAt(this, \'' +
+                gbase.replace(/\.\d+$/, '') + '\', ' + gi + ')">×</button></div>';
+            html += '<div class="cbld-checks">' +
+                cbldBoolRow('every course in it is required', gbase + '.required_course',
+                    group.required_course === true) + '</div>';
+            (group.courses || []).forEach(function(title, ci) {
+                html += cbldMatchRow(title, gbase + '.courses.' + ci, index, byCode);
+            });
+            html += '<button class="cbld-add" onclick="cbldAddString(this, \'' + gbase +
+                '.courses\')">+ course</button></div>';
+        });
+        html += '<button class="cbld-add" onclick="cbldAddGroup(this, ' + pi + ')">+ group</button>';
+        html += '</div>';
+    });
+    html += '<button class="cbld-add" onclick="cbldAddPathway(this)">+ pathway</button>';
+    html += '</div>';
+    return html;
+}
+
+// ---- Courses ----------------------------------------------------------------
+
+function cbldLevelRange(levels) {
+    const list = (levels || []).filter(function(n) { return typeof n === 'number' && isFinite(n); })
+        .sort(function(a, b) { return a - b; });
+    if (!list.length) return 'any year';
+    if (list.length === 1) return String(list[0]);
+    const contiguous = list.every(function(n, i) { return i === 0 || n === list[i - 1] + 1; });
+    return contiguous ? list[0] + '–' + list[list.length - 1] : list.join(', ');
+}
+
+function cbldRowHtml(view, i, selected) {
+    const course = (view.catalog.courses || [])[i] || {};
+    return '<div class="cbld-crow' + (selected ? ' on' : '') + '" data-i="' + i +
+        '" onclick="cbldSelect(this, ' + i + ')">' +
+        '<span class="c-code">' + escapeHtml(course.course_code || '—') + '</span>' +
+        '<span class="c-title">' + escapeHtml(course.title || 'Untitled') + '</span>' +
+        '<span class="c-meta">' + escapeHtml(cbldLevelRange(course.grade_levels)) + ' · ' +
+        currFormatCredits(course.credits || 0) + '</span></div>';
+}
+
+function cbldCoursesHtml(toolId, data, view) {
+    let html = '<div class="cbld-list-bar">' +
+        '<button class="curr-btn" onclick="cbldAddCourse(this)">+ Add course</button>' +
+        '<input class="cbld-in" value="' + cbldVal(data.ui.search) +
+        '" placeholder="Search the catalog" oninput="cbldSetSearch(this)">' +
+        '</div>';
+    html += cbldListHtml(data, view);
+    const i = data.ui.selected;
+    html += (typeof i === 'number' && cbldCourses(data)[i])
+        ? cbldFormHtml(toolId, data, view, i)
+        : '<div class="cbld-form"><div class="cbld-none">Pick a course to edit it.</div></div>';
+    return html;
+}
+
+// Grouped the way the explorer groups, so what you see building the catalog is
+// what a reader of it will see.
+function cbldListHtml(data, view) {
+    const courses = cbldCourses(data);
+    const shown = view.catalog.courses || [];
+    const q = (data.ui.search || '').toLowerCase().trim();
+    const order = [];
+    const groups = {};
+    let matches = 0;
+    courses.forEach(function(course, i) {
+        const v = shown[i] || {};
+        if (q) {
+            const hay = ((v.course_code || '') + ' ' + (v.title || '') + ' ' +
+                (v.department || '') + ' ' + (v.subject_area || '')).toLowerCase();
+            if (hay.indexOf(q) === -1) return;
+        }
+        matches++;
+        const dept = v.department || 'Courses';
+        if (!groups[dept]) { groups[dept] = []; order.push(dept); }
+        groups[dept].push(i);
+    });
+    order.sort();
+
+    let html = '<div class="cbld-list">';
+    if (!courses.length) {
+        html += '<div class="cbld-none">No courses yet. Add one, and it becomes the first row ' +
+            'of the catalog.</div>';
+    } else if (!matches) {
+        html += '<div class="cbld-none">Nothing matches \u201c' + escapeHtml(data.ui.search) +
+            '\u201d.</div>';
+    } else {
+        order.forEach(function(dept) {
+            html += '<div class="cbld-group-head">' + escapeHtml(dept) + ' \u00b7 ' +
+                groups[dept].length + '</div>';
+            groups[dept].forEach(function(i) {
+                html += cbldRowHtml(view, i, data.ui.selected === i);
+            });
+        });
+    }
+    return html + '</div>';
+}
+
+function cbldFormHtml(toolId, data, view, i) {
+    const course = cbldCourses(data)[i];
+    const v = (view.catalog.courses || [])[i] || {};
+    const path = 'courses.' + i;
+    const courses = currCourses(view);
+    const planner = currPlanner(view);
+    const termId = 'cbld-terms-' + toolId;
+    const levelId = 'cbld-levels-' + toolId;
+    const deptId = 'cbld-depts-' + toolId;
+
+    let html = '<div class="cbld-form">';
+    html += '<div class="cbld-form-head"><b>' + escapeHtml(v.title || 'Untitled') + '</b>' +
+        '<button class="curr-btn" onclick="cbldDuplicate(this, ' + i + ')" ' +
+        'title="A copy of this course, to edit into the next one in the sequence">Duplicate</button>' +
+        '<button class="curr-btn" onclick="cbldDeleteCourse(this, ' + i + ')">Delete</button></div>';
+
+    html += cbldDatalist(deptId, currUniqueValues(courses, 'department'));
+    html += cbldDatalist(levelId, currUniqueValues(courses, 'level'));
+    html += cbldDatalist(termId, currUniqueValues(courses, 'semester_offered'));
+
+    html += cbldTextRow('Code', path + '.course_code', course.course_code, { short: true });
+    html += cbldClashHtml(data, i);
+    html += cbldTextRow('Title', path + '.title', course.title,
+        { note: 'What prerequisites and pathway groups name this course by.' });
+    html += cbldTextRow('Department', path + '.department', course.department,
+        { list: deptId, placeholder: 'as the guide prints it' });
+    html += cbldTextRow('Grouped as', path + '.department_canonical', course.department_canonical,
+        { list: deptId, placeholder: 'optional',
+          note: 'A tidied department name, preferred for grouping and for matching a subject requirement.' });
+    html += cbldTextRow('Subject area', path + '.subject_area', course.subject_area,
+        { placeholder: 'optional — a finer grouping, and a second name a requirement may match' });
+    html += cbldTextRow('Level', path + '.level', course.level, { list: levelId, placeholder: 'Standard' });
+    html += cbldTextRow('Credits', path + '.credits', course.credits, { number: true, short: true });
+
+    const levels = planner.levels.slice();
+    (course.grade_levels || []).forEach(function(n) {
+        if (levels.indexOf(n) === -1) levels.push(n);
+    });
+    levels.sort(function(a, b) { return a - b; });
+    html += '<div class="cbld-row"><span class="cbld-label">Open to</span><div class="cbld-checks">';
+    levels.forEach(function(level) {
+        html += '<label class="cbld-check-lbl"><input type="checkbox"' +
+            ((course.grade_levels || []).indexOf(level) !== -1 ? ' checked' : '') +
+            ' onchange="cbldToggleLevel(this, ' + i + ', ' + level + ')">' +
+            escapeHtml(currLevelLabel(planner, level)) + '</label>';
+    });
+    html += '</div></div>';
+    html += '<div class="cbld-note">None ticked means open to every year.</div>';
+
+    html += cbldTextRow('Offered', path + '.semester_offered', course.semester_offered,
+        { list: termId, placeholder: 'any term',
+          note: 'In the document’s own words. “Full Year” spans the year, “One Semester” may sit ' +
+                'in any column, “Summer Only” sits after it.' });
+
+    html += '<div class="cbld-row"><span class="cbld-label">Counts as</span><div class="cbld-checks">' +
+        cbldBoolRow('an elective', path + '.is_elective', course.is_elective === true,
+            'Also counts towards a requirement whose name reads like electives') +
+        cbldBoolRow('required to graduate', path + '.required_for_graduation',
+            course.required_for_graduation === true,
+            'Listed as missing until it is planned or ticked off') +
+        '</div></div>';
+
+    html += cbldFlagsHtml(courses, course, path);
+    html += cbldPrereqHtml(data, view, i);
+
+    html += cbldAreaRow('Description', path + '.description', course.description,
+        'What the guide says about it. Searched, and shown with the course.');
+    html += cbldStringList('Notes', path + '.notes', course.notes,
+        'cbldAddString(this, \'' + path + '.notes\')', 'Fee required');
+
+    html += cbldTextRow('HS credits', path + '.high_school_credits', course.high_school_credits,
+        { number: true, short: true,
+          note: 'Only for a course taken at one school for credit at another — a middle school ' +
+                'course earning high school credit. Kept apart from the credit it counts for here.' });
+    html += '</div>';
+    return html;
+}
+
+function cbldDatalist(id, values) {
+    return '<datalist id="' + escapeHtml(id) + '">' + (values || []).map(function(v) {
+        return '<option value="' + cbldVal(v) + '"></option>';
+    }).join('') + '</datalist>';
+}
+
+// Flags are a document's own vocabulary, so the ones offered are the ones this
+// document already uses — plus room to coin another.
+function cbldFlagsHtml(courses, course, path) {
+    const keys = currFlagsInUse(courses).slice();
+    Object.keys(course.flags || {}).forEach(function(key) {
+        if (keys.indexOf(key) === -1) keys.push(key);
+    });
+    let html = '<div class="cbld-row"><span class="cbld-label">Flags</span><div class="cbld-checks">';
+    keys.forEach(function(key) {
+        html += cbldBoolRow(currFlagLabel(key), path + '.flags.' + key,
+            (course.flags || {})[key] === true);
+    });
+    html += '</div></div>';
+    html += '<div class="cbld-row"><span class="cbld-label"></span>' +
+        '<input class="cbld-in" placeholder="another flag, e.g. audition_required" ' +
+        'onkeydown="if (event.key === \'Enter\') cbldAddFlag(this, \'' + cbldArg(path) + '\')">' +
+        '<button class="cbld-add" onclick="cbldAddFlag(this.previousElementSibling, \'' +
+        cbldArg(path) + '\')">add</button></div>';
+    return html;
+}
+
+function cbldPrereqHtml(data, view, i) {
+    const course = cbldCourses(data)[i];
+    const prereq = course.prerequisites || {};
+    const path = 'courses.' + i + '.prerequisites';
+    const index = currTitleIndex(view);
+    const byCode = currByCode(view);
+    const names = Array.isArray(prereq.courses) ? prereq.courses : [];
+
+    let html = '<div class="cbld-block"><div class="cbld-block-head">Prerequisites</div>';
+    html += cbldTextRow('As printed', path + '.raw', prereq.raw,
+        { placeholder: 'Algebra I with a C or better',
+          note: 'The line as the guide prints it. Quoted back in the explorer’s messages.' });
+    html += '<div class="cbld-row"><span class="cbld-label">Courses</span>' +
+        '<div style="flex:1 1 auto;min-width:0">';
+    names.forEach(function(name, n) {
+        html += cbldMatchRow(name, path + '.courses.' + n, index, byCode);
+    });
+    html += '<button class="cbld-add" onclick="cbldAddString(this, \'' + path +
+        '.courses\')">+ prerequisite</button></div></div>';
+
+    if (names.length > 1) {
+        html += '<div class="cbld-row"><span class="cbld-label"></span><div class="cbld-checks">' +
+            cbldBoolRow('any one of them will do', path + '.choice', prereq.choice === true,
+                'Tick this only where the guide says “or”. Left unticked, all of them are required.') +
+            '</div></div>';
+        html += cbldChoiceHtml(data, i);
+    }
+    html += cbldTextRow('Minimum GPA', path + '.min_gpa', prereq.min_gpa,
+        { number: true, short: true, step: '0.05',
+          note: 'Carried as a note — no plan can verify it.' });
+    html += cbldStringList('Grades needed', path + '.grade_requirements', prereq.grade_requirements,
+        'cbldAddString(this, \'' + path + '.grade_requirements\')', 'C or better in Algebra I');
+    html += '</div>';
+    return html;
+}
+
+// ---- The tally --------------------------------------------------------------
+// Run by the doctor's own checks, on the same reading of the document the explorer
+// would make. Not a second opinion — the same one, while there is still someone at
+// the keyboard to act on it.
+
+function cbldCheckHtml(toolId, data) {
+    const view = cbldView(toolId, data.catalog);
+    const result = cdocCheck(view.catalog);
+    const open = data.ui.checkOpen === true;
+    const tally = function(n, cls, word) {
+        return '<span class="cdoc-tally ' + cls + '"><b>' + n + '</b> ' +
+            word + (n === 1 ? '' : 's') + '</span>';
+    };
+    let html = '<div class="cbld-check' + (open ? ' open' : '') + '">' +
+        '<div class="cbld-check-head" onclick="cbldToggleCheck(this)">' +
+        '<span class="cbld-caret">' + (open ? '▾' : '▸') + '</span>' +
+        tally(result.errors, 'err', 'error') +
+        tally(result.warnings, 'warn', 'warning') +
+        '<span class="cdoc-tally note">' + result.courses +
+        (result.courses === 1 ? ' course' : ' courses') + '</span>' +
+        (result.courses && !result.errors && !result.warnings
+            ? '<span class="cdoc-clean">Nothing to fix.</span>' : '') +
+        '</div>';
+    if (open) html += '<div class="cbld-check-body">' + cbldFindingsHtml(data, result) + '</div>';
+    return html + '</div>';
+}
+
+function cbldFindingsHtml(data, result) {
+    if (!result.courses) {
+        return '<div class="cbld-none">Nothing to check until there is a course.</div>';
+    }
+    const open = data.ui.open || [];
+    let html = '';
+    CDOC_KINDS.forEach(function(spec) {
+        const mine = result.findings.filter(function(f) { return f.kind === spec.kind; });
+        if (!mine.length) return;
+        const showing = open.indexOf(spec.kind) !== -1;
+        html += '<div class="cdoc-group">' +
+            '<div class="cdoc-group-head" onclick="cbldToggleGroup(this, \'' + spec.kind + '\')">' +
+                '<span class="cdoc-caret">' + (showing ? '▾' : '▸') + '</span>' +
+                '<span class="cdoc-pill ' + (spec.severity === 'error' ? 'err' :
+                    spec.severity === 'warning' ? 'warn' : 'note') + '">' + spec.severity + '</span>' +
+                '<span class="cdoc-name">' + escapeHtml(spec.name) + '</span>' +
+                '<span class="cdoc-count">' + mine.length + '</span>' +
+            '</div>';
+        if (showing) {
+            html += '<div class="cdoc-why">' + escapeHtml(spec.why) + '</div>';
+            if (spec.kind === 'coverage') {
+                html += '<div class="cdoc-item"><table class="cdoc-table">' +
+                    mine[0].detail.map(function(row) {
+                        const bits = row.split('\t');
+                        const n = parseInt(bits[1], 10);
+                        return '<tr' + (n ? '' : ' class="thin"') + '><td>' + escapeHtml(bits[0]) +
+                            '</td><td>' + bits[1] + ' of ' + result.courses + '</td></tr>';
+                    }).join('') + '</table></div>';
+            } else {
+                html += mine.map(function(f) {
+                    return '<div class="cdoc-item cbld-goto" onclick="cbldGoTo(this, \'' +
+                        cbldArg(f.path) + '\')" title="Go to it">' + escapeHtml(f.message) +
+                        f.detail.map(function(d) {
+                            return '<div class="cdoc-detail">' + escapeHtml(d) + '</div>';
+                        }).join('') + '</div>';
+                }).join('');
+            }
+        }
+        html += '</div>';
+    });
+    return html;
+}
+
+function cbldToggleCheck(el) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = cbldGetData(toolId);
+    data.ui.checkOpen = !data.ui.checkOpen;
+    cbldSaveUiSoon(toolId, data);
+    cbldRender(widget);
+}
+
+function cbldToggleGroup(el, kind) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = cbldGetData(toolId);
+    data.ui.open = data.ui.open || [];
+    const at = data.ui.open.indexOf(kind);
+    if (at === -1) data.ui.open.push(kind); else data.ui.open.splice(at, 1);
+    cbldSaveUiSoon(toolId, data);
+    cbldRender(widget);
+}
+
+// A finding names where it is, in the document's own terms. This is how you get
+// there: the path decides the section, and the index decides the course.
+function cbldGoTo(el, path) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = cbldGetData(toolId);
+    const bits = String(path).split('/').filter(Boolean);
+    if (bits[0] === 'courses') {
+        data.ui.section = 'courses';
+        const i = parseInt(bits[1], 10);
+        if (isFinite(i) && cbldCourses(data)[i]) data.ui.selected = i;
+    } else if (bits[0] === 'graduation_requirements') {
+        data.ui.section = 'subjects';
+    } else if (bits[0] === 'program_groupings') {
+        data.ui.section = 'pathways';
+    } else if (bits[0] === 'planner') {
+        data.ui.section = 'planner';
+    }
+    cbldSaveUiSoon(toolId, data);
+    cbldRender(widget);
+}
+
+// ---- The document it produces ------------------------------------------------
+
+function cbldJson(catalog) {
+    return JSON.stringify(catalog, null, 2);
+}
+
+function cbldOutHtml(data) {
+    if (!data.catalog) {
+        return '<div class="cbld-empty">Nothing written yet.<br>' +
+            'Start a curriculum on the left and it appears here as you build it.</div>';
+    }
+    const text = cbldJson(data.catalog);
+    const n = cbldCourses(data).length;
+    const kb = Math.max(1, Math.round(text.length / 1024));
+    const long = text.length > CBLD_PREVIEW;
+    return '<div class="cbld-out-bar">' +
+        '<span class="cbld-size">' + n + (n === 1 ? ' course' : ' courses') + ' · ' + kb + ' KB' +
+        (long ? ' · shown in part' : '') + '</span>' +
+        '<button class="curr-btn" onclick="cbldCopyJson(this)" title="The whole document">Copy</button>' +
+        '<button class="curr-btn" onclick="cbldDownload(this)" title="Save it as a .json file">Save</button>' +
+        '</div><pre class="cbld-json">' +
+        escapeHtml(long ? text.slice(0, CBLD_PREVIEW) : text) +
+        (long ? '\n\n…' + (text.length - CBLD_PREVIEW) + ' more characters. Copy and Save write ' +
+            'the whole document.' : '') +
+        '</pre>';
+}
+
+function cbldCopyJson(btn) {
+    const toolId = currGetToolId(btn);
+    const data = cbldGetData(toolId);
+    if (!data.catalog) return;
+    const widget = cbldGetWidget(btn);
+    navigator.clipboard.writeText(cbldJson(data.catalog)).then(function() {
+        cbldSetStatus(widget, 'ok', 'The whole document is on the clipboard.');
+    }, function() {
+        cbldSetStatus(widget, 'err', 'The clipboard refused it. Use Save instead.');
+    });
+}
+
+function cbldFileName(catalog) {
+    const meta = catalog[cbldMetaKey(catalog)] || {};
+    const name = (catalog.school || {}).name || meta.title || 'curriculum';
+    const year = meta.academic_year ? '-' + meta.academic_year : '';
+    return (name + year).toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '').slice(0, 80) + '.json';
+}
+
+function cbldDownload(btn) {
+    const toolId = currGetToolId(btn);
+    const data = cbldGetData(toolId);
+    if (!data.catalog) return;
+    const blob = new Blob([cbldJson(data.catalog)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = cbldFileName(data.catalog);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+    cbldSetStatus(cbldGetWidget(btn), 'ok', 'Saved as ' + link.download + '.');
+}
+
+// ---- Editing ------------------------------------------------------------------
+
+function cbldSaveUiSoon(toolId, data) {
+    // What is on screen, not what is in the document: no reason to rebuild the
+    // reading copy for it.
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].builder = data;
+    clearTimeout(cbldSaveTimer);
+    cbldSaveTimer = setTimeout(function() {
+        try { saveToolCustomizations(toolCustomizations); } catch (e) { /* reported on the next write */ }
+    }, 400);
+}
+
+function cbldEdit(el) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    if (!widget || !toolId) return null;
+    const data = cbldGetData(toolId);
+    if (!data.catalog) return null;
+    return { widget: widget, toolId: toolId, data: data };
+}
+
+function cbldSetPath(el, path, asNumber) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const raw = el.value.trim();
+    cbldSetIn(cx.data.catalog, path, asNumber ? (raw === '' ? '' : parseFloat(raw)) : raw);
+    cbldSaveSoon(cx.toolId, cx.data);
+    cbldRefreshSoon(cx.widget, cx.toolId);
+}
+
+function cbldSetBool(el, path) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    cbldSetIn(cx.data.catalog, path, el.checked ? true : '');
+    cbldSaveSoon(cx.toolId, cx.data);
+    cbldRefreshSoon(cx.widget, cx.toolId);
+}
+
+function cbldPickTitle(el, path, title) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    cbldSetIn(cx.data.catalog, path, title);
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldDropAt(el, path, i) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const list = cbldGetIn(cx.data.catalog, path);
+    if (!Array.isArray(list)) return;
+    list.splice(i, 1);
+    if (!list.length) cbldSetIn(cx.data.catalog, path, '');
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldAddString(el, path) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const list = cbldGetIn(cx.data.catalog, path);
+    if (Array.isArray(list)) list.push('');
+    else cbldSetIn(cx.data.catalog, path, ['']);
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldSetSection(el, section) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = cbldGetData(toolId);
+    data.ui.section = section;
+    cbldSaveUiSoon(toolId, data);
+    cbldRender(widget);
+}
+
+// The search box is the one input a re-render must never take the caret out of, so
+// only the list below it is rebuilt.
+function cbldSetSearch(el) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = cbldGetData(toolId);
+    data.ui.search = el.value;
+    cbldSaveUiSoon(toolId, data);
+    const list = widget.querySelector('.cbld-list');
+    if (list) list.outerHTML = cbldListHtml(data, cbldView(toolId, data.catalog));
+}
+
+function cbldSelect(el, i) {
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const data = cbldGetData(toolId);
+    data.ui.selected = data.ui.selected === i ? null : i;
+    cbldSaveUiSoon(toolId, data);
+    cbldRender(widget);
+}
+
+// A code nobody has used yet, in the shape this catalog uses codes.
+function cbldNextCode(catalog) {
+    let top = 0;
+    let numeric = false;
+    (catalog.courses || []).forEach(function(course) {
+        const code = String(course.course_code || '');
+        if (!/^\d+$/.test(code)) return;
+        numeric = true;
+        top = Math.max(top, parseInt(code, 10));
+    });
+    if (!numeric) {
+        let n = 1;
+        const used = {};
+        (catalog.courses || []).forEach(function(c) { used[String(c.course_code || '')] = true; });
+        while (used['NEW' + n]) n++;
+        return 'NEW' + n;
+    }
+    return String(top + 1);
+}
+
+function cbldAddCourse(btn) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    if (!Array.isArray(cx.data.catalog.courses)) cx.data.catalog.courses = [];
+    cx.data.catalog.courses.push({
+        course_code: cbldNextCode(cx.data.catalog),
+        title: '',
+        department: ''
+    });
+    cx.data.ui.selected = cx.data.catalog.courses.length - 1;
+    cx.data.ui.section = 'courses';
+    cx.data.ui.search = '';
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+    const field = cx.widget.querySelector('.cbld-form .cbld-in');
+    if (field) field.focus();
+}
+
+// Most of a catalog is a sequence: English 1, 2, 3, 4 differ by a word and a year.
+// Typing one and copying it three times is the difference between an afternoon and
+// a few minutes.
+function cbldDuplicate(btn, i) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    const source = cbldCourses(cx.data)[i];
+    if (!source) return;
+    const copy = JSON.parse(JSON.stringify(source));
+    copy.course_code = cbldNextCode(cx.data.catalog);
+    copy.title = (source.title || 'Untitled') + ' (copy)';
+    cx.data.catalog.courses.splice(i + 1, 0, copy);
+    cx.data.ui.selected = i + 1;
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldDeleteCourse(btn, i) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    const course = cbldCourses(cx.data)[i];
+    if (!course) return;
+    if (cbldNeedsConfirm(btn, 'del:' + i, 'Deleting “' + (course.title || 'this course') +
+        '” cannot be undone, and anything naming it as a prerequisite stops resolving. ' +
+        'Press Delete again to go ahead.')) return;
+    cx.data.catalog.courses.splice(i, 1);
+    cx.data.ui.selected = null;
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+    cbldSetStatus(cx.widget, 'ok', 'Deleted “' + (course.title || 'Untitled') + '”.');
+}
+
+function cbldToggleLevel(el, i, level) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const course = cbldCourses(cx.data)[i];
+    if (!course) return;
+    const list = Array.isArray(course.grade_levels) ? course.grade_levels : [];
+    const at = list.indexOf(level);
+    if (at === -1) list.push(level); else list.splice(at, 1);
+    list.sort(function(a, b) { return a - b; });
+    if (list.length) course.grade_levels = list;
+    else delete course.grade_levels;
+    cbldSaveSoon(cx.toolId, cx.data);
+    cbldRefreshSoon(cx.widget, cx.toolId);
+}
+
+function cbldAddFlag(input, path) {
+    const cx = cbldEdit(input);
+    if (!cx) return;
+    const key = (input.value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    if (!key) return;
+    cbldSetIn(cx.data.catalog, path + '.flags.' + key, true);
+    input.value = '';
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+// ---- Planner ------------------------------------------------------------------
+
+function cbldSetLevels(el) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const levels = el.value.split(/[^0-9]+/).filter(Boolean).map(Number)
+        .filter(function(n) { return isFinite(n); });
+    if (levels.length) cbldSetIn(cx.data.catalog, 'planner.levels', levels);
+    else cbldSetIn(cx.data.catalog, 'planner.levels', '');
+    cbldSaveSoon(cx.toolId, cx.data);
+    cbldRefreshSoon(cx.widget, cx.toolId);
+}
+
+// The shape read off the courses, written down as the document's own claim. Useful
+// the moment a catalog has a year with no course in it — nothing can imply a year
+// nothing is offered in, so it has to be stated.
+function cbldStatePlanner(btn) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    const planner = currPlanner(cbldView(cx.toolId, cx.data.catalog));
+    const stated = { levels: planner.levels.slice() };
+    if (planner.terms.length) {
+        stated.terms = planner.terms.map(function(term) {
+            return term.optional ? { id: term.id, label: term.label, optional: true } : term.label;
+        });
+    }
+    const existing = cx.data.catalog.planner || {};
+    cx.data.catalog.planner = Object.assign({}, existing, stated);
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldTerms(catalog) {
+    const planner = catalog.planner || (catalog.planner = {});
+    if (!Array.isArray(planner.terms)) planner.terms = [];
+    return planner.terms;
+}
+
+function cbldSetTerm(el, i) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const terms = cbldTerms(cx.data.catalog);
+    const term = terms[i];
+    if (term && typeof term === 'object') term.label = el.value;
+    else terms[i] = el.value;
+    cbldSaveSoon(cx.toolId, cx.data);
+    cbldRefreshSoon(cx.widget, cx.toolId);
+}
+
+function cbldSetTermOptional(el, i) {
+    const cx = cbldEdit(el);
+    if (!cx) return;
+    const terms = cbldTerms(cx.data.catalog);
+    const term = terms[i];
+    const label = typeof term === 'string' ? term : ((term || {}).label || '');
+    // Written as a plain string only where the plain string already reads the way it
+    // is being set — otherwise the document has to say so outright.
+    if (el.checked) {
+        terms[i] = { id: currTermSlug(label), label: label, optional: true };
+    } else if (CURR_OPTIONAL_TERM.test(label)) {
+        terms[i] = { id: currTermSlug(label), label: label, optional: false };
+    } else {
+        terms[i] = label;
+    }
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldAddTerm(btn) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    const terms = cbldTerms(cx.data.catalog);
+    terms.push('Term ' + (terms.length + 1));
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+// ---- Requirements and pathways -------------------------------------------------
+
+function cbldAddRequirement(btn, subject) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    const grad = cx.data.catalog.graduation_requirements ||
+        (cx.data.catalog.graduation_requirements = {});
+    if (!Array.isArray(grad.credits_by_subject)) grad.credits_by_subject = [];
+    if (subject && grad.credits_by_subject.some(function(r) {
+        return currNormTitle(r.subject) === currNormTitle(subject);
+    })) return;
+    grad.credits_by_subject.push({ subject: subject || '', credits_required: 1 });
+    cx.data.ui.section = 'subjects';
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldAddPathway(btn) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    if (!Array.isArray(cx.data.catalog.program_groupings)) cx.data.catalog.program_groupings = [];
+    cx.data.catalog.program_groupings.push({ name: '', groups: [{ name: '', courses: [''] }] });
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+function cbldAddGroup(btn, pi) {
+    const cx = cbldEdit(btn);
+    if (!cx) return;
+    const program = (cx.data.catalog.program_groupings || [])[pi];
+    if (!program) return;
+    if (!Array.isArray(program.groups)) program.groups = [];
+    program.groups.push({ name: '', courses: [''] });
+    cbldSaveData(cx.toolId, cx.data);
+    cbldRender(cx.widget);
+}
+
+// ---- Getting a document in and out ---------------------------------------------
+
+// currParse normalizes what it reads, which is what the explorer wants and the
+// opposite of what this tool wants: the model has to be the file as written, so
+// that opening one and saving it again returns it unchanged. The parse is run for
+// its complaints, and the document is taken from a second, untouched read.
+function cbldReadText(text) {
+    const parsed = currParse(text);
+    if (!parsed.ok) return parsed;
+    try {
+        return { ok: true, doc: JSON.parse(text) };
+    } catch (e) {
+        return { ok: false, errors: ['That is not valid JSON: ' + e.message] };
+    }
+}
+
+function cbldOpenDoc(widget, toolId, doc, note, sourceUrl) {
+    const data = cbldGetData(toolId);
+    data.catalog = doc;
+    data.sourceUrl = sourceUrl || null;
+    data.ui.selected = null;
+    data.ui.search = '';
+    data.ui.section = 'courses';
+    cbldSaveData(toolId, data);
+    const result = cdocCheck(cbldView(toolId, doc).catalog);
+    cbldSetStatus(widget, result.errors ? 'err' : 'ok', note ||
+        ((doc.courses || []).length + ' courses opened — ' + result.errors + ' errors, ' +
+         result.warnings + ' warnings to work through.'));
+    if (typeof setToolMode === 'function') setToolMode(toolId, 'edit');
+    cbldRender(widget);
+}
+
+function cbldWouldReplace(btn, data, what) {
+    if (!data.catalog) return false;
+    const n = cbldCourses(data).length;
+    return cbldNeedsConfirm(btn, what, 'That would replace the curriculum you have' +
+        (n ? ', and the ' + n + (n === 1 ? ' course' : ' courses') + ' in it' : '') +
+        '. Save it first if you want to keep it. Press again to go ahead.');
+}
+
+function cbldStart(btn) {
+    const widget = cbldGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const data = cbldGetData(toolId);
+    if (cbldWouldReplace(btn, data, 'new')) return;
+    cbldOpenDoc(widget, toolId, cbldBlank(),
+        'An empty curriculum. Fill in the Document and Planner sections, then add courses.');
+}
+
+function cbldLoadSample(btn) {
+    const widget = cbldGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const data = cbldGetData(toolId);
+    if (cbldWouldReplace(btn, data, 'sample')) return;
+    cbldOpenDoc(widget, toolId, JSON.parse(JSON.stringify(CURR_SAMPLE)),
+        CURR_SAMPLE.courses.length + ' sample courses. Nothing here is any real school’s — ' +
+        'edit them into your own, or start again empty.');
+}
+
+function cbldImport(btn) {
+    const widget = cbldGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const box = widget.querySelector('.cbld-import');
+    const text = box ? box.value.trim() : '';
+    if (!text) {
+        cbldSetStatus(widget, 'err', 'Nothing pasted yet.');
+        return;
+    }
+    const parsed = cbldReadText(text);
+    if (!parsed.ok) {
+        cbldSetStatus(widget, 'err', parsed.errors.join('\n') +
+            (parsed.more ? '\n…and ' + parsed.more + ' more' : ''));
+        return;
+    }
+    cbldOpenDoc(widget, toolId, parsed.doc);
+}
+
+function cbldHandleFile(input) {
+    const widget = cbldGetWidget(input);
+    const toolId = currGetToolId(input);
+    if (input.files && input.files[0]) cbldReadFile(widget, toolId, input.files[0]);
+    input.value = '';
+}
+
+function cbldDragOver(e, el) {
+    e.preventDefault();
+    el.classList.add('dragover');
+}
+
+function cbldDropFile(e, el) {
+    e.preventDefault();
+    el.classList.remove('dragover');
+    const widget = cbldGetWidget(el);
+    const toolId = currGetToolId(el);
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) cbldReadFile(widget, toolId, file);
+}
+
+function cbldReadFile(widget, toolId, file) {
+    if (!widget || !toolId) return;
+    const data = cbldGetData(toolId);
+    if (data.catalog) {
+        const n = cbldCourses(data).length;
+        cbldSetStatus(widget, '', 'Opening ' + file.name + ' replaces the ' + n +
+            (n === 1 ? ' course' : ' courses') + ' here.');
+    }
+    const reader = new FileReader();
+    reader.onload = function() {
+        const parsed = cbldReadText(String(reader.result));
+        if (!parsed.ok) {
+            cbldSetStatus(widget, 'err', 'That file cannot be read as a curriculum:\n' +
+                parsed.errors.join('\n'));
+            return;
+        }
+        cbldOpenDoc(widget, toolId, parsed.doc);
+    };
+    reader.onerror = function() { cbldSetStatus(widget, 'err', 'That file could not be read.'); };
+    reader.readAsText(file);
+}
+
+// A link can name the document to open on:
+//   #Board/tool/curriculum-builder?curriculum=https://example.org/guide.json
+async function cbldApplyHashParams(toolId, params) {
+    const url = params.curriculum || params.url || params.src;
+    if (!url) return;
+    const widget = cbldWidgetFor(toolId);
+    if (!widget) return;
+    const data = cbldGetData(toolId);
+    if (data.catalog && data.sourceUrl === url) return;
+    let text;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        text = await res.text();
+    } catch (e) {
+        cbldSetStatus(widget, 'err', 'That document could not be fetched: ' + e.message);
+        return;
+    }
+    const parsed = cbldReadText(text);
+    if (!parsed.ok) {
+        cbldSetStatus(widget, 'err', 'That document cannot be read as a curriculum:\n' +
+            parsed.errors.join('\n'));
+        return;
+    }
+    cbldOpenDoc(widget, toolId, parsed.doc, null, url);
+}
+
+function cbldInit() {
+    document.querySelectorAll('.cbld-widget').forEach(function(widget) {
+        if (currGetToolId(widget)) cbldRender(widget);
+    });
+}
+
+function cbldOnRender(toolId) {
+    const widget = cbldWidgetFor(toolId);
+    if (widget) cbldRender(widget);
+}
+
 (function injectScriptsForExport() {
     if (document.getElementById('school-tools-scripts')) return;
 
@@ -3864,12 +7094,41 @@ function cdocOnRender(toolId) {
         currGoToIssue, currCourseDragStart,
         currCellDragOver, currCellDragLeave, currCellDrop, currCellClick, currCardDragOver,
         currCardDragLeave, currCardDrop, currMoveCard, currPlace, currRemove,
+        currSchoolDefaults, currNormalizeSchool, currSchoolName, currDerivedSchoolName, currGetRecord, currSaveRecord,
+        currSchoolAt, currCurrentSchool, currShowingCareer, currSchoolLevels, currSchoolsInOrder,
+        currEarlierSchools, currTransferMatch, currGradeRangeLabel, currSchoolSummary, currSchoolsBarHtml, currPickSchool,
+        currNextSchoolId, currAddSchool, currRemoveSchool, currMoveSchool, currWithSchool, currSetSchoolName,
+        currSetSchoolYears, currSetSchoolGrades, currRefreshSchoolBar, currSchoolListHtml, currGoToSchool,
+        currAcademicYear, currTransferCandidates, currTransfersHtml, currToggleTransfers, currToggleTransfer,
+        currAddLoose, currAddLooseFrom, currSetLoose, currRemoveLoose, currLooseFor, currLooseTotal,
+        currSchoolCredits, currCareerYearHtml, currCareerHtml, currRightWithTransfers,
+        currGradingDefaults, currGrading, currScale, currScaleIsList, currGradePoints, currGradeLabel,
+        currMarkSlots, currMarksFor, currCourseGrade, currLevelBonus, currGpaOf, currLevelCodes,
+        currGradedCodes, currSchoolGpa, currFormatGpa, currGradeInput, currSetMark, currSetFinal,
+        currClearFinal, currCourseMarksHtml, currGradesHtml, currGradingHtml, currSetGrading, currSetCustomGrade,
+        currAddCustomGrade, currRemoveCustomGrade,
         currAutoPlace, currAutoPlaceCode, currSampleCourse, currInit, currOnRender,
         cdocGetWidget, cdocWidgetFor, cdocGetData, cdocSaveData, cdocSetStatus,
         cdocSuggest, cdocFinding, cdocKind, cdocCheck, cdocReportHtml, cdocRender,
         cdocToggleGroup, cdocBrief, cdocCopyBrief, cdocLoadDoc, cdocLoadSource,
         cdocDraftChanged, cdocHandleFile, cdocDragOver, cdocDropFile, cdocReadFile,
-        cdocApplyHashParams, cdocInit, cdocOnRender];
+        cdocApplyHashParams, cdocInit, cdocOnRender,
+        cbldGetWidget, cbldWidgetFor, cbldGetData, cbldSaveData, cbldHold, cbldSaveSoon, cbldSetStatus,
+        cbldNeedsConfirm, cbldView, cbldBlank, cbldMetaKey, cbldCourses, cbldEmptyValue, cbldBlankNode,
+        cbldSetIn, cbldGetIn, cbldArg, cbldVal, cbldRender, cbldRenderFor, cbldRefreshSoon, cbldRefresh,
+        cbldRefreshMatches, cbldRefreshLive, cbldLiveHtml,
+        cbldCoverHtml, cbldClashHtml, cbldChoiceHtml, cbldEditorHtml, cbldSectionCount, cbldStartHtml, cbldTextRow, cbldAreaRow,
+        cbldBoolRow, cbldStringList, cbldMatchHtml, cbldMatchRow, cbldDocumentHtml, cbldPlannerHtml,
+        cbldSubjectsHtml, cbldPathwaysHtml, cbldLevelRange, cbldRowHtml, cbldCoursesHtml, cbldListHtml,
+        cbldFormHtml, cbldDatalist, cbldFlagsHtml, cbldPrereqHtml, cbldCheckHtml, cbldFindingsHtml,
+        cbldToggleCheck, cbldToggleGroup, cbldGoTo, cbldJson, cbldOutHtml, cbldCopyJson, cbldFileName,
+        cbldDownload, cbldSaveUiSoon, cbldEdit, cbldSetPath, cbldSetBool, cbldPickTitle, cbldDropAt,
+        cbldAddString, cbldSetSection, cbldSetSearch, cbldSelect, cbldNextCode, cbldAddCourse,
+        cbldDuplicate, cbldDeleteCourse, cbldToggleLevel, cbldAddFlag, cbldSetLevels, cbldStatePlanner,
+        cbldTerms, cbldSetTerm, cbldSetTermOptional, cbldAddTerm, cbldAddRequirement, cbldAddPathway,
+        cbldAddGroup, cbldReadText, cbldOpenDoc, cbldWouldReplace, cbldStart, cbldLoadSample, cbldImport,
+        cbldHandleFile, cbldDragOver, cbldDropFile, cbldReadFile, cbldApplyHashParams, cbldInit,
+        cbldOnRender];
 
     var code = '(function() {\n' +
         'if (typeof currInit !== "undefined") return;\n' +
@@ -3889,6 +7148,20 @@ function cdocOnRender(toolId) {
         'window.CURR_REQUIRED_FIELDS = ' + JSON.stringify(CURR_REQUIRED_FIELDS) + ';\n' +
         'window.CURR_SAMPLE = ' + JSON.stringify(CURR_SAMPLE) + ';\n' +
         'window.CURR_VERSION = ' + JSON.stringify(CURR_VERSION) + ';\n' +
+        'window.CURR_CAREER = ' + JSON.stringify(CURR_CAREER) + ';\n' +
+        'window.CURR_RIGOUR = ' + CURR_RIGOUR.toString() + ';\n' +
+        // The scales carry a function for the continuous ones, so they are rebuilt
+        // rather than JSON'd.
+        'window.CURR_SCALES = {' + Object.keys(CURR_SCALES).map(function(id) {
+            const sc = CURR_SCALES[id];
+            return JSON.stringify(id) + ':{' + Object.keys(sc).map(function(k) {
+                return JSON.stringify(k) + ':' + (typeof sc[k] === 'function'
+                    ? sc[k].toString() : JSON.stringify(sc[k]));
+            }).join(',') + '}';
+        }).join(',') + '};\n' +
+        'window.CURR_LEVEL_BONUS = [' + CURR_LEVEL_BONUS.map(function(rule) {
+            return '{re:' + rule.re.toString() + ',add:' + rule.add + '}';
+        }).join(',') + '];\n' +
         'window.CURR_MAX_BYTES = ' + CURR_MAX_BYTES + ';\n' +
         'window.CURR_PRINT_SKIP = ' + JSON.stringify(CURR_PRINT_SKIP) + ';\n' +
         'window.CURR_CORS_PROXY = ' + JSON.stringify(CURR_CORS_PROXY) + ';\n' +
@@ -3898,6 +7171,11 @@ function cdocOnRender(toolId) {
         'window.currDragCode = null; window.currSaveTimer = null; window.currDraftTimer = null;\n' +
         'window.cdocDraftTimer = null;\n' +
         'window.CDOC_KINDS = ' + JSON.stringify(CDOC_KINDS) + ';\n' +
+        'window.cbldSaveTimer = null; window.cbldRefreshTimer = null;\n' +
+        'window.cbldRev = {}; window.cbldViews = {};\n' +
+        'window.CBLD_SECTIONS = ' + JSON.stringify(CBLD_SECTIONS) + ';\n' +
+        'window.CBLD_KNOWN_KEYS = ' + JSON.stringify(CBLD_KNOWN_KEYS) + ';\n' +
+        'window.CBLD_PREVIEW = ' + CBLD_PREVIEW + ';\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         currFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -3911,4 +7189,4 @@ function cdocOnRender(toolId) {
 
 // The version is logged so it is possible to tell, from the console, which copy of
 // this file a page is actually running — a cached one looks identical otherwise.
-console.log('School Tools plugin loaded (2 tools) v' + CURR_VERSION);
+console.log('School Tools plugin loaded (3 tools) v' + CURR_VERSION);
