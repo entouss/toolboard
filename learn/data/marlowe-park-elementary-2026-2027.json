@@ -116,7 +116,25 @@
       4,
       5
     ],
-    "scope": "Both halves: the district elementary curriculum every child at this school receives, and the clubs and activities this school adds. Courses carrying a state course number are the district curriculum; MPE- codes are the school's own."
+    "scope": "Both halves: the district elementary curriculum every child at this school receives, and the clubs and activities this school adds. Courses carrying a state course number are the district curriculum; MPE- codes are the school's own.",
+    "grading": {
+      "scale": "pass-fail",
+      "values": [
+        {
+          "label": "P",
+          "name": "Pass",
+          "points": null
+        },
+        {
+          "label": "F",
+          "name": "Fail",
+          "points": null
+        }
+      ],
+      "applies_to": "every course in this document",
+      "counts_toward_gpa": false,
+      "note": "The school reports Pass or Fail rather than a mark on a scale. Elementary courses carry no credit, so there is no grade point average to contribute to either."
+    }
   },
   "planner": {
     "levels": [
@@ -4418,6 +4436,7 @@
   "data_notes": [
     "Marlowe Park Elementary School does not exist, and neither does Braewood County Public Schools. The course data is real in shape and structure; the school, its staff and its documents are invented.",
     "Two halves. Fifty-seven courses carrying a state course number are the district curriculum every child at this school receives. Fifteen MPE- entries are the clubs and activities this school adds on top of it.",
+    "Every course here is graded Pass or Fail. It is stated once for the document rather than stamped on all seventy-two courses, because a flag true of everything makes a badge on every card and a filter that selects the whole catalog. The Explorer has a Pass / Fail scale for exactly this shape of school — neither label carries points, so a course is on the record without entering any average — but the scale is set on the school in the tool, not read from the document, so choosing it is still a deliberate act.",
     "Spanish is a sequence, not one course. It is taken every year and carries a different course number at each grade, so it is recorded as six courses rather than one repeated. The same is true of art and music. A document where a subject recurs under a new code each year is worth having as an example: it is what the planner's year grid is for.",
     "Two subjects are split into paired courses. From Grade 1 a second language arts course runs alongside the main one, and from Kindergarten to Grade 3 a science laboratory course is recorded beside the science course. Both pairs are kept as separate entries because that is how they are recorded.",
     "Physical education appears only for Kindergarten and Grade 1 in the course record. The district requires it at every elementary grade, so Grades 2 to 5 are kept from the roadmaps, without a course number and marked as unconfirmed. A real document with a real gap in it, left in rather than tidied away.",
