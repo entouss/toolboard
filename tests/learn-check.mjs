@@ -48,7 +48,7 @@ for (const [path, name] of [['/learn/index.html', 'hub'], ['/learn/tools/curricu
                 open: c.querySelector('a[href*="?curriculum="]').getAttribute('href'),
                 dl: c.querySelector('a[href^="../data/"]').getAttribute('href')
             })));
-        ok(name + ': four catalogs are offered', cards.length === 4,
+        ok(name + ': five catalogs are offered', cards.length === 5,
             JSON.stringify(cards.map(c => c.name)));
         for (const card of cards) {
             const url = new URL(card.open.split('?curriculum=')[1], 'http://localhost:8777');
