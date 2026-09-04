@@ -1709,6 +1709,25 @@ main#toolboard {
     background: rgba(255,255,255,0.4);
 }
 
+/* View-only: the tool's body, and nothing else. Driven by a "/view" hash, so
+   there is deliberately no control here that leaves it. The collapse chevron is
+   a fixed sibling of the header sitting above the maximized tool, so hiding the
+   header alone would leave a way back in. --header-height is redefined rather
+   than reassigned on :root, which leaves the header's own collapse state alone. */
+body.view-only #mainHeader,
+body.view-only #headerCollapseBtn {
+    display: none;
+}
+
+body.view-only {
+    padding-top: 0 !important;
+    --header-height: 0px;
+}
+
+body.view-only .tool.fullscreen .tool-header {
+    display: none;
+}
+
 /* Fullscreen overlay backdrop */
 .fullscreen-backdrop {
     display: none;
@@ -2985,6 +3004,18 @@ tr:hover {
     main#toolboard.mobile-layout .tool.fullscreen .tool-content {
         max-height: calc(100vh - 56px - 36px);
         overflow: auto;
+    }
+
+    /* The mobile rules above subtract the header and the tool's own header by
+       hand rather than reading --header-height, so view-only has to say again
+       here that neither is there. */
+    body.view-only main#toolboard.mobile-layout .tool.fullscreen {
+        top: 0 !important;
+        height: 100vh !important;
+    }
+
+    body.view-only main#toolboard.mobile-layout .tool.fullscreen .tool-content {
+        max-height: 100vh;
     }
 
     .tool {
@@ -4537,6 +4568,16 @@ function setupDarkMode() {
 
 var currentFullscreenTool = null;
 
+// A tool shown on its own, with the app header, its own header and every other
+// affordance gone. Unlike maximizing, this is owned by the URL: it saves nothing,
+// writes no hash, and is left only by editing the hash.
+let viewOnlyMode = false;
+
+function setViewOnlyMode(on) {
+    viewOnlyMode = !!on;
+    document.body.classList.toggle('view-only', viewOnlyMode);
+}
+
 // Maximize a tool. Module-level so the header button, the header double-click
 // and URL-hash routing all drive the same code path.
 function enterToolFullscreen(tool) {
@@ -4555,7 +4596,9 @@ function enterToolFullscreen(tool) {
     if (backdrop) backdrop.classList.add('active');
     currentFullscreenTool = tool;
 
-    if (toolId) {
+    // Following a view-only link must not leave the visitor's own board changed,
+    // so the maximized state is not recorded when the URL asked for this.
+    if (toolId && !viewOnlyMode) {
         const tc = loadToolCustomizations();
         tc[toolId] = tc[toolId] || {};
         tc[toolId].fullscreen = true;
@@ -4925,6 +4968,9 @@ function setupToolSearch() {
     // Global Cmd/Ctrl+K shortcut
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            // A view-only page is the tool and nothing else — no way to search
+            // for, or navigate to, anything around it.
+            if (viewOnlyMode) return;
             e.preventDefault();
             if (overlay.style.display === 'none') {
                 openToolSearch();
@@ -5301,6 +5347,7 @@ function setupToolControls() {
     toolboard.addEventListener('click', (e) => {
         if (e.target.closest('.fullscreen-btn')) {
             e.stopPropagation();
+            if (viewOnlyMode) return;
             const tool = e.target.closest('.tool');
 
             if (tool.classList.contains('fullscreen')) {
@@ -5312,11 +5359,13 @@ function setupToolControls() {
     });
 
     // Click backdrop to exit fullscreen
-    fullscreenBackdrop.addEventListener('click', exitToolFullscreen);
+    fullscreenBackdrop.addEventListener('click', () => {
+        if (!viewOnlyMode) exitToolFullscreen();
+    });
 
     // ESC key to exit fullscreen
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && currentFullscreenTool) {
+        if (e.key === 'Escape' && currentFullscreenTool && !viewOnlyMode) {
             exitToolFullscreen();
         }
     });
@@ -11229,12 +11278,13 @@ function switchToBoard(boardId) {
 // ============================================================
 
 const TOOL_HASH_SEGMENT = 'tool';
+const VIEW_HASH_SEGMENT = 'view';
 
 // Splitting happens before decoding: board names are percent-encoded, so a "/"
 // in a board name can never be mistaken for a separator.
 function parseToolboardHash(rawHash) {
     let raw = (rawHash || '').replace(/^#/, '');
-    if (!raw) return { boardName: '', toolId: '', params: {} };
+    if (!raw) return { boardName: '', toolId: '', params: {}, view: false };
 
     // A hash may carry parameters for the tool it opens, after a '?' — the tool
     // decides what they mean, so they are only split off and decoded here.
@@ -11248,13 +11298,26 @@ function parseToolboardHash(rawHash) {
     const parts = raw.split('/');
     const decode = (s) => { try { return decodeURIComponent(s).trim(); } catch { return s.trim(); } };
 
+    // A tool hash may end in "/view", asking for the tool alone with none of the
+    // surrounding chrome. Taken off here so the rest is the tool id as usual. It
+    // only counts where a tool id would still be left, so "#Board/tool/view"
+    // stays a tool called "view" rather than becoming a board with no tool.
+    const toolAt = parts[0].toLowerCase() === TOOL_HASH_SEGMENT ? 0
+        : (parts.length >= 2 && parts[1].toLowerCase() === TOOL_HASH_SEGMENT ? 1 : -1);
+    let view = false;
+    if (toolAt !== -1 && parts.length >= toolAt + 3 &&
+        parts[parts.length - 1].toLowerCase() === VIEW_HASH_SEGMENT) {
+        view = true;
+        parts.pop();
+    }
+
     if (parts.length >= 2 && parts[0].toLowerCase() === TOOL_HASH_SEGMENT) {
-        return { boardName: '', toolId: decode(parts.slice(1).join('/')), params };
+        return { boardName: '', toolId: decode(parts.slice(1).join('/')), params, view };
     }
     if (parts.length >= 3 && parts[1].toLowerCase() === TOOL_HASH_SEGMENT) {
-        return { boardName: decode(parts[0]), toolId: decode(parts.slice(2).join('/')), params };
+        return { boardName: decode(parts[0]), toolId: decode(parts.slice(2).join('/')), params, view };
     }
-    return { boardName: decode(raw), toolId: '', params };
+    return { boardName: decode(raw), toolId: '', params, view: false };
 }
 
 function buildToolboardHash(boardName, toolId) {
@@ -11273,6 +11336,9 @@ function toolHashId(toolId) {
 
 // Pass a tool id to give the URL to that tool, or null to give it back to the board.
 function updateLocationHashForTool(toolId) {
+    // In view-only the hash is the visitor's, and rewriting it would drop the
+    // "/view" that puts the page in this mode.
+    if (viewOnlyMode) return;
     const board = boards.find(b => b.id === currentBoardId);
     const hash = buildToolboardHash(board ? board.name : '', toolId ? toolHashId(toolId) : '');
     if (hash && hash !== window.location.hash) {
@@ -11435,8 +11501,13 @@ async function openToolByHashId(toolId, params) {
 // maximized in a previous session should stay maximized. Later hash changes are
 // navigation: going back to a bare board hash restores the maximized tool.
 async function applyLocationHash(rawHash, options = {}) {
-    const { boardName, toolId, params } = parseToolboardHash(rawHash);
+    const { boardName, toolId, params, view } = parseToolboardHash(rawHash);
     let switchedBoard = false;
+
+    // View-only is a rendering of the URL, not a state of the board: set before
+    // anything opens so the first paint is already stripped, and cleared here too,
+    // which is what makes editing the hash the one way out.
+    setViewOnlyMode(view && !!toolId);
 
     if (boardName) {
         const board = boards.find(b => b.name.toLowerCase() === boardName.toLowerCase());

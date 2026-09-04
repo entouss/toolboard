@@ -9,6 +9,8 @@ Every board and every tool is addressable by URL hash. A tool link works for som
 | `#BoardName` | Opens that board |
 | `#tool/<toolId>` | Opens that tool maximized on the current board |
 | `#BoardName/tool/<toolId>` | Opens the board, then the tool maximized |
+| `#tool/<toolId>/view` | Opens that tool alone, with no chrome — see [View only](#view-only) |
+| `#BoardName/tool/<toolId>/view` | The same, on that board |
 
 `<toolId>` is the tool's plugin id (`PluginRegistry.registerTool({ id })`) — e.g. `#tool/jwt-decoder` — so the link means the same thing in anyone's browser. Tools with no plugin id (freeform notes) fall back to their board-local instance id, which only resolves in the browser that created them.
 
@@ -39,6 +41,39 @@ Anything the parameters name has to be reachable from the browser: `http`/`https
 - **Maximizing and the URL stay in sync.** Maximizing a tool writes its hash; restoring it (button, backdrop, `Esc`) writes the board hash back. Navigating back to a bare board hash restores the maximized tool.
 - **Reuse over duplication.** If the board already has an instance of the tool — same instance id, or anything created from the same template — it is focused and maximized instead of a second copy being created.
 - **A tool left maximized in a previous session stays maximized on load.** Only in-session hash changes count as navigation.
+
+## View only
+
+A tool hash ending in `/view` shows that tool and nothing else: the app header, the
+collapse chevron and the tool's own header bar are all gone, and the tool's body
+fills the window. It is meant for a screen that only has to *show* something — a
+wall display, a shared monitor, a board embedded in another page.
+
+Maximizing is a state of the board; this is a rendering of the URL, and the two are
+deliberately kept apart:
+
+- **Nothing is saved.** Following a `/view` link does not record the tool as
+  maximized, so it does not change the visitor's own boards.
+- **The hash is never rewritten.** `updateLocationHashForTool` stands down, because
+  rewriting would drop the `/view` that puts the page in the mode.
+- **Nothing on the page leaves it.** `Esc`, the backdrop, the maximize button and
+  `Cmd/Ctrl+K` all do nothing. Editing the URL is the only way out — dropping
+  `/view` leaves a normally maximized tool, dropping the whole tool segment returns
+  to the board.
+
+`?key=value` parameters work as usual, so
+`#tool/curriculum-explorer/view?curriculum=…` is a locked display of one document.
+
+Two things to know:
+
+- **A tool whose only controls live in its header is unusable in this mode**, since
+  that header is hidden. Controls belong in the widget body — as the QR generator
+  does with `.qr-actions`.
+- This is presentation, not protection. The board's data is still in the page and
+  reachable from devtools; `/view` is not a way to publish something read-only.
+
+`#tool/view` and `#BoardName/tool/view` still mean a tool whose id is `view`: the
+segment only counts as the mode where a tool id would remain without it.
 
 ## Resolving a tool to its plugin
 
