@@ -149,5 +149,39 @@ const onCard = await page.evaluate(() => {
 });
 ok('the grade is on the card in the grid', onCard === 'B+', String(onCard));
 
+// 9. Pass/Fail, for a school that reports whether a course was passed and nothing
+//    more. Neither label carries points, so a course marked this way is on the
+//    record without being in any average.
+await setTab('grades');
+await setGrading({ scale: 'pass-fail' });
+await page.waitForTimeout(500);
+const pfOpts = await page.evaluate(() =>
+    [...document.querySelector('.curr-grades-cell .curr-mark').options].map(o => o.textContent));
+ok('Pass and Fail are what the selects offer', pfOpts.join(',') === '–,P,F', pfOpts.join(','));
+
+const setFinal = (title, value) => page.evaluate(({ t, v }) => {
+    const row = [...document.querySelectorAll('.curr-grades-row')].find(r => r.textContent.includes(t));
+    const sel = row.querySelector('.curr-mark.final');
+    sel.value = v;
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+}, { t: title, v: value });
+
+await setFinal('English 9', 'P');
+await page.waitForTimeout(400);
+const pf = await grade(CODE['English 9']);
+ok('a pass is kept as the grade it was given', pf.label === 'P', JSON.stringify(pf));
+ok('and carries no points, so nothing can average it', pf.points === null, JSON.stringify(pf));
+ok('so the school has no GPA to report',
+    await page.evaluate(() => currSchoolGpa(currGetData('cur'))) === null,
+    String(await page.evaluate(() => currSchoolGpa(currGetData('cur')))));
+
+// A fail is on the record too, and is not a zero dragging an average down.
+await setFinal('English 9', 'F');
+await page.waitForTimeout(400);
+const failed = await grade(CODE['English 9']);
+ok('a fail is recorded without being counted as zero',
+    failed.label === 'F' && failed.points === null, JSON.stringify(failed));
+
+await setGrading({ scale: 'letter-pm' });
 await page.screenshot({ path: OUT + '/curr-grades.png' });
 await finish(browser, errors);

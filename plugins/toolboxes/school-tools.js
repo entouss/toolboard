@@ -1822,6 +1822,14 @@ const CURR_SCALES = {
     'num-1': { name: 'Numbers (1 best)', values: [
         { label: '1', points: 4 }, { label: '2', points: 3 }, { label: '3', points: 2 },
         { label: '4', points: 1 }, { label: '5', points: 0 }] },
+    // Neither label carries points, on purpose. A pass is a record that the course
+    // was taken and not a mark that can be averaged, and a fail counted as a zero
+    // would drag down an average it was never meant to be in. currGradePoints
+    // returns null for a label with no numeric points, which keeps both out of
+    // every GPA — and, since nothing can be averaged, leaves a course graded this
+    // way with no calculated final: the grade is whatever was entered for it.
+    'pass-fail': { name: 'Pass / Fail', values: [
+        { label: 'P', points: null }, { label: 'F', points: null }] },
     // Continuous: the number typed is the grade. A percentage converts to points on
     // the usual ten-point bands; a points scale is already in points.
     'percent': { name: 'Percentage', min: 0, max: 100, step: 1, suffix: '%',
