@@ -894,6 +894,7 @@ PluginRegistry.registerTool({
     content: `<div class="curr-widget">
 <div class="curr-actions">
 <button class="curr-btn" onclick="currExportPng(this)" title="Save the plan as a picture">PNG</button>
+<button class="curr-btn" onclick="currExportCsv(this)" title="Save the record as a spreadsheet — the whole career, or this school on its own">CSV</button>
 </div>
 <div class="curr-status"></div>
 <div class="curr-schools-bar"></div>
@@ -3876,6 +3877,129 @@ function currIssuesHtml(data, validation) {
             '</div>' +
         '</div>';
     }).join('');
+}
+
+// ---- The record as a file ---------------------------------------------------
+
+// A picture of the career can be read but not worked with, and the thing people
+// most want to do with a record is hold it beside the transcript and compare. The
+// career page already assembles these rows in order to draw them, so this walks
+// the same structures with the same accessors: one idea of what the record holds,
+// rendered a second way.
+function currCareerRows(record) {
+    const rows = [];
+    currSchoolsInOrder(record).forEach(function(school) {
+        if (!school || !school.catalog) return;
+        const planner = currPlanner(school);
+        const byCode = currByCode(school);
+        const name = currSchoolName(school);
+        const slots = [planner.spanId].concat(planner.terms.map(function(t) { return t.id; }));
+
+        function row(course, extra) {
+            const grade = currCourseGrade(school, course.course_code, planner);
+            return Object.assign({
+                school: name,
+                code: course.course_code,
+                title: course.title,
+                department: course.department_canonical || course.department || '',
+                credits: course.credits || 0,
+                hs_credits: course.high_school_credits || '',
+                grade: grade.label || '',
+                points: grade.points === null ? '' : grade.points
+            }, extra);
+        }
+
+        planner.levels.forEach(function(level) {
+            // A course placed in both the span and a term is taken once, which is
+            // the same guard the career page uses when it draws the year.
+            const seen = {};
+            slots.forEach(function(slot) {
+                (school.plan[currTermKey(level, slot)] || []).forEach(function(code) {
+                    if (seen[code]) return;
+                    seen[code] = true;
+                    const course = byCode[code];
+                    if (!course) return;
+                    rows.push(row(course, {
+                        year: currLevelLabel(planner, level),
+                        academic_year: currAcademicYear(school, planner, level) || '',
+                        term: currSlotLabel(planner, slot)
+                    }));
+                });
+            });
+        });
+
+        // Counted as already met: part of the record, but outside the year grid.
+        // The career page only totals these in a footnote, and a file that left
+        // them out would understate what was taken.
+        (school.completed || []).forEach(function(code) {
+            const course = byCode[code];
+            if (!course) return;
+            rows.push(row(course, { year: '', academic_year: '', term: 'already met' }));
+        });
+    });
+    return rows;
+}
+
+const CURR_CSV_COLUMNS = [
+    ['school', 'School'], ['year', 'Year'], ['academic_year', 'Academic year'],
+    ['term', 'Term'], ['code', 'Course code'], ['title', 'Title'],
+    ['department', 'Department'], ['credits', 'Credits'],
+    ['hs_credits', 'High school credits'], ['grade', 'Grade'], ['points', 'Grade points']
+];
+
+// Titles in these documents carry commas as a matter of course — "Art,
+// Kindergarten" — so quoting is the ordinary case here, not an edge one.
+function currCsvField(value) {
+    const s = value === null || value === undefined ? '' : String(value);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function currCsv(rows) {
+    const lines = [CURR_CSV_COLUMNS.map(function(c) { return currCsvField(c[1]); }).join(',')];
+    rows.forEach(function(row) {
+        lines.push(CURR_CSV_COLUMNS.map(function(c) { return currCsvField(row[c[0]]); }).join(','));
+    });
+    // Without the byte order mark Excel reads the file in its own locale's encoding
+    // and turns every accented title to mojibake.
+    return '﻿' + lines.join('\r\n') + '\r\n';
+}
+
+function currExportCsv(btn) {
+    const widget = currGetWidget(btn);
+    const toolId = currGetToolId(btn);
+    if (!widget || !toolId) return;
+    const record = currGetRecord(toolId);
+    const career = currShowingCareer(record);
+    // One school is the same file, shorter: the school is a column either way.
+    const rows = currCareerRows(career ? record : { schools: [currCurrentSchool(record)] });
+    if (!rows.length) {
+        const loaded = !!(currCurrentSchool(record) || {}).catalog;
+        currSetStatus(widget, 'err', 'There is nothing recorded to export yet — ' +
+            (loaded ? 'plan some courses first.' : 'load a curriculum first.'));
+        return;
+    }
+
+    const catalog = (currCurrentSchool(record) || {}).catalog;
+    const base = (currToolTitle(toolId) || (catalog ? currDocTitle(catalog) : '') || 'curriculum')
+        .replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+    const name = base + (career ? '-career.csv' : '-record.csv');
+
+    const blob = new Blob([currCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+
+    const schools = {};
+    rows.forEach(function(r) { schools[r.school] = true; });
+    const n = Object.keys(schools).length;
+    currSetStatus(widget, 'ok', 'Saved ' + name + ' — ' + rows.length +
+        (rows.length === 1 ? ' course' : ' courses') +
+        (n > 1 ? ' across ' + n + ' schools' : '') + '.');
 }
 
 // ---- The plan as a picture -------------------------------------------------
@@ -7077,6 +7201,7 @@ function cbldOnRender(toolId) {
         currSlotLabel, currAddLevel, currRemoveLevel, currSchemaRows, currSchemaHtml,
         currRenderSource, currSetSourceView,
         currCopySchema, currLoadSchemaIntoEditor, currExportPng, currToolTitle, currDocTitle,
+        currCareerRows, currCsvField, currCsv, currExportCsv,
         currPrintFields, currPrintValue, currCatalogPrintHtml, currExportPdf,
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
@@ -7164,6 +7289,7 @@ function cbldOnRender(toolId) {
         }).join(',') + '];\n' +
         'window.CURR_MAX_BYTES = ' + CURR_MAX_BYTES + ';\n' +
         'window.CURR_PRINT_SKIP = ' + JSON.stringify(CURR_PRINT_SKIP) + ';\n' +
+        'window.CURR_CSV_COLUMNS = ' + JSON.stringify(CURR_CSV_COLUMNS) + ';\n' +
         'window.CURR_CORS_PROXY = ' + JSON.stringify(CURR_CORS_PROXY) + ';\n' +
         'window.CURR_ARM_MS = ' + CURR_ARM_MS + '; window.currArmed = {};\n' +
         'window.CURR_NODE_W = ' + CURR_NODE_W + '; window.CURR_NODE_H = ' + CURR_NODE_H + ';\n' +

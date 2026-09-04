@@ -9,7 +9,10 @@ const texts = (sel) => page.evaluate((s) =>
 
 // 1. The header bar keeps only what acts on the plan.
 await sourcePane(page);
-ok('the bar holds nothing but PNG', (await texts('.curr-actions .curr-btn')).join(',') === 'PNG',
+// Both take the record away whole — one as a picture, one as data — so both belong
+// here and nothing else does.
+ok('the bar holds only the two ways of taking the plan away',
+    (await texts('.curr-actions .curr-btn')).join(',') === 'PNG,CSV',
     JSON.stringify(await texts('.curr-actions .curr-btn')));
 
 // 2. Load, File and Sample act on the JSON pane, so they are in it.
