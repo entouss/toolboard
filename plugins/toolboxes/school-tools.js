@@ -908,10 +908,10 @@ PluginRegistry.registerTool({
 <div class="curr-school-pane"></div>
 <div class="curr-source-actions">
 <button class="curr-btn" onclick="currLoadSource(this)" title="Read the JSON below into the explorer">Load</button>
-<label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="currHandleFile(this)"></label>
+<label class="curr-btn curr-file" title="Read a curriculum document, or a CSV of what was taken">File<input type="file" accept=".json,application/json,.csv,text/csv" onchange="currHandleFile(this)"></label>
 <button class="curr-btn" onclick="currLoadSample(this)" title="Fill the box with a small invented catalog">Sample</button>
 </div>
-<div class="curr-drop" ondragover="currDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="currDropFile(event, this)">Paste the curriculum JSON below, or drop a .json file here</div>
+<div class="curr-drop" ondragover="currDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="currDropFile(event, this)">Paste the curriculum JSON below, or drop a .json document or a .csv of what was taken here</div>
 <textarea class="curr-json" spellcheck="false" oninput="currDraftChanged(this)" placeholder="{ &quot;courses&quot;: [ ... ] }"></textarea>
 </div>
 <div class="curr-schema-pane"></div>
@@ -2550,6 +2550,17 @@ function currLoadSource(btn) {
         currSetStatus(widget, 'err', 'Nothing to load: paste a curriculum document first.');
         return;
     }
+    // A CSV of what was taken is the other thing worth loading, and most people have
+    // one of those rather than a curriculum document. Recognised by its shape rather
+    // than by a file extension, so pasting one into this pane works too.
+    if (text[0] !== '{' && text[0] !== '[') {
+        const rows = currCsvParse(text);
+        if (currCsvHeaderIndex(rows)) {
+            currImportCsv(widget, toolId, rows, btn);
+            return;
+        }
+    }
+
     const parsed = currParse(text);
     if (!parsed.ok) {
         currSetStatus(widget, 'err', parsed.errors.join('\n') +
@@ -4010,6 +4021,250 @@ function currExportCsv(btn) {
         (n > 1 ? ' across ' + n + ' schools' : '') + '.');
 }
 
+// ---- The record from a file -------------------------------------------------
+
+// A reader rather than a split on commas. The writer above quotes any field holding
+// a comma, a quote or a newline and doubles the quotes inside it, so anything less
+// would tear a title like "Art, Kindergarten" in half.
+function currCsvParse(text) {
+    const s = String(text || '').replace(/^﻿/, '');
+    const rows = [];
+    let row = [], field = '', quoted = false, i = 0;
+    while (i < s.length) {
+        const ch = s[i];
+        if (quoted) {
+            if (ch === '"') {
+                if (s[i + 1] === '"') { field += '"'; i += 2; continue; }
+                quoted = false; i++; continue;
+            }
+            field += ch; i++; continue;
+        }
+        if (ch === '"') { quoted = true; i++; continue; }
+        if (ch === ',') { row.push(field); field = ''; i++; continue; }
+        if (ch === '\r') { i++; continue; }
+        if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+        field += ch; i++;
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(function(r) {
+        return r.some(function(f) { return String(f).trim() !== ''; });
+    });
+}
+
+// Which column holds what, read from the header rather than assumed, so a file that
+// has been through a spreadsheet still loads. Without a school, a code and a title
+// there is nothing to rebuild from.
+function currCsvHeaderIndex(rows) {
+    if (!rows.length) return null;
+    const head = rows[0].map(function(h) { return String(h).trim().toLowerCase(); });
+    const index = {};
+    let found = 0;
+    CURR_CSV_COLUMNS.forEach(function(col) {
+        const at = head.indexOf(String(col[1]).toLowerCase());
+        if (at !== -1) { index[col[0]] = at; found++; }
+    });
+    if (index.school === undefined || index.code === undefined || index.title === undefined) return null;
+    return found >= 5 ? index : null;
+}
+
+const CURR_CSV_MET = 'already met';
+
+// The inverse of currCareerRows. Reuses the accessors that wrote the file, so the
+// two cannot drift apart: a year is the level whose label the export printed, a term
+// the slot whose label it printed.
+function currCsvToRecord(rows, record) {
+    const index = currCsvHeaderIndex(rows);
+    const cell = function(row, key) {
+        const i = index[key];
+        return i === undefined ? '' : String(row[i] === undefined ? '' : row[i]).trim();
+    };
+
+    const order = [], byName = {};
+    rows.slice(1).forEach(function(r) {
+        const name = cell(r, 'school') || 'School';
+        if (!byName[name]) { byName[name] = []; order.push(name); }
+        byName[name].push(r);
+    });
+
+    const tally = { placed: 0, invented: 0, met: 0, graded: 0, skipped: 0, schools: 0 };
+    const schools = record.schools.slice();
+
+    // An untouched tool is a single empty school. The first school in the file moves
+    // into it rather than beside it, which would otherwise leave the visitor looking
+    // at the blank one with their import hidden behind the dropdown.
+    let adoptable = (schools.length === 1 && !schools[0].catalog &&
+        !Object.keys(schools[0].plan || {}).length &&
+        !(schools[0].completed || []).length) ? schools[0] : null;
+    let firstId = null;
+
+    order.forEach(function(name) {
+        const mine = byName[name];
+        let school = schools.filter(function(s) { return currSchoolName(s) === name; })[0];
+        if (!school && adoptable) {
+            school = adoptable;
+            school.name = name;
+            adoptable = null;
+        }
+        if (!school) {
+            school = currNormalizeSchool(
+                { id: currNextSchoolId({ schools: schools }), name: name }, schools.length);
+            schools.push(school);
+            tally.schools++;
+        }
+        if (!firstId) firstId = school.id;
+
+        // A catalog already loaded is kept whole: a CSV is a record of what was
+        // taken, never a curriculum, and must not overwrite one.
+        const had = school.catalog;
+        const known = {};
+        if (had) currCourses(school).forEach(function(c) { known[c.course_code] = c; });
+
+        const years = [], terms = [];
+        mine.forEach(function(r) {
+            const y = cell(r, 'year'), t = cell(r, 'term');
+            if (y && years.indexOf(y) === -1) years.push(y);
+            if (t && t.toLowerCase() !== CURR_CSV_MET &&
+                currTermKind(t) === 'term' && terms.indexOf(t) === -1) terms.push(t);
+        });
+
+        const made = [];
+        mine.forEach(function(r) {
+            const code = cell(r, 'code');
+            if (!code || known[code]) return;
+            const year = cell(r, 'year');
+            const level = year ? years.indexOf(year) + 1 : null;
+            const credits = parseFloat(cell(r, 'credits'));
+            const hs = parseFloat(cell(r, 'hs_credits'));
+            const course = {
+                course_code: code, title: cell(r, 'title') || code,
+                department: cell(r, 'department') || 'Imported',
+                department_canonical: cell(r, 'department') || 'Imported',
+                credits: isFinite(credits) ? credits : 0,
+                credits_basis: 'printed',
+                grade_levels: level ? [level] : [],
+                semester_offered: cell(r, 'term') && cell(r, 'term').toLowerCase() !== CURR_CSV_MET
+                    ? cell(r, 'term') : null,
+                prerequisites: { raw: null, choice: false, min_gpa: null, courses: [], grade_requirements: [] },
+                flags: {}, notes: ['Built from an imported CSV row, which carries no prerequisites, ' +
+                    'description or requirements — only what was taken.'],
+                is_elective: false, required_for_graduation: false
+            };
+            if (isFinite(hs)) course.high_school_credits = hs;
+            known[code] = course;
+            made.push(course);
+            tally.invented++;
+        });
+
+        if (made.length) {
+            if (had) {
+                school.catalog = Object.assign({}, school.catalog,
+                    { courses: currCourses(school).concat(made) });
+            } else {
+                school.catalog = {
+                    $schema_version: '2.0',
+                    school: { name: name },
+                    document: { title: name + ' — imported from a CSV' },
+                    planner: {
+                        levels: years.map(function(_, i) { return i + 1; }),
+                        level_names: years.reduce(function(acc, y, i) { acc[i + 1] = y; return acc; }, {}),
+                        terms: terms
+                    },
+                    courses: made,
+                    data_notes: ['Built from a CSV of what was taken. It is a record, not a ' +
+                        'curriculum: there are no prerequisites, no graduation requirements and ' +
+                        'no descriptions, because a CSV carries none.']
+                };
+            }
+        }
+
+        // Now the catalog is in place, the planner is the real one, so rows are
+        // placed against the ids the tool will itself compute.
+        const planner = currPlanner(school);
+        const levelFor = function(label) {
+            if (!label) return null;
+            const hit = planner.levels.filter(function(l) {
+                return currLevelLabel(planner, l).toLowerCase() === label.toLowerCase(); })[0];
+            if (hit !== undefined) return hit;
+            const at = years.indexOf(label);
+            return at === -1 ? null : planner.levels[at];
+        };
+        const slotFor = function(label) {
+            if (!label) return planner.spanId;
+            if (String(planner.spanLabel).toLowerCase() === label.toLowerCase()) return planner.spanId;
+            const t = planner.terms.filter(function(x) {
+                return String(x.label).toLowerCase() === label.toLowerCase(); })[0];
+            return t ? t.id : currTermSlug(label);
+        };
+
+        school.plan = school.plan || {};
+        school.completed = school.completed || [];
+        school.marks = school.marks || {};
+        mine.forEach(function(r) {
+            const code = cell(r, 'code');
+            if (!code || !known[code]) { tally.skipped++; return; }
+            const term = cell(r, 'term');
+            if (term.toLowerCase() === CURR_CSV_MET) {
+                if (school.completed.indexOf(code) === -1) school.completed.push(code);
+                tally.met++;
+            } else {
+                const level = levelFor(cell(r, 'year'));
+                if (level === null) { tally.skipped++; return; }
+                const key = currTermKey(level, slotFor(term));
+                school.plan[key] = school.plan[key] || [];
+                if (school.plan[key].indexOf(code) === -1) school.plan[key].push(code);
+                tally.placed++;
+            }
+            // Grades come back as they were written. No scale is imposed: a label the
+            // school does not mark on simply carries no points, and stays visible.
+            const grade = cell(r, 'grade');
+            if (grade) {
+                const entry = school.marks[code] || { m: {}, final: null };
+                entry.final = grade;
+                school.marks[code] = entry;
+                tally.graded++;
+            }
+        });
+    });
+
+    return { schools: schools, tally: tally, firstId: firstId };
+}
+
+function currImportCsv(widget, toolId, rows, btn) {
+    const record = currGetRecord(toolId);
+    const work = currWorkInProgress(currCurrentSchool(record) || {});
+    if (work && currNeedsConfirm(btn, 'load', 'Importing this CSV changes a plan that already ' +
+        'holds ' + currEntries(work) + '. Press Load again to go ahead.')) return;
+
+    const built = currCsvToRecord(rows, record);
+    if (!built.tally.placed && !built.tally.met) {
+        currSetStatus(widget, 'err', 'Nothing could be placed from that file: no row named a ' +
+            'year and term this tool could match.');
+        return;
+    }
+    record.schools = built.schools;
+    // Land on what was just imported rather than on whatever happened to be showing.
+    if (built.firstId) record.current = built.firstId;
+    currSaveRecord(toolId, record);
+
+    // What was imported should be inspectable, and the pane should not be left
+    // holding CSV under a label that says JSON.
+    const showing = currCurrentSchool(record);
+    if (showing && showing.catalog) {
+        widget.querySelector('.curr-json').value = JSON.stringify(showing.catalog, null, 2);
+    }
+
+    const t = built.tally;
+    const bits = [t.placed + (t.placed === 1 ? ' course placed' : ' courses placed')];
+    if (t.met) bits.push(t.met + ' counted as already met');
+    if (t.invented) bits.push(t.invented + ' built from the file');
+    if (t.graded) bits.push(t.graded + ' with grades');
+    if (t.schools) bits.push(t.schools + (t.schools === 1 ? ' school added' : ' schools added'));
+    if (t.skipped) bits.push(t.skipped + ' rows skipped');
+    currSetStatus(widget, 'ok', 'Imported: ' + bits.join(', ') + '.');
+    currRender(widget);
+    if (typeof setToolMode === 'function') setToolMode(toolId, 'render');
+}
+
 // ---- The plan as a picture -------------------------------------------------
 
 // The board can already photograph a tool, but that captures what is on screen:
@@ -4940,7 +5195,7 @@ PluginRegistry.registerTool({
 <button class="curr-btn" onclick="cdocLoadSource(this)" title="Read the JSON below and check it">Check</button>
 <label class="curr-btn curr-file" title="Read a curriculum file">File<input type="file" accept=".json,application/json" onchange="cdocHandleFile(this)"></label>
 </div>
-<div class="cdoc-drop" ondragover="cdocDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="cdocDropFile(event, this)">Paste the curriculum JSON below, or drop a .json file here</div>
+<div class="cdoc-drop" ondragover="cdocDragOver(event, this)" ondragleave="this.classList.remove('dragover')" ondrop="cdocDropFile(event, this)">Paste the curriculum JSON below, or drop a .json document or a .csv of what was taken here</div>
 <textarea class="cdoc-json" spellcheck="false" oninput="cdocDraftChanged(this)" placeholder="{ &quot;courses&quot;: [ ... ] }"></textarea>
 </div>
 <div class="authoring-resizer"></div>
@@ -7210,6 +7465,7 @@ function cbldOnRender(toolId) {
         currRenderSource, currSetSourceView,
         currCopySchema, currLoadSchemaIntoEditor, currExportPng, currToolTitle, currDocTitle,
         currCareerRows, currCsvField, currCsv, currExportCsv,
+        currCsvParse, currCsvHeaderIndex, currCsvToRecord, currImportCsv,
         currPrintFields, currPrintValue, currCatalogPrintHtml, currExportPdf,
         currAllPlacements, currIsCompleted, currCompletedCredits, currFormatCredits, currIssue,
         currValidate, currPrereqsMetBy,
@@ -7298,6 +7554,7 @@ function cbldOnRender(toolId) {
         'window.CURR_MAX_BYTES = ' + CURR_MAX_BYTES + ';\n' +
         'window.CURR_PRINT_SKIP = ' + JSON.stringify(CURR_PRINT_SKIP) + ';\n' +
         'window.CURR_CSV_COLUMNS = ' + JSON.stringify(CURR_CSV_COLUMNS) + ';\n' +
+        'window.CURR_CSV_MET = ' + JSON.stringify(CURR_CSV_MET) + ';\n' +
         'window.CURR_CORS_PROXY = ' + JSON.stringify(CURR_CORS_PROXY) + ';\n' +
         'window.CURR_ARM_MS = ' + CURR_ARM_MS + '; window.currArmed = {};\n' +
         'window.CURR_NODE_W = ' + CURR_NODE_W + '; window.CURR_NODE_H = ' + CURR_NODE_H + ';\n' +

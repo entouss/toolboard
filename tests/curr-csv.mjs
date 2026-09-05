@@ -113,4 +113,86 @@ ok('an empty record is refused with a reason', /nothing recorded to export/.test
     await empty.page.evaluate(() => document.querySelector('.curr-status').textContent));
 await empty.browser.close();
 
+// 8. Round trip. A file written by the export, read back into a tool that has never
+//    seen a curriculum, has to reproduce the plan it came from.
+const paste = (page, text) => page.evaluate((t) => {
+    const w = document.querySelector('.curr-widget');
+    w.querySelector('.curr-json').value = t;
+    currLoadSource(w.querySelector('.curr-json'));
+}, text);
+
+const fresh = await open({ loaded: false, size: [1000, 660] });
+await fresh.page.evaluate(() => setToolMode('cur', 'split'));
+await fresh.page.waitForTimeout(400);
+await paste(fresh.page, text);                     // the single-school file from step 1
+await fresh.page.waitForTimeout(1200);
+
+const back = await fresh.page.evaluate(() => {
+    const d = currGetData('cur');
+    return { courses: (d.catalog.courses || []).length, plan: d.plan, completed: d.completed,
+             marks: d.marks || {}, levels: currPlanner(d).levels.map(l => currLevelLabel(currPlanner(d), l)) };
+});
+ok('a CSV loads into a tool with no curriculum at all', back.courses === 5, String(back.courses));
+ok('and the years come back under their own names',
+    back.levels.join(',') === 'Grade 9,Grade 10,Grade 12', back.levels.join(','));
+ok('with each course back in the year it was taken',
+    (back.plan['1-FY'] || []).length === 2 && (back.plan['2-FY'] || []).length === 1,
+    JSON.stringify(back.plan));
+ok('the already-met course returns to the completed list',
+    back.completed.length === 1, JSON.stringify(back.completed));
+ok('and the grade comes back as it was written',
+    Object.values(back.marks).some(m => m.final === 'A'), JSON.stringify(back.marks));
+ok('the tool says what it took in', /Imported: .*placed/.test(
+    await fresh.page.evaluate(() => document.querySelector('.curr-status').textContent)),
+    await fresh.page.evaluate(() => document.querySelector('.curr-status').textContent));
+
+// 9. A title carrying a comma survives being written and read again.
+ok('a comma in a title survives the round trip', await fresh.page.evaluate(() =>
+    !!currGetData('cur').catalog.courses.find(c => c.title === 'Algebra I')));
+
+// 10. A catalog already loaded is kept whole — the CSV places against it and takes
+//     nothing away, which is what makes importing safe on a real document.
+const onto = await open({ plan: {}, size: [1000, 660] });
+await onto.page.evaluate(() => setToolMode('cur', 'split'));
+await onto.page.waitForTimeout(400);
+const richBefore = await onto.page.evaluate(() => {
+    const c = currGetData('cur').catalog.courses.find(x => x.title === 'Geometry');
+    return { n: currGetData('cur').catalog.courses.length, prereq: (c.prerequisites || {}).raw };
+});
+await paste(onto.page, text);
+await onto.page.waitForTimeout(1200);
+const richAfter = await onto.page.evaluate(() => {
+    const d = currGetData('cur');
+    const c = d.catalog.courses.find(x => x.title === 'Geometry');
+    return { n: d.catalog.courses.length, prereq: (c.prerequisites || {}).raw,
+             placed: Object.values(d.plan).flat().length };
+});
+ok('importing onto a loaded catalog invents nothing', richAfter.n === richBefore.n,
+    richBefore.n + ' -> ' + richAfter.n);
+ok('and leaves its courses whole, prerequisites and all',
+    richAfter.prereq === richBefore.prereq, String(richAfter.prereq));
+ok('while still placing what the file held', richAfter.placed === 4, String(richAfter.placed));
+await onto.browser.close();
+
+// 11. A two-school file rebuilds both, in the order the rows appear.
+const career = await open({ loaded: false, size: [1000, 660] });
+await career.page.evaluate(() => setToolMode('cur', 'split'));
+await career.page.waitForTimeout(400);
+await paste(career.page, fs.readFileSync(OUT + '/career.csv', 'utf8'));
+await career.page.waitForTimeout(1200);
+const names = await career.page.evaluate(() =>
+    currGetRecord('cur').schools.map(s => currSchoolName(s)));
+ok('a two-school file rebuilds both schools', names.length === 2, JSON.stringify(names));
+ok('in the order the rows appear',
+    names.indexOf('Sample High School') < names.indexOf('Second School'), JSON.stringify(names));
+await career.browser.close();
+
+// 12. Anything that is neither JSON nor one of our CSVs is refused as before.
+await paste(fresh.page, 'this is not a document\nnor a spreadsheet');
+await fresh.page.waitForTimeout(500);
+ok('a file that is neither is still refused as invalid JSON', /not valid JSON/.test(
+    await fresh.page.evaluate(() => document.querySelector('.curr-status').textContent)),
+    await fresh.page.evaluate(() => document.querySelector('.curr-status').textContent));
+await fresh.browser.close();
+
 await finish(browser, errors);
