@@ -1,5 +1,5 @@
 // The elementary file, seen by both tools.
-import { open as docOpen, ok, finish, check } from './cdoc-lib.mjs';
+import { open as docOpen, ok, finish, check, OUT } from './cdoc-lib.mjs';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -111,7 +111,7 @@ const page_text = shown;
 ok('and no source link points back at the real school',
     !/browardschools|lyonscreek|finalsite/i.test(JSON.stringify(DOC)));
 ok('no teacher names survive', !/See (Ms|Mr|Mrs)\.?\s+[A-Z]/.test(JSON.stringify(DOC)));
-await p2.screenshot({ path: 'bcps.png' });
+await p2.screenshot({ path: OUT + '/ironridge.png' });
 await b2.close();
 fs.unlinkSync(path.join(HERE, '..', 'learn', 'data') + '/.bcps-tmp.json');
 console.log('  page errors: ' + (errors.length ? JSON.stringify(errors) : 'none'));
