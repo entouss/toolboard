@@ -2,13 +2,21 @@
   "$schema_version": "2.0",
   "source_documents": [
     {
+      "id": "transcript",
+      "title": "A course record for one student, Kindergarten to Grade 5",
+      "document_type": "student_record",
+      "note": "Where the course numbers and the year each subject is taken come from. No student name, identification number, date of birth or calendar year appears anywhere in this document.",
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy."
+    },
+    {
       "id": "roadmap_k",
       "title": "Kindergarten Roadmap to Success",
       "document_type": "curriculum_roadmap",
       "grade_levels_covered": [
         0
       ],
-      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy.",
+      "note": "One of the six public grade-level roadmaps the district curriculum was converted from. Reached here by way of the anonymised copy in the toolboard repo; the district's name is restored."
     },
     {
       "id": "roadmap_1",
@@ -17,7 +25,8 @@
       "grade_levels_covered": [
         1
       ],
-      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy.",
+      "note": "One of the six public grade-level roadmaps the district curriculum was converted from. Reached here by way of the anonymised copy in the toolboard repo; the district's name is restored."
     },
     {
       "id": "roadmap_2",
@@ -26,7 +35,8 @@
       "grade_levels_covered": [
         2
       ],
-      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy.",
+      "note": "One of the six public grade-level roadmaps the district curriculum was converted from. Reached here by way of the anonymised copy in the toolboard repo; the district's name is restored."
     },
     {
       "id": "roadmap_3",
@@ -35,7 +45,8 @@
       "grade_levels_covered": [
         3
       ],
-      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy.",
+      "note": "One of the six public grade-level roadmaps the district curriculum was converted from. Reached here by way of the anonymised copy in the toolboard repo; the district's name is restored."
     },
     {
       "id": "roadmap_4",
@@ -44,7 +55,8 @@
       "grade_levels_covered": [
         4
       ],
-      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy.",
+      "note": "One of the six public grade-level roadmaps the district curriculum was converted from. Reached here by way of the anonymised copy in the toolboard repo; the district's name is restored."
     },
     {
       "id": "roadmap_5",
@@ -53,20 +65,49 @@
       "grade_levels_covered": [
         5
       ],
-      "url_note": "The originating document is public; the link is removed in this anonymised copy."
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy.",
+      "note": "One of the six public grade-level roadmaps the district curriculum was converted from. Reached here by way of the anonymised copy in the toolboard repo; the district's name is restored."
+    },
+    {
+      "id": "clubs",
+      "title": "Cantrell Park Elementary — Clubs and Activities",
+      "document_type": "school_website",
+      "note": "The one page that names offerings in full, with sponsors, meeting days and times.",
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "school_site",
+      "title": "Cantrell Park Elementary — school home page",
+      "document_type": "school_website",
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "academics",
+      "title": "Cantrell Park Elementary — Academics",
+      "document_type": "school_website",
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "district_courses",
+      "title": "Braewood County Public Schools — Elementary Courses",
+      "document_type": "district_requirements",
+      "note": "Used to decide what counts as an addition: it sets out what every BCPS elementary student receives.",
+      "url_note": "Invented for this sample. The originating documents are public; the link is removed in this anonymised copy."
     }
   ],
-  "generated_from": "The six public \"Roadmap to Success\" documents, one per elementary grade, converted one section at a time. Nothing was added that the roadmaps do not say.",
+  "generated_from": "Three kinds of source joined: a course record giving the course numbers and the grade each subject is taken in, grade-level curriculum roadmaps giving the subject descriptions and the skills under them, and the school's own pages giving the clubs it runs. Real in shape and structure; the school, its staff and its documents are invented.",
   "school": {
-    "name": "Braewood County Public Schools",
-    "short_name": "BCPS",
-    "type": "Public school district",
-    "district": "Braewood County Public Schools"
+    "name": "Cantrell Park Elementary School",
+    "short_name": "Cantrell Park",
+    "type": "Public district elementary school",
+    "district": "Braewood County Public Schools",
+    "grade_range": "PK-5",
+    "principal": "Mr. Vance"
   },
   "document": {
-    "title": "Elementary Roadmaps to Success",
-    "academic_year": "2025-2026",
-    "document_type": "curriculum_roadmap",
+    "title": "Cantrell Park Elementary — what a student here takes",
+    "academic_year": "2026-2027",
+    "document_type": "school_offerings",
     "grade_levels_covered": [
       0,
       1,
@@ -74,7 +115,26 @@
       3,
       4,
       5
-    ]
+    ],
+    "scope": "Both halves: the district elementary curriculum every child at this school receives, and the clubs and activities this school adds. Courses carrying a state course number are the district curriculum; MPE- codes are the school's own.",
+    "grading": {
+      "scale": "pass-fail",
+      "values": [
+        {
+          "label": "P",
+          "name": "Pass",
+          "points": null
+        },
+        {
+          "label": "F",
+          "name": "Fail",
+          "points": null
+        }
+      ],
+      "applies_to": "every course in this document",
+      "counts_toward_gpa": false,
+      "note": "The school reports Pass or Fail rather than a mark on a scale. Elementary courses carry no credit, so there is no grade point average to contribute to either."
+    }
   },
   "planner": {
     "levels": [
@@ -94,10 +154,10 @@
       "5": "Grade 5"
     }
   },
-  "course_count": 31,
+  "course_count": 72,
   "courses": [
     {
-      "course_code": "BCPS-K-ELA",
+      "course_code": "50100410",
       "title": "English Language Arts, Kindergarten",
       "department": "English Language Arts",
       "department_canonical": "English Language Arts",
@@ -120,6 +180,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50100410, printed as \"LANG ARTS GR KG\".",
         "foundational skills: 12 skills listed.",
         "reading: 8 skills listed.",
         "communication (including writing): 12 skills listed.",
@@ -188,11 +249,17 @@
       "source_refs": [
         {
           "source": "roadmap_k"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "LANG ARTS GR KG"
       ]
     },
     {
-      "course_code": "BCPS-K-SOC",
+      "course_code": "50210200",
       "title": "Social Studies, Kindergarten",
       "department": "Social Studies",
       "department_canonical": "Social Studies",
@@ -215,6 +282,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50210200, printed as \"SOC STUDIES K\".",
         "history: 9 skills listed.",
         "geography: 9 skills listed.",
         "economics: 4 skills listed.",
@@ -276,11 +344,17 @@
       "source_refs": [
         {
           "source": "roadmap_k"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SOC STUDIES K"
       ]
     },
     {
-      "course_code": "BCPS-K-MATH",
+      "course_code": "50120200",
       "title": "Mathematics, Kindergarten",
       "department": "Mathematics",
       "department_canonical": "Mathematics",
@@ -303,6 +377,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50120200, printed as \"MATH-GRADE K\".",
         "Skills: 28 skills listed."
       ],
       "description": "Kindergarten students will get an early start on mastering mathematical concepts by focusing on three critical areas: (1) developing an understanding of counting to represent the total number of objects in a set and to order the objects within a set; (2) developing an understanding of addition and subtraction and the relationship of these operations to counting and (3) measuring, comparing and categorizing objects according to various attributes, including their two- and three-dimensional shapes. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
@@ -346,11 +421,17 @@
       "source_refs": [
         {
           "source": "roadmap_k"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "MATH-GRADE K"
       ]
     },
     {
-      "course_code": "BCPS-K-SCI",
+      "course_code": "50200100",
       "title": "Science, Kindergarten",
       "department": "Science",
       "department_canonical": "Science",
@@ -373,6 +454,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50200100, printed as \"SCIENCE GRADE K\".",
         "The Practice of Science: 5 skills listed.",
         "Earth in Space and Time: 6 skills listed.",
         "Properties of Matter: 1 skills listed.",
@@ -443,12 +525,18 @@
       "source_refs": [
         {
           "source": "roadmap_k"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SCIENCE GRADE K"
       ]
     },
     {
-      "course_code": "BCPS-K-ART",
-      "title": "Fine Arts Education, Kindergarten",
+      "course_code": "50010100",
+      "title": "Art, Kindergarten",
       "department": "Fine Arts Education",
       "department_canonical": "Fine Arts Education",
       "subject_area": null,
@@ -470,6 +558,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50010100, printed as \"ART GRADE KG\".",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "",
@@ -479,11 +568,18 @@
       "source_refs": [
         {
           "source": "roadmap_k"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "ART GRADE KG",
+        "Fine Arts Education, Kindergarten"
       ]
     },
     {
-      "course_code": "BCPS-K-PE",
+      "course_code": "50150200",
       "title": "Physical Education, Kindergarten",
       "department": "Physical Education",
       "department_canonical": "Physical Education",
@@ -506,6 +602,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50150200, printed as \"PHYS ED GRADE K\".",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "BCPS Elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit www.fldoe.org. Parents play an integral role in their child’s academic performance. Children thrive when parents are committed to actively participate in their child’s education. Consistent parental involvement yields greater academic success, improved selfesteem, a positive attitude, and higher levels of intrinsic motivation. Below are some simple activities you can do with your child to support their love of learning at home.",
@@ -515,11 +612,17 @@
       "source_refs": [
         {
           "source": "roadmap_k"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "PHYS ED GRADE K"
       ]
     },
     {
-      "course_code": "BCPS-1-ELA",
+      "course_code": "50100420",
       "title": "English Language Arts, Grade 1",
       "department": "English Language Arts",
       "department_canonical": "English Language Arts",
@@ -544,6 +647,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50100420, printed as \"LANG ARTS GR 1\".",
         "Foundational Skills: 12 skills listed.",
         "Reading: 10 skills listed.",
         "Communication (including Writing): 10 skills listed.",
@@ -612,11 +716,17 @@
       "source_refs": [
         {
           "source": "roadmap_1"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "LANG ARTS GR 1"
       ]
     },
     {
-      "course_code": "BCPS-1-SOC",
+      "course_code": "50210300",
       "title": "Social Studies, Grade 1",
       "department": "Social Studies",
       "department_canonical": "Social Studies",
@@ -641,6 +751,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50210300, printed as \"SOC STUDIES 1\".",
         "History: 8 skills listed.",
         "Geography: 6 skills listed.",
         "Economics: 6 skills listed.",
@@ -701,11 +812,17 @@
       "source_refs": [
         {
           "source": "roadmap_1"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SOC STUDIES 1"
       ]
     },
     {
-      "course_code": "BCPS-1-MATH",
+      "course_code": "50120300",
       "title": "Mathematics, Grade 1",
       "department": "Mathematics",
       "department_canonical": "Mathematics",
@@ -730,6 +847,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50120300, printed as \"MATH-GRADE 1\".",
         "General: 34 skills listed."
       ],
       "description": "First grade marks an important milestone in your child’s academic career in mathematics. Your student will begin to grasp more abstract mathematical concepts by an increased focus on four critical areas:",
@@ -779,11 +897,17 @@
       "source_refs": [
         {
           "source": "roadmap_1"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "MATH-GRADE 1"
       ]
     },
     {
-      "course_code": "BCPS-1-SCI",
+      "course_code": "50200200",
       "title": "Science, Grade 1",
       "department": "Science",
       "department_canonical": "Science",
@@ -808,6 +932,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50200200, printed as \"SCIENCE GRADE 1\".",
         "The Practice of Science: 4 skills listed.",
         "Earth in Space and Time: 4 skills listed.",
         "Properties of Matter: 1 skills listed.",
@@ -884,11 +1009,17 @@
       "source_refs": [
         {
           "source": "roadmap_1"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SCIENCE GRADE 1"
       ]
     },
     {
-      "course_code": "BCPS-1-PE",
+      "course_code": "50150300",
       "title": "Physical Education, Grade 1",
       "department": "Physical Education",
       "department_canonical": "Physical Education",
@@ -913,6 +1044,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50150300, printed as \"PHYS ED GRADE 1\".",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
@@ -922,11 +1054,17 @@
       "source_refs": [
         {
           "source": "roadmap_1"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "PHYS ED GRADE 1"
       ]
     },
     {
-      "course_code": "BCPS-2-ELA",
+      "course_code": "50100430",
       "title": "English Language Arts, Grade 2",
       "department": "English Language Arts",
       "department_canonical": "English Language Arts",
@@ -951,6 +1089,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50100430, printed as \"LANG ARTS GR 2\".",
         "Foundational Skills: 6 skills listed.",
         "Reading: 11 skills listed.",
         "Communication (including Writing): 10 skills listed.",
@@ -1014,11 +1153,17 @@
       "source_refs": [
         {
           "source": "roadmap_2"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "LANG ARTS GR 2"
       ]
     },
     {
-      "course_code": "BCPS-2-SOC",
+      "course_code": "50210400",
       "title": "Social Studies, Grade 2",
       "department": "Social Studies",
       "department_canonical": "Social Studies",
@@ -1043,6 +1188,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50210400, printed as \"SOC STUDIES 2\".",
         "History: 11 skills listed.",
         "Geography: 4 skills listed.",
         "Economics: 4 skills listed.",
@@ -1104,11 +1250,17 @@
       "source_refs": [
         {
           "source": "roadmap_2"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SOC STUDIES 2"
       ]
     },
     {
-      "course_code": "BCPS-2-MATH",
+      "course_code": "50120400",
       "title": "Mathematics, Grade 2",
       "department": "Mathematics",
       "department_canonical": "Mathematics",
@@ -1133,6 +1285,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50120400, printed as \"MATH-GRADE 2\".",
         "Skills: 28 skills listed."
       ],
       "description": "Second grade marks an important milestone in your child’s academic career. The second grade student will begin to grasp more abstract mathematical concepts by an increased focus on several critical areas: (1) extending understanding of place value in three-digit numbers; (2) building fluency and algebraic reasoning with addition and subtraction; (3) extending understanding of measurement of objects, time and the perimeter of geometric figures and (4) developing spatial reasoning with number representations and two-dimensional figures. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
@@ -1176,11 +1329,17 @@
       "source_refs": [
         {
           "source": "roadmap_2"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "MATH-GRADE 2"
       ]
     },
     {
-      "course_code": "BCPS-2-SCI",
+      "course_code": "50200300",
       "title": "Science, Grade 2",
       "department": "Science",
       "department_canonical": "Science",
@@ -1205,6 +1364,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50200300, printed as \"SCIENCE GRADE 2\".",
         "The Practice of Science: 6 skills listed.",
         "Earth Structures: 3 skills listed.",
         "Earth Systems and Patterns: 5 skills listed.",
@@ -1298,7 +1458,13 @@
       "source_refs": [
         {
           "source": "roadmap_2"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SCIENCE GRADE 2"
       ]
     },
     {
@@ -1327,6 +1493,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "No state course number: the record shows physical education only for Kindergarten and Grade 1. The district requires 150 minutes weekly at every elementary grade, so this is kept, but its course number is unconfirmed.",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
@@ -1340,7 +1507,7 @@
       ]
     },
     {
-      "course_code": "BCPS-3-ELA",
+      "course_code": "50100440",
       "title": "English Language Arts, Grade 3",
       "department": "English Language Arts",
       "department_canonical": "English Language Arts",
@@ -1365,6 +1532,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50100440, printed as \"LANG ARTS GR 3\".",
         "Foundational Skills: 2 skills listed.",
         "Reading: 11 skills listed.",
         "Communication (including Writing): 10 skills listed.",
@@ -1424,11 +1592,17 @@
       "source_refs": [
         {
           "source": "roadmap_3"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "LANG ARTS GR 3"
       ]
     },
     {
-      "course_code": "BCPS-3-SOC",
+      "course_code": "50210500",
       "title": "Social Studies, Grade 3",
       "department": "Social Studies",
       "department_canonical": "Social Studies",
@@ -1453,6 +1627,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50210500, printed as \"SOC STUDIES 3\".",
         "History: 3 skills listed.",
         "Geography: 18 skills listed.",
         "Economics: 4 skills listed.",
@@ -1519,11 +1694,17 @@
       "source_refs": [
         {
           "source": "roadmap_3"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SOC STUDIES 3"
       ]
     },
     {
-      "course_code": "BCPS-3-MATH",
+      "course_code": "50120500",
       "title": "Mathematics, Grade 3",
       "department": "Mathematics",
       "department_canonical": "Mathematics",
@@ -1548,6 +1729,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50120500, printed as \"MATH-GRADE 3\".",
         "General: 36 skills listed."
       ],
       "description": "Third grade marks a significant transition year for child’s academic career. The third grade student will begin to grasp more abstract mathematical concepts by an increased focus on several critical areas:",
@@ -1599,11 +1781,17 @@
       "source_refs": [
         {
           "source": "roadmap_3"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "MATH-GRADE 3"
       ]
     },
     {
-      "course_code": "BCPS-3-SCI",
+      "course_code": "50200400",
       "title": "Science, Grade 3",
       "department": "Science",
       "department_canonical": "Science",
@@ -1628,6 +1816,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50200400, printed as \"SCIENCE GRADE 3\".",
         "The Practice of Science: 7 skills listed.",
         "General: 3 skills listed.",
         "Earth in Space and Time: 5 skills listed.",
@@ -1717,7 +1906,13 @@
       "source_refs": [
         {
           "source": "roadmap_3"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SCIENCE GRADE 3"
       ]
     },
     {
@@ -1746,6 +1941,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "No state course number: the record shows physical education only for Kindergarten and Grade 1. The district requires 150 minutes weekly at every elementary grade, so this is kept, but its course number is unconfirmed.",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
@@ -1759,7 +1955,7 @@
       ]
     },
     {
-      "course_code": "BCPS-4-ELA",
+      "course_code": "50100450",
       "title": "English Language Arts, Grade 4",
       "department": "English Language Arts",
       "department_canonical": "English Language Arts",
@@ -1784,6 +1980,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50100450, printed as \"LANG ARTS GR 4\".",
         "Foundational Skills: 4 skills listed.",
         "Reading: 16 skills listed.",
         "Communication (including Writing): 29 skills listed.",
@@ -1869,11 +2066,17 @@
       "source_refs": [
         {
           "source": "roadmap_4"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "LANG ARTS GR 4"
       ]
     },
     {
-      "course_code": "BCPS-4-SOC",
+      "course_code": "50210600",
       "title": "Social Studies, Grade 4",
       "department": "Social Studies",
       "department_canonical": "Social Studies",
@@ -1898,6 +2101,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50210600, printed as \"SOC STUDIES 4\".",
         "History: 10 skills listed.",
         "Geography: 4 skills listed.",
         "Financial Literacy: 6 skills listed.",
@@ -1956,11 +2160,17 @@
       "source_refs": [
         {
           "source": "roadmap_4"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SOC STUDIES 4"
       ]
     },
     {
-      "course_code": "BCPS-4-MATH",
+      "course_code": "50120600",
       "title": "Mathematics, Grade 4",
       "department": "Mathematics",
       "department_canonical": "Mathematics",
@@ -1985,6 +2195,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50120600, printed as \"MATH-GRADE 4\".",
         "General: 32 skills listed."
       ],
       "description": "Fourth grade marks an integral milestone in your child’s academic career. The fourth-grade student will begin to grasp more abstract mathematical concepts by an increased focus on four critical areas: (1) extending understanding of multi-digit multiplication and division; (2) developing the relationship between fractions and decimals and beginning operations with both; (3) classifying and measuring angles and (4) developing an understanding for interpreting data to include mode, median and range. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
@@ -2032,11 +2243,17 @@
       "source_refs": [
         {
           "source": "roadmap_4"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "MATH-GRADE 4"
       ]
     },
     {
-      "course_code": "BCPS-4-SCI",
+      "course_code": "50200500",
       "title": "Science, Grade 4",
       "department": "Science",
       "department_canonical": "Science",
@@ -2061,6 +2278,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50200500, printed as \"SCIENCE GRADE 4\".",
         "The Practice of Science: 8 skills listed.",
         "General: 2 skills listed.",
         "Earth in Space and Time: 5 skills listed.",
@@ -2162,7 +2380,13 @@
       "source_refs": [
         {
           "source": "roadmap_4"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SCIENCE GRADE 4"
       ]
     },
     {
@@ -2191,6 +2415,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "No state course number: the record shows physical education only for Kindergarten and Grade 1. The district requires 150 minutes weekly at every elementary grade, so this is kept, but its course number is unconfirmed.",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.o",
@@ -2204,7 +2429,7 @@
       ]
     },
     {
-      "course_code": "BCPS-5-ELA",
+      "course_code": "50100460",
       "title": "English Language Arts, Grade 5",
       "department": "English Language Arts",
       "department_canonical": "English Language Arts",
@@ -2229,6 +2454,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50100460, printed as \"LANG ARTS GR 5\".",
         "Foundational Skills: 4 skills listed.",
         "Reading: 39 skills listed.",
         "Vocabulary: 4 skills listed."
@@ -2303,11 +2529,17 @@
       "source_refs": [
         {
           "source": "roadmap_5"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "LANG ARTS GR 5"
       ]
     },
     {
-      "course_code": "BCPS-5-SOC",
+      "course_code": "50210700",
       "title": "Social Studies, Grade 5",
       "department": "Social Studies",
       "department_canonical": "Social Studies",
@@ -2332,6 +2564,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50210700, printed as \"SOC STUDIES 5\".",
         "History: 7 skills listed.",
         "Geography: 10 skills listed.",
         "Economics: 4 skills listed.",
@@ -2403,11 +2636,17 @@
       "source_refs": [
         {
           "source": "roadmap_5"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SOC STUDIES 5"
       ]
     },
     {
-      "course_code": "BCPS-5-MATH",
+      "course_code": "50120700",
       "title": "Mathematics, Grade 5",
       "department": "Mathematics",
       "department_canonical": "Mathematics",
@@ -2432,6 +2671,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50120700, printed as \"MATH-GRADE 5\".",
         "General: 31 skills listed."
       ],
       "description": "Fifth grade marks an integral milestone in your child’s academic career. The fifth grade student will begin to grasp more abstract mathematical concepts by an increased focus on five critical areas: (1) multiplying and dividing multi-digit whole numbers, including using a standard algorithm; (2) adding and subtracting fractions and decimals with procedural fluency, developing an understanding of multiplication and division of fractions and decimals; (3) developing an understanding of the coordinate plane and plotting pairs of numbers in the first quadrant; (4) extending geometric reasoning to include volume and (5) extending understanding of data to include the mean. Below you will find some skills and processes your child will be expected to know and be able to do by the end of the school year.",
@@ -2478,11 +2718,17 @@
       "source_refs": [
         {
           "source": "roadmap_5"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "MATH-GRADE 5"
       ]
     },
     {
-      "course_code": "BCPS-5-SCI",
+      "course_code": "50200600",
       "title": "Science, Grade 5",
       "department": "Science",
       "department_canonical": "Science",
@@ -2507,6 +2753,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "State course number 50200600, printed as \"SCIENCE GRADE 5\".",
         "The Practice of Science: 8 skills listed.",
         "Earth in Space and Time: 1 skills listed.",
         "General: 9 skills listed.",
@@ -2607,7 +2854,13 @@
       "source_refs": [
         {
           "source": "roadmap_5"
+        },
+        {
+          "source": "transcript"
         }
+      ],
+      "title_variants": [
+        "SCIENCE GRADE 5"
       ]
     },
     {
@@ -2636,6 +2889,7 @@
       "flags": {},
       "cross_credit": null,
       "notes": [
+        "No state course number: the record shows physical education only for Kindergarten and Grade 1. The district requires 150 minutes weekly at every elementary grade, so this is kept, but its course number is unconfirmed.",
         "The roadmap describes this subject in prose without listing skills."
       ],
       "description": "Braewood County Public Schools elementary students receive 150 minutes of physical education each week as required by state statute. A minimum of 30 consecutive minutes is required on any day that physical education instruction is provided. Florida’s physical education standards are organized around four strands. These strands carry throughout all grade levels and are centered around developing a physically literate individual. These strands include Movement Competency, Cognitive Abilities, Lifetime Fitness, and Responsible Behaviors and Values. For more information about the physical education standards, visit fldoe.org.",
@@ -2647,19 +2901,1550 @@
           "source": "roadmap_5"
         }
       ]
+    },
+    {
+      "course_code": "50130600",
+      "title": "Music, Kindergarten",
+      "title_variants": [
+        "MUSIC KG"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50130600, printed as \"MUSIC KG\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50070200",
+      "title": "Spanish, Kindergarten",
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50070200, printed as \"SPANISH\".",
+        "Taken every year, with its own course number at each grade rather than one course repeated."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5020010L",
+      "title": "Science Laboratory, Kindergarten",
+      "title_variants": [
+        "SCIENCE GRADE K LAB"
+      ],
+      "department": "Science",
+      "department_canonical": "Science",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        0
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5020010L, printed as \"SCIENCE GRADE K LAB\".",
+        "A laboratory course recorded beside the science course, Kindergarten to Grade 3 only."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50010200",
+      "title": "Art, Grade 1",
+      "title_variants": [
+        "ART GRADE 1"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50010200, printed as \"ART GRADE 1\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50130700",
+      "title": "Music, Grade 1",
+      "title_variants": [
+        "MUSIC GRADE 1"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50130700, printed as \"MUSIC GRADE 1\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5007020B",
+      "title": "Spanish, Grade 1",
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5007020B, printed as \"SPANISH\".",
+        "Taken every year, with its own course number at each grade rather than one course repeated."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5010042R",
+      "title": "Language Arts Reading, Grade 1",
+      "title_variants": [
+        "LA/READ GR 1"
+      ],
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5010042R, printed as \"LA/READ GR 1\".",
+        "A second language arts course alongside the main one, from Grade 1 on."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5020020L",
+      "title": "Science Laboratory, Grade 1",
+      "title_variants": [
+        "SCIENCE GRADE 1 LAB"
+      ],
+      "department": "Science",
+      "department_canonical": "Science",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        1
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5020020L, printed as \"SCIENCE GRADE 1 LAB\".",
+        "A laboratory course recorded beside the science course, Kindergarten to Grade 3 only."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50010300",
+      "title": "Art, Grade 2",
+      "title_variants": [
+        "ART GRADE 2"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50010300, printed as \"ART GRADE 2\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50130800",
+      "title": "Music, Grade 2",
+      "title_variants": [
+        "MUSIC GRADE 2"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50130800, printed as \"MUSIC GRADE 2\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5007020C",
+      "title": "Spanish, Grade 2",
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5007020C, printed as \"SPANISH\".",
+        "Taken every year, with its own course number at each grade rather than one course repeated."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5010043R",
+      "title": "Language Arts Reading, Grade 2",
+      "title_variants": [
+        "LA/READ GR 2"
+      ],
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5010043R, printed as \"LA/READ GR 2\".",
+        "A second language arts course alongside the main one, from Grade 1 on."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5020030L",
+      "title": "Science Laboratory, Grade 2",
+      "title_variants": [
+        "SCIENCE GRADE 2 LAB"
+      ],
+      "department": "Science",
+      "department_canonical": "Science",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        2
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5020030L, printed as \"SCIENCE GRADE 2 LAB\".",
+        "A laboratory course recorded beside the science course, Kindergarten to Grade 3 only."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50010400",
+      "title": "Art, Grade 3",
+      "title_variants": [
+        "ART GRADE 3"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50010400, printed as \"ART GRADE 3\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50130900",
+      "title": "Music, Grade 3",
+      "title_variants": [
+        "MUSIC GRADE 3"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50130900, printed as \"MUSIC GRADE 3\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5007020D",
+      "title": "Spanish, Grade 3",
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5007020D, printed as \"SPANISH\".",
+        "Taken every year, with its own course number at each grade rather than one course repeated."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5010044R",
+      "title": "Language Arts Reading, Grade 3",
+      "title_variants": [
+        "LA/READ GR 3"
+      ],
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5010044R, printed as \"LA/READ GR 3\".",
+        "A second language arts course alongside the main one, from Grade 1 on."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5020040L",
+      "title": "Science Laboratory, Grade 3",
+      "title_variants": [
+        "SCIENCE GRADE 3 LAB"
+      ],
+      "department": "Science",
+      "department_canonical": "Science",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        3
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5020040L, printed as \"SCIENCE GRADE 3 LAB\".",
+        "A laboratory course recorded beside the science course, Kindergarten to Grade 3 only."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50010500",
+      "title": "Art, Grade 4",
+      "title_variants": [
+        "ART GRADE 4"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50010500, printed as \"ART GRADE 4\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50131000",
+      "title": "Music, Grade 4",
+      "title_variants": [
+        "MUSIC GRADE 4"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50131000, printed as \"MUSIC GRADE 4\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5007020E",
+      "title": "Spanish, Grade 4",
+      "title_variants": [
+        "ELEM SPANISH GR4"
+      ],
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5007020E, printed as \"ELEM SPANISH GR4\".",
+        "Taken every year, with its own course number at each grade rather than one course repeated."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5010045R",
+      "title": "Language Arts Reading, Grade 4",
+      "title_variants": [
+        "LA/READ GR 4"
+      ],
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        4
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5010045R, printed as \"LA/READ GR 4\".",
+        "A second language arts course alongside the main one, from Grade 1 on."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50010600",
+      "title": "Art, Grade 5",
+      "title_variants": [
+        "ART GRADE 5"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50010600, printed as \"ART GRADE 5\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "50131100",
+      "title": "Music, Grade 5",
+      "title_variants": [
+        "MUSIC-INTERM 3"
+      ],
+      "department": "Fine Arts Education",
+      "department_canonical": "Fine Arts Education",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 50131100, printed as \"MUSIC-INTERM 3\"."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5007020F",
+      "title": "Spanish, Grade 5",
+      "title_variants": [
+        "ELEM SPANISH GR5"
+      ],
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5007020F, printed as \"ELEM SPANISH GR5\".",
+        "Taken every year, with its own course number at each grade rather than one course repeated."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "5010046R",
+      "title": "Language Arts Reading, Grade 5",
+      "title_variants": [
+        "LA/READ GR 5"
+      ],
+      "department": "English Language Arts",
+      "department_canonical": "English Language Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "credit_note": "Elementary grades carry no credit.",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "State course number 5010046R, printed as \"LA/READ GR 5\".",
+        "A second language arts course alongside the main one, from Grade 1 on."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "transcript"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-WL-SPANISH",
+      "title": "Spanish Club",
+      "department": "World Languages",
+      "department_canonical": "World Languages",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [
+        4,
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Grades 4 and 5. Meets Thursdays, 2:00-3:00 PM.",
+        "Sponsor: Mrs. Ibarra.",
+        "Exposes students to the cultures of the Spanish-speaking world and strengthens vocabulary and speaking skills."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-SD-DEBATE",
+      "title": "Debate",
+      "title_variants": [
+        "Speech & Debate Club",
+        "Speech and Debate"
+      ],
+      "department": "Speech and Debate",
+      "department_canonical": "Speech and Debate",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Meets Tuesdays and Wednesdays, 2:00-3:00 PM.",
+        "Sponsors: Mrs. Whitlock and Mr. Bramley.",
+        "Students learn communication and debate skills and compete at district level. The home page calls it award-winning and refers to Speech & Debate champions.",
+        "No source states which grades may join."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        },
+        {
+          "source": "school_site"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-STEM-ROBOTICS",
+      "title": "Robotics",
+      "department": "STEM",
+      "department_canonical": "STEM",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Meets Thursdays, 2:00-3:00 PM.",
+        "Sponsors: Mrs. Kerrigan and Mr. Bramley.",
+        "Students build, modify and program a robot, and compete.",
+        "No source states which grades may join."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-VA-ART-CLUB",
+      "title": "Art Club",
+      "department": "Visual Arts",
+      "department_canonical": "Visual Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Meets Thursdays, 2:00-3:00 PM.",
+        "Sponsor: Mrs. Lowe.",
+        "Understanding how media, technique and process are used to create works of art.",
+        "Separate from the art instruction every BCPS elementary student receives.",
+        "No source states which grades may join."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-PA-PIANO",
+      "title": "Piano Club",
+      "program": "Music Club",
+      "department": "Performing Arts",
+      "department_canonical": "Performing Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "A section of the Music Club. Sponsor: Mr. Ashworth.",
+        "The Music Club meets Monday to Friday, 2:00-3:00 PM; the day varies by instrument, and no source says which day this section takes."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-PA-GUITAR",
+      "title": "Guitar Club",
+      "program": "Music Club",
+      "department": "Performing Arts",
+      "department_canonical": "Performing Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "A section of the Music Club. Sponsor: Mr. Ashworth.",
+        "The Music Club meets Monday to Friday, 2:00-3:00 PM; the day varies by instrument, and no source says which day this section takes."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-PA-VIOLIN-A",
+      "title": "Violin Group A",
+      "program": "Music Club",
+      "department": "Performing Arts",
+      "department_canonical": "Performing Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "A section of the Music Club. Sponsor: Mr. Ashworth.",
+        "The home page mentions a Kindergarten violin group. The clubs page does not say whether that is Group A or Group B, so no grade is recorded for either."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        },
+        {
+          "source": "school_site"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-PA-VIOLIN-B",
+      "title": "Violin Group B",
+      "program": "Music Club",
+      "department": "Performing Arts",
+      "department_canonical": "Performing Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "A section of the Music Club. Sponsor: Mr. Ashworth.",
+        "See Violin Group A: the home page's Kindergarten violin group is not matched to a group by any source."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        },
+        {
+          "source": "school_site"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-PA-CHORUS",
+      "title": "Chorus Club",
+      "program": "Music Club",
+      "department": "Performing Arts",
+      "department_canonical": "Performing Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "A section of the Music Club. Sponsor: Mr. Ashworth.",
+        "Named on the home page as well as the clubs page."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        },
+        {
+          "source": "school_site"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-PA-DANCE-DRAMA",
+      "title": "Dance & Drama",
+      "department": "Performing Arts",
+      "department_canonical": "Performing Arts",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Named on the home page only. It does not appear on the clubs page, which is the fuller list, so it may be seasonal or may have ended.",
+        "No source says whether this is one offering or two, when it meets, or which grades it serves."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "school_site"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-LS-ANNOUNCEMENTS",
+      "title": "MPE Morning Announcements",
+      "department": "Leadership and Service",
+      "department_canonical": "Leadership and Service",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "A select group of fifth-grade students, chosen for their leadership qualities.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "selective": true
+      },
+      "cross_credit": null,
+      "notes": [
+        "Fifth grade. Airs every school day from 8:00 AM.",
+        "Sponsor: Mrs. Prewitt.",
+        "Teams rotate quarterly, so a place is for part of the year."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-LS-SAFETY-PATROL",
+      "title": "Safety Patrol",
+      "department": "Leadership and Service",
+      "department_canonical": "Leadership and Service",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [
+        5
+      ],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": "Elected. A leadership position for fifth-graders, on academic achievement, responsibility and attitude.",
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "selective": true
+      },
+      "cross_credit": null,
+      "notes": [
+        "Fifth grade, elected.",
+        "Sponsor: Mrs. Farrow."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-LS-STUDENT-COUNCIL",
+      "title": "Student Council",
+      "department": "Leadership and Service",
+      "department_canonical": "Leadership and Service",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Sponsor: Mrs. Hartley.",
+        "Plans school and class activities under adult supervision.",
+        "No source states which grades may join."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-LS-AMBASSADORS",
+      "title": "Cantrell Park Ambassadors",
+      "department": "Leadership and Service",
+      "department_canonical": "Leadership and Service",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Sponsor: Mrs. Okafor.",
+        "Students deliver a message of kindness to peers with respect and empathy.",
+        "Distinct from the Everglades Ambassador Club named on the home page.",
+        "No source states which grades may join."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "clubs"
+        }
+      ]
+    },
+    {
+      "course_code": "MPE-LS-EVERGLADES",
+      "title": "Everglades Ambassador Club",
+      "department": "Leadership and Service",
+      "department_canonical": "Leadership and Service",
+      "level": "Standard",
+      "credits": 0,
+      "credits_basis": "not applicable",
+      "grade_levels": [],
+      "semester_offered": "Full Year",
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "notes": [
+        "Named on the home page alongside Everglades field study. It does not appear on the clubs page, so it may be seasonal or may have ended.",
+        "No source states which grades may join."
+      ],
+      "description": null,
+      "strands": [],
+      "is_elective": true,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "school_site"
+        }
+      ]
     }
   ],
   "data_notes": [
-    "This is an elementary curriculum, and it does not fit the shape of a course catalog. Elementary pupils do not choose courses: every child in a year takes every subject in it. There is nothing to plan, and the explorer will show a grid with one unavoidable entry per subject per year.",
-    "Credits are zero throughout, because elementary grades carry none. Any credit total the explorer shows will be zero, and that is correct rather than missing data.",
-    "No graduation requirements are stated, because elementary school has none. The Curriculum Doctor reports this, correctly.",
-    "The prerequisite on each entry is the same subject in the year below. The roadmaps do not state this — it is the sequence implied by the grades themselves, added so the subject progression can be seen as a chain. It is an inference, not a rule from the document.",
-    "Skills are kept per strand in a `strands` field on each course, exactly as the roadmap prints them. The explorer does not read that field; it is carried so nothing from the source is lost.",
-    "Text was extracted from the PDFs, which wrap words across lines with a hyphen. Those are rejoined where the next line begins in lower case, so a genuine hyphenated compound ending a line may have lost its hyphen.",
-    "The \"Activities to practise with your child\" pages are parent guidance rather than curriculum, and are not represented here.",
-    "One roadmap prints its SCIENCE heading as a graphic, so the heading never appears in the extracted text. That section is recognised by its opening strand, \"The Practice of Science\", which every Florida science section uses. Without that rule its skills would have been filed under the subject printed above it.",
-    "Every bullet in the six roadmaps outside the parent-activity pages is present: 768 in the source, 768 here, checked grade by grade.",
-    "The county is fictitious. Braewood County Public Schools does not exist: the district name, and every mention of it inside the roadmap prose, replaced a real one. The curriculum itself is unchanged — every subject, strand and skill is exactly as the source documents print it, and the source links have been removed rather than redirected.",
-    "State-level references are left alone. Florida, the B.E.S.T. standards and fldoe.org are a state and its education department, not the district, and the curriculum does not make sense without them."
+    "Cantrell Park Elementary School does not exist, and neither does Braewood County Public Schools. The course data is real in shape and structure; the school, its staff and its documents are invented.",
+    "Two halves. Fifty-seven courses carrying a state course number are the district curriculum every child at this school receives. Fifteen MPE- entries are the clubs and activities this school adds on top of it.",
+    "Every course here is graded Pass or Fail. It is stated once for the document rather than stamped on all seventy-two courses, because a flag true of everything makes a badge on every card and a filter that selects the whole catalog. The Explorer has a Pass / Fail scale for exactly this shape of school — neither label carries points, so a course is on the record without entering any average — but the scale is set on the school in the tool, not read from the document, so choosing it is still a deliberate act.",
+    "Spanish is a sequence, not one course. It is taken every year and carries a different course number at each grade, so it is recorded as six courses rather than one repeated. The same is true of art and music. A document where a subject recurs under a new code each year is worth having as an example: it is what the planner's year grid is for.",
+    "Two subjects are split into paired courses. From Grade 1 a second language arts course runs alongside the main one, and from Kindergarten to Grade 3 a science laboratory course is recorded beside the science course. Both pairs are kept as separate entries because that is how they are recorded.",
+    "Physical education appears only for Kindergarten and Grade 1 in the course record. The district requires it at every elementary grade, so Grades 2 to 5 are kept from the roadmaps, without a course number and marked as unconfirmed. A real document with a real gap in it, left in rather than tidied away.",
+    "Computer education and health are missing. The district requires both, but neither the roadmaps nor the course record shows them.",
+    "Nine of the fifteen club entries have no grade levels, because no source states any. They do not place on the planner grid until those are filled in — which is what an incomplete document looks like in this tool.",
+    "The five music club sections share the program 'Music Club', because a student joins one instrument rather than the club as a whole. This is the only sample document that uses the program field, so it is also where the programme filter can be seen working.",
+    "Departments on the club entries are a grouping applied for the planner's benefit; the sources assign none. District courses keep the departments their roadmaps use.",
+    "Elementary grades carry no credit, and the document states no graduation requirements, so there is nothing to plan against — the Curriculum Doctor reports that as the one thing worth knowing about it.",
+    "Titles are readable forms; the name as printed on the course record is kept in title_variants, so a search for either finds the course. Where a printed name is not unique — the same bare 'SPANISH' at four grades — it is kept in the course's notes instead, since a variant naming four courses resolves to none of them."
   ]
 }

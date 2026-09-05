@@ -145,10 +145,10 @@
 
 <h2>Example catalogs</h2>
 <p>
-    Five catalogs to try the tool on, covering a school career end to end. All five describe
-    <strong>fictitious schools</strong>: the course data is real in shape and structure, but the
-    schools, their staff, their mascots and their documents are invented, and none of them is
-    anyone's official curriculum.
+    Five catalogs to try the tool on, running from kindergarten to a college degree. All five
+    describe <strong>fictitious schools</strong>: the course data is real in shape and structure,
+    but the schools, their staff, their mascots and their documents are invented, and none of
+    them is anyone's official curriculum.
 </p>
 <h3>High school — where there is a plan to make</h3>
 
@@ -220,31 +220,7 @@
 
 <div class="card">
     <div class="card-head">
-        Braewood County Public Schools
-        <span class="meta">2025–2026 · Kindergarten to grade 5 · 31 entries</span>
-    </div>
-    <div class="card-body">
-        <p>
-            A whole district's elementary curriculum: six subjects a year, and 768 individual
-            skills kept exactly as the source documents print them. There is nothing to choose
-            and nothing to plan — every child takes everything — so this one is a description
-            rather than a planner.
-        </p>
-        <p>
-            Load it to see what the tool does with a document that states no graduation
-            requirements at all. The Curriculum Doctor reports that, correctly, as the one thing
-            worth knowing about it.
-        </p>
-        <div class="actions">
-            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/braewood-elementary-2025-2026.json">Open it in Toolboard</a>
-            <a class="btn" href="../data/braewood-elementary-2025-2026.json">Download the JSON</a>
-        </div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-head">
-        Marlowe Park Elementary School
+        Cantrell Park Elementary School
         <span class="meta">2026–2027 · Kindergarten to grade 5 · 72 entries</span>
     </div>
     <div class="card-body">
@@ -261,8 +237,36 @@
             the tool does with a document that is honest about what it does not know.
         </p>
         <div class="actions">
-            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/marlowe-park-elementary-2026-2027.json">Open it in Toolboard</a>
-            <a class="btn" href="../data/marlowe-park-elementary-2026-2027.json">Download the JSON</a>
+            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/cantrell-park-elementary-2026-2027.json">Open it in Toolboard</a>
+            <a class="btn" href="../data/cantrell-park-elementary-2026-2027.json">Download the JSON</a>
+        </div>
+    </div>
+</div>
+
+<h3>After high school — where the plan is a degree</h3>
+
+<div class="card">
+    <div class="card-head">
+        Braewood State College
+        <span class="meta">2025–2026 · Associate of Arts · 122 courses</span>
+    </div>
+    <div class="card-body">
+        <p>
+            A two-year degree rather than a school year: thirty-six general education credits
+            across six areas, twenty-four elective credits, and sixty in total. The grid is years
+            and semesters instead of grades and terms, and the requirements panel counts against
+            each area as you plan.
+        </p>
+        <p>
+            It is the one with real graduation requirements to work against, including several
+            that are not credits at all — a writing requirement, a mathematics competency, civic
+            and digital literacy. The elective block deliberately lists no courses, because the
+            source lists none, so the tool shows a requirement it can never fill: what an honest
+            gap looks like.
+        </p>
+        <div class="actions">
+            <a class="btn primary" href="/#tool/curriculum-explorer?curriculum=/learn/data/braewood-state-college-aa-2025-2026.json">Open it in Toolboard</a>
+            <a class="btn" href="../data/braewood-state-college-aa-2025-2026.json">Download the JSON</a>
         </div>
     </div>
 </div>
@@ -339,6 +343,14 @@
         other. The <em>Whole career</em> page adds a GPA per school and one for the
         career — pooled by points, so two schools on different scales still add up.
     </li>
+    <li>
+        <strong>Schools that only say pass or fail</strong>
+        Elementary schools often report nothing more than whether a course was passed, so
+        <em>Pass / Fail</em> is one of the scales a school can be set to. Neither label carries
+        points: the course is on the record without entering any average, which is the whole
+        idea. It follows that such a course has no calculated final — averaging a P and an F
+        means nothing — so the grade is the one you enter.
+    </li>
 </ol>
 
 <p class="note">
@@ -408,6 +420,20 @@
         <span class="eg">This is the shape worth holding beside the official transcript.
             The transcript is still the authority; a column of your own next to it is how
             you find the year where they disagree.</span>
+    </li>
+    <li>
+        <strong>And bring one back</strong>
+        A CSV in that same shape loads straight back in — through <em>File</em>, dropped on the
+        JSON pane, or simply pasted into it. Correct a year in a spreadsheet and reload it, and
+        the plan follows.
+        <span class="eg">It also works when you have no curriculum document at all. Most people
+            have a list of what was taken rather than a catalog, and a list is enough: the tool
+            builds the courses it needs from the rows. What it builds is a record, not a
+            curriculum — a CSV carries no prerequisites and no requirements — but the plan is
+            there, and a real catalog can be loaded over it later.</span>
+        <span class="eg">Loading a CSV onto a catalog you already have keeps that catalog whole.
+            Rows are matched to it by course code, and courses are invented only for codes it
+            does not recognise.</span>
     </li>
 </ol>
 

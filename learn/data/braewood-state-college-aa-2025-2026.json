@@ -1,0 +1,5499 @@
+{
+  "$schema_version": "2.0",
+  "source_documents": [
+    {
+      "id": "aa_requirements",
+      "title": "Associate of Arts General Education & Graduation Requirements, 2025-2026",
+      "document_type": "college_catalog",
+      "url_note": "Invented for this sample. The originating catalog is public; the link is removed in this anonymised copy."
+    },
+    {
+      "id": "course_descriptions",
+      "title": "Course descriptions",
+      "document_type": "college_catalog",
+      "note": "Used for one course title the requirements page prints blank.",
+      "url_note": "Invented for this sample. The originating catalog is public; the link is removed in this anonymised copy."
+    }
+  ],
+  "generated_from": "A state college catalog's Associate of Arts general education and graduation requirements, converted area by area. Real in shape and structure; the college, its catalog and its links are invented.",
+  "school": {
+    "name": "Braewood State College",
+    "short_name": "BSC",
+    "type": "Public state college",
+    "system": "State college system"
+  },
+  "document": {
+    "title": "Associate of Arts — general education and graduation requirements",
+    "academic_year": "2025-2026",
+    "document_type": "college_catalog",
+    "degree": "Associate of Arts",
+    "total_credits": 60,
+    "scope": "The general education core and the graduation requirements for the AA. The 24 elective credits are unlisted by the source, and the college's wider course inventory is not covered."
+  },
+  "planner": {
+    "levels": [
+      1,
+      2
+    ],
+    "level_names": {
+      "1": "Year 1",
+      "2": "Year 2"
+    },
+    "terms": [
+      "Fall",
+      "Spring",
+      "Summer"
+    ]
+  },
+  "graduation_requirements": {
+    "source": "aa_requirements",
+    "minimum_career_gpa": 2.0,
+    "total_credits_listed": 60,
+    "credits_by_subject": [
+      {
+        "id": "aa:area1",
+        "subject": "Communication",
+        "credits_required": 9,
+        "required_courses": [
+          "ENC1101",
+          "ENC1102"
+        ],
+        "core_course_codes": [],
+        "satisfying_course_codes": [
+          "ENC1101",
+          "ENC1102",
+          "SPC1017",
+          "SPC1608",
+          "SPC1065",
+          "SPC1511"
+        ],
+        "notes": "Composition I and Composition II, and one oral communication course.",
+        "link_basis": "printed"
+      },
+      {
+        "id": "aa:area2",
+        "subject": "Humanities",
+        "credits_required": 6,
+        "required_courses": [],
+        "core_course_codes": [
+          "ARH2000",
+          "HUM1020",
+          "LIT2000",
+          "MUL2010",
+          "PHI2010",
+          "THE2000"
+        ],
+        "satisfying_course_codes": [
+          "ARH2000",
+          "HUM1020",
+          "LIT2000",
+          "MUL2010",
+          "PHI2010",
+          "THE2000",
+          "AML2010",
+          "AML2020",
+          "ENG2101",
+          "LIT2020",
+          "LIT2030",
+          "LIT2110",
+          "LIT2120",
+          "LIT2310",
+          "ARH2050",
+          "ARH2051",
+          "MUH2019",
+          "MUH2111",
+          "MUH2112",
+          "DAN2100",
+          "FIL2000",
+          "ARC1701",
+          "PHI1100",
+          "PHI2600",
+          "REL2000",
+          "REL2300"
+        ],
+        "notes": "Two courses, at least one from the core list. Both may be from the core list.",
+        "link_basis": "printed"
+      },
+      {
+        "id": "aa:area3",
+        "subject": "Social/Behavioral Sciences",
+        "credits_required": 6,
+        "required_courses": [],
+        "core_course_codes": [
+          "AMH2010",
+          "AMH2020",
+          "POS2041",
+          "ANT2000",
+          "ECO2013",
+          "PSY2012"
+        ],
+        "satisfying_course_codes": [
+          "AMH2010",
+          "AMH2020",
+          "POS2041",
+          "ANT2000",
+          "ECO2013",
+          "PSY2012",
+          "EUH1000",
+          "EUH1001",
+          "GEA2000",
+          "GEO1000",
+          "INR2002",
+          "POS2112",
+          "WOH2040",
+          "ANT2140",
+          "DEP2002",
+          "DEP2004",
+          "ECO2023",
+          "SOP2002"
+        ],
+        "notes": "Two courses, at least one from the core list. Both may be from the core list. The civic literacy requirement may also apply — see additional_requirements.",
+        "link_basis": "printed"
+      },
+      {
+        "id": "aa:area4",
+        "subject": "Natural Sciences",
+        "credits_required": 6,
+        "required_courses": [],
+        "core_course_codes": [
+          "AST1002",
+          "BSC1005",
+          "BSC2010",
+          "BSC2085",
+          "CHM1020",
+          "CHM1045",
+          "ESC1000",
+          "EVR1001",
+          "GLY1010",
+          "OCE1001",
+          "PHY1020",
+          "PHY2048",
+          "PHY2053"
+        ],
+        "satisfying_course_codes": [
+          "AST1002",
+          "BSC1005",
+          "BSC2010",
+          "BSC2085",
+          "CHM1020",
+          "CHM1045",
+          "ESC1000",
+          "EVR1001",
+          "GLY1010",
+          "OCE1001",
+          "PHY1020",
+          "PHY2048",
+          "PHY2053",
+          "BSC1311",
+          "BSC1084",
+          "BOT2010",
+          "BOT2800",
+          "ENY1001",
+          "ZOO2010",
+          "CHM1032",
+          "GLY1100",
+          "PHY1001",
+          "PHY2049",
+          "PHY2054"
+        ],
+        "notes": "Two science lecture courses, at least one from the core list. Some carry a laboratory pre- or co-requisite; the ones that do not are named in the source.",
+        "link_basis": "printed"
+      },
+      {
+        "id": "aa:area5",
+        "subject": "Mathematics",
+        "credits_required": 3,
+        "required_courses": [],
+        "core_course_codes": [],
+        "satisfying_course_codes": [
+          "MAC1105",
+          "MAC1105C",
+          "MGF1130",
+          "MAC2311",
+          "STA2023",
+          "MAC1114",
+          "MAC1140",
+          "MAC1147",
+          "MAC2233"
+        ],
+        "notes": "One course from this list. Two college-level mathematics courses are still needed to graduate — see the mathematics competency in additional_requirements.",
+        "link_basis": "printed"
+      },
+      {
+        "id": "aa:area6",
+        "subject": "Additional General Education",
+        "credits_required": 6,
+        "required_courses": [],
+        "core_course_codes": [],
+        "satisfying_course_codes": [
+          "ASL1140",
+          "ASL1150",
+          "FRE1120",
+          "FRE1121",
+          "GER1120",
+          "GER1121",
+          "HBR1120",
+          "ITA1120",
+          "ITA1121",
+          "SPN1120",
+          "SPN1121",
+          "CRW1001",
+          "FIN2100",
+          "BOT2010L",
+          "BSC1005L",
+          "BSC2010L",
+          "BSC2085L",
+          "ZOO2010L",
+          "AST1022L",
+          "CHM1020L",
+          "CHM1032L",
+          "CHM1045L",
+          "ESC1000L",
+          "GLY1010L",
+          "GLY1100L",
+          "OCE1001L",
+          "PHY1001L",
+          "PHY2048L",
+          "PHY2053L",
+          "PHY2054L",
+          "PHY2049L",
+          "HLP1081C",
+          "HSC2100"
+        ],
+        "notes": "Any two courses totalling at least six credits, from this list or from any of the other five areas.",
+        "link_basis": "printed"
+      },
+      {
+        "id": "aa:electives",
+        "subject": "Program Electives",
+        "credits_required": 24,
+        "required_courses": [],
+        "core_course_codes": [],
+        "satisfying_course_codes": [],
+        "notes": "Any combination of college-level courses, including further general education courses. College preparatory courses and courses built for technical education curricula are excluded. No course list is printed, so none is recorded here.",
+        "link_basis": "not printed"
+      }
+    ],
+    "other_requirements": [
+      "Writing requirement (Gordon Rule): Composition I, Composition II and two further writing-credit courses, twelve credits in all, each at C or higher.",
+      "Mathematics competency: six credits of college-level mathematics at C or higher.",
+      "Civic literacy: pass National Government or either United States history course, and pass the Florida Civic Literacy Exam or an approved assessment.",
+      "Digital literacy: CGS1060C, an approved test, credit-by-exam or credit for prior learning, ideally within the first fifteen credits.",
+      "Foreign language competency, as prescribed in college policy.",
+      "At least a quarter of the prescribed college-level credits earned at the college.",
+      "A cumulative grade point average of 2.0 or higher."
+    ],
+    "diploma_options": [
+      {
+        "id": "aa",
+        "name": "Associate of Arts",
+        "total_credits": 60,
+        "general_education_credits": 36,
+        "elective_credits": 24,
+        "credits_by_subject": [
+          {
+            "id": "aa:area1",
+            "subject": "Communication",
+            "credits_required": 9,
+            "required_courses": [
+              "ENC1101",
+              "ENC1102"
+            ],
+            "core_course_codes": [],
+            "satisfying_course_codes": [
+              "ENC1101",
+              "ENC1102",
+              "SPC1017",
+              "SPC1608",
+              "SPC1065",
+              "SPC1511"
+            ],
+            "notes": "Composition I and Composition II, and one oral communication course.",
+            "link_basis": "printed"
+          },
+          {
+            "id": "aa:area2",
+            "subject": "Humanities",
+            "credits_required": 6,
+            "required_courses": [],
+            "core_course_codes": [
+              "ARH2000",
+              "HUM1020",
+              "LIT2000",
+              "MUL2010",
+              "PHI2010",
+              "THE2000"
+            ],
+            "satisfying_course_codes": [
+              "ARH2000",
+              "HUM1020",
+              "LIT2000",
+              "MUL2010",
+              "PHI2010",
+              "THE2000",
+              "AML2010",
+              "AML2020",
+              "ENG2101",
+              "LIT2020",
+              "LIT2030",
+              "LIT2110",
+              "LIT2120",
+              "LIT2310",
+              "ARH2050",
+              "ARH2051",
+              "MUH2019",
+              "MUH2111",
+              "MUH2112",
+              "DAN2100",
+              "FIL2000",
+              "ARC1701",
+              "PHI1100",
+              "PHI2600",
+              "REL2000",
+              "REL2300"
+            ],
+            "notes": "Two courses, at least one from the core list. Both may be from the core list.",
+            "link_basis": "printed"
+          },
+          {
+            "id": "aa:area3",
+            "subject": "Social/Behavioral Sciences",
+            "credits_required": 6,
+            "required_courses": [],
+            "core_course_codes": [
+              "AMH2010",
+              "AMH2020",
+              "POS2041",
+              "ANT2000",
+              "ECO2013",
+              "PSY2012"
+            ],
+            "satisfying_course_codes": [
+              "AMH2010",
+              "AMH2020",
+              "POS2041",
+              "ANT2000",
+              "ECO2013",
+              "PSY2012",
+              "EUH1000",
+              "EUH1001",
+              "GEA2000",
+              "GEO1000",
+              "INR2002",
+              "POS2112",
+              "WOH2040",
+              "ANT2140",
+              "DEP2002",
+              "DEP2004",
+              "ECO2023",
+              "SOP2002"
+            ],
+            "notes": "Two courses, at least one from the core list. Both may be from the core list. The civic literacy requirement may also apply — see additional_requirements.",
+            "link_basis": "printed"
+          },
+          {
+            "id": "aa:area4",
+            "subject": "Natural Sciences",
+            "credits_required": 6,
+            "required_courses": [],
+            "core_course_codes": [
+              "AST1002",
+              "BSC1005",
+              "BSC2010",
+              "BSC2085",
+              "CHM1020",
+              "CHM1045",
+              "ESC1000",
+              "EVR1001",
+              "GLY1010",
+              "OCE1001",
+              "PHY1020",
+              "PHY2048",
+              "PHY2053"
+            ],
+            "satisfying_course_codes": [
+              "AST1002",
+              "BSC1005",
+              "BSC2010",
+              "BSC2085",
+              "CHM1020",
+              "CHM1045",
+              "ESC1000",
+              "EVR1001",
+              "GLY1010",
+              "OCE1001",
+              "PHY1020",
+              "PHY2048",
+              "PHY2053",
+              "BSC1311",
+              "BSC1084",
+              "BOT2010",
+              "BOT2800",
+              "ENY1001",
+              "ZOO2010",
+              "CHM1032",
+              "GLY1100",
+              "PHY1001",
+              "PHY2049",
+              "PHY2054"
+            ],
+            "notes": "Two science lecture courses, at least one from the core list. Some carry a laboratory pre- or co-requisite; the ones that do not are named in the source.",
+            "link_basis": "printed"
+          },
+          {
+            "id": "aa:area5",
+            "subject": "Mathematics",
+            "credits_required": 3,
+            "required_courses": [],
+            "core_course_codes": [],
+            "satisfying_course_codes": [
+              "MAC1105",
+              "MAC1105C",
+              "MGF1130",
+              "MAC2311",
+              "STA2023",
+              "MAC1114",
+              "MAC1140",
+              "MAC1147",
+              "MAC2233"
+            ],
+            "notes": "One course from this list. Two college-level mathematics courses are still needed to graduate — see the mathematics competency in additional_requirements.",
+            "link_basis": "printed"
+          },
+          {
+            "id": "aa:area6",
+            "subject": "Additional General Education",
+            "credits_required": 6,
+            "required_courses": [],
+            "core_course_codes": [],
+            "satisfying_course_codes": [
+              "ASL1140",
+              "ASL1150",
+              "FRE1120",
+              "FRE1121",
+              "GER1120",
+              "GER1121",
+              "HBR1120",
+              "ITA1120",
+              "ITA1121",
+              "SPN1120",
+              "SPN1121",
+              "CRW1001",
+              "FIN2100",
+              "BOT2010L",
+              "BSC1005L",
+              "BSC2010L",
+              "BSC2085L",
+              "ZOO2010L",
+              "AST1022L",
+              "CHM1020L",
+              "CHM1032L",
+              "CHM1045L",
+              "ESC1000L",
+              "GLY1010L",
+              "GLY1100L",
+              "OCE1001L",
+              "PHY1001L",
+              "PHY2048L",
+              "PHY2053L",
+              "PHY2054L",
+              "PHY2049L",
+              "HLP1081C",
+              "HSC2100"
+            ],
+            "notes": "Any two courses totalling at least six credits, from this list or from any of the other five areas.",
+            "link_basis": "printed"
+          },
+          {
+            "id": "aa:electives",
+            "subject": "Program Electives",
+            "credits_required": 24,
+            "required_courses": [],
+            "core_course_codes": [],
+            "satisfying_course_codes": [],
+            "notes": "Any combination of college-level courses, including further general education courses. College preparatory courses and courses built for technical education curricula are excluded. No course list is printed, so none is recorded here.",
+            "link_basis": "not printed"
+          }
+        ]
+      }
+    ],
+    "additional_requirements": [
+      {
+        "id": "writing",
+        "name": "Writing requirement (Gordon Rule)",
+        "credits": 12,
+        "rule": "Composition I and Composition II, and two further writing-credit courses. A grade of C or higher is needed in each.",
+        "satisfied_by_flag": "writing_credit"
+      },
+      {
+        "id": "math_competency",
+        "name": "Mathematics competency",
+        "credits": 6,
+        "rule": "Six credits of college-level mathematics at C or higher: either two courses from the Area 5 list, or one Area 5 course and one from the second list.",
+        "option_a_course_codes": [
+          "MAC1105",
+          "MAC1105C",
+          "MGF1130",
+          "MAC2311",
+          "STA2023",
+          "MAC1114",
+          "MAC1140",
+          "MAC1147",
+          "MAC2233"
+        ],
+        "option_b_course_codes": [
+          "MGF1131",
+          "MAC2312",
+          "MAC2313",
+          "MAP2302",
+          "MAD2104",
+          "MAS2103"
+        ],
+        "notes": "Coreq College Algebra may be taken in place of College Algebra, but not both. Precalculus Algebra and Trigonometry may replace Trigonometry and Pre Calculus Algebra together, and then a second course at or above College Algebra is still needed."
+      },
+      {
+        "id": "civic_literacy",
+        "name": "Civic literacy",
+        "rule": "Depends on the effective catalog year. From Fall 2024: pass one of National Government, History of the United States to 1877, or History of the United States since 1877, and pass the Florida Civic Literacy Exam or an approved assessment.",
+        "course_codes": [
+          "POS2041",
+          "AMH2010",
+          "AMH2020"
+        ]
+      },
+      {
+        "id": "digital_literacy",
+        "name": "Digital literacy",
+        "rule": "Recommended within the first 15 credits: pass CGS1060C, an approved test, a credit-by-exam option, or credit for prior learning.",
+        "course_codes": [
+          "CGS1060C"
+        ]
+      },
+      {
+        "id": "foreign_language",
+        "name": "Foreign language competency",
+        "rule": "As prescribed in college policy. The requirements page does not state the rule."
+      },
+      {
+        "id": "residency",
+        "name": "Credits earned at the college",
+        "rule": "At least 25 per cent of the prescribed college-level credits must be earned here."
+      },
+      {
+        "id": "gpa",
+        "name": "Grade point average",
+        "rule": "A cumulative 2.0 or higher, including transfer credits in courses making up the degree."
+      }
+    ],
+    "credits_by_subject_basis": "printed"
+  },
+  "course_count": 122,
+  "courses": [
+    {
+      "course_code": "ENC1101",
+      "title": "Composition I",
+      "title_variants": [
+        "COMPOSITION I"
+      ],
+      "department": "Communication",
+      "department_canonical": "Communication",
+      "subject_area": "Composition",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Communication"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": true,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ENC1102",
+      "title": "Composition II",
+      "title_variants": [
+        "COMPOSITION II"
+      ],
+      "department": "Communication",
+      "department_canonical": "Communication",
+      "subject_area": "Composition",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Communication"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": true,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SPC1017",
+      "title": "Introduction to Speech Communication",
+      "title_variants": [
+        "INTRODUCTION TO SPEECH COMMUNICATION"
+      ],
+      "department": "Communication",
+      "department_canonical": "Communication",
+      "subject_area": "Oral Communication / Speech (3 credits - select one)",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Communication"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SPC1608",
+      "title": "Introduction to Public Speaking",
+      "title_variants": [
+        "INTRODUCTION TO PUBLIC SPEAKING"
+      ],
+      "department": "Communication",
+      "department_canonical": "Communication",
+      "subject_area": "Oral Communication / Speech (3 credits - select one)",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "prior_learning_assessment": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Communication"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SPC1065",
+      "title": "Communication in Business",
+      "title_variants": [
+        "COMMUNICATION IN BUSINESS"
+      ],
+      "department": "Communication",
+      "department_canonical": "Communication",
+      "subject_area": "Oral Communication / Speech (3 credits - select one)",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Communication"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SPC1511",
+      "title": "Argumentation and Debate",
+      "title_variants": [
+        "ARGUMENTATION AND DEBATE"
+      ],
+      "department": "Communication",
+      "department_canonical": "Communication",
+      "subject_area": "Oral Communication / Speech (3 credits - select one)",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Communication"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ARH2000",
+      "title": "Art Appreciation",
+      "title_variants": [
+        "ART APPRECIATION"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "HUM1020",
+      "title": "Foundations of the Humanities",
+      "title_variants": [
+        "FOUNDATIONS OF THE HUMANITIES"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "LIT2000",
+      "title": "Introduction to Literature",
+      "title_variants": [
+        "INTRODUCTION TO LITERATURE"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MUL2010",
+      "title": "Music Appreciation",
+      "title_variants": [
+        "MUSIC APPRECIATION"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHI2010",
+      "title": "Introduction to Philosophy",
+      "title_variants": [
+        "INTRODUCTION TO PHILOSOPHY"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "THE2000",
+      "title": "Theatre Appreciation",
+      "title_variants": [
+        "THEATRE APPRECIATION"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "AML2010",
+      "title": "American Literature: Colonial to 1900",
+      "title_variants": [
+        "AMERICAN LITERATURE: COLONIAL TO 1900"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "AML2020",
+      "title": "American Literature 1900-present",
+      "title_variants": [
+        "AMERICAN LITERATURE 1900-PRESENT"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ENG2101",
+      "title": "The Film as Literature",
+      "title_variants": [
+        "THE FILM AS LITERATURE"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "LIT2020",
+      "title": "Introduction to the Short Story",
+      "title_variants": [
+        "INTRODUCTION TO THE SHORT STORY"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "LIT2030",
+      "title": "Introduction to Poetry",
+      "title_variants": [
+        "INTRODUCTION TO POETRY"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "LIT2110",
+      "title": "World Literature from Ancient World through Renaissance",
+      "title_variants": [
+        "WORLD LITERATURE FROM ANCIENT WORLD THROUGH RENAISSANCE"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "LIT2120",
+      "title": "World Literature from Enlightenment to Modern",
+      "title_variants": [
+        "WORLD LITERATURE FROM ENLIGHTENMENT TO MODERN"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "LIT2310",
+      "title": "Science Fiction and Fantasy Literature Fantasy, and Horror",
+      "title_variants": [
+        "SCIENCE FICTION AND FANTASY LITERATURE FANTASY, AND HORROR"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Literature",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ARH2050",
+      "title": "World Art History",
+      "title_variants": [
+        "WORLD ART HISTORY"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Art",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ARH2051",
+      "title": "Art History: Renaissance to Modern",
+      "title_variants": [
+        "ART HISTORY: RENAISSANCE TO MODERN"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Art",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [
+        "The requirements page marks this course \"(C)\", which is not one of the codes it defines. Recorded as printed."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MUH2019",
+      "title": "Development of American Popular Music",
+      "title_variants": [
+        "DEVELOPMENT OF AMERICAN POPULAR MUSIC"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Music",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MUH2111",
+      "title": "Music History and Literature I: Medieval-classical",
+      "title_variants": [
+        "MUSIC HISTORY AND LITERATURE I: MEDIEVAL-CLASSICAL"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Music",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MUH2112",
+      "title": "Music History and Literature II Romantic to Modern",
+      "title_variants": [
+        "MUSIC HISTORY AND LITERATURE II ROMANTIC TO MODERN"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Music",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "DAN2100",
+      "title": "Dance Appreciation",
+      "title_variants": [
+        "DANCE APPRECIATION"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Other",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "FIL2000",
+      "title": "Film Appreciation",
+      "title_variants": [
+        "FILM APPRECIATION"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Visual and Performing Art : Other",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ARC1701",
+      "title": "Survey of Architectural History",
+      "title_variants": [
+        "SURVEY OF ARCHITECTURAL HISTORY"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Architecture",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHI1100",
+      "title": "Introductory Logic",
+      "title_variants": [
+        "INTRODUCTORY LOGIC"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Philosophy",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHI2600",
+      "title": "Introduction to Ethics",
+      "title_variants": [
+        "INTRODUCTION TO ETHICS"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Philosophy",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "REL2000",
+      "title": "Introduction to the Study of Religion",
+      "title_variants": [
+        "INTRODUCTION TO THE STUDY OF RELIGION"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Religion",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "REL2300",
+      "title": "World Religions",
+      "title_variants": [
+        "WORLD RELIGIONS"
+      ],
+      "department": "Humanities",
+      "department_canonical": "Humanities",
+      "subject_area": "Religion",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Humanities"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "AMH2010",
+      "title": "History of the United States to 1877",
+      "title_variants": [
+        "HISTORY OF THE UNITED STATES TO 1877"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "AMH2020",
+      "title": "History of the United States Since 1877",
+      "title_variants": [
+        "HISTORY OF THE UNITED STATES SINCE 1877"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "POS2041",
+      "title": "National Government",
+      "title_variants": [
+        "NATIONAL GOVERNMENT"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ANT2000",
+      "title": "Introduction to Anthropology",
+      "title_variants": [
+        "INTRODUCTION TO ANTHROPOLOGY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ECO2013",
+      "title": "Principles of Macroeconomics",
+      "title_variants": [
+        "PRINCIPLES OF MACROECONOMICS"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PSY2012",
+      "title": "General Psychology",
+      "title_variants": [
+        "GENERAL PSYCHOLOGY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "EUH1000",
+      "title": "Western Civilization: Ancient through Renaissance",
+      "title_variants": [
+        "WESTERN CIVILIZATION: ANCIENT THROUGH RENAISSANCE"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "EUH1001",
+      "title": "Western Civilization: Reformation through Modern",
+      "title_variants": [
+        "WESTERN CIVILIZATION: REFORMATION THROUGH MODERN"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [
+        "The requirements page prints this row with no title; the title here comes from the college's own course description page."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        },
+        {
+          "source": "course_descriptions"
+        }
+      ]
+    },
+    {
+      "course_code": "GEA2000",
+      "title": "World Geography",
+      "title_variants": [
+        "WORLD GEOGRAPHY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [
+        "The requirements page marks this course \"(C)\", which is not one of the codes it defines. Recorded as printed."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GEO1000",
+      "title": "Introduction to Geography",
+      "title_variants": [
+        "INTRODUCTION TO GEOGRAPHY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "INR2002",
+      "title": "Introduction to International Relations",
+      "title_variants": [
+        "INTRODUCTION TO INTERNATIONAL RELATIONS"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "POS2112",
+      "title": "State & Local Government",
+      "title_variants": [
+        "STATE & LOCAL GOVERNMENT"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "WOH2040",
+      "title": "World in the 20th Century",
+      "title_variants": [
+        "WORLD IN THE 20TH CENTURY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Social Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ANT2140",
+      "title": "Introduction to Archaeology",
+      "title_variants": [
+        "INTRODUCTION TO ARCHAEOLOGY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Behavioral Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "DEP2002",
+      "title": "Developmental Psychology I: Child Psychology",
+      "title_variants": [
+        "DEVELOPMENTAL PSYCHOLOGY I: CHILD PSYCHOLOGY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Behavioral Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "DEP2004",
+      "title": "Developmental Psychology",
+      "title_variants": [
+        "DEVELOPMENTAL PSYCHOLOGY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Behavioral Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ECO2023",
+      "title": "Principles of Microeconomics",
+      "title_variants": [
+        "PRINCIPLES OF MICROECONOMICS"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Behavioral Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SOP2002",
+      "title": "Social Psychology",
+      "title_variants": [
+        "SOCIAL PSYCHOLOGY"
+      ],
+      "department": "Social/Behavioral Sciences",
+      "department_canonical": "Social/Behavioral Sciences",
+      "subject_area": "Behavioral Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Social/Behavioral Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "AST1002",
+      "title": "Horizons in Astronomy",
+      "title_variants": [
+        "HORIZONS IN ASTRONOMY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC1005",
+      "title": "General Biology for Non-majors",
+      "title_variants": [
+        "GENERAL BIOLOGY FOR NON-MAJORS"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC2010",
+      "title": "General Biology",
+      "title_variants": [
+        "GENERAL BIOLOGY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC2085",
+      "title": "Anatomy and Physiology I",
+      "title_variants": [
+        "ANATOMY AND PHYSIOLOGY I"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CHM1020",
+      "title": "General Chemistry for Liberal Studies",
+      "title_variants": [
+        "GENERAL CHEMISTRY FOR LIBERAL STUDIES"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CHM1045",
+      "title": "General Chemistry 1",
+      "title_variants": [
+        "GENERAL CHEMISTRY 1"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ESC1000",
+      "title": "Earth Science",
+      "title_variants": [
+        "EARTH SCIENCE"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "EVR1001",
+      "title": "Introduction to Environmental Science",
+      "title_variants": [
+        "INTRODUCTION TO ENVIRONMENTAL SCIENCE"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GLY1010",
+      "title": "Physical Geology",
+      "title_variants": [
+        "PHYSICAL GEOLOGY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "OCE1001",
+      "title": "Introductory Oceanography",
+      "title_variants": [
+        "INTRODUCTORY OCEANOGRAPHY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY1020",
+      "title": "Fundamentals of Physics",
+      "title_variants": [
+        "FUNDAMENTALS OF PHYSICS"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2048",
+      "title": "General Physics with Calculus I",
+      "title_variants": [
+        "GENERAL PHYSICS WITH CALCULUS I"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2053",
+      "title": "General Physics I",
+      "title_variants": [
+        "GENERAL PHYSICS I"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Core",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC1311",
+      "title": "Introduction to Marine Biology",
+      "title_variants": [
+        "INTRODUCTION TO MARINE BIOLOGY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Biological Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC1084",
+      "title": "Basic Anatomy and Physiology",
+      "title_variants": [
+        "BASIC ANATOMY AND PHYSIOLOGY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Biological Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BOT2010",
+      "title": "Introductory Botany",
+      "title_variants": [
+        "INTRODUCTORY BOTANY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Biological Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BOT2800",
+      "title": "Plants & Man (Economic Importance) Nonmajors",
+      "title_variants": [
+        "PLANTS & MAN (ECONOMIC IMPORTANCE) NONMAJORS"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Biological Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ENY1001",
+      "title": "Bugs and People",
+      "title_variants": [
+        "BUGS AND PEOPLE"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Biological Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ZOO2010",
+      "title": "General Zoology",
+      "title_variants": [
+        "GENERAL ZOOLOGY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Biological Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CHM1032",
+      "title": "General Chemistry Science Allied Fields",
+      "title_variants": [
+        "GENERAL CHEMISTRY SCIENCE ALLIED FIELDS"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Physical Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GLY1100",
+      "title": "Historical Geology",
+      "title_variants": [
+        "HISTORICAL GEOLOGY"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Physical Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY1001",
+      "title": "Applied Physics",
+      "title_variants": [
+        "APPLIED PHYSICS"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Physical Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2049",
+      "title": "General Physics with Calculus II",
+      "title_variants": [
+        "GENERAL PHYSICS WITH CALCULUS II"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Physical Science",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2054",
+      "title": "General Physics II",
+      "title_variants": [
+        "GENERAL PHYSICS II"
+      ],
+      "department": "Natural Sciences",
+      "department_canonical": "Natural Sciences",
+      "subject_area": "Physical Science",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Natural Sciences"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC1105",
+      "title": "College Algebra",
+      "title_variants": [
+        "COLLEGE ALGEBRA"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC1105C",
+      "title": "Corequisite College Algebra",
+      "title_variants": [
+        "COREQUISITE COLLEGE ALGEBRA"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 5,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MGF1130",
+      "title": "Mathematical Thinking",
+      "title_variants": [
+        "MATHEMATICAL THINKING"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC2311",
+      "title": "Calculus and Analytical Geometry I",
+      "title_variants": [
+        "CALCULUS AND ANALYTICAL GEOMETRY I"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 5,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "STA2023",
+      "title": "Statistics",
+      "title_variants": [
+        "STATISTICS"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC1114",
+      "title": "Trigonometry",
+      "title_variants": [
+        "TRIGONOMETRY"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC1140",
+      "title": "Pre Calculus Algebra",
+      "title_variants": [
+        "PRE CALCULUS ALGEBRA"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC1147",
+      "title": "Precalculus Algebra and Trigonometry",
+      "title_variants": [
+        "PRECALCULUS ALGEBRA AND TRIGONOMETRY"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 5,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC2233",
+      "title": "Calculus for Business, Social and Life Sciences",
+      "title_variants": [
+        "CALCULUS FOR BUSINESS, SOCIAL AND LIFE SCIENCES"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Mathematics"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ASL1140",
+      "title": "American Sign Language I",
+      "title_variants": [
+        "AMERICAN SIGN LANGUAGE I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ASL1150",
+      "title": "American Sign Language II",
+      "title_variants": [
+        "AMERICAN SIGN LANGUAGE II"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "FRE1120",
+      "title": "Beginning French I",
+      "title_variants": [
+        "BEGINNING FRENCH I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "FRE1121",
+      "title": "Beginning French II",
+      "title_variants": [
+        "BEGINNING FRENCH II"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GER1120",
+      "title": "Beginning German I",
+      "title_variants": [
+        "BEGINNING GERMAN I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "The requirements page marks this course \"(I)\", which is not one of the codes it defines. Recorded as printed."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GER1121",
+      "title": "Beginning German II",
+      "title_variants": [
+        "BEGINNING GERMAN II"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "HBR1120",
+      "title": "Beginning Hebrew I",
+      "title_variants": [
+        "BEGINNING HEBREW I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "The requirements page marks this course \"(I)\", which is not one of the codes it defines. Recorded as printed."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ITA1120",
+      "title": "Elementary Italian I",
+      "title_variants": [
+        "ELEMENTARY ITALIAN I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ITA1121",
+      "title": "Beginning Italian II",
+      "title_variants": [
+        "BEGINNING ITALIAN II"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SPN1120",
+      "title": "Beginning Spanish I",
+      "title_variants": [
+        "BEGINNING SPANISH I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "SPN1121",
+      "title": "Beginning Spanish II",
+      "title_variants": [
+        "BEGINNING SPANISH II"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Foreign Language",
+      "level": "Standard",
+      "credits": 4,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "credit_by_exam_high_school": true,
+        "credit_by_exam_military": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CRW1001",
+      "title": "Creative Writing I",
+      "title_variants": [
+        "CREATIVE WRITING I"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Creative Writing",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "writing_credit": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "FIN2100",
+      "title": "Personal Finance",
+      "title_variants": [
+        "PERSONAL FINANCE"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Personal Finance",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_college": true,
+        "prior_learning_assessment": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BOT2010L",
+      "title": "Introductory Botany Laboratory",
+      "title_variants": [
+        "INTRODUCTORY BOTANY LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Biological Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC1005L",
+      "title": "General Biology for Non-majors Lab",
+      "title_variants": [
+        "GENERAL BIOLOGY FOR NON-MAJORS LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Biological Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC2010L",
+      "title": "General Biology Lab",
+      "title_variants": [
+        "GENERAL BIOLOGY LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Biological Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "BSC2085L",
+      "title": "Anatomy and Physiology I Laboratory",
+      "title_variants": [
+        "ANATOMY AND PHYSIOLOGY I LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Biological Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ZOO2010L",
+      "title": "General Zoology Laboratory",
+      "title_variants": [
+        "GENERAL ZOOLOGY LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Biological Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "AST1022L",
+      "title": "Astronomy Laboratory",
+      "title_variants": [
+        "ASTRONOMY LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CHM1020L",
+      "title": "General Chemistry for Liberal Studies Laboratory",
+      "title_variants": [
+        "GENERAL CHEMISTRY FOR LIBERAL STUDIES LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CHM1032L",
+      "title": "General Chemistry for Science Allied Fields Lab",
+      "title_variants": [
+        "GENERAL CHEMISTRY FOR SCIENCE ALLIED FIELDS LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "CHM1045L",
+      "title": "General Chemistry I Lab",
+      "title_variants": [
+        "GENERAL CHEMISTRY I LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "ESC1000L",
+      "title": "Earth Science Laboratory",
+      "title_variants": [
+        "EARTH SCIENCE LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GLY1010L",
+      "title": "Physical Geology Laboratory",
+      "title_variants": [
+        "PHYSICAL GEOLOGY LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "GLY1100L",
+      "title": "Historical Geology Laboratory",
+      "title_variants": [
+        "HISTORICAL GEOLOGY LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "OCE1001L",
+      "title": "Oceanography Laboratory",
+      "title_variants": [
+        "OCEANOGRAPHY LABORATORY"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY1001L",
+      "title": "Applied Physics Lab",
+      "title_variants": [
+        "APPLIED PHYSICS LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2048L",
+      "title": "General Physics with Calculus I Lab",
+      "title_variants": [
+        "GENERAL PHYSICS WITH CALCULUS I LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2053L",
+      "title": "General Physics I Lab",
+      "title_variants": [
+        "GENERAL PHYSICS I LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2054L",
+      "title": "General Physics II Lab",
+      "title_variants": [
+        "GENERAL PHYSICS II LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "PHY2049L",
+      "title": "General Physics with Calculus II Lab",
+      "title_variants": [
+        "GENERAL PHYSICS WITH CALCULUS II LAB"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Physial Science Labs",
+      "level": "Standard",
+      "credits": 1,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {
+        "credit_by_exam_high_school": true
+      },
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [
+        "A laboratory course, taken beside its lecture course."
+      ],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "HLP1081C",
+      "title": "Total Wellness",
+      "title_variants": [
+        "TOTAL WELLNESS"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Wellness",
+      "level": "Standard",
+      "credits": 2,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "HSC2100",
+      "title": "Personal and Community Health",
+      "title_variants": [
+        "PERSONAL AND COMMUNITY HEALTH"
+      ],
+      "department": "Additional General Education",
+      "department_canonical": "Additional General Education",
+      "subject_area": "Wellness",
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [
+        "Additional General Education"
+      ],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MGF1131",
+      "title": "Mathematics in Context",
+      "title_variants": [
+        "MATHEMATICS IN CONTEXT"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC2312",
+      "title": "Calculus and Analytical Geometry II",
+      "title_variants": [
+        "CALCULUS AND ANALYTICAL GEOMETRY II"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 5,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAC2313",
+      "title": "Calculus and Analytical Geometry III",
+      "title_variants": [
+        "CALCULUS AND ANALYTICAL GEOMETRY III"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 5,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAP2302",
+      "title": "Differential Equations",
+      "title_variants": [
+        "DIFFERENTIAL EQUATIONS"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAD2104",
+      "title": "Discrete Mathematics",
+      "title_variants": [
+        "DISCRETE MATHEMATICS"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    },
+    {
+      "course_code": "MAS2103",
+      "title": "Linear Algebra",
+      "title_variants": [
+        "LINEAR ALGEBRA"
+      ],
+      "department": "Mathematics",
+      "department_canonical": "Mathematics",
+      "subject_area": null,
+      "level": "Standard",
+      "credits": 3,
+      "credits_basis": "printed",
+      "grade_levels": [
+        1,
+        2
+      ],
+      "prerequisites": {
+        "raw": null,
+        "choice": false,
+        "min_gpa": null,
+        "courses": [],
+        "grade_requirements": []
+      },
+      "flags": {},
+      "cross_credit": null,
+      "general_education_areas": [],
+      "notes": [],
+      "description": null,
+      "is_elective": false,
+      "required_for_graduation": false,
+      "source_refs": [
+        {
+          "source": "aa_requirements"
+        }
+      ]
+    }
+  ],
+  "data_notes": [
+    "Braewood State College does not exist. The course data is real in shape and structure — the course numbering, the six general education areas and the sixty-credit degree are how a state college actually prints them — but the college and its documents are invented.",
+    "The Associate of Arts as the catalog prints it: 36 general education credits across six areas, plus 24 elective credits, for 60 in total.",
+    "The 24 elective credits carry no course list, because the source prints none — electives are described in prose as any college-level course outside preparatory and technical curricula. The requirement is recorded with an empty list rather than a guessed one.",
+    "Courses carry the marks the page puts against them, as flags: writing credit, which is what the Gordon Rule counts, and the several credit-by-exam and prior-learning routes.",
+    "Two rows are marked \"(C)\" and one \"(I)\", which are not among the codes the page defines. They are recorded as printed and noted on the course rather than guessed at.",
+    "One row, EUH1001, is printed with no title at all. The title here comes from the college's own course description page, and the course says so.",
+    "Prerequisites are empty throughout. The requirements page states them only in prose for a handful of courses, and a prerequisite tree that is right for a few courses and silent for the rest would be worse than none.",
+    "Every course is marked as available in either year, because the source says nothing about when a course is offered. The planner is set to two years of Fall, Spring and Summer, which is the shape of the degree rather than anything the page states.",
+    "Titles are readable forms of what the catalog prints in capitals; the printed form is kept in title_variants.",
+    "This is the 2025-2026 catalog year. Civic literacy in particular depends on a student's effective catalog year, and the rule recorded here is the one for Fall 2024 onward."
+  ]
+}
