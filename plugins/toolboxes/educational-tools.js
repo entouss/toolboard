@@ -179,6 +179,260 @@
 .mult-feedback.correct { color: #27ae60; }
 .mult-feedback.wrong { color: #e74c3c; }
 .mult-score { font-size: 12px; color: var(--text-muted); text-align: center; }
+.mult-progress-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow: auto; }
+.mult-confetti { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 20000; }
+.mult-confetti-bit { position: absolute; top: -12px; width: 7px; height: 11px; border-radius: 1px; opacity: 0.9; animation: mult-fall linear forwards; }
+@keyframes mult-fall { to { transform: translateY(105vh) rotate(540deg); opacity: 0.8; } }
+/* A whole grid mastered is worth marking, but not at the cost of anyone who
+   asked for less movement on screen. */
+@media (prefers-reduced-motion: reduce) { .mult-confetti { display: none; } }
+.mult-progress-panel.active { display: flex; }
+.mult-signature { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.4; }
+.mult-signature.earned { color: #27ae60; font-size: 13px; }
+.mult-worst { font-size: 11px; color: var(--text-muted); text-align: center; }
+.mult-worst:empty { display: none; }
+/* The app sets table { width: 100% }; this one is a map and sizes to its cells. */
+.mult-map-table { border-collapse: collapse; margin: 0 auto; width: auto; }
+.mult-map-table th { width: 18px; }
+.mult-map-table th { font-size: 10px; color: var(--text-muted); font-weight: 600; padding: 1px 3px; }
+.mult-map-corner { color: var(--text-secondary); }
+/* Colour says it at a glance; the time in the cell and the legend say it exactly. */
+.mult-cell { width: 34px; height: 20px; border: 1px solid var(--bg-secondary); border-radius: 3px; text-align: center; vertical-align: middle; }
+.mult-cell.none { background: var(--bg-tertiary); }
+.mult-cell.failing { background: #e74c3c; }
+.mult-cell.shaky { background: #e67e22; }
+.mult-cell.passing { background: #a9dfbf; }
+.mult-cell.learned { background: #27ae60; }
+.mult-cell-time { font-size: 9px; color: #fff; font-variant-numeric: tabular-nums; }
+.mult-cell.none .mult-cell-time { color: var(--text-muted); }
+.mult-cell.passing .mult-cell-time { color: #1e6b42; }
+.mult-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 10px; color: var(--text-muted); }
+.mult-key { display: inline-flex; align-items: center; gap: 4px; }
+.mult-key .mult-cell { display: inline-block; width: 12px; height: 12px; }
+
+/* Division Table */
+.tool-content:has(.div-widget) { display: flex; flex-direction: column; overflow: hidden; }
+.div-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; font-family: system-ui, -apple-system, sans-serif; }
+.div-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+.div-tab { padding: 7px 14px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+.div-tab:hover { color: var(--text-primary); }
+.div-tab.active { color: #8e44ad; border-bottom-color: #8e44ad; }
+.div-grid-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.div-toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; flex-shrink: 0; flex-wrap: wrap; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); }
+.div-toolbar label { font-size: 11px; color: var(--text-muted); }
+.div-size-select { padding: 3px 6px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
+.div-hard-btn { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.div-hard-btn.active { background: #e67e22; color: white; border-color: #e67e22; }
+/* A cell holds only the dividend, which is a third of the fact. The readout says the
+   whole of it while the pointer is over one. */
+.div-readout { margin-left: auto; font-size: 12px; font-family: monospace; font-weight: 600; color: #8e44ad; min-height: 16px; }
+.div-hint { font-size: 10px; color: var(--text-muted); padding: 3px 8px; flex-shrink: 0; text-align: center; }
+.div-table-wrap { flex: 1; overflow: auto; min-height: 0; padding: 4px; }
+.div-table { border-collapse: collapse; table-layout: fixed; width: auto; }
+.div-table td, .div-table th { width: 36px; height: 36px; min-width: 28px; text-align: center; vertical-align: middle; font-size: 12px; border: 1px solid var(--border-light); box-sizing: border-box; }
+.div-table th { position: sticky; background: var(--bg-tertiary); font-weight: 700; color: var(--text-secondary); z-index: 1; }
+.div-table th.div-row-header { left: 0; z-index: 2; }
+.div-table thead th { top: 0; }
+.div-table thead th:first-child { left: 0; z-index: 3; }
+.div-cell { cursor: default; }
+.div-cell.div-hard { background: rgba(255, 140, 0, 0.22); border-color: rgba(255, 140, 0, 0.45) !important; font-weight: 600; }
+.div-cell.div-square { background: rgba(142, 68, 173, 0.14); font-weight: 700; }
+.div-cell.div-hard.div-square { background: rgba(255, 140, 0, 0.30); }
+.div-table tr:hover { background: inherit; }
+.div-cell:hover { background: rgba(142, 68, 173, 0.28) !important; }
+.div-table th.div-col-highlight, .div-table th.div-row-highlight { background: rgba(142, 68, 173, 0.28) !important; color: var(--text-primary); }
+.div-challenge-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow-y: auto; }
+.div-challenge-panel.active { display: flex; }
+.div-digit-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+.div-digit-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.div-digit-btn { width: 30px; height: 30px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.1s; }
+.div-digit-btn.active { background: #8e44ad; color: white; border-color: #8e44ad; }
+.div-quiz-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.div-question { font-size: 44px; font-weight: 700; font-family: monospace; color: var(--text-primary); text-align: center; line-height: 1.1; min-height: 60px; }
+.div-answer-row { display: flex; gap: 8px; align-items: center; }
+.div-answer-input { padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 24px; font-family: monospace; width: 100px; text-align: center; background: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.div-answer-input:focus { border-color: #8e44ad; }
+.div-feedback { font-size: 16px; font-weight: 700; min-height: 24px; text-align: center; }
+.div-feedback.correct { color: #27ae60; }
+.div-feedback.wrong { color: #e74c3c; }
+.div-score { font-size: 12px; color: var(--text-muted); text-align: center; }
+.div-progress-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow: auto; }
+.div-progress-panel.active { display: flex; }
+/* Its own class, not the multiplication tool's: that one clears stale confetti with a
+   document-wide query, so a shared class would have one tool sweeping away the other
+   tool's celebration mid-fall. */
+.div-confetti { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 20000; }
+.div-confetti-bit { position: absolute; top: -12px; width: 7px; height: 11px; border-radius: 1px; opacity: 0.9; animation: div-fall linear forwards; }
+@keyframes div-fall { to { transform: translateY(105vh) rotate(540deg); opacity: 0.8; } }
+@media (prefers-reduced-motion: reduce) { .div-confetti { display: none; } }
+.div-signature { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.4; }
+.div-signature.earned { color: #27ae60; font-size: 13px; }
+.div-worst { font-size: 11px; color: var(--text-muted); text-align: center; }
+.div-worst:empty { display: none; }
+.div-map-table { border-collapse: collapse; margin: 0 auto; width: auto; }
+.div-map-table th { width: 18px; font-size: 10px; color: var(--text-muted); font-weight: 600; padding: 1px 3px; }
+.div-map-corner { color: var(--text-secondary); }
+.div-map-cell { width: 34px; height: 20px; border: 1px solid var(--bg-secondary); border-radius: 3px; text-align: center; vertical-align: middle; }
+.div-map-cell.none { background: var(--bg-tertiary); }
+.div-map-cell.failing { background: #e74c3c; }
+.div-map-cell.shaky { background: #e67e22; }
+.div-map-cell.passing { background: #a9dfbf; }
+.div-map-cell.learned { background: #27ae60; }
+.div-map-time { font-size: 9px; color: #fff; font-variant-numeric: tabular-nums; }
+.div-map-cell.none .div-map-time { color: var(--text-muted); }
+.div-map-cell.passing .div-map-time { color: #1e6b42; }
+.div-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 10px; color: var(--text-muted); }
+.div-key { display: inline-flex; align-items: center; gap: 4px; }
+.div-key .div-map-cell { display: inline-block; width: 12px; height: 12px; }
+
+/* Addition Table */
+.tool-content:has(.add-widget) { display: flex; flex-direction: column; overflow: hidden; }
+.add-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; font-family: system-ui, -apple-system, sans-serif; }
+.add-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+.add-tab { padding: 7px 14px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+.add-tab:hover { color: var(--text-primary); }
+.add-tab.active { color: #16a085; border-bottom-color: #16a085; }
+.add-grid-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.add-toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; flex-shrink: 0; flex-wrap: wrap; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); }
+.add-toolbar label { font-size: 11px; color: var(--text-muted); }
+.add-size-select { padding: 3px 6px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
+.add-half-btn { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.add-half-btn.active { background: #16a085; color: white; border-color: #16a085; }
+.add-hard-btn { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.add-hard-btn.active { background: #e67e22; color: white; border-color: #e67e22; }
+.add-table-wrap { flex: 1; overflow: auto; min-height: 0; padding: 4px; }
+.add-table { border-collapse: collapse; table-layout: fixed; width: auto; }
+.add-table td, .add-table th { width: 36px; height: 36px; min-width: 28px; text-align: center; vertical-align: middle; font-size: 12px; border: 1px solid var(--border-light); box-sizing: border-box; }
+.add-table th { position: sticky; background: var(--bg-tertiary); font-weight: 700; color: var(--text-secondary); z-index: 1; }
+.add-table th.add-row-header { left: 0; z-index: 2; }
+.add-table thead th { top: 0; }
+.add-table thead th:first-child { left: 0; z-index: 3; }
+.add-cell { cursor: default; }
+.add-cell.add-hard { background: rgba(255, 140, 0, 0.22); border-color: rgba(255, 140, 0, 0.45) !important; font-weight: 600; }
+.add-cell.add-double { background: rgba(22, 160, 133, 0.16); font-weight: 700; }
+.add-cell.add-hard.add-double { background: rgba(255, 140, 0, 0.30); }
+.add-cell.add-hidden { visibility: hidden; }
+.add-table tr:hover { background: inherit; }
+.add-cell:not(.add-hidden):hover { background: rgba(22, 160, 133, 0.30) !important; }
+.add-table th.add-col-highlight, .add-table th.add-row-highlight { background: rgba(22, 160, 133, 0.30) !important; color: var(--text-primary); }
+.add-challenge-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow-y: auto; }
+.add-challenge-panel.active { display: flex; }
+.add-digit-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+.add-digit-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.add-digit-btn { width: 30px; height: 30px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.1s; }
+.add-digit-btn.active { background: #16a085; color: white; border-color: #16a085; }
+.add-quiz-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.add-question { font-size: 48px; font-weight: 700; font-family: monospace; color: var(--text-primary); text-align: center; line-height: 1.1; min-height: 60px; }
+.add-answer-row { display: flex; gap: 8px; align-items: center; }
+.add-answer-input { padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 24px; font-family: monospace; width: 100px; text-align: center; background: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.add-answer-input:focus { border-color: #16a085; }
+.add-feedback { font-size: 16px; font-weight: 700; min-height: 24px; text-align: center; }
+.add-feedback.correct { color: #27ae60; }
+.add-feedback.wrong { color: #e74c3c; }
+.add-score { font-size: 12px; color: var(--text-muted); text-align: center; }
+.add-progress-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow: auto; }
+.add-progress-panel.active { display: flex; }
+/* Its own class, like the division tool's: each tool clears stale confetti with a
+   document-wide query, so a shared class would have one tool sweeping away another
+   tool's celebration mid-fall. */
+.add-confetti { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 20000; }
+.add-confetti-bit { position: absolute; top: -12px; width: 7px; height: 11px; border-radius: 1px; opacity: 0.9; animation: add-fall linear forwards; }
+@keyframes add-fall { to { transform: translateY(105vh) rotate(540deg); opacity: 0.8; } }
+@media (prefers-reduced-motion: reduce) { .add-confetti { display: none; } }
+.add-signature { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.4; }
+.add-signature.earned { color: #27ae60; font-size: 13px; }
+.add-worst { font-size: 11px; color: var(--text-muted); text-align: center; }
+.add-worst:empty { display: none; }
+.add-map-table { border-collapse: collapse; margin: 0 auto; width: auto; }
+.add-map-table th { width: 18px; font-size: 10px; color: var(--text-muted); font-weight: 600; padding: 1px 3px; }
+.add-map-corner { color: var(--text-secondary); }
+.add-map-cell { width: 34px; height: 20px; border: 1px solid var(--bg-secondary); border-radius: 3px; text-align: center; vertical-align: middle; }
+.add-map-cell.none { background: var(--bg-tertiary); }
+.add-map-cell.failing { background: #e74c3c; }
+.add-map-cell.shaky { background: #e67e22; }
+.add-map-cell.passing { background: #a9dfbf; }
+.add-map-cell.learned { background: #27ae60; }
+.add-map-time { font-size: 9px; color: #fff; font-variant-numeric: tabular-nums; }
+.add-map-cell.none .add-map-time { color: var(--text-muted); }
+.add-map-cell.passing .add-map-time { color: #1e6b42; }
+.add-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 10px; color: var(--text-muted); }
+.add-key { display: inline-flex; align-items: center; gap: 4px; }
+.add-key .add-map-cell { display: inline-block; width: 12px; height: 12px; }
+
+/* Subtraction Table */
+.tool-content:has(.sub-widget) { display: flex; flex-direction: column; overflow: hidden; }
+.sub-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; font-family: system-ui, -apple-system, sans-serif; }
+.sub-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+.sub-tab { padding: 7px 14px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+.sub-tab:hover { color: var(--text-primary); }
+.sub-tab.active { color: #2980b9; border-bottom-color: #2980b9; }
+.sub-grid-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.sub-toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; flex-shrink: 0; flex-wrap: wrap; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); }
+.sub-toolbar label { font-size: 11px; color: var(--text-muted); }
+.sub-size-select { padding: 3px 6px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); cursor: pointer; }
+.sub-hard-btn { padding: 3px 8px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.sub-hard-btn.active { background: #e67e22; color: white; border-color: #e67e22; }
+/* A cell holds only the dividend, which is a third of the fact. The readout says the
+   whole of it while the pointer is over one. */
+.sub-readout { margin-left: auto; font-size: 12px; font-family: monospace; font-weight: 600; color: #2980b9; min-height: 16px; }
+.sub-hint { font-size: 10px; color: var(--text-muted); padding: 3px 8px; flex-shrink: 0; text-align: center; }
+.sub-table-wrap { flex: 1; overflow: auto; min-height: 0; padding: 4px; }
+.sub-table { border-collapse: collapse; table-layout: fixed; width: auto; }
+.sub-table td, .sub-table th { width: 36px; height: 36px; min-width: 28px; text-align: center; vertical-align: middle; font-size: 12px; border: 1px solid var(--border-light); box-sizing: border-box; }
+.sub-table th { position: sticky; background: var(--bg-tertiary); font-weight: 700; color: var(--text-secondary); z-index: 1; }
+.sub-table th.sub-row-header { left: 0; z-index: 2; }
+.sub-table thead th { top: 0; }
+.sub-table thead th:first-child { left: 0; z-index: 3; }
+.sub-cell { cursor: default; }
+.sub-cell.sub-hard { background: rgba(255, 140, 0, 0.22); border-color: rgba(255, 140, 0, 0.45) !important; font-weight: 600; }
+.sub-cell.sub-double { background: rgba(41, 128, 185, 0.14); font-weight: 700; }
+.sub-cell.sub-hard.sub-double { background: rgba(255, 140, 0, 0.30); }
+.sub-table tr:hover { background: inherit; }
+.sub-cell:hover { background: rgba(41, 128, 185, 0.28) !important; }
+.sub-table th.sub-col-highlight, .sub-table th.sub-row-highlight { background: rgba(41, 128, 185, 0.28) !important; color: var(--text-primary); }
+.sub-challenge-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow-y: auto; }
+.sub-challenge-panel.active { display: flex; }
+.sub-digit-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+.sub-digit-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.sub-digit-btn { width: 30px; height: 30px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.1s; }
+.sub-digit-btn.active { background: #2980b9; color: white; border-color: #2980b9; }
+.sub-quiz-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.sub-question { font-size: 44px; font-weight: 700; font-family: monospace; color: var(--text-primary); text-align: center; line-height: 1.1; min-height: 60px; }
+.sub-answer-row { display: flex; gap: 8px; align-items: center; }
+.sub-answer-input { padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 24px; font-family: monospace; width: 100px; text-align: center; background: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.sub-answer-input:focus { border-color: #2980b9; }
+.sub-feedback { font-size: 16px; font-weight: 700; min-height: 24px; text-align: center; }
+.sub-feedback.correct { color: #27ae60; }
+.sub-feedback.wrong { color: #e74c3c; }
+.sub-score { font-size: 12px; color: var(--text-muted); text-align: center; }
+.sub-progress-panel { display: none; flex-direction: column; flex: 1; min-height: 0; padding: 10px; gap: 8px; overflow: auto; }
+.sub-progress-panel.active { display: flex; }
+/* Its own class, like the other three: each tool clears stale confetti with a
+   document-wide query, so a shared class would have one tool sweeping away another
+   tool's celebration mid-fall. */
+.sub-confetti { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 20000; }
+.sub-confetti-bit { position: absolute; top: -12px; width: 7px; height: 11px; border-radius: 1px; opacity: 0.9; animation: sub-fall linear forwards; }
+@keyframes sub-fall { to { transform: translateY(105vh) rotate(540deg); opacity: 0.8; } }
+@media (prefers-reduced-motion: reduce) { .sub-confetti { display: none; } }
+.sub-signature { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.4; }
+.sub-signature.earned { color: #27ae60; font-size: 13px; }
+.sub-worst { font-size: 11px; color: var(--text-muted); text-align: center; }
+.sub-worst:empty { display: none; }
+.sub-map-table { border-collapse: collapse; margin: 0 auto; width: auto; }
+.sub-map-table th { width: 18px; font-size: 10px; color: var(--text-muted); font-weight: 600; padding: 1px 3px; }
+.sub-map-corner { color: var(--text-secondary); }
+.sub-map-cell { width: 34px; height: 20px; border: 1px solid var(--bg-secondary); border-radius: 3px; text-align: center; vertical-align: middle; }
+.sub-map-cell.none { background: var(--bg-tertiary); }
+.sub-map-cell.failing { background: #e74c3c; }
+.sub-map-cell.shaky { background: #e67e22; }
+.sub-map-cell.passing { background: #a9dfbf; }
+.sub-map-cell.learned { background: #27ae60; }
+.sub-map-time { font-size: 9px; color: #fff; font-variant-numeric: tabular-nums; }
+.sub-map-cell.none .sub-map-time { color: var(--text-muted); }
+.sub-map-cell.passing .sub-map-time { color: #1e6b42; }
+.sub-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 10px; color: var(--text-muted); }
+.sub-key { display: inline-flex; align-items: center; gap: 4px; }
+.sub-key .sub-map-cell { display: inline-block; width: 12px; height: 12px; }
 
 /* Number Line Explorer */
 .nl-widget { display:flex; flex-direction:column; gap:8px; padding:10px; font-family:system-ui,-apple-system,sans-serif; }
@@ -1693,15 +1947,15 @@ function multSetTab(btn, tab) {
 
     var gridPanel = widget.querySelector('.mult-grid-panel');
     var challengePanel = widget.querySelector('.mult-challenge-panel');
-    if (tab === 'grid') {
-        if (gridPanel) gridPanel.style.display = '';
-        if (challengePanel) challengePanel.classList.remove('active');
-    } else {
-        if (gridPanel) gridPanel.style.display = 'none';
-        if (challengePanel) {
-            challengePanel.classList.add('active');
-            multRenderChallenge(widget);
-        }
+    var progressPanel = widget.querySelector('.mult-progress-panel');
+    if (gridPanel) gridPanel.style.display = tab === 'grid' ? '' : 'none';
+    if (challengePanel) challengePanel.classList.toggle('active', tab === 'challenge');
+    if (progressPanel) progressPanel.classList.toggle('active', tab === 'progress');
+    if (tab === 'challenge') multRenderChallenge(widget);
+    if (tab === 'progress') {
+        multRenderProgress(widget);
+        var digits = Array.from(multState[toolId].challengeDigits);
+        if (multSummary(toolId, digits).complete) multConfetti();
     }
 }
 
@@ -1831,6 +2085,58 @@ function multToggleDigit(btn, digit) {
     }
 }
 
+// ---- Which question to ask next ----------------------------------------------
+// Uniform random spends most of a child's time on facts they already know. The
+// weights below put the time where the trouble is: what they get wrong first, then
+// what they have never seen, then what they can do but slowly.
+//
+// The tiers are a factor of two apart and the time nudge inside a tier is capped
+// below two, so the order asked for holds strictly — no mastered pair, however slow,
+// ever outranks one that has never been tried.
+var MULT_TIER = { failing: 16, shaky: 8, none: 4, passing: 2, learned: 1 };
+
+function multPairWeight(attempts, slowestInRange) {
+    var base = MULT_TIER[multPairState(attempts)] || 1;
+    var worst = multPairFastest(attempts);
+    if (worst === null || !slowestInRange) return base;
+    return base * (1 + 0.9 * (worst / slowestInRange));
+}
+
+// Returns {a, b}, or null when there is nothing to ask.
+function multPickPair(toolId, digits, avoidKey) {
+    if (!digits.length) return null;
+    var progress = multGetProgress(toolId);
+
+    var slowest = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var worst = multPairFastest(progress.pairs[multPairKey(a, b)]);
+            if (worst !== null && worst > slowest) slowest = worst;
+        });
+    });
+
+    var pool = [], total = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var key = multPairKey(a, b);
+            // A weighted pick can land on the same pair many times over, which in a
+            // small range means asking one question again and again. Skipped only
+            // when there is something else to ask.
+            if (key === avoidKey && digits.length * digits.length > 1) return;
+            var w = multPairWeight(progress.pairs[key], slowest);
+            total += w;
+            pool.push({ a: a, b: b, upTo: total });
+        });
+    });
+    if (!pool.length) return null;
+
+    var roll = Math.random() * total;
+    for (var i = 0; i < pool.length; i++) {
+        if (roll < pool[i].upTo) return { a: pool[i].a, b: pool[i].b };
+    }
+    return { a: pool[pool.length - 1].a, b: pool[pool.length - 1].b };
+}
+
 function multNextQuestion(widget) {
     var toolId = multGetToolId(widget);
     if (!toolId || !multState[toolId]) return;
@@ -1850,9 +2156,14 @@ function multNextQuestion(widget) {
         return;
     }
 
-    var a = digits[Math.floor(Math.random() * digits.length)];
-    var b = digits[Math.floor(Math.random() * digits.length)];
+    var last = st.challengeCurrent;
+    var pick = multPickPair(toolId, digits,
+        last ? multPairKey(last.a, last.b) : null);
+    if (!pick) { st.challengeCurrent = null; return; }
+    var a = pick.a, b = pick.b;
     st.challengeCurrent = { a: a, b: b, answer: a * b };
+
+    st.askedAt = Date.now();
 
     var qEl = widget.querySelector('.mult-question');
     if (qEl) qEl.textContent = a + ' × ' + b + ' = ?';
@@ -1873,6 +2184,11 @@ function multCheckAnswer(input) {
     var correct = (val === st.challengeCurrent.answer);
     st.score.total++;
     if (correct) st.score.correct++;
+
+    multRecordAttempt(toolId, st.challengeCurrent.a, st.challengeCurrent.b, correct,
+        st.askedAt ? Date.now() - st.askedAt : null);
+    st.askedAt = null;
+    multRenderProgress(widget);
 
     var feedbackEl = widget.querySelector('.mult-feedback');
     if (feedbackEl) {
@@ -1898,6 +2214,105 @@ function multSubmitChallenge(btn) {
     if (input) multCheckAnswer(input);
 }
 
+// ---- What the child actually knows -------------------------------------------
+// A score of 18 out of 25 does not say which seven were missed. Each pair keeps its
+// last three attempts instead, which is enough to tell a fact that is known from one
+// that is merely guessed right sometimes, and enough to time it.
+
+var MULT_KEEP = 3;
+
+function multPairKey(a, b) { return a + 'x' + b; }
+
+function multGetProgress(toolId) {
+    var custom = toolCustomizations[toolId] || {};
+    var data = custom.multProgress || {};
+    return { pairs: data.pairs || {} };
+}
+
+function multSaveProgress(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].multProgress = data;
+    saveToolCustomizations(toolCustomizations);
+}
+
+// One of: none, failing, shaky, learned, passing. "passing" is the state the four
+// colours asked for do not cover — right so far, but not yet three times. Calling it
+// shaky would say it had been missed, which is untrue, so it is a green in waiting
+// and does not count towards a finished range.
+function multPairState(attempts) {
+    var list = attempts || [];
+    if (!list.length) return 'none';
+    var wins = list.filter(function(x) { return x.ok; }).length;
+    if (wins === 0) return 'failing';
+    if (wins < list.length) return 'shaky';
+    return list.length >= MULT_KEEP ? 'learned' : 'passing';
+}
+
+// The fastest of the last three *correct* attempts — what the child can do when it
+// goes well, rather than their worst day. A wrong answer's duration is not a solve
+// time, and everything built on this is a claim about solving.
+function multPairFastest(attempts) {
+    var best = null;
+    (attempts || []).forEach(function(x) {
+        if (!x.ok || typeof x.ms !== 'number') return;
+        if (best === null || x.ms < best) best = x.ms;
+    });
+    return best;
+}
+
+function multSeconds(ms) {
+    return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 's';
+}
+
+// The range being practised, which is what any claim about "all pairs" is scoped to.
+function multRangeLabel(digits) {
+    if (!digits.length) return '';
+    var run = digits.every(function(d, i) { return i === 0 || d === digits[i - 1] + 1; });
+    return run && digits.length > 1
+        ? digits[0] + ' to ' + digits[digits.length - 1]
+        : digits.join(', ');
+}
+
+// Every ordered pair in the range, since 3x4 and 4x3 are tracked apart: a child can
+// know one order and not the other.
+function multSummary(toolId, digits) {
+    var progress = multGetProgress(toolId);
+    var total = digits.length * digits.length;
+    var learned = 0, slowest = null, slowestPair = null;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var attempts = progress.pairs[multPairKey(a, b)];
+            if (multPairState(attempts) === 'learned') learned++;
+            // The worst of the bests: every pair is timed at its own best, so the
+            // largest of those is the bar the whole range clears.
+            var best = multPairFastest(attempts);
+            if (best !== null && (slowest === null || best > slowest)) {
+                slowest = best;
+                slowestPair = { a: a, b: b };
+            }
+        });
+    });
+    return {
+        total: total, learned: learned, slowest: slowest, slowestPair: slowestPair,
+        complete: total > 0 && learned === total,
+        range: multRangeLabel(digits)
+    };
+}
+
+function multRecordAttempt(toolId, a, b, ok, ms) {
+    var progress = multGetProgress(toolId);
+    var key = multPairKey(a, b);
+    var list = (progress.pairs[key] || []).slice();
+    var entry = { ok: !!ok };
+    // A submission with no stamp — the tool re-rendered mid-question — is recorded
+    // without a time rather than given an invented one.
+    if (typeof ms === 'number' && isFinite(ms) && ms >= 0) entry.ms = ms;
+    list.push(entry);
+    while (list.length > MULT_KEEP) list.shift();
+    progress.pairs[key] = list;
+    multSaveProgress(toolId, progress);
+}
+
 function multUpdateScore(widget) {
     var toolId = multGetToolId(widget);
     if (!toolId || !multState[toolId]) return;
@@ -1908,6 +2323,123 @@ function multUpdateScore(widget) {
     }
 }
 
+function multRenderProgress(widget) {
+    var toolId = multGetToolId(widget);
+    if (!toolId || !multState[toolId]) return;
+    var panel = widget.querySelector('.mult-progress-panel');
+    if (!panel) return;
+    var digits = Array.from(multState[toolId].challengeDigits).sort(function(x, y) { return x - y; });
+    var progress = multGetProgress(toolId);
+    var summary = multSummary(toolId, digits);
+
+    var sigEl = widget.querySelector('.mult-signature');
+    if (sigEl) {
+        if (summary.complete) {
+            // Rounded up: the claim is that nothing took longer than this.
+            sigEl.innerHTML = '<b>Consistently solves every pair from ' +
+                summary.range + ' under ' + Math.ceil(summary.slowest / 1000) + ' seconds.</b>';
+            sigEl.className = 'mult-signature earned';
+        } else {
+            sigEl.textContent = summary.learned + ' of ' + summary.total +
+                ' pairs mastered' + (summary.range ? ' (' + summary.range + ')' : '') +
+                ' — three right in a row makes a pair green.';
+            sigEl.className = 'mult-signature';
+        }
+    }
+
+    // Each cell is a personal best, so the largest of them is the one holding the
+    // whole range back — worth saying out loud rather than hunting for on the map.
+    var worstEl = widget.querySelector('.mult-worst');
+    if (worstEl) {
+        if (summary.slowestPair) {
+            worstEl.innerHTML = 'Slowest pair: <b>' + summary.slowestPair.a + ' × ' +
+                summary.slowestPair.b + '</b> at ' + multSeconds(summary.slowest);
+        } else {
+            worstEl.textContent = '';
+        }
+    }
+
+    // Widening the range, or getting one wrong, un-finishes the grid. Any celebration
+    // still falling belongs to a state that has passed.
+    if (!summary.complete) {
+        var stale = document.querySelector('.mult-confetti');
+        if (stale) stale.remove();
+    }
+
+    var mapEl = widget.querySelector('.mult-map');
+    if (mapEl) {
+        var html = '<table class="mult-map-table"><tr><th class="mult-map-corner">×</th>';
+        digits.forEach(function(b) { html += '<th>' + b + '</th>'; });
+        html += '</tr>';
+        digits.forEach(function(a) {
+            html += '<tr><th>' + a + '</th>';
+            digits.forEach(function(b) {
+                var attempts = progress.pairs[multPairKey(a, b)];
+                var state = multPairState(attempts);
+                var worst = multPairFastest(attempts);
+                html += '<td class="mult-cell ' + state + '" title="' + a + ' × ' + b + '">' +
+                    '<span class="mult-cell-time">' +
+                    (worst === null ? '·' : multSeconds(worst)) + '</span></td>';
+            });
+            html += '</tr>';
+        });
+        mapEl.innerHTML = html + '</table>';
+    }
+
+    var legendEl = widget.querySelector('.mult-legend');
+    if (legendEl) {
+        // Colour is not the only thing saying it, for anyone who cannot tell them apart.
+        legendEl.innerHTML = [
+            ['none', 'not tried'], ['failing', 'missed all 3'], ['shaky', 'missed 1 of 3'],
+            ['passing', 'right so far'], ['learned', 'right 3 in a row']
+        ].map(function(pair) {
+            return '<span class="mult-key"><i class="mult-cell ' + pair[0] + '"></i>' +
+                pair[1] + '</span>';
+        }).join('');
+    }
+}
+
+// A whole range mastered is the one moment in this tool worth a bit of noise. Thrown
+// on opening Progress rather than on the answer that finished it, so it lands where
+// the finished grid is.
+function multConfetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Over the whole window rather than inside the tool: the grid being finished is
+    // the moment, and a tool pane is too small a place to mark it.
+    var old = document.querySelector('.mult-confetti');
+    if (old) old.remove();
+
+    var layer = document.createElement('div');
+    layer.className = 'mult-confetti';
+    var colours = ['#27ae60', '#3498db', '#e67e22', '#e74c3c', '#9b59b6', '#f1c40f'];
+    var longest = 0;
+    for (var i = 0; i < 44; i++) {
+        var bit = document.createElement('div');
+        var delay = Math.random() * 700;
+        var life = 1400 + Math.random() * 1200;
+        longest = Math.max(longest, delay + life);
+        bit.className = 'mult-confetti-bit';
+        bit.style.left = (Math.random() * 100) + '%';
+        bit.style.background = colours[i % colours.length];
+        bit.style.animationDelay = delay + 'ms';
+        bit.style.animationDuration = life + 'ms';
+        layer.appendChild(bit);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function() { layer.remove(); }, longest + 200);
+}
+
+function multResetProgress(btn) {
+    var widget = multGetWidget(btn);
+    var toolId = multGetToolId(widget);
+    if (!toolId) return;
+    // Reset Score clears a session tally; this throws away weeks of it.
+    if (!confirm('Clear every recorded attempt? The times and colours all go, and this cannot be undone.')) return;
+    multSaveProgress(toolId, { pairs: {} });
+    multRenderProgress(widget);
+}
+
 function multNewChallenge(btn) {
     var widget = multGetWidget(btn);
     var toolId = multGetToolId(widget);
@@ -1916,6 +2448,1682 @@ function multNewChallenge(btn) {
     multState[toolId].challengeCurrent = null;
     multUpdateScore(widget);
     multNextQuestion(widget);
+}
+
+// =============================================
+// DIVISION TABLE
+// =============================================
+// The multiplication tool read backwards. A child who knows 6 x 7 often stalls on
+// 42 ÷ 6, because the recall runs the other way, so this asks it in the direction
+// that is actually hard and keeps its own record of the answers.
+
+var divState = {};
+
+function divGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function divGetWidget(el) {
+    return el.closest('.div-widget');
+}
+
+function divInit() {
+    document.querySelectorAll('.div-widget').forEach(function(widget) {
+        var toolId = divGetToolId(widget);
+        if (!toolId) return;
+        divState[toolId] = {
+            maxNum: 10,
+            showHard: true,
+            activeTab: 'grid',
+            challengeDigits: new Set([1,2,3,4,5,6,7,8,9,10]),
+            challengeCurrent: null,
+            score: { correct: 0, total: 0 }
+        };
+        divRenderGrid(widget);
+    });
+}
+
+function divSetTab(btn, tab) {
+    var widget = divGetWidget(btn);
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    divState[toolId].activeTab = tab;
+
+    widget.querySelectorAll('.div-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var gridPanel = widget.querySelector('.div-grid-panel');
+    var challengePanel = widget.querySelector('.div-challenge-panel');
+    var progressPanel = widget.querySelector('.div-progress-panel');
+    if (gridPanel) gridPanel.style.display = tab === 'grid' ? '' : 'none';
+    if (challengePanel) challengePanel.classList.toggle('active', tab === 'challenge');
+    if (progressPanel) progressPanel.classList.toggle('active', tab === 'progress');
+    if (tab === 'challenge') divRenderChallenge(widget);
+    if (tab === 'progress') {
+        divRenderProgress(widget);
+        var digits = Array.from(divState[toolId].challengeDigits);
+        if (divSummary(toolId, digits).complete) divConfetti();
+    }
+}
+
+// The divisor down the side, the answer across the top, the dividend in the cell:
+// find 6 on the left, 42 in its row, and the answer is the 7 at the top.
+//
+// There is no half-table toggle here. Multiplication has one because 3 x 4 and 4 x 3
+// are the same fact; 12 ÷ 3 and 12 ÷ 4 are two different ones, so hiding half the
+// square would hide half the facts.
+function divRenderGrid(widget) {
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var st = divState[toolId];
+    var n = st.maxNum;
+    var showHard = st.showHard;
+
+    var cellSize = n <= 10 ? 38 : (n <= 12 ? 34 : (n <= 15 ? 28 : 24));
+    var fontSize = n <= 12 ? 12 : (n <= 15 ? 10 : 9);
+
+    var html = '<table class="div-table" style="font-size:' + fontSize + 'px;" onmouseover="divCellHover(event)" onmouseout="divCellOut(event)">';
+    html += '<thead><tr>';
+    html += '<th class="div-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">÷</th>';
+    for (var c = 1; c <= n; c++) {
+        html += '<th data-col="' + c + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + c + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+
+    for (var r = 1; r <= n; r++) {
+        html += '<tr>';
+        html += '<th class="div-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + r + '</th>';
+        for (var ci = 1; ci <= n; ci++) {
+            // The hard division facts are the hard multiplication facts read
+            // backwards, so they come from the one table rather than a second copy.
+            var isHard = showHard && MULT_HARD.has(r + ',' + ci);
+
+            var cls = 'div-cell';
+            if (r === ci) cls += ' div-square';
+            if (isHard) cls += ' div-hard';
+
+            html += '<td class="' + cls + '" data-row="' + r + '" data-col="' + ci + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">';
+            html += (r * ci);
+            html += '</td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    var wrap = widget.querySelector('.div-table-wrap');
+    if (wrap) wrap.innerHTML = html;
+}
+
+function divSetMax(select) {
+    var widget = divGetWidget(select);
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    divState[toolId].maxNum = parseInt(select.value, 10);
+    divRenderGrid(widget);
+}
+
+function divToggleHard(btn) {
+    var widget = divGetWidget(btn);
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    divState[toolId].showHard = !divState[toolId].showHard;
+    btn.classList.toggle('active', divState[toolId].showHard);
+    divRenderGrid(widget);
+}
+
+function divCellHover(event) {
+    var td = event.target.closest('td.div-cell');
+    if (!td) return;
+    var row = td.getAttribute('data-row');
+    var col = td.getAttribute('data-col');
+    var table = td.closest('.div-table');
+    if (!table || !col) return;
+    var colHeader = table.querySelector('thead th[data-col="' + col + '"]');
+    if (colHeader) colHeader.classList.add('div-col-highlight');
+    var rowHeader = td.closest('tr').querySelector('th.div-row-header');
+    if (rowHeader) rowHeader.classList.add('div-row-highlight');
+
+    // The cell alone shows a dividend and nothing else; this says the whole fact.
+    var widget = divGetWidget(td);
+    var readout = widget ? widget.querySelector('.div-readout') : null;
+    if (readout) readout.textContent = td.textContent + ' ÷ ' + row + ' = ' + col;
+}
+
+function divCellOut(event) {
+    var table = event.currentTarget;
+    table.querySelectorAll('.div-col-highlight').forEach(function(c) { c.classList.remove('div-col-highlight'); });
+    table.querySelectorAll('.div-row-highlight').forEach(function(c) { c.classList.remove('div-row-highlight'); });
+    var widget = divGetWidget(table);
+    var readout = widget ? widget.querySelector('.div-readout') : null;
+    if (readout) readout.textContent = '';
+}
+
+function divRenderChallenge(widget) {
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var st = divState[toolId];
+
+    var digitRow = widget.querySelector('.div-digit-row');
+    if (digitRow) {
+        var html = '';
+        for (var d = 1; d <= 12; d++) {
+            var isActive = st.challengeDigits.has(d);
+            html += '<button class="div-digit-btn' + (isActive ? ' active' : '') + '" onclick="divToggleDigit(this,' + d + ')">' + d + '</button>';
+        }
+        digitRow.innerHTML = html;
+    }
+
+    if (!st.challengeCurrent) {
+        divNextQuestion(widget);
+    }
+    divUpdateScore(widget);
+}
+
+// The practice numbers bound both the divisor and the answer, which is what keeps
+// the progress map square and lets the signature say "from 2 to 3" honestly.
+function divToggleDigit(btn, digit) {
+    var widget = divGetWidget(btn);
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var digits = divState[toolId].challengeDigits;
+    if (digits.has(digit)) {
+        if (digits.size > 1) {
+            digits.delete(digit);
+            btn.classList.remove('active');
+        }
+    } else {
+        digits.add(digit);
+        btn.classList.add('active');
+    }
+}
+
+// ---- Which question to ask next ----------------------------------------------
+// Uniform random spends most of a child's time on facts they already know. The
+// weights below put the time where the trouble is: what they get wrong first, then
+// what they have never seen, then what they can do but slowly.
+//
+// The tiers are a factor of two apart and the time nudge inside a tier is capped
+// below two, so the order asked for holds strictly — no mastered fact, however slow,
+// ever outranks one that has never been tried.
+var DIV_TIER = { failing: 16, shaky: 8, none: 4, passing: 2, learned: 1 };
+
+function divPairWeight(attempts, slowestInRange) {
+    var base = DIV_TIER[divPairState(attempts)] || 1;
+    var worst = divPairFastest(attempts);
+    if (worst === null || !slowestInRange) return base;
+    return base * (1 + 0.9 * (worst / slowestInRange));
+}
+
+// Returns {a, b} — the divisor and the answer — or null when there is nothing to ask.
+function divPickPair(toolId, digits, avoidKey) {
+    if (!digits.length) return null;
+    var progress = divGetProgress(toolId);
+
+    var slowest = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var worst = divPairFastest(progress.pairs[divPairKey(a, b)]);
+            if (worst !== null && worst > slowest) slowest = worst;
+        });
+    });
+
+    var pool = [], total = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var key = divPairKey(a, b);
+            // A weighted pick can land on the same fact many times over, which in a
+            // small range means asking one question again and again. Skipped only
+            // when there is something else to ask.
+            if (key === avoidKey && digits.length * digits.length > 1) return;
+            var w = divPairWeight(progress.pairs[key], slowest);
+            total += w;
+            pool.push({ a: a, b: b, upTo: total });
+        });
+    });
+    if (!pool.length) return null;
+
+    var roll = Math.random() * total;
+    for (var i = 0; i < pool.length; i++) {
+        if (roll < pool[i].upTo) return { a: pool[i].a, b: pool[i].b };
+    }
+    return { a: pool[pool.length - 1].a, b: pool[pool.length - 1].b };
+}
+
+function divNextQuestion(widget) {
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var st = divState[toolId];
+    var digits = Array.from(st.challengeDigits);
+
+    var feedbackEl = widget.querySelector('.div-feedback');
+    if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = 'div-feedback'; }
+
+    var input = widget.querySelector('.div-answer-input');
+    if (input) { input.value = ''; input.focus(); }
+
+    if (digits.length === 0) {
+        var emptyEl = widget.querySelector('.div-question');
+        if (emptyEl) emptyEl.textContent = '';
+        st.challengeCurrent = null;
+        return;
+    }
+
+    var last = st.challengeCurrent;
+    var pick = divPickPair(toolId, digits,
+        last ? divPairKey(last.a, last.b) : null);
+    if (!pick) { st.challengeCurrent = null; return; }
+    var a = pick.a, b = pick.b;
+    // Exact division only: the dividend is built from the fact, so it always comes
+    // out whole and there is one box with one right answer in it.
+    st.challengeCurrent = { a: a, b: b, dividend: a * b, answer: b };
+
+    st.askedAt = Date.now();
+
+    var qEl = widget.querySelector('.div-question');
+    if (qEl) qEl.textContent = (a * b) + ' ÷ ' + a + ' = ?';
+
+    divUpdateScore(widget);
+}
+
+function divCheckAnswer(input) {
+    var widget = divGetWidget(input);
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var st = divState[toolId];
+    if (!st.challengeCurrent) return;
+
+    var val = parseInt(input.value.trim(), 10);
+    if (isNaN(val)) return;
+
+    var correct = (val === st.challengeCurrent.answer);
+    st.score.total++;
+    if (correct) st.score.correct++;
+
+    divRecordAttempt(toolId, st.challengeCurrent.a, st.challengeCurrent.b, correct,
+        st.askedAt ? Date.now() - st.askedAt : null);
+    st.askedAt = null;
+    divRenderProgress(widget);
+
+    var feedbackEl = widget.querySelector('.div-feedback');
+    if (feedbackEl) {
+        if (correct) {
+            feedbackEl.textContent = '✓ Correct!';
+            feedbackEl.className = 'div-feedback correct';
+        } else {
+            feedbackEl.textContent = '✗ Wrong — the answer is ' + st.challengeCurrent.answer;
+            feedbackEl.className = 'div-feedback wrong';
+        }
+    }
+
+    divUpdateScore(widget);
+
+    setTimeout(function() {
+        divNextQuestion(widget);
+    }, 1200);
+}
+
+function divSubmitChallenge(btn) {
+    var widget = divGetWidget(btn);
+    var input = widget.querySelector('.div-answer-input');
+    if (input) divCheckAnswer(input);
+}
+
+// ---- What the child actually knows -------------------------------------------
+// A score of 18 out of 25 does not say which seven were missed. Each fact keeps its
+// last three attempts instead, which is enough to tell one that is known from one
+// that is merely guessed right sometimes, and enough to time it.
+
+var DIV_KEEP = 3;
+
+// Keyed by divisor and answer rather than by the dividend, because 42 ÷ 6 and 42 ÷ 7
+// are different questions off the same number.
+function divPairKey(a, b) { return a + '/' + b; }
+
+function divGetProgress(toolId) {
+    var custom = toolCustomizations[toolId] || {};
+    var data = custom.divProgress || {};
+    return { pairs: data.pairs || {} };
+}
+
+function divSaveProgress(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].divProgress = data;
+    saveToolCustomizations(toolCustomizations);
+}
+
+// One of: none, failing, shaky, learned, passing. "passing" is the state the four
+// colours do not cover — right so far, but not yet three times. Calling it shaky
+// would say it had been missed, which is untrue, so it is a green in waiting and
+// does not count towards a finished range.
+function divPairState(attempts) {
+    var list = attempts || [];
+    if (!list.length) return 'none';
+    var wins = list.filter(function(x) { return x.ok; }).length;
+    if (wins === 0) return 'failing';
+    if (wins < list.length) return 'shaky';
+    return list.length >= DIV_KEEP ? 'learned' : 'passing';
+}
+
+// The fastest of the last three *correct* attempts — what the child can do when it
+// goes well, rather than their worst day. A wrong answer's duration is not a solve
+// time, and everything built on this is a claim about solving.
+function divPairFastest(attempts) {
+    var best = null;
+    (attempts || []).forEach(function(x) {
+        if (!x.ok || typeof x.ms !== 'number') return;
+        if (best === null || x.ms < best) best = x.ms;
+    });
+    return best;
+}
+
+function divSeconds(ms) {
+    return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 's';
+}
+
+// The range being practised, which is what any claim about "every fact" is scoped to.
+function divRangeLabel(digits) {
+    if (!digits.length) return '';
+    var run = digits.every(function(d, i) { return i === 0 || d === digits[i - 1] + 1; });
+    return run && digits.length > 1
+        ? digits[0] + ' to ' + digits[digits.length - 1]
+        : digits.join(', ');
+}
+
+function divSummary(toolId, digits) {
+    var progress = divGetProgress(toolId);
+    var total = digits.length * digits.length;
+    var learned = 0, slowest = null, slowestPair = null;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var attempts = progress.pairs[divPairKey(a, b)];
+            if (divPairState(attempts) === 'learned') learned++;
+            // The worst of the bests: every fact is timed at its own best, so the
+            // largest of those is the bar the whole range clears.
+            var best = divPairFastest(attempts);
+            if (best !== null && (slowest === null || best > slowest)) {
+                slowest = best;
+                slowestPair = { a: a, b: b };
+            }
+        });
+    });
+    return {
+        total: total, learned: learned, slowest: slowest, slowestPair: slowestPair,
+        complete: total > 0 && learned === total,
+        range: divRangeLabel(digits)
+    };
+}
+
+function divRecordAttempt(toolId, a, b, ok, ms) {
+    var progress = divGetProgress(toolId);
+    var key = divPairKey(a, b);
+    var list = (progress.pairs[key] || []).slice();
+    var entry = { ok: !!ok };
+    // A submission with no stamp — the tool re-rendered mid-question — is recorded
+    // without a time rather than given an invented one.
+    if (typeof ms === 'number' && isFinite(ms) && ms >= 0) entry.ms = ms;
+    list.push(entry);
+    while (list.length > DIV_KEEP) list.shift();
+    progress.pairs[key] = list;
+    divSaveProgress(toolId, progress);
+}
+
+function divUpdateScore(widget) {
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var st = divState[toolId];
+    var scoreEl = widget.querySelector('.div-score');
+    if (scoreEl) {
+        scoreEl.textContent = 'Score: ' + st.score.correct + ' / ' + st.score.total;
+    }
+}
+
+function divRenderProgress(widget) {
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    var panel = widget.querySelector('.div-progress-panel');
+    if (!panel) return;
+    var digits = Array.from(divState[toolId].challengeDigits).sort(function(x, y) { return x - y; });
+    var progress = divGetProgress(toolId);
+    var summary = divSummary(toolId, digits);
+
+    var sigEl = widget.querySelector('.div-signature');
+    if (sigEl) {
+        if (summary.complete) {
+            // Rounded up: the claim is that nothing took longer than this.
+            sigEl.innerHTML = '<b>Consistently divides every fact from ' +
+                summary.range + ' under ' + Math.ceil(summary.slowest / 1000) + ' seconds.</b>';
+            sigEl.className = 'div-signature earned';
+        } else {
+            sigEl.textContent = summary.learned + ' of ' + summary.total +
+                ' facts mastered' + (summary.range ? ' (' + summary.range + ')' : '') +
+                ' — three right in a row makes a fact green.';
+            sigEl.className = 'div-signature';
+        }
+    }
+
+    // Each cell is a personal best, so the largest of them is the one holding the
+    // whole range back — worth saying out loud rather than hunting for on the map.
+    var worstEl = widget.querySelector('.div-worst');
+    if (worstEl) {
+        if (summary.slowestPair) {
+            worstEl.innerHTML = 'Slowest fact: <b>' +
+                (summary.slowestPair.a * summary.slowestPair.b) + ' ÷ ' +
+                summary.slowestPair.a + '</b> at ' + divSeconds(summary.slowest);
+        } else {
+            worstEl.textContent = '';
+        }
+    }
+
+    // Widening the range, or getting one wrong, un-finishes the grid. Any celebration
+    // still falling belongs to a state that has passed.
+    if (!summary.complete) {
+        var stale = document.querySelector('.div-confetti');
+        if (stale) stale.remove();
+    }
+
+    var mapEl = widget.querySelector('.div-map');
+    if (mapEl) {
+        var html = '<table class="div-map-table"><tr><th class="div-map-corner">÷</th>';
+        digits.forEach(function(b) { html += '<th>' + b + '</th>'; });
+        html += '</tr>';
+        digits.forEach(function(a) {
+            html += '<tr><th>' + a + '</th>';
+            digits.forEach(function(b) {
+                var attempts = progress.pairs[divPairKey(a, b)];
+                var state = divPairState(attempts);
+                var worst = divPairFastest(attempts);
+                html += '<td class="div-map-cell ' + state + '" title="' + (a * b) + ' ÷ ' + a + '">' +
+                    '<span class="div-map-time">' +
+                    (worst === null ? '·' : divSeconds(worst)) + '</span></td>';
+            });
+            html += '</tr>';
+        });
+        mapEl.innerHTML = html + '</table>';
+    }
+
+    var legendEl = widget.querySelector('.div-legend');
+    if (legendEl) {
+        // Colour is not the only thing saying it, for anyone who cannot tell them apart.
+        legendEl.innerHTML = [
+            ['none', 'not tried'], ['failing', 'missed all 3'], ['shaky', 'missed 1 of 3'],
+            ['passing', 'right so far'], ['learned', 'right 3 in a row']
+        ].map(function(pair) {
+            return '<span class="div-key"><i class="div-map-cell ' + pair[0] + '"></i>' +
+                pair[1] + '</span>';
+        }).join('');
+    }
+}
+
+// A whole range mastered is the one moment in this tool worth a bit of noise. Thrown
+// on opening Progress rather than on the answer that finished it, so it lands where
+// the finished grid is.
+function divConfetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Over the whole window rather than inside the tool: the grid being finished is
+    // the moment, and a tool pane is too small a place to mark it.
+    var old = document.querySelector('.div-confetti');
+    if (old) old.remove();
+
+    var layer = document.createElement('div');
+    layer.className = 'div-confetti';
+    var colours = ['#8e44ad', '#3498db', '#27ae60', '#e67e22', '#e74c3c', '#f1c40f'];
+    var longest = 0;
+    for (var i = 0; i < 44; i++) {
+        var bit = document.createElement('div');
+        var delay = Math.random() * 700;
+        var life = 1400 + Math.random() * 1200;
+        longest = Math.max(longest, delay + life);
+        bit.className = 'div-confetti-bit';
+        bit.style.left = (Math.random() * 100) + '%';
+        bit.style.background = colours[i % colours.length];
+        bit.style.animationDelay = delay + 'ms';
+        bit.style.animationDuration = life + 'ms';
+        layer.appendChild(bit);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function() { layer.remove(); }, longest + 200);
+}
+
+function divResetProgress(btn) {
+    var widget = divGetWidget(btn);
+    var toolId = divGetToolId(widget);
+    if (!toolId) return;
+    // Reset Score clears a session tally; this throws away weeks of it.
+    if (!confirm('Clear every recorded attempt? The times and colours all go, and this cannot be undone.')) return;
+    divSaveProgress(toolId, { pairs: {} });
+    divRenderProgress(widget);
+}
+
+function divNewChallenge(btn) {
+    var widget = divGetWidget(btn);
+    var toolId = divGetToolId(widget);
+    if (!toolId || !divState[toolId]) return;
+    divState[toolId].score = { correct: 0, total: 0 };
+    divState[toolId].challengeCurrent = null;
+    divUpdateScore(widget);
+    divNextQuestion(widget);
+}
+
+// =============================================
+// ADDITION TABLE
+// =============================================
+// The multiplication tool's shape, one operation earlier. Addition is commutative
+// like multiplication, so the half-table toggle carries over; the facts are still
+// tracked in both orders, because a child can know 8 + 5 and stall on 5 + 8.
+
+var addState = {};
+
+function addGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function addGetWidget(el) {
+    return el.closest('.add-widget');
+}
+
+// The hard addition facts are the ones that bridge ten: 7 + 8 has to be taken apart
+// and put back together, while 7 + 2 does not. Doubles are left out because children
+// learn them as an anchor set, and so is anything with 1 or 10 in it (counting on,
+// and making ten). Sums built from two-digit addends are not basic facts at all, so
+// nothing above 9 is marked.
+function addIsHard(a, b) {
+    if (a < 2 || b < 2 || a > 9 || b > 9) return false;
+    if (a === b) return false;
+    return a + b > 10;
+}
+
+function addInit() {
+    document.querySelectorAll('.add-widget').forEach(function(widget) {
+        var toolId = addGetToolId(widget);
+        if (!toolId) return;
+        addState[toolId] = {
+            maxNum: 10,
+            halfMode: 'full',
+            showHard: true,
+            activeTab: 'grid',
+            challengeDigits: new Set([1,2,3,4,5,6,7,8,9,10]),
+            challengeCurrent: null,
+            score: { correct: 0, total: 0 }
+        };
+        addRenderGrid(widget);
+    });
+}
+
+function addSetTab(btn, tab) {
+    var widget = addGetWidget(btn);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    addState[toolId].activeTab = tab;
+
+    widget.querySelectorAll('.add-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var gridPanel = widget.querySelector('.add-grid-panel');
+    var challengePanel = widget.querySelector('.add-challenge-panel');
+    var progressPanel = widget.querySelector('.add-progress-panel');
+    if (gridPanel) gridPanel.style.display = tab === 'grid' ? '' : 'none';
+    if (challengePanel) challengePanel.classList.toggle('active', tab === 'challenge');
+    if (progressPanel) progressPanel.classList.toggle('active', tab === 'progress');
+    if (tab === 'challenge') addRenderChallenge(widget);
+    if (tab === 'progress') {
+        addRenderProgress(widget);
+        var digits = Array.from(addState[toolId].challengeDigits);
+        if (addSummary(toolId, digits).complete) addConfetti();
+    }
+}
+
+function addRenderGrid(widget) {
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var st = addState[toolId];
+    var n = st.maxNum;
+    var half = st.halfMode;
+    var showHard = st.showHard;
+
+    var cellSize = n <= 10 ? 38 : (n <= 12 ? 34 : (n <= 15 ? 28 : 24));
+    var fontSize = n <= 12 ? 12 : (n <= 15 ? 10 : 9);
+
+    var html = '<table class="add-table" style="font-size:' + fontSize + 'px;" onmouseover="addCellHover(event)" onmouseout="addCellOut(event)">';
+    html += '<thead><tr>';
+    html += '<th class="add-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">+</th>';
+    for (var c = 1; c <= n; c++) {
+        html += '<th data-col="' + c + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + c + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+
+    for (var r = 1; r <= n; r++) {
+        html += '<tr>';
+        html += '<th class="add-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + r + '</th>';
+        for (var ci = 1; ci <= n; ci++) {
+            var hidden = (half === 'upper' && r > ci) || (half === 'lower' && r < ci);
+            var isDouble = (r === ci);
+            var isHard = showHard && addIsHard(r, ci);
+
+            var cls = 'add-cell';
+            if (hidden) cls += ' add-hidden';
+            if (!hidden && isDouble) cls += ' add-double';
+            if (!hidden && isHard) cls += ' add-hard';
+
+            html += '<td class="' + cls + '" data-col="' + ci + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">';
+            if (!hidden) html += (r + ci);
+            html += '</td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    var wrap = widget.querySelector('.add-table-wrap');
+    if (wrap) wrap.innerHTML = html;
+}
+
+function addSetMax(select) {
+    var widget = addGetWidget(select);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    addState[toolId].maxNum = parseInt(select.value, 10);
+    addRenderGrid(widget);
+}
+
+function addSetHalf(btn, mode) {
+    var widget = addGetWidget(btn);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    addState[toolId].halfMode = mode;
+    widget.querySelectorAll('.add-half-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    addRenderGrid(widget);
+}
+
+function addToggleHard(btn) {
+    var widget = addGetWidget(btn);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    addState[toolId].showHard = !addState[toolId].showHard;
+    btn.classList.toggle('active', addState[toolId].showHard);
+    addRenderGrid(widget);
+}
+
+function addCellHover(event) {
+    var td = event.target.closest('td.add-cell');
+    if (!td || td.classList.contains('add-hidden')) return;
+    var col = td.getAttribute('data-col');
+    var table = td.closest('.add-table');
+    if (!table || !col) return;
+    var colHeader = table.querySelector('thead th[data-col="' + col + '"]');
+    if (colHeader) colHeader.classList.add('add-col-highlight');
+    var rowHeader = td.closest('tr').querySelector('th.add-row-header');
+    if (rowHeader) rowHeader.classList.add('add-row-highlight');
+}
+
+function addCellOut(event) {
+    var table = event.currentTarget;
+    table.querySelectorAll('.add-col-highlight').forEach(function(c) { c.classList.remove('add-col-highlight'); });
+    table.querySelectorAll('.add-row-highlight').forEach(function(c) { c.classList.remove('add-row-highlight'); });
+}
+
+function addRenderChallenge(widget) {
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var st = addState[toolId];
+
+    var digitRow = widget.querySelector('.add-digit-row');
+    if (digitRow) {
+        var html = '';
+        for (var d = 1; d <= 12; d++) {
+            var isActive = st.challengeDigits.has(d);
+            html += '<button class="add-digit-btn' + (isActive ? ' active' : '') + '" onclick="addToggleDigit(this,' + d + ')">' + d + '</button>';
+        }
+        digitRow.innerHTML = html;
+    }
+
+    if (!st.challengeCurrent) {
+        addNextQuestion(widget);
+    }
+    addUpdateScore(widget);
+}
+
+function addToggleDigit(btn, digit) {
+    var widget = addGetWidget(btn);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var digits = addState[toolId].challengeDigits;
+    if (digits.has(digit)) {
+        if (digits.size > 1) {
+            digits.delete(digit);
+            btn.classList.remove('active');
+        }
+    } else {
+        digits.add(digit);
+        btn.classList.add('active');
+    }
+}
+
+// ---- Which question to ask next ----------------------------------------------
+// Uniform random spends most of a child's time on facts they already know. The
+// weights below put the time where the trouble is: what they get wrong first, then
+// what they have never seen, then what they can do but slowly.
+//
+// The tiers are a factor of two apart and the time nudge inside a tier is capped
+// below two, so the order asked for holds strictly — no mastered fact, however slow,
+// ever outranks one that has never been tried.
+var ADD_TIER = { failing: 16, shaky: 8, none: 4, passing: 2, learned: 1 };
+
+function addPairWeight(attempts, slowestInRange) {
+    var base = ADD_TIER[addPairState(attempts)] || 1;
+    var worst = addPairFastest(attempts);
+    if (worst === null || !slowestInRange) return base;
+    return base * (1 + 0.9 * (worst / slowestInRange));
+}
+
+// Returns {a, b}, or null when there is nothing to ask.
+function addPickPair(toolId, digits, avoidKey) {
+    if (!digits.length) return null;
+    var progress = addGetProgress(toolId);
+
+    var slowest = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var worst = addPairFastest(progress.pairs[addPairKey(a, b)]);
+            if (worst !== null && worst > slowest) slowest = worst;
+        });
+    });
+
+    var pool = [], total = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var key = addPairKey(a, b);
+            // A weighted pick can land on the same fact many times over, which in a
+            // small range means asking one question again and again. Skipped only
+            // when there is something else to ask.
+            if (key === avoidKey && digits.length * digits.length > 1) return;
+            var w = addPairWeight(progress.pairs[key], slowest);
+            total += w;
+            pool.push({ a: a, b: b, upTo: total });
+        });
+    });
+    if (!pool.length) return null;
+
+    var roll = Math.random() * total;
+    for (var i = 0; i < pool.length; i++) {
+        if (roll < pool[i].upTo) return { a: pool[i].a, b: pool[i].b };
+    }
+    return { a: pool[pool.length - 1].a, b: pool[pool.length - 1].b };
+}
+
+function addNextQuestion(widget) {
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var st = addState[toolId];
+    var digits = Array.from(st.challengeDigits);
+
+    var feedbackEl = widget.querySelector('.add-feedback');
+    if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = 'add-feedback'; }
+
+    var input = widget.querySelector('.add-answer-input');
+    if (input) { input.value = ''; input.focus(); }
+
+    if (digits.length === 0) {
+        var emptyEl = widget.querySelector('.add-question');
+        if (emptyEl) emptyEl.textContent = '';
+        st.challengeCurrent = null;
+        return;
+    }
+
+    var last = st.challengeCurrent;
+    var pick = addPickPair(toolId, digits,
+        last ? addPairKey(last.a, last.b) : null);
+    if (!pick) { st.challengeCurrent = null; return; }
+    var a = pick.a, b = pick.b;
+    st.challengeCurrent = { a: a, b: b, answer: a + b };
+
+    st.askedAt = Date.now();
+
+    var qEl = widget.querySelector('.add-question');
+    if (qEl) qEl.textContent = a + ' + ' + b + ' = ?';
+
+    addUpdateScore(widget);
+}
+
+function addCheckAnswer(input) {
+    var widget = addGetWidget(input);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var st = addState[toolId];
+    if (!st.challengeCurrent) return;
+
+    var val = parseInt(input.value.trim(), 10);
+    if (isNaN(val)) return;
+
+    var correct = (val === st.challengeCurrent.answer);
+    st.score.total++;
+    if (correct) st.score.correct++;
+
+    addRecordAttempt(toolId, st.challengeCurrent.a, st.challengeCurrent.b, correct,
+        st.askedAt ? Date.now() - st.askedAt : null);
+    st.askedAt = null;
+    addRenderProgress(widget);
+
+    var feedbackEl = widget.querySelector('.add-feedback');
+    if (feedbackEl) {
+        if (correct) {
+            feedbackEl.textContent = '✓ Correct!';
+            feedbackEl.className = 'add-feedback correct';
+        } else {
+            feedbackEl.textContent = '✗ Wrong — the answer is ' + st.challengeCurrent.answer;
+            feedbackEl.className = 'add-feedback wrong';
+        }
+    }
+
+    addUpdateScore(widget);
+
+    setTimeout(function() {
+        addNextQuestion(widget);
+    }, 1200);
+}
+
+function addSubmitChallenge(btn) {
+    var widget = addGetWidget(btn);
+    var input = widget.querySelector('.add-answer-input');
+    if (input) addCheckAnswer(input);
+}
+
+// ---- What the child actually knows -------------------------------------------
+// A score of 18 out of 25 does not say which seven were missed. Each fact keeps its
+// last three attempts instead, which is enough to tell one that is known from one
+// that is merely guessed right sometimes, and enough to time it.
+
+var ADD_KEEP = 3;
+
+function addPairKey(a, b) { return a + '+' + b; }
+
+function addGetProgress(toolId) {
+    var custom = toolCustomizations[toolId] || {};
+    var data = custom.addProgress || {};
+    return { pairs: data.pairs || {} };
+}
+
+function addSaveProgress(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].addProgress = data;
+    saveToolCustomizations(toolCustomizations);
+}
+
+// One of: none, failing, shaky, learned, passing. "passing" is the state the four
+// colours do not cover — right so far, but not yet three times. Calling it shaky
+// would say it had been missed, which is untrue, so it is a green in waiting and
+// does not count towards a finished range.
+function addPairState(attempts) {
+    var list = attempts || [];
+    if (!list.length) return 'none';
+    var wins = list.filter(function(x) { return x.ok; }).length;
+    if (wins === 0) return 'failing';
+    if (wins < list.length) return 'shaky';
+    return list.length >= ADD_KEEP ? 'learned' : 'passing';
+}
+
+// The fastest of the last three *correct* attempts — what the child can do when it
+// goes well, rather than their worst day. A wrong answer's duration is not a solve
+// time, and everything built on this is a claim about solving.
+function addPairFastest(attempts) {
+    var best = null;
+    (attempts || []).forEach(function(x) {
+        if (!x.ok || typeof x.ms !== 'number') return;
+        if (best === null || x.ms < best) best = x.ms;
+    });
+    return best;
+}
+
+function addSeconds(ms) {
+    return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 's';
+}
+
+// The range being practised, which is what any claim about "every fact" is scoped to.
+function addRangeLabel(digits) {
+    if (!digits.length) return '';
+    var run = digits.every(function(d, i) { return i === 0 || d === digits[i - 1] + 1; });
+    return run && digits.length > 1
+        ? digits[0] + ' to ' + digits[digits.length - 1]
+        : digits.join(', ');
+}
+
+// Every ordered pair in the range. 8 + 5 and 5 + 8 come to the same number, but a
+// child can know one and stall on the other, so they are counted apart.
+function addSummary(toolId, digits) {
+    var progress = addGetProgress(toolId);
+    var total = digits.length * digits.length;
+    var learned = 0, slowest = null, slowestPair = null;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var attempts = progress.pairs[addPairKey(a, b)];
+            if (addPairState(attempts) === 'learned') learned++;
+            // The worst of the bests: every fact is timed at its own best, so the
+            // largest of those is the bar the whole range clears.
+            var best = addPairFastest(attempts);
+            if (best !== null && (slowest === null || best > slowest)) {
+                slowest = best;
+                slowestPair = { a: a, b: b };
+            }
+        });
+    });
+    return {
+        total: total, learned: learned, slowest: slowest, slowestPair: slowestPair,
+        complete: total > 0 && learned === total,
+        range: addRangeLabel(digits)
+    };
+}
+
+function addRecordAttempt(toolId, a, b, ok, ms) {
+    var progress = addGetProgress(toolId);
+    var key = addPairKey(a, b);
+    var list = (progress.pairs[key] || []).slice();
+    var entry = { ok: !!ok };
+    // A submission with no stamp — the tool re-rendered mid-question — is recorded
+    // without a time rather than given an invented one.
+    if (typeof ms === 'number' && isFinite(ms) && ms >= 0) entry.ms = ms;
+    list.push(entry);
+    while (list.length > ADD_KEEP) list.shift();
+    progress.pairs[key] = list;
+    addSaveProgress(toolId, progress);
+}
+
+function addUpdateScore(widget) {
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var st = addState[toolId];
+    var scoreEl = widget.querySelector('.add-score');
+    if (scoreEl) {
+        scoreEl.textContent = 'Score: ' + st.score.correct + ' / ' + st.score.total;
+    }
+}
+
+function addRenderProgress(widget) {
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    var panel = widget.querySelector('.add-progress-panel');
+    if (!panel) return;
+    var digits = Array.from(addState[toolId].challengeDigits).sort(function(x, y) { return x - y; });
+    var progress = addGetProgress(toolId);
+    var summary = addSummary(toolId, digits);
+
+    var sigEl = widget.querySelector('.add-signature');
+    if (sigEl) {
+        if (summary.complete) {
+            // Rounded up: the claim is that nothing took longer than this.
+            sigEl.innerHTML = '<b>Consistently adds every fact from ' +
+                summary.range + ' under ' + Math.ceil(summary.slowest / 1000) + ' seconds.</b>';
+            sigEl.className = 'add-signature earned';
+        } else {
+            sigEl.textContent = summary.learned + ' of ' + summary.total +
+                ' facts mastered' + (summary.range ? ' (' + summary.range + ')' : '') +
+                ' — three right in a row makes a fact green.';
+            sigEl.className = 'add-signature';
+        }
+    }
+
+    // Each cell is a personal best, so the largest of them is the one holding the
+    // whole range back — worth saying out loud rather than hunting for on the map.
+    var worstEl = widget.querySelector('.add-worst');
+    if (worstEl) {
+        if (summary.slowestPair) {
+            worstEl.innerHTML = 'Slowest fact: <b>' + summary.slowestPair.a + ' + ' +
+                summary.slowestPair.b + '</b> at ' + addSeconds(summary.slowest);
+        } else {
+            worstEl.textContent = '';
+        }
+    }
+
+    // Widening the range, or getting one wrong, un-finishes the grid. Any celebration
+    // still falling belongs to a state that has passed.
+    if (!summary.complete) {
+        var stale = document.querySelector('.add-confetti');
+        if (stale) stale.remove();
+    }
+
+    var mapEl = widget.querySelector('.add-map');
+    if (mapEl) {
+        var html = '<table class="add-map-table"><tr><th class="add-map-corner">+</th>';
+        digits.forEach(function(b) { html += '<th>' + b + '</th>'; });
+        html += '</tr>';
+        digits.forEach(function(a) {
+            html += '<tr><th>' + a + '</th>';
+            digits.forEach(function(b) {
+                var attempts = progress.pairs[addPairKey(a, b)];
+                var state = addPairState(attempts);
+                var worst = addPairFastest(attempts);
+                html += '<td class="add-map-cell ' + state + '" title="' + a + ' + ' + b + '">' +
+                    '<span class="add-map-time">' +
+                    (worst === null ? '·' : addSeconds(worst)) + '</span></td>';
+            });
+            html += '</tr>';
+        });
+        mapEl.innerHTML = html + '</table>';
+    }
+
+    var legendEl = widget.querySelector('.add-legend');
+    if (legendEl) {
+        // Colour is not the only thing saying it, for anyone who cannot tell them apart.
+        legendEl.innerHTML = [
+            ['none', 'not tried'], ['failing', 'missed all 3'], ['shaky', 'missed 1 of 3'],
+            ['passing', 'right so far'], ['learned', 'right 3 in a row']
+        ].map(function(pair) {
+            return '<span class="add-key"><i class="add-map-cell ' + pair[0] + '"></i>' +
+                pair[1] + '</span>';
+        }).join('');
+    }
+}
+
+// A whole range mastered is the one moment in this tool worth a bit of noise. Thrown
+// on opening Progress rather than on the answer that finished it, so it lands where
+// the finished grid is.
+function addConfetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Over the whole window rather than inside the tool: the grid being finished is
+    // the moment, and a tool pane is too small a place to mark it.
+    var old = document.querySelector('.add-confetti');
+    if (old) old.remove();
+
+    var layer = document.createElement('div');
+    layer.className = 'add-confetti';
+    var colours = ['#16a085', '#3498db', '#27ae60', '#e67e22', '#e74c3c', '#f1c40f'];
+    var longest = 0;
+    for (var i = 0; i < 44; i++) {
+        var bit = document.createElement('div');
+        var delay = Math.random() * 700;
+        var life = 1400 + Math.random() * 1200;
+        longest = Math.max(longest, delay + life);
+        bit.className = 'add-confetti-bit';
+        bit.style.left = (Math.random() * 100) + '%';
+        bit.style.background = colours[i % colours.length];
+        bit.style.animationDelay = delay + 'ms';
+        bit.style.animationDuration = life + 'ms';
+        layer.appendChild(bit);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function() { layer.remove(); }, longest + 200);
+}
+
+function addResetProgress(btn) {
+    var widget = addGetWidget(btn);
+    var toolId = addGetToolId(widget);
+    if (!toolId) return;
+    // Reset Score clears a session tally; this throws away weeks of it.
+    if (!confirm('Clear every recorded attempt? The times and colours all go, and this cannot be undone.')) return;
+    addSaveProgress(toolId, { pairs: {} });
+    addRenderProgress(widget);
+}
+
+function addNewChallenge(btn) {
+    var widget = addGetWidget(btn);
+    var toolId = addGetToolId(widget);
+    if (!toolId || !addState[toolId]) return;
+    addState[toolId].score = { correct: 0, total: 0 };
+    addState[toolId].challengeCurrent = null;
+    addUpdateScore(widget);
+    addNextQuestion(widget);
+}
+
+// =============================================
+// SUBTRACTION TABLE
+// =============================================
+// The addition tool read backwards, the way the division tool reads the times table
+// backwards. A child who knows 6 + 9 often stalls on 15 − 6, because the recall runs
+// the other way, so this asks it in that direction and keeps its own record.
+
+var subState = {};
+
+function subGetToolId(el) {
+    var tool = el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function subGetWidget(el) {
+    return el.closest('.sub-widget');
+}
+
+function subInit() {
+    document.querySelectorAll('.sub-widget').forEach(function(widget) {
+        var toolId = subGetToolId(widget);
+        if (!toolId) return;
+        subState[toolId] = {
+            maxNum: 10,
+            showHard: true,
+            activeTab: 'grid',
+            challengeDigits: new Set([1,2,3,4,5,6,7,8,9,10]),
+            challengeCurrent: null,
+            score: { correct: 0, total: 0 }
+        };
+        subRenderGrid(widget);
+    });
+}
+
+function subSetTab(btn, tab) {
+    var widget = subGetWidget(btn);
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    subState[toolId].activeTab = tab;
+
+    widget.querySelectorAll('.sub-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var gridPanel = widget.querySelector('.sub-grid-panel');
+    var challengePanel = widget.querySelector('.sub-challenge-panel');
+    var progressPanel = widget.querySelector('.sub-progress-panel');
+    if (gridPanel) gridPanel.style.display = tab === 'grid' ? '' : 'none';
+    if (challengePanel) challengePanel.classList.toggle('active', tab === 'challenge');
+    if (progressPanel) progressPanel.classList.toggle('active', tab === 'progress');
+    if (tab === 'challenge') subRenderChallenge(widget);
+    if (tab === 'progress') {
+        subRenderProgress(widget);
+        var digits = Array.from(subState[toolId].challengeDigits);
+        if (subSummary(toolId, digits).complete) subConfetti();
+    }
+}
+
+// What is taken away down the side, the answer across the top, and the number
+// started with in the cell: find 6 on the left, 15 in its row, and the answer is the
+// 9 at the top.
+//
+// There is no half-table toggle here. Addition has one because 8 + 5 and 5 + 8 are
+// the same fact; 15 − 6 and 15 − 9 are two different ones, so hiding half the square
+// would hide half the facts.
+function subRenderGrid(widget) {
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var st = subState[toolId];
+    var n = st.maxNum;
+    var showHard = st.showHard;
+
+    var cellSize = n <= 10 ? 38 : (n <= 12 ? 34 : (n <= 15 ? 28 : 24));
+    var fontSize = n <= 12 ? 12 : (n <= 15 ? 10 : 9);
+
+    var html = '<table class="sub-table" style="font-size:' + fontSize + 'px;" onmouseover="subCellHover(event)" onmouseout="subCellOut(event)">';
+    html += '<thead><tr>';
+    html += '<th class="sub-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">−</th>';
+    for (var c = 1; c <= n; c++) {
+        html += '<th data-col="' + c + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + c + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+
+    for (var r = 1; r <= n; r++) {
+        html += '<tr>';
+        html += '<th class="sub-row-header" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">' + r + '</th>';
+        for (var ci = 1; ci <= n; ci++) {
+            // Subtracting back across ten is the hard direction of adding across
+            // it, so the addition tool's rule is asked rather than copied.
+            var isHard = showHard && addIsHard(r, ci);
+
+            var cls = 'sub-cell';
+            // The doubles read backwards: 12 − 6, 14 − 7, the halving facts.
+            if (r === ci) cls += ' sub-double';
+            if (isHard) cls += ' sub-hard';
+
+            html += '<td class="' + cls + '" data-row="' + r + '" data-col="' + ci + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;">';
+            html += (r + ci);
+            html += '</td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    var wrap = widget.querySelector('.sub-table-wrap');
+    if (wrap) wrap.innerHTML = html;
+}
+
+function subSetMax(select) {
+    var widget = subGetWidget(select);
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    subState[toolId].maxNum = parseInt(select.value, 10);
+    subRenderGrid(widget);
+}
+
+function subToggleHard(btn) {
+    var widget = subGetWidget(btn);
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    subState[toolId].showHard = !subState[toolId].showHard;
+    btn.classList.toggle('active', subState[toolId].showHard);
+    subRenderGrid(widget);
+}
+
+function subCellHover(event) {
+    var td = event.target.closest('td.sub-cell');
+    if (!td) return;
+    var row = td.getAttribute('data-row');
+    var col = td.getAttribute('data-col');
+    var table = td.closest('.sub-table');
+    if (!table || !col) return;
+    var colHeader = table.querySelector('thead th[data-col="' + col + '"]');
+    if (colHeader) colHeader.classList.add('sub-col-highlight');
+    var rowHeader = td.closest('tr').querySelector('th.sub-row-header');
+    if (rowHeader) rowHeader.classList.add('sub-row-highlight');
+
+    // The cell alone shows the number started with and nothing else; this says
+    // the whole fact.
+    var widget = subGetWidget(td);
+    var readout = widget ? widget.querySelector('.sub-readout') : null;
+    if (readout) readout.textContent = td.textContent + ' − ' + row + ' = ' + col;
+}
+
+function subCellOut(event) {
+    var table = event.currentTarget;
+    table.querySelectorAll('.sub-col-highlight').forEach(function(c) { c.classList.remove('sub-col-highlight'); });
+    table.querySelectorAll('.sub-row-highlight').forEach(function(c) { c.classList.remove('sub-row-highlight'); });
+    var widget = subGetWidget(table);
+    var readout = widget ? widget.querySelector('.sub-readout') : null;
+    if (readout) readout.textContent = '';
+}
+
+function subRenderChallenge(widget) {
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var st = subState[toolId];
+
+    var digitRow = widget.querySelector('.sub-digit-row');
+    if (digitRow) {
+        var html = '';
+        for (var d = 1; d <= 12; d++) {
+            var isActive = st.challengeDigits.has(d);
+            html += '<button class="sub-digit-btn' + (isActive ? ' active' : '') + '" onclick="subToggleDigit(this,' + d + ')">' + d + '</button>';
+        }
+        digitRow.innerHTML = html;
+    }
+
+    if (!st.challengeCurrent) {
+        subNextQuestion(widget);
+    }
+    subUpdateScore(widget);
+}
+
+// The practice numbers bound both what is taken away and the answer, which keeps
+// the progress map square and lets the signature say "from 2 to 3" honestly.
+function subToggleDigit(btn, digit) {
+    var widget = subGetWidget(btn);
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var digits = subState[toolId].challengeDigits;
+    if (digits.has(digit)) {
+        if (digits.size > 1) {
+            digits.delete(digit);
+            btn.classList.remove('active');
+        }
+    } else {
+        digits.add(digit);
+        btn.classList.add('active');
+    }
+}
+
+// ---- Which question to ask next ----------------------------------------------
+// Uniform random spends most of a child's time on facts they already know. The
+// weights below put the time where the trouble is: what they get wrong first, then
+// what they have never seen, then what they can do but slowly.
+//
+// The tiers are a factor of two apart and the time nudge inside a tier is capped
+// below two, so the order asked for holds strictly — no mastered fact, however slow,
+// ever outranks one that has never been tried.
+var SUB_TIER = { failing: 16, shaky: 8, none: 4, passing: 2, learned: 1 };
+
+function subPairWeight(attempts, slowestInRange) {
+    var base = SUB_TIER[subPairState(attempts)] || 1;
+    var worst = subPairFastest(attempts);
+    if (worst === null || !slowestInRange) return base;
+    return base * (1 + 0.9 * (worst / slowestInRange));
+}
+
+// Returns {a, b} — what is taken away and the answer — or null when there is
+// nothing to ask.
+function subPickPair(toolId, digits, avoidKey) {
+    if (!digits.length) return null;
+    var progress = subGetProgress(toolId);
+
+    var slowest = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var worst = subPairFastest(progress.pairs[subPairKey(a, b)]);
+            if (worst !== null && worst > slowest) slowest = worst;
+        });
+    });
+
+    var pool = [], total = 0;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var key = subPairKey(a, b);
+            // A weighted pick can land on the same fact many times over, which in a
+            // small range means asking one question again and again. Skipped only
+            // when there is something else to ask.
+            if (key === avoidKey && digits.length * digits.length > 1) return;
+            var w = subPairWeight(progress.pairs[key], slowest);
+            total += w;
+            pool.push({ a: a, b: b, upTo: total });
+        });
+    });
+    if (!pool.length) return null;
+
+    var roll = Math.random() * total;
+    for (var i = 0; i < pool.length; i++) {
+        if (roll < pool[i].upTo) return { a: pool[i].a, b: pool[i].b };
+    }
+    return { a: pool[pool.length - 1].a, b: pool[pool.length - 1].b };
+}
+
+function subNextQuestion(widget) {
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var st = subState[toolId];
+    var digits = Array.from(st.challengeDigits);
+
+    var feedbackEl = widget.querySelector('.sub-feedback');
+    if (feedbackEl) { feedbackEl.textContent = ''; feedbackEl.className = 'sub-feedback'; }
+
+    var input = widget.querySelector('.sub-answer-input');
+    if (input) { input.value = ''; input.focus(); }
+
+    if (digits.length === 0) {
+        var emptyEl = widget.querySelector('.sub-question');
+        if (emptyEl) emptyEl.textContent = '';
+        st.challengeCurrent = null;
+        return;
+    }
+
+    var last = st.challengeCurrent;
+    var pick = subPickPair(toolId, digits,
+        last ? subPairKey(last.a, last.b) : null);
+    if (!pick) { st.challengeCurrent = null; return; }
+    var a = pick.a, b = pick.b;
+    // The number started with is built from the fact, so the answer is never
+    // negative and there is one box with one right answer in it.
+    st.challengeCurrent = { a: a, b: b, minuend: a + b, answer: b };
+
+    st.askedAt = Date.now();
+
+    var qEl = widget.querySelector('.sub-question');
+    if (qEl) qEl.textContent = (a + b) + ' − ' + a + ' = ?';
+
+    subUpdateScore(widget);
+}
+
+function subCheckAnswer(input) {
+    var widget = subGetWidget(input);
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var st = subState[toolId];
+    if (!st.challengeCurrent) return;
+
+    var val = parseInt(input.value.trim(), 10);
+    if (isNaN(val)) return;
+
+    var correct = (val === st.challengeCurrent.answer);
+    st.score.total++;
+    if (correct) st.score.correct++;
+
+    subRecordAttempt(toolId, st.challengeCurrent.a, st.challengeCurrent.b, correct,
+        st.askedAt ? Date.now() - st.askedAt : null);
+    st.askedAt = null;
+    subRenderProgress(widget);
+
+    var feedbackEl = widget.querySelector('.sub-feedback');
+    if (feedbackEl) {
+        if (correct) {
+            feedbackEl.textContent = '✓ Correct!';
+            feedbackEl.className = 'sub-feedback correct';
+        } else {
+            feedbackEl.textContent = '✗ Wrong — the answer is ' + st.challengeCurrent.answer;
+            feedbackEl.className = 'sub-feedback wrong';
+        }
+    }
+
+    subUpdateScore(widget);
+
+    setTimeout(function() {
+        subNextQuestion(widget);
+    }, 1200);
+}
+
+function subSubmitChallenge(btn) {
+    var widget = subGetWidget(btn);
+    var input = widget.querySelector('.sub-answer-input');
+    if (input) subCheckAnswer(input);
+}
+
+// ---- What the child actually knows -------------------------------------------
+// A score of 18 out of 25 does not say which seven were missed. Each fact keeps its
+// last three attempts instead, which is enough to tell one that is known from one
+// that is merely guessed right sometimes, and enough to time it.
+
+var SUB_KEEP = 3;
+
+// Keyed by what is taken away and the answer rather than by the number started with,
+// because 15 − 6 and 15 − 9 are different questions off the same number.
+function subPairKey(a, b) { return a + '-' + b; }
+
+function subGetProgress(toolId) {
+    var custom = toolCustomizations[toolId] || {};
+    var data = custom.subProgress || {};
+    return { pairs: data.pairs || {} };
+}
+
+function subSaveProgress(toolId, data) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    toolCustomizations[toolId].subProgress = data;
+    saveToolCustomizations(toolCustomizations);
+}
+
+// One of: none, failing, shaky, learned, passing. "passing" is the state the four
+// colours do not cover — right so far, but not yet three times. Calling it shaky
+// would say it had been missed, which is untrue, so it is a green in waiting and
+// does not count towards a finished range.
+function subPairState(attempts) {
+    var list = attempts || [];
+    if (!list.length) return 'none';
+    var wins = list.filter(function(x) { return x.ok; }).length;
+    if (wins === 0) return 'failing';
+    if (wins < list.length) return 'shaky';
+    return list.length >= SUB_KEEP ? 'learned' : 'passing';
+}
+
+// The fastest of the last three *correct* attempts — what the child can do when it
+// goes well, rather than their worst day. A wrong answer's duration is not a solve
+// time, and everything built on this is a claim about solving.
+function subPairFastest(attempts) {
+    var best = null;
+    (attempts || []).forEach(function(x) {
+        if (!x.ok || typeof x.ms !== 'number') return;
+        if (best === null || x.ms < best) best = x.ms;
+    });
+    return best;
+}
+
+function subSeconds(ms) {
+    return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 's';
+}
+
+// The range being practised, which is what any claim about "every fact" is scoped to.
+function subRangeLabel(digits) {
+    if (!digits.length) return '';
+    var run = digits.every(function(d, i) { return i === 0 || d === digits[i - 1] + 1; });
+    return run && digits.length > 1
+        ? digits[0] + ' to ' + digits[digits.length - 1]
+        : digits.join(', ');
+}
+
+function subSummary(toolId, digits) {
+    var progress = subGetProgress(toolId);
+    var total = digits.length * digits.length;
+    var learned = 0, slowest = null, slowestPair = null;
+    digits.forEach(function(a) {
+        digits.forEach(function(b) {
+            var attempts = progress.pairs[subPairKey(a, b)];
+            if (subPairState(attempts) === 'learned') learned++;
+            // The worst of the bests: every fact is timed at its own best, so the
+            // largest of those is the bar the whole range clears.
+            var best = subPairFastest(attempts);
+            if (best !== null && (slowest === null || best > slowest)) {
+                slowest = best;
+                slowestPair = { a: a, b: b };
+            }
+        });
+    });
+    return {
+        total: total, learned: learned, slowest: slowest, slowestPair: slowestPair,
+        complete: total > 0 && learned === total,
+        range: subRangeLabel(digits)
+    };
+}
+
+function subRecordAttempt(toolId, a, b, ok, ms) {
+    var progress = subGetProgress(toolId);
+    var key = subPairKey(a, b);
+    var list = (progress.pairs[key] || []).slice();
+    var entry = { ok: !!ok };
+    // A submission with no stamp — the tool re-rendered mid-question — is recorded
+    // without a time rather than given an invented one.
+    if (typeof ms === 'number' && isFinite(ms) && ms >= 0) entry.ms = ms;
+    list.push(entry);
+    while (list.length > SUB_KEEP) list.shift();
+    progress.pairs[key] = list;
+    subSaveProgress(toolId, progress);
+}
+
+function subUpdateScore(widget) {
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var st = subState[toolId];
+    var scoreEl = widget.querySelector('.sub-score');
+    if (scoreEl) {
+        scoreEl.textContent = 'Score: ' + st.score.correct + ' / ' + st.score.total;
+    }
+}
+
+function subRenderProgress(widget) {
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    var panel = widget.querySelector('.sub-progress-panel');
+    if (!panel) return;
+    var digits = Array.from(subState[toolId].challengeDigits).sort(function(x, y) { return x - y; });
+    var progress = subGetProgress(toolId);
+    var summary = subSummary(toolId, digits);
+
+    var sigEl = widget.querySelector('.sub-signature');
+    if (sigEl) {
+        if (summary.complete) {
+            // Rounded up: the claim is that nothing took longer than this.
+            sigEl.innerHTML = '<b>Consistently subtracts every fact from ' +
+                summary.range + ' under ' + Math.ceil(summary.slowest / 1000) + ' seconds.</b>';
+            sigEl.className = 'sub-signature earned';
+        } else {
+            sigEl.textContent = summary.learned + ' of ' + summary.total +
+                ' facts mastered' + (summary.range ? ' (' + summary.range + ')' : '') +
+                ' — three right in a row makes a fact green.';
+            sigEl.className = 'sub-signature';
+        }
+    }
+
+    // Each cell is a personal best, so the largest of them is the one holding the
+    // whole range back — worth saying out loud rather than hunting for on the map.
+    var worstEl = widget.querySelector('.sub-worst');
+    if (worstEl) {
+        if (summary.slowestPair) {
+            worstEl.innerHTML = 'Slowest fact: <b>' +
+                (summary.slowestPair.a + summary.slowestPair.b) + ' − ' +
+                summary.slowestPair.a + '</b> at ' + subSeconds(summary.slowest);
+        } else {
+            worstEl.textContent = '';
+        }
+    }
+
+    // Widening the range, or getting one wrong, un-finishes the grid. Any celebration
+    // still falling belongs to a state that has passed.
+    if (!summary.complete) {
+        var stale = document.querySelector('.sub-confetti');
+        if (stale) stale.remove();
+    }
+
+    var mapEl = widget.querySelector('.sub-map');
+    if (mapEl) {
+        var html = '<table class="sub-map-table"><tr><th class="sub-map-corner">−</th>';
+        digits.forEach(function(b) { html += '<th>' + b + '</th>'; });
+        html += '</tr>';
+        digits.forEach(function(a) {
+            html += '<tr><th>' + a + '</th>';
+            digits.forEach(function(b) {
+                var attempts = progress.pairs[subPairKey(a, b)];
+                var state = subPairState(attempts);
+                var worst = subPairFastest(attempts);
+                html += '<td class="sub-map-cell ' + state + '" title="' + (a + b) + ' − ' + a + '">' +
+                    '<span class="sub-map-time">' +
+                    (worst === null ? '·' : subSeconds(worst)) + '</span></td>';
+            });
+            html += '</tr>';
+        });
+        mapEl.innerHTML = html + '</table>';
+    }
+
+    var legendEl = widget.querySelector('.sub-legend');
+    if (legendEl) {
+        // Colour is not the only thing saying it, for anyone who cannot tell them apart.
+        legendEl.innerHTML = [
+            ['none', 'not tried'], ['failing', 'missed all 3'], ['shaky', 'missed 1 of 3'],
+            ['passing', 'right so far'], ['learned', 'right 3 in a row']
+        ].map(function(pair) {
+            return '<span class="sub-key"><i class="sub-map-cell ' + pair[0] + '"></i>' +
+                pair[1] + '</span>';
+        }).join('');
+    }
+}
+
+// A whole range mastered is the one moment in this tool worth a bit of noise. Thrown
+// on opening Progress rather than on the answer that finished it, so it lands where
+// the finished grid is.
+function subConfetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Over the whole window rather than inside the tool: the grid being finished is
+    // the moment, and a tool pane is too small a place to mark it.
+    var old = document.querySelector('.sub-confetti');
+    if (old) old.remove();
+
+    var layer = document.createElement('div');
+    layer.className = 'sub-confetti';
+    var colours = ['#2980b9', '#16a085', '#27ae60', '#e67e22', '#e74c3c', '#f1c40f'];
+    var longest = 0;
+    for (var i = 0; i < 44; i++) {
+        var bit = document.createElement('div');
+        var delay = Math.random() * 700;
+        var life = 1400 + Math.random() * 1200;
+        longest = Math.max(longest, delay + life);
+        bit.className = 'sub-confetti-bit';
+        bit.style.left = (Math.random() * 100) + '%';
+        bit.style.background = colours[i % colours.length];
+        bit.style.animationDelay = delay + 'ms';
+        bit.style.animationDuration = life + 'ms';
+        layer.appendChild(bit);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function() { layer.remove(); }, longest + 200);
+}
+
+function subResetProgress(btn) {
+    var widget = subGetWidget(btn);
+    var toolId = subGetToolId(widget);
+    if (!toolId) return;
+    // Reset Score clears a session tally; this throws away weeks of it.
+    if (!confirm('Clear every recorded attempt? The times and colours all go, and this cannot be undone.')) return;
+    subSaveProgress(toolId, { pairs: {} });
+    subRenderProgress(widget);
+}
+
+function subNewChallenge(btn) {
+    var widget = subGetWidget(btn);
+    var toolId = subGetToolId(widget);
+    if (!toolId || !subState[toolId]) return;
+    subState[toolId].score = { correct: 0, total: 0 };
+    subState[toolId].challengeCurrent = null;
+    subUpdateScore(widget);
+    subNextQuestion(widget);
 }
 
 // =============================================
@@ -5302,12 +7510,31 @@ function mapResetProgress(btn) {
     var moneyFunctions = [moneyInit, moneyGetWidget, moneyRender, moneyAdd, moneyRemove, moneyClear, moneyTotal, moneyFormat, moneySetMode, moneyNewRound, moneyNewChallenge, moneyCheckAnswer, moneyNewChange, moneyNewNameit, moneyCheckNameit, moneyComputeOptimal, moneyNewLeast, moneyCheckLeast, moneyDragStart, moneyDragOver, moneyDragLeave, moneyDrop];
     var ptableFunctions = [ptableGetToolId, ptableGetWidget, ptableBuildGrid, ptableRender, ptableSelect, ptableSearch, ptableFilter, ptableInit];
     var sdtFunctions = [sdtGetToolId, sdtGetWidget, sdtInit, sdtSolveFor, sdtCalculate, sdtFormatNum, sdtClear, sdtKeydown];
-    var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid, multSetMax, multSetHalf, multToggleHard, multCellHover, multCellOut, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
+    var multFunctions = [multGetToolId, multGetWidget, multInit, multSetTab, multRenderGrid,
+        multPairKey, multGetProgress, multSaveProgress, multPairState, multPairFastest,
+        multSeconds, multRangeLabel, multSummary, multRecordAttempt, multRenderProgress,
+        multPairWeight, multPickPair, multConfetti,
+        multResetProgress, multSetMax, multSetHalf, multToggleHard, multCellHover, multCellOut, multRenderChallenge, multToggleDigit, multNextQuestion, multCheckAnswer, multSubmitChallenge, multUpdateScore, multNewChallenge];
+    var divFunctions = [divGetToolId, divGetWidget, divInit, divSetTab, divRenderGrid,
+        divPairKey, divGetProgress, divSaveProgress, divPairState, divPairFastest,
+        divSeconds, divRangeLabel, divSummary, divRecordAttempt, divRenderProgress,
+        divPairWeight, divPickPair, divConfetti,
+        divResetProgress, divSetMax, divToggleHard, divCellHover, divCellOut, divRenderChallenge, divToggleDigit, divNextQuestion, divCheckAnswer, divSubmitChallenge, divUpdateScore, divNewChallenge];
+    var addFunctions = [addGetToolId, addGetWidget, addInit, addSetTab, addRenderGrid, addIsHard,
+        addPairKey, addGetProgress, addSaveProgress, addPairState, addPairFastest,
+        addSeconds, addRangeLabel, addSummary, addRecordAttempt, addRenderProgress,
+        addPairWeight, addPickPair, addConfetti,
+        addResetProgress, addSetMax, addSetHalf, addToggleHard, addCellHover, addCellOut, addRenderChallenge, addToggleDigit, addNextQuestion, addCheckAnswer, addSubmitChallenge, addUpdateScore, addNewChallenge];
+    var subFunctions = [subGetToolId, subGetWidget, subInit, subSetTab, subRenderGrid,
+        subPairKey, subGetProgress, subSaveProgress, subPairState, subPairFastest,
+        subSeconds, subRangeLabel, subSummary, subRecordAttempt, subRenderProgress,
+        subPairWeight, subPickPair, subConfetti,
+        subResetProgress, subSetMax, subToggleHard, subCellHover, subCellOut, subRenderChallenge, subToggleDigit, subNextQuestion, subCheckAnswer, subSubmitChallenge, subUpdateScore, subNewChallenge];
     var nlFunctions = [nlGetToolId, nlGetWidget, nlDefaultState, nlInit, nlSetMode, nlRender, nlRenderWidget, nlTickLevel, nlBuildLine, nlBuildLineZoomOut, nlFractionRender, nlFractionSetDenom, nlFractionToggleLabels, nlFractionToggleBar, nlSvgClick, nlMarkerDown, nlSvgMove, nlSvgUp, nlFrogRender, nlFrogSetStart, nlFrogAddJump, nlFrogClear, nlFrogRemoveJump, nlZoomRender, nlZoomSvgClick, nlZoomSetValue, nlZoomSetRoundTo, nlZoomAnswer, nlGameNew, nlGameSetDenom, nlGameRender, nlGameBuildSvg, nlGameCheck];
     var angFunctions = [angGetToolId, angGetWidget, angComputeAngle, angArcPath, angClassify, angInit, angRayDown, angDialDown, angSvgMove, angSvgUp, angRender, angToggleSnap, angToggleBigMode, angAddTurn, angResetDial];
     var tlFunctions = [tlGetToolId, tlGetWidget, tlGetData, tlSaveData, tlInit, tlOnRender, tlGenId, tlSafeColor, tlClosePanels, tlFormatSingleDate, tlFormatDate, tlFormatEraYear, tlFormatEraRange, tlContrastColor, tlEraTypeOptionsHtml, tlSortEvents, tlFindEraForEvent, tlGetCategoryById, tlRender, tlRenderEraBanner, tlRenderEvent, tlPopulateCategorySelect, tlOpenEventForm, tlEditEvent, tlCloseEventForm, tlSaveEvent, tlDeleteEvent, tlToggleCategoryManager, tlRenderCategoryList, tlAddCategory, tlRenameCategory, tlSetCategoryColor, tlDeleteCategory, tlToggleEraManager, tlRenderEraList, tlAddEra, tlUpdateEraField, tlDeleteEra, tlLoadEraPreset, tlToggleShowEras, tlToggleDates];
     var mapFunctions = [mapGetToolId, mapGetWidget, mapRuntimeFor, mapLayerFor, mapTableOf, mapBlobOf, mapLayerOf, mapCountry, mapIndexOf, mapDecodeInt, mapGeometry, mapRobinson, mapProjectionOf, mapProjectX, mapProjectY, mapUnproject, mapRingsToPath, mapPaths, mapCountryBounds, mapCountryExtents, mapGetData, mapSaveData, mapRegionView, mapClampView, mapApplyView, mapUpdateLabels, mapMeasureLabels, mapPaintCapitals, mapClientToUser, mapViewAround, mapSetView, mapZoomBtn, mapZoomAt, mapPinchStep, mapPointerSpan, mapResetView, mapZoomToCountry, mapInit, mapOnRender, mapBuildShapes, mapSetProjection, mapRender, mapPaint, mapFlag, mapFormatPop, mapExplorePanel, mapQuizPanel, mapBindStage, mapIsoAt, mapTooltip, mapHideTooltip, mapUpdateArrow, mapHideArrow, mapToggleHint, mapClick, mapSetMode, mapGhostPath, mapDragGhost, mapToggleCompare, mapSetRegion, mapSearch, mapIsQuizzable, mapQuizPool, mapQuizStart, mapQuizAsk, mapHitsTarget, mapQuizAnswer, mapFlash, mapQuizSkip, mapResetProgress];
-    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
+    var allFunctions = clockFunctions.concat(moneyFunctions).concat(ptableFunctions).concat(sdtFunctions).concat(multFunctions).concat(divFunctions).concat(addFunctions).concat(subFunctions).concat(nlFunctions).concat(angFunctions).concat(tlFunctions).concat(mapFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initClock !== "undefined") return;\n' +
@@ -5321,6 +7548,17 @@ function mapResetProgress(btn) {
         'window.sdtState = {};\n' +
         'window.MULT_HARD = new Set(' + JSON.stringify(Array.from(MULT_HARD)) + ');\n' +
         'window.multState = {};\n' +
+        'window.MULT_KEEP = ' + MULT_KEEP + ';\n' +
+        'window.MULT_TIER = ' + JSON.stringify(MULT_TIER) + ';\n' +
+        'window.divState = {};\n' +
+        'window.DIV_KEEP = ' + DIV_KEEP + ';\n' +
+        'window.DIV_TIER = ' + JSON.stringify(DIV_TIER) + ';\n' +
+        'window.addState = {};\n' +
+        'window.ADD_KEEP = ' + ADD_KEEP + ';\n' +
+        'window.ADD_TIER = ' + JSON.stringify(ADD_TIER) + ';\n' +
+        'window.subState = {};\n' +
+        'window.SUB_KEEP = ' + SUB_KEEP + ';\n' +
+        'window.SUB_TIER = ' + JSON.stringify(SUB_TIER) + ';\n' +
         'window.nlState = {};\n' +
         'window.NL_X0 = 40; window.NL_X1 = 460; window.NL_Y = 75; window.NL_W = 500; window.NL_H = 130;\n' +
         'window.angTickSvg = ' + JSON.stringify(angTickSvg) + ';\n' +
@@ -5381,7 +7619,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83C\uDF93',
     color: '#2ecc71',
     version: '1.0.0',
-    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table', 'number-line-explorer', 'angle-explorer', 'history-timeline', 'world-map'],
+    tools: ['analog-clock', 'money-counter', 'periodic-table', 'speed-distance-time', 'multiplication-table', 'division-table', 'addition-table', 'subtraction-table', 'number-line-explorer', 'angle-explorer', 'history-timeline', 'world-map'],
     source: 'external'
 });
 
@@ -5618,6 +7856,7 @@ PluginRegistry.registerTool({
         '<div class="mult-tabs">' +
             '<button class="mult-tab active" onclick="multSetTab(this,\'grid\')">📊 Grid</button>' +
             '<button class="mult-tab" onclick="multSetTab(this,\'challenge\')">🎯 Challenge</button>' +
+                '<button class="mult-tab" onclick="multSetTab(this,\'progress\')">Progress</button>' +
         '</div>' +
         '<div class="mult-grid-panel">' +
             '<div class="mult-toolbar">' +
@@ -5651,8 +7890,199 @@ PluginRegistry.registerTool({
                 '<button class="pomo-btn" onclick="multNewChallenge(this)">Reset Score</button>' +
             '</div>' +
         '</div>' +
+        '<div class="mult-progress-panel">' +
+            '<div class="mult-signature"></div>' +
+            '<div class="mult-worst"></div>' +
+            '<div class="mult-map"></div>' +
+            '<div class="mult-legend"></div>' +
+            '<button class="pomo-btn" onclick="multResetProgress(this)">Reset progress</button>' +
+        '</div>' +
     '</div>',
     onInit: 'multInit',
+    defaultWidth: 560,
+    defaultHeight: 580,
+    source: 'external'
+});
+
+// Division Table
+PluginRegistry.registerTool({
+    id: 'division-table',
+    name: 'Division Table',
+    description: 'Division grid read off the times table, with a timed challenge and a record of which facts are known',
+    icon: '➗',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['division', 'divide', 'math', 'table', 'quotient', 'quiz', 'challenge', 'education'],
+    title: 'Division Table',
+    content: '<div class="div-widget">' +
+        '<div class="div-tabs">' +
+            '<button class="div-tab active" onclick="divSetTab(this,\'grid\')">📊 Grid</button>' +
+            '<button class="div-tab" onclick="divSetTab(this,\'challenge\')">🎯 Challenge</button>' +
+            '<button class="div-tab" onclick="divSetTab(this,\'progress\')">Progress</button>' +
+        '</div>' +
+        '<div class="div-grid-panel">' +
+            '<div class="div-toolbar">' +
+                '<label>Size:</label>' +
+                '<select class="div-size-select" onchange="divSetMax(this)">' +
+                    '<option value="10" selected>10 × 10</option>' +
+                    '<option value="12">12 × 12</option>' +
+                    '<option value="15">15 × 15</option>' +
+                    '<option value="20">20 × 20</option>' +
+                '</select>' +
+                '<button class="div-hard-btn active" onclick="divToggleHard(this)">🔥 Hard</button>' +
+                '<span class="div-readout"></span>' +
+            '</div>' +
+            '<div class="div-hint">Divisor down the side, answer across the top: find 6 on the left, 42 in its row, read 7 at the top.</div>' +
+            '<div class="div-table-wrap"></div>' +
+        '</div>' +
+        '<div class="div-challenge-panel">' +
+            '<div>' +
+                '<div class="div-digit-label">PRACTICE NUMBERS</div>' +
+                '<div class="div-digit-row"></div>' +
+            '</div>' +
+            '<div class="div-quiz-area">' +
+                '<div class="div-question"></div>' +
+                '<div class="div-answer-row">' +
+                    '<input type="number" class="div-answer-input" placeholder="?" onkeydown="if(event.key===\'Enter\')divCheckAnswer(this)">' +
+                    '<button class="pomo-btn primary paused" onclick="divSubmitChallenge(this)">Check</button>' +
+                '</div>' +
+                '<div class="div-feedback"></div>' +
+                '<div class="div-score">Score: 0 / 0</div>' +
+                '<button class="pomo-btn" onclick="divNewChallenge(this)">Reset Score</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="div-progress-panel">' +
+            '<div class="div-signature"></div>' +
+            '<div class="div-worst"></div>' +
+            '<div class="div-map"></div>' +
+            '<div class="div-legend"></div>' +
+            '<button class="pomo-btn" onclick="divResetProgress(this)">Reset progress</button>' +
+        '</div>' +
+    '</div>',
+    onInit: 'divInit',
+    defaultWidth: 560,
+    defaultHeight: 580,
+    source: 'external'
+});
+
+// Addition Table
+PluginRegistry.registerTool({
+    id: 'addition-table',
+    name: 'Addition Table',
+    description: 'Addition grid with a half-table toggle, bridging-ten highlights, a timed challenge and a record of which facts are known',
+    icon: '➕',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['addition', 'add', 'sum', 'math', 'table', 'quiz', 'challenge', 'education'],
+    title: 'Addition Table',
+    content: '<div class="add-widget">' +
+        '<div class="add-tabs">' +
+            '<button class="add-tab active" onclick="addSetTab(this,\'grid\')">📊 Grid</button>' +
+            '<button class="add-tab" onclick="addSetTab(this,\'challenge\')">🎯 Challenge</button>' +
+            '<button class="add-tab" onclick="addSetTab(this,\'progress\')">Progress</button>' +
+        '</div>' +
+        '<div class="add-grid-panel">' +
+            '<div class="add-toolbar">' +
+                '<label>Size:</label>' +
+                '<select class="add-size-select" onchange="addSetMax(this)">' +
+                    '<option value="10" selected>10 × 10</option>' +
+                    '<option value="12">12 × 12</option>' +
+                    '<option value="15">15 × 15</option>' +
+                    '<option value="20">20 × 20</option>' +
+                '</select>' +
+                '<button class="add-half-btn active" onclick="addSetHalf(this,\'full\')">Full</button>' +
+                '<button class="add-half-btn" onclick="addSetHalf(this,\'upper\')">▲ Upper</button>' +
+                '<button class="add-half-btn" onclick="addSetHalf(this,\'lower\')">▼ Lower</button>' +
+                '<button class="add-hard-btn active" onclick="addToggleHard(this)">🔥 Hard</button>' +
+            '</div>' +
+            '<div class="add-table-wrap"></div>' +
+        '</div>' +
+        '<div class="add-challenge-panel">' +
+            '<div>' +
+                '<div class="add-digit-label">PRACTICE NUMBERS</div>' +
+                '<div class="add-digit-row"></div>' +
+            '</div>' +
+            '<div class="add-quiz-area">' +
+                '<div class="add-question"></div>' +
+                '<div class="add-answer-row">' +
+                    '<input type="number" class="add-answer-input" placeholder="?" onkeydown="if(event.key===\'Enter\')addCheckAnswer(this)">' +
+                    '<button class="pomo-btn primary paused" onclick="addSubmitChallenge(this)">Check</button>' +
+                '</div>' +
+                '<div class="add-feedback"></div>' +
+                '<div class="add-score">Score: 0 / 0</div>' +
+                '<button class="pomo-btn" onclick="addNewChallenge(this)">Reset Score</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="add-progress-panel">' +
+            '<div class="add-signature"></div>' +
+            '<div class="add-worst"></div>' +
+            '<div class="add-map"></div>' +
+            '<div class="add-legend"></div>' +
+            '<button class="pomo-btn" onclick="addResetProgress(this)">Reset progress</button>' +
+        '</div>' +
+    '</div>',
+    onInit: 'addInit',
+    defaultWidth: 560,
+    defaultHeight: 580,
+    source: 'external'
+});
+
+// Subtraction Table
+PluginRegistry.registerTool({
+    id: 'subtraction-table',
+    name: 'Subtraction Table',
+    description: 'Subtraction grid read off the addition table, with a timed challenge and a record of which facts are known',
+    icon: '➖',
+    version: '1.0.0',
+    toolbox: 'educational-tools',
+    tags: ['subtraction', 'subtract', 'minus', 'difference', 'math', 'table', 'quiz', 'challenge', 'education'],
+    title: 'Subtraction Table',
+    content: '<div class="sub-widget">' +
+        '<div class="sub-tabs">' +
+            '<button class="sub-tab active" onclick="subSetTab(this,\'grid\')">📊 Grid</button>' +
+            '<button class="sub-tab" onclick="subSetTab(this,\'challenge\')">🎯 Challenge</button>' +
+            '<button class="sub-tab" onclick="subSetTab(this,\'progress\')">Progress</button>' +
+        '</div>' +
+        '<div class="sub-grid-panel">' +
+            '<div class="sub-toolbar">' +
+                '<label>Size:</label>' +
+                '<select class="sub-size-select" onchange="subSetMax(this)">' +
+                    '<option value="10" selected>10 × 10</option>' +
+                    '<option value="12">12 × 12</option>' +
+                    '<option value="15">15 × 15</option>' +
+                    '<option value="20">20 × 20</option>' +
+                '</select>' +
+                '<button class="sub-hard-btn active" onclick="subToggleHard(this)">🔥 Hard</button>' +
+                '<span class="sub-readout"></span>' +
+            '</div>' +
+            '<div class="sub-hint">Taken away down the side, answer across the top: find 6 on the left, 15 in its row, read 9 at the top.</div>' +
+            '<div class="sub-table-wrap"></div>' +
+        '</div>' +
+        '<div class="sub-challenge-panel">' +
+            '<div>' +
+                '<div class="sub-digit-label">PRACTICE NUMBERS</div>' +
+                '<div class="sub-digit-row"></div>' +
+            '</div>' +
+            '<div class="sub-quiz-area">' +
+                '<div class="sub-question"></div>' +
+                '<div class="sub-answer-row">' +
+                    '<input type="number" class="sub-answer-input" placeholder="?" onkeydown="if(event.key===\'Enter\')subCheckAnswer(this)">' +
+                    '<button class="pomo-btn primary paused" onclick="subSubmitChallenge(this)">Check</button>' +
+                '</div>' +
+                '<div class="sub-feedback"></div>' +
+                '<div class="sub-score">Score: 0 / 0</div>' +
+                '<button class="pomo-btn" onclick="subNewChallenge(this)">Reset Score</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="sub-progress-panel">' +
+            '<div class="sub-signature"></div>' +
+            '<div class="sub-worst"></div>' +
+            '<div class="sub-map"></div>' +
+            '<div class="sub-legend"></div>' +
+            '<button class="pomo-btn" onclick="subResetProgress(this)">Reset progress</button>' +
+        '</div>' +
+    '</div>',
+    onInit: 'subInit',
     defaultWidth: 560,
     defaultHeight: 580,
     source: 'external'
@@ -6017,4 +8447,4 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Educational Tools plugin loaded (9 tools)');
+console.log('Educational Tools plugin loaded (12 tools)');
