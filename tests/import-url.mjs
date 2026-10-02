@@ -263,6 +263,71 @@ ok('importing a tool installs the plugin that provides it',
     plugged.installed.some(u => /productivity-tools/.test(u)), JSON.stringify(plugged.installed));
 ok('so it renders as itself rather than an empty note', plugged.widget, JSON.stringify(plugged));
 
+// 10. The link to hand to someone else.
+//
+// `#import?src=…` was documented and never offered, so sharing an export meant
+// percent-encoding a URL inside a hash by hand — the kind of thing a person gets
+// wrong once and then stops trusting. The panel builds it now.
+await clearBoard();
+await goto();
+await openImportPanel();
+
+const shareState = () => page.evaluate(() => ({
+    shown: document.getElementById('importShareRow').style.display !== 'none',
+    link: document.getElementById('importShareLink').value
+}));
+
+await page.fill('#importUrlInput', 'not a url');
+await page.waitForTimeout(200);
+ok('nothing to share until the URL is one', !(await shareState()).shown, JSON.stringify(await shareState()));
+
+await page.fill('#importUrlInput', '/tests/out/' + NAME);
+await page.waitForTimeout(200);
+ok('and a relative path is not offered, since it would resolve against their board',
+    !(await shareState()).shown, JSON.stringify(await shareState()));
+
+await page.fill('#importUrlInput', URL_OF(NAME));
+await page.waitForTimeout(200);
+let share = await shareState();
+ok('an absolute URL gets a link, as it is typed', share.shown, JSON.stringify(share));
+ok('with the source percent-encoded inside the hash',
+    share.link.includes('#import?src=' + encodeURIComponent(URL_OF(NAME))), share.link);
+ok('pointing at this board\'s own address, so a self-hosted copy hands out itself',
+    share.link.startsWith('http://localhost:8777/index.html#'), share.link);
+ok('and not naming the board I happen to be on',
+    !/#[^/]+\/import/.test(share.link), share.link);
+ok('keep in sync is off, so the link does not ask for it', !/link=1/.test(share.link), share.link);
+
+await page.click('#importUrlKeep');
+await page.waitForTimeout(200);
+share = await shareState();
+ok('ticking keep in sync puts that in the link', /&link=1$/.test(share.link), share.link);
+
+// The link has to survive the load that clears the field.
+await page.click('#importUrlBtn');
+await page.waitForTimeout(1200);
+share = await shareState();
+ok('loading clears the input but keeps the link — it is the URL that just worked',
+    share.shown && share.link.includes(encodeURIComponent(URL_OF(NAME))), JSON.stringify(share));
+ok('and the input really did clear',
+    await page.evaluate(() => document.getElementById('importUrlInput').value) === '');
+
+// A source already linked is the likeliest thing to pass on.
+ok('a linked source offers its own copy button',
+    await page.evaluate(() => !!document.querySelector('.linked-source [data-share]')));
+
+// The proof: the link the panel built actually loads.
+const built = share.link;
+await clearBoard();
+await page.goto(built);
+await page.waitForSelector('#importLinkGo', { timeout: 20000 });
+await page.click('#importLinkGo');
+await page.waitForTimeout(1200);
+s = await state();
+ok('the link the panel wrote out loads the tools when followed',
+    s.custom.length === 2, JSON.stringify(s.custom));
+ok('and carries the keep-in-sync it was built with', s.sources.length === 1, JSON.stringify(s.sources));
+
 const realErrors = errors.filter(e => !/Failed to load resource/.test(e));
 ok('no page errors', realErrors.length === 0, JSON.stringify(realErrors).slice(0, 400));
 await page.screenshot({ path: OUT + '/import-url.png' });

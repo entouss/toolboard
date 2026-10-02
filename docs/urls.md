@@ -69,6 +69,20 @@ recorded as a linked source and re-fetched on every board load; see
 same two routes are available from **Import ▸ Import from URL**, which also lists the
 board's linked sources with *Reload now* and *Unlink*.
 
+### The link is written for you
+
+**Import ▸ Import from URL** builds this link as the URL is typed, and offers it to
+copy. It stays after a load — that is the URL that just worked — and each linked
+source has its own *Copy link*. Assembling it by hand means percent-encoding a URL
+inside a hash, which is the kind of thing someone gets wrong once and then distrusts.
+
+Two things it deliberately does not do. It carries **no board name**, so the tools
+land on whichever board the person following it is looking at rather than one named
+after yours. And it is built from **this page's own address**, so a self-hosted board
+hands out itself; only a page opened from `file://`, which has no address worth
+sharing, falls back to the published site. A relative path is never offered, because
+it would resolve against their board and quietly fetch the wrong thing.
+
 Anything `src` names has to be reachable from the browser, exactly as for tool
 parameters above — `raw.githubusercontent.com` sends `access-control-allow-origin: *`
 and works directly. Unlike the Curriculum Explorer, this route has no proxy fallback:

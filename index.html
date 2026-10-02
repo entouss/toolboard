@@ -1271,6 +1271,40 @@ header h1 {
     cursor: pointer;
 }
 
+/* The link to hand to someone else. Shown as soon as the URL is a plausible one,
+   because the moment you have the URL is the moment you want to pass it on. */
+.import-share {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+}
+
+.import-share-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.import-share-row { display: flex; gap: 8px; align-items: center; }
+
+.import-share-input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
+    font-size: 11px;
+}
+
+.import-share-copy { flex: 0 0 auto; }
+.import-share-hint { color: var(--text-muted); font-size: 11px; margin: 6px 0 0; }
+
 .linked-sources:not(:empty) {
     margin-top: 12px;
     border-top: 1px solid var(--border-light);
@@ -3720,6 +3754,14 @@ tr:hover {
                 </div>
                 <label class="import-url-keep"><input type="checkbox" id="importUrlKeep">Keep in sync with this URL</label>
                 <div id="importUrlResult"></div>
+                <div id="importShareRow" class="import-share" style="display:none">
+                    <span class="import-share-label">Link for someone else</span>
+                    <div class="import-share-row">
+                        <input type="text" id="importShareLink" class="import-share-input" readonly spellcheck="false">
+                        <button id="importShareCopy" class="import-btn import-share-copy">Copy</button>
+                    </div>
+                    <p class="import-share-hint">Opening this asks them before anything lands on their board.</p>
+                </div>
                 <div id="linkedSourcesList" class="linked-sources"></div>
 
                 <h3>Import from File</h3>
@@ -9795,7 +9837,58 @@ function setupImportExport() {
     urlInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') { e.preventDefault(); importFromUrlInput(); }
     });
+    // The link to hand to someone else is built from the URL as it is typed. It used
+    // to be something you had to know the grammar of #import and assemble by hand.
+    urlInput.addEventListener('input', () => showImportShareLink(urlInput.value));
+    document.getElementById('importUrlKeep').addEventListener('change', () =>
+        showImportShareLink(lastShareUrl || urlInput.value));
+    document.getElementById('importShareCopy').onclick = () =>
+        copyTextToClipboard(document.getElementById('importShareLink').value, 'Share link copied');
     renderLinkedSources();
+}
+
+// ---- the link for someone else ------------------------------------------------
+//
+// A tools export at a URL is only half of sharing it; the other half is the link
+// that loads it, which is `#import?src=…` and was documented but never offered.
+// Writing it out by hand means percent-encoding a URL inside a hash, which is
+// exactly the sort of thing a person gets wrong once and then distrusts.
+
+/** The URL the shown link was built for, so ticking *keep in sync* after a load
+ *  still has something to rebuild from — importFromUrlInput clears the input. */
+let lastShareUrl = '';
+
+/** Where the recipient's Toolboard lives. This page, normally — a self-hosted board
+ *  should hand out itself — but a page opened from disk has no address worth
+ *  sharing, so that falls back to the published site. */
+function shareLinkBase() {
+    if (window.location.protocol === 'file:') return 'https://toolboard.me/';
+    return window.location.origin + window.location.pathname;
+}
+
+/** No board name in front of `import`: the tools should land on whichever board the
+ *  person who follows it is looking at, not on one named after mine. */
+function buildImportLink(url, keep) {
+    return shareLinkBase() + '#import?src=' + encodeURIComponent(url) + (keep ? '&link=1' : '');
+}
+
+function showImportShareLink(url) {
+    const row = document.getElementById('importShareRow');
+    const field = document.getElementById('importShareLink');
+    if (!row || !field) return;
+    const clean = (url || '').trim();
+    // Only an absolute http(s) URL is worth handing over: a relative path resolves
+    // against their board, not mine, and would quietly fetch the wrong thing.
+    if (!/^https?:\/\/\S+$/i.test(clean)) {
+        lastShareUrl = '';
+        row.style.display = 'none';
+        field.value = '';
+        return;
+    }
+    lastShareUrl = clean;
+    const keep = document.getElementById('importUrlKeep').checked;
+    field.value = buildImportLink(clean, keep);
+    row.style.display = '';
 }
 
 // What a linked load actually did, rather than what the file happened to contain —
@@ -9829,6 +9922,9 @@ async function importFromUrlInput() {
             ? describeSyncCounts(outcome.counts) + ' — kept in sync with this URL.'
             : 'Loaded ' + outcome.summary + '.');
         input.value = '';
+        // The input clears, but the link is now more useful than it was a moment
+        // ago: this is the URL that just worked.
+        showImportShareLink(url);
         renderToolboard();
         populateBoardSelector();
         populateExportLists();
@@ -9859,11 +9955,18 @@ function renderLinkedSources() {
                 '<div class="linked-source-url">' + escapeHtml(source.url) + '</div>' +
                 '<div class="linked-source-meta' + (failed ? ' error' : '') + '">' + meta + '</div>' +
             '</div>' +
+            '<button data-share="' + escapeHtml(source.url) + '">Copy link</button>' +
             '<button data-reload="' + escapeHtml(source.url) + '">Reload now</button>' +
             '<button data-unlink="' + escapeHtml(source.url) + '">Unlink</button>' +
         '</div>';
     }).join('');
 
+    // A source already linked is the likeliest thing to want to pass on, so the
+    // link is offered here too rather than only while a URL is being typed.
+    el.querySelectorAll('[data-share]').forEach(btn => {
+        btn.onclick = () => copyTextToClipboard(
+            buildImportLink(btn.getAttribute('data-share'), true), 'Share link copied');
+    });
     el.querySelectorAll('[data-unlink]').forEach(btn => {
         btn.onclick = () => unlinkSource(btn.getAttribute('data-unlink'));
     });
