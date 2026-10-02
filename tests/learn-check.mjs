@@ -8,7 +8,8 @@ const ok = (l, p, d) => console.log((p ? '  PASS ' : '  FAIL ') + l + (d ? ' —
 const browser = await chromium.launch({ channel: 'chrome' });
 const errors = [];
 
-for (const [path, name] of [['/learn/index.html', 'hub'], ['/learn/tools/curriculum-explorer.html', 'guide']]) {
+for (const [path, name] of [['/learn/index.html', 'hub'], ['/learn/tools/curriculum-explorer.html', 'guide'],
+                            ['/learn/tools/dynamic-tool.html', 'dynamic']]) {
     const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
     page.on('pageerror', e => errors.push(name + ': ' + e.message));
     page.on('response', r => { if (r.status() >= 400) errors.push(name + ': ' + r.status() + ' ' + r.url()); });

@@ -87,14 +87,26 @@ it was last edited on:
 | `customContent` | The markup (the shared field, holding HTML rather than markdown here) |
 | `toolScript` | The script |
 | `toolData` | The data the script reads, and what `api.save()` writes back |
+| `sourceUrl` | A URL to read and hand to the script as `source` |
+| `refreshSeconds` | How often to read it; blank or `0` never, and under `5` is raised to `5` |
+| `sourceCache` | What that URL answered last, so the tool draws before the network does |
+| `sourceFetchedAt` | When that was, which is what makes a stale number legible as one |
 | `scriptApproved` | The exact script text approved **in this browser** |
-| `scriptTab` | `body`, `script` or `data` — where the editor was left |
+| `scriptTab` | `body`, `script`, `data` or `source` — where the editor was left |
 
 `scriptApproved` is the whole of the trust rule: the script runs only while it is
 character-for-character what was approved, so a source that changes its code stops
-and asks again. It is stripped from every export and from every import, which is
-what makes it a local fact rather than something a file can assert about itself —
-see [Dynamic Tools](dynamic-tool.md#scripts-that-arrive-from-somewhere-else).
+and asks again.
+
+Three of these are local facts — `scriptApproved`, `sourceCache` and
+`sourceFetchedAt`, collected as `LOCAL_ONLY_KEYS` — and are stripped from every
+export and every import by `withoutLocalFacts`. An approval that travelled would be
+a file approving its own script; a cache that travelled would be a number that looks
+live and is not. See
+[Dynamic Tools](dynamic-tool.md#scripts-that-arrive-from-somewhere-else).
+
+How the last read went — direct, via the proxy, or failed — is deliberately *not*
+stored. It is true of this browser at this moment and has no business in an export.
 
 ### Curriculum Explorer — a record of schools
 

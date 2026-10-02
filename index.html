@@ -1842,6 +1842,27 @@ main#toolboard {
     line-height: 1.45; min-height: 60px; white-space: pre; tab-size: 2;
 }
 .dyn-source:focus { outline: none; border-color: var(--accent-color, #3498db); }
+
+/* The Source pane is a small form rather than a text field: two values and a line
+   saying how the last read went. A stale number looks exactly like a fresh one, so
+   when it was read has to be somewhere a person can look. */
+.dyn-form { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; overflow: auto; }
+.dyn-label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--text-secondary); }
+.dyn-label-inline { flex-direction: row; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dyn-input {
+    padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 3px;
+    background: var(--bg-primary); color: var(--text-primary);
+    font-family: 'Fira Code', 'Monaco', 'Menlo', monospace; font-size: 12px; min-width: 0;
+}
+.dyn-input:focus { outline: none; border-color: var(--accent-color, #3498db); }
+.dyn-input-num { width: 70px; flex: 0 0 auto; }
+.dyn-unit { font-size: 10px; color: var(--text-muted); }
+.dyn-source-status {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    border-top: 1px solid var(--border-light); padding-top: 6px; margin-top: 2px;
+}
+.dyn-fetch-state { flex: 1 1 auto; min-width: 120px; font-size: 11px; color: var(--text-muted); }
+.dyn-fetch-state.dyn-fetch-failed { color: #c0392b; }
 /* Code that came from somewhere else, waiting to be looked at. Deliberately not
    styled as an error — nothing has gone wrong, there is a question outstanding. */
 .dyn-untrusted {
@@ -4068,6 +4089,10 @@ const NOTE_TEMPLATES = {
         // The body is per-instance, so it cannot come from a static `content`
         // string the way a plugin tool's does. The shell is built per tool.
         shell: 'dynamicShellHtml',
+        // The ? in the header. This tool needs one more than most: every other tool
+        // tells you what it does by looking like it, and this one opens as four
+        // empty-ish boxes and a contract you cannot guess.
+        guide: 'learn/tools/dynamic-tool.html',
         defaultWidth: 560,
         defaultHeight: 420,
         // A new one arrives working. The alternative is three empty boxes and a
@@ -4717,6 +4742,7 @@ PluginRegistry.registerToolbox({
                 title: template.title,
                 content: template.content,
                 onInit: template.onInit,
+                guide: template.guide,
                 // Carried across so the registry's copy describes the same tool.
                 // Every lookup reads NOTE_TEMPLATES first, so dropping these was
                 // harmless until something resolved one of these ids the other way
@@ -8074,18 +8100,21 @@ function noteOnInput(textarea) {
 
 // ---- the dynamic tool ---------------------------------------------------------
 //
-// Three fields and one function. `customContent` is the markup, `toolScript` the
-// code, `toolData` the values the code reads; `runDynamicTool` draws the markup,
-// compiles the code and hands it the pair. The authoring framework supplies
-// everything else — the two panes, the mode bar, double-click to edit, and a View
-// mode that is just the running tool with no frame around it.
+// Four fields and one function. `customContent` is the markup, `toolScript` the
+// code, `toolData` the values the code reads, `sourceUrl` somewhere to read more
+// from; `runDynamicTool` draws the markup, fetches the source, compiles the code
+// and hands it the lot. The authoring framework supplies everything else — the two
+// panes, the mode bar, double-click to edit, and a View mode that is just the
+// running tool with no frame around it.
 
-/** Which source pane is showing. Tabs rather than three panes side by side: in a
- *  500px window three columns are each too narrow to read a line of code in. */
+/** Which source pane is showing. Tabs rather than four panes side by side: in a
+ *  500px window four columns are each too narrow to read a line of code in. */
 const DYN_TABS = [
     { id: 'body', label: 'Body', field: 'customContent', hint: 'HTML' },
     { id: 'script', label: 'Script', field: 'toolScript', hint: 'JavaScript' },
-    { id: 'data', label: 'Data', field: 'toolData', hint: 'JSON' }
+    { id: 'data', label: 'Data', field: 'toolData', hint: 'JSON' },
+    // Not a text field but a small form, so it declares its own markup below.
+    { id: 'source', label: 'Source', hint: 'Where to read from, and how often' }
 ];
 
 function dynamicTab(custom) {
@@ -8093,17 +8122,49 @@ function dynamicTab(custom) {
     return DYN_TABS.some(t => t.id === saved) ? saved : 'body';
 }
 
+/**
+ * The Source pane: where to read from, how often, and what the last read did.
+ *
+ * The status line is the whole reason this is a pane rather than two inputs. A tool
+ * showing a stale number looks exactly like a tool showing a current one, so when
+ * it last read, and whether that read went direct or round the proxy, has to be
+ * somewhere a person can look.
+ */
+function dynamicSourcePaneHtml(custom) {
+    const url = custom.sourceUrl || '';
+    const every = custom.refreshSeconds != null ? custom.refreshSeconds : '';
+    return '<div class="dyn-form">' +
+        '<label class="dyn-label">URL' +
+            '<input type="url" class="dyn-input" data-field="sourceUrl" spellcheck="false" ' +
+                'placeholder="https://example.com/status.json" ' +
+                'oninput="dynamicOnInput(this)" value="' + escapeHtml(url) + '">' +
+        '</label>' +
+        '<label class="dyn-label dyn-label-inline">Refresh every' +
+            '<input type="number" class="dyn-input dyn-input-num" data-field="refreshSeconds" ' +
+                'min="0" step="1" placeholder="0" oninput="dynamicOnInput(this)" ' +
+                'value="' + escapeHtml(String(every)) + '">' +
+            '<span class="dyn-unit">seconds — blank or 0 never refreshes</span>' +
+        '</label>' +
+        '<div class="dyn-source-status">' +
+            '<span class="dyn-fetch-state"></span>' +
+            '<button class="dyn-btn" onclick="reloadDynamicSource(this)">Read now</button>' +
+        '</div>' +
+    '</div>';
+}
+
 function dynamicShellHtml(toolId, custom) {
     const tab = dynamicTab(custom);
     const tabs = DYN_TABS.map(t =>
         '<button class="dyn-tab' + (t.id === tab ? ' active' : '') + '" data-tab="' + t.id +
-        '" onclick="dynamicSetTab(this)" title="' + t.hint + '">' + t.label + '</button>').join('');
+        '" onclick="dynamicSetTab(this)" title="' + escapeHtml(t.hint) + '">' + t.label + '</button>').join('');
     const panes = DYN_TABS.map(t =>
         '<div class="dyn-pane' + (t.id === tab ? ' active' : '') + '" data-pane="' + t.id + '">' +
-            '<textarea class="dyn-source" spellcheck="false" data-field="' + t.field + '" ' +
-                'oninput="dynamicOnInput(this)" placeholder="' + t.hint + '">' +
-                escapeHtml(custom[t.field] || '') +
-            '</textarea>' +
+            (t.field
+                ? '<textarea class="dyn-source" spellcheck="false" data-field="' + t.field + '" ' +
+                    'oninput="dynamicOnInput(this)" placeholder="' + t.hint + '">' +
+                    escapeHtml(custom[t.field] || '') +
+                  '</textarea>'
+                : dynamicSourcePaneHtml(custom)) +
         '</div>').join('');
 
     return '<div class="dyn-widget">' +
@@ -8179,6 +8240,190 @@ function parseDynamicData(text) {
     return JSON.parse(trimmed);
 }
 
+// ---- reading from a URL -------------------------------------------------------
+//
+// A tool that only reads what you typed can say one thing forever. Given a URL it
+// reads that instead, on open and on whatever schedule it was given, and hands the
+// result to the script as `source` — beside `data`, not instead of it, so a tool can
+// be both configured and fed.
+//
+// What came back last is kept in storage. A dashboard has to draw something the
+// moment the board opens, and the alternative is an empty box for however long the
+// network takes, or forever when it is down. So the cached payload renders first
+// and the fetch replaces it when it lands.
+//
+// Not every host allows cross-origin reads. The same two-step the Curriculum
+// Explorer uses applies here: try direct, and for an absolute http(s) URL try again
+// through the board's proxy, which answers only the published origins — so the
+// fallback works on the published site and refuses elsewhere. Which route the data
+// came by is shown rather than hidden, because "it works for me" usually means "it
+// went round the proxy for me".
+const DYN_PROXY = 'https://ics-proxy-esjyexqdtq-ue.a.run.app/?url=';
+/** A floor, so a mistyped interval cannot hammer someone else's host. */
+const DYN_MIN_REFRESH = 5;
+
+/** Transient, and deliberately not in storage: how the last read went is about this
+ *  browser at this moment, and has no business travelling in an export. */
+const dynamicFetchState = {};
+const dynamicSourceTimers = {};
+
+function sameOriginAsPage(url) {
+    try { return new URL(url, window.location.href).origin === window.location.origin; }
+    catch (e) { return false; }
+}
+
+function dynamicRefreshSeconds(custom) {
+    const n = Number((custom || {}).refreshSeconds);
+    if (!isFinite(n) || n <= 0) return 0;
+    return Math.max(DYN_MIN_REFRESH, Math.round(n));
+}
+
+/** The payload as the script sees it: JSON where it is JSON, text otherwise. A feed
+ *  is not always JSON, and a tool reading a plain-text endpoint should not have to
+ *  pretend otherwise. */
+function parseSourcePayload(text) {
+    const trimmed = (text || '').trim();
+    if (!trimmed) return null;
+    try { return JSON.parse(trimmed); } catch (e) { return text; }
+}
+
+function dynamicSourceValue(custom) {
+    if (!custom || !(custom.sourceUrl || '').trim()) return null;
+    return custom.sourceCache != null ? parseSourcePayload(custom.sourceCache) : null;
+}
+
+function describeAge(iso) {
+    const then = Date.parse(iso || '');
+    if (!isFinite(then)) return null;
+    const secs = Math.max(0, Math.round((Date.now() - then) / 1000));
+    if (secs < 60) return secs + 's ago';
+    if (secs < 3600) return Math.round(secs / 60) + 'm ago';
+    return Math.round(secs / 3600) + 'h ago';
+}
+
+/** The Source pane's status line, redrawn wherever the state changed. */
+function showDynamicFetchState(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const el = tool && tool.querySelector('.dyn-fetch-state');
+    if (!el) return;
+    const custom = toolCustomizations[toolId] || {};
+    const state = dynamicFetchState[toolId] || {};
+    el.classList.toggle('dyn-fetch-failed', state.status === 'error');
+    if (!(custom.sourceUrl || '').trim()) { el.textContent = 'No URL — the script gets a null source.'; return; }
+    if (state.status === 'loading') { el.textContent = 'Reading ' + describeHost(custom.sourceUrl) + '…'; return; }
+    if (state.status === 'error') { el.textContent = state.message; return; }
+    const age = describeAge(custom.sourceFetchedAt);
+    const every = dynamicRefreshSeconds(custom);
+    el.textContent = (age ? 'Read ' + age : 'Not read yet') +
+        (state.via ? ' · ' + state.via : '') +
+        (every ? ' · every ' + every + 's' : '');
+}
+
+/**
+ * Read the URL once. Returns true when the stored payload changed.
+ *
+ * Failure leaves the last good payload in place: a dashboard that has been working
+ * all morning should not blank itself because one read timed out. The failure is
+ * reported in the Source pane, where someone looking for why the number is old
+ * will find it.
+ */
+async function fetchDynamicSource(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const url = (custom.sourceUrl || '').trim();
+    if (!url) return false;
+
+    if (window.location.protocol === 'file:' && !/^https?:/i.test(url)) {
+        dynamicFetchState[toolId] = { status: 'error',
+            message: 'A page opened from disk cannot read files from disk — the browser forbids it.' };
+        showDynamicFetchState(toolId);
+        return false;
+    }
+
+    dynamicFetchState[toolId] = { status: 'loading' };
+    showDynamicFetchState(toolId);
+
+    let response, via = 'direct';
+    try {
+        response = await fetch(url, { credentials: 'omit', redirect: 'follow' });
+    } catch (e) {
+        // The proxy is for hosts that refuse cross-origin reads. A URL on this very
+        // origin that failed has some other problem — it is missing, or the server
+        // is down — and sending it round the proxy would only disguise that.
+        if (!/^https?:\/\//i.test(url) || sameOriginAsPage(url)) {
+            dynamicFetchState[toolId] = { status: 'error',
+                message: describeHost(url) + ' could not be read — ' +
+                    (sameOriginAsPage(url) ? 'nothing answered.'
+                        : 'only an absolute http(s) URL can go via the proxy.') };
+            showDynamicFetchState(toolId);
+            return false;
+        }
+        try {
+            response = await fetch(DYN_PROXY + encodeURIComponent(url), { credentials: 'omit', redirect: 'follow' });
+            via = 'via proxy';
+        } catch (e2) {
+            dynamicFetchState[toolId] = { status: 'error',
+                message: describeHost(url) + ' does not allow cross-origin reads, and the proxy could not be reached either.' };
+            showDynamicFetchState(toolId);
+            return false;
+        }
+    }
+    if (!response.ok) {
+        dynamicFetchState[toolId] = { status: 'error',
+            message: describeHost(url) + ' answered ' + response.status + ' ' + response.statusText + '.' };
+        showDynamicFetchState(toolId);
+        return false;
+    }
+
+    const text = await response.text();
+    // The tool may have been deleted, or the board switched, while this was in
+    // flight. Writing then would resurrect a key for a tool that is gone.
+    if (!toolCustomizations[toolId]) return false;
+    const changed = toolCustomizations[toolId].sourceCache !== text;
+    toolCustomizations[toolId].sourceCache = text;
+    toolCustomizations[toolId].sourceFetchedAt = new Date().toISOString();
+    saveToolCustomizations(toolCustomizations);
+    dynamicFetchState[toolId] = { status: 'ok', via: via };
+    showDynamicFetchState(toolId);
+    return changed;
+}
+
+/** Read, then show what was read. The render path never fetches, so this cannot
+ *  turn into a fetch that renders that fetches. */
+async function fetchAndRenderDynamicSource(toolId) {
+    await fetchDynamicSource(toolId);
+    renderDynamicTool(toolId);
+}
+
+/** A first read, or one the interval has made due. Anything else — a keystroke, a
+ *  mode change — renders from what is already here rather than asking the host
+ *  again. */
+function maybeFetchDynamicSource(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    if (!(custom.sourceUrl || '').trim()) return;
+    if ((dynamicFetchState[toolId] || {}).status === 'loading') return;
+    if (custom.sourceCache == null) { fetchAndRenderDynamicSource(toolId); return; }
+    const every = dynamicRefreshSeconds(custom);
+    if (!every) return;
+    const then = Date.parse(custom.sourceFetchedAt || '');
+    if (!isFinite(then) || Date.now() - then >= every * 1000) fetchAndRenderDynamicSource(toolId);
+}
+
+/** Arm the schedule, or take it away. Re-armed after every render, and torn down
+ *  by the same cleanup every other kind of timer here goes through. */
+function scheduleDynamicSource(toolId) {
+    clearInterval(dynamicSourceTimers[toolId]);
+    delete dynamicSourceTimers[toolId];
+    const custom = toolCustomizations[toolId] || {};
+    const every = dynamicRefreshSeconds(custom);
+    if (!every || !(custom.sourceUrl || '').trim()) return;
+    dynamicSourceTimers[toolId] = setInterval(() => fetchAndRenderDynamicSource(toolId), every * 1000);
+}
+
+function reloadDynamicSource(btn) {
+    const toolId = toolIdOf(btn);
+    if (toolId) fetchAndRenderDynamicSource(toolId);
+}
+
 // Teardown a script registered for itself: timers it set, listeners it put on
 // window. Without this a tool with a setInterval kept running after the board was
 // switched away from, and a second copy started on every visit back.
@@ -8189,6 +8434,8 @@ function cleanupDynamicTool(toolId) {
     delete dynamicCleanups[toolId];
     clearTimeout(dynamicRunTimers[toolId]);
     delete dynamicRunTimers[toolId];
+    clearInterval(dynamicSourceTimers[toolId]);
+    delete dynamicSourceTimers[toolId];
     fns.forEach(fn => {
         try { fn(); } catch (e) { console.error('Dynamic tool cleanup failed:', e); }
     });
@@ -8220,7 +8467,10 @@ function dynamicToolApi(toolId) {
         onCleanup(fn) {
             if (typeof fn !== 'function') return;
             (dynamicCleanups[toolId] = dynamicCleanups[toolId] || []).push(fn);
-        }
+        },
+        /** Read the Source URL again now, whatever the schedule says, and redraw
+         *  with what comes back — for a tool with a button of its own. */
+        reload() { fetchAndRenderDynamicSource(toolId); }
     };
 }
 
@@ -8252,19 +8502,31 @@ function dynamicScriptApproved(custom) {
     return (((custom || {})[SCRIPT_APPROVAL_KEY]) || '').trim() === src;
 }
 
-/** A copy of one tool's customizations with the local approval taken out. */
-function withoutScriptApproval(custom) {
-    if (!custom || typeof custom !== 'object' || !(SCRIPT_APPROVAL_KEY in custom)) return custom;
+/**
+ * Keys that are true of this browser and nowhere else, dropped from everything
+ * leaving and everything arriving.
+ *
+ * The approval is one, for the reason above. The cached payload is the other: it is
+ * data someone else's machine fetched at a moment that has passed, and a tool that
+ * arrives showing it would be showing a number that looks live and is not. The
+ * recipient's own first read is a second away, and it is theirs.
+ */
+const LOCAL_ONLY_KEYS = [SCRIPT_APPROVAL_KEY, 'sourceCache', 'sourceFetchedAt'];
+
+/** A copy of one tool's customizations with those taken out. */
+function withoutLocalFacts(custom) {
+    if (!custom || typeof custom !== 'object') return custom;
+    if (!LOCAL_ONLY_KEYS.some(k => k in custom)) return custom;
     const copy = { ...custom };
-    delete copy[SCRIPT_APPROVAL_KEY];
+    LOCAL_ONLY_KEYS.forEach(k => delete copy[k]);
     return copy;
 }
 
 /** The same, for a whole board's worth of them. */
-function withoutScriptApprovals(map) {
+function withoutLocalFactsIn(map) {
     if (!map || typeof map !== 'object') return map;
     const out = {};
-    Object.keys(map).forEach(id => { out[id] = withoutScriptApproval(map[id]); });
+    Object.keys(map).forEach(id => { out[id] = withoutLocalFacts(map[id]); });
     return out;
 }
 
@@ -8311,23 +8573,26 @@ function showDynamicError(tool, message) {
 /**
  * Draw the markup, then run the script against it.
  *
- * This is the tool's `onRender`, so the framework calls it whenever the result
- * needs to be up to date: on open, on a mode change into Build or View, and after
- * an edit settles. Every run starts from the stored markup, so a script that
- * rewrote the DOM last time is not looking at its own leftovers.
+ * Rendering never fetches. The schedule and the first read call the fetch and then
+ * come back through here, so a read cannot turn into a render that reads again.
+ * `runDynamicTool` is the entry the framework knows about and does both.
+ *
+ * Every run starts from the stored markup, so a script that rewrote the DOM last
+ * time is not looking at its own leftovers.
  *
  * A script that throws leaves its message in the tool rather than only in the
  * console — the person who wrote it is looking at the tool. Errors thrown later,
  * from a handler the script installed, are the browser's to report; catching those
  * would mean wrapping every callback and lying about where they came from.
  */
-function runDynamicTool(toolId) {
+function renderDynamicTool(toolId) {
     const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
     const result = tool && tool.querySelector('.authoring-result');
     if (!result) return;
 
     cleanupDynamicTool(toolId);
     showDynamicError(tool, null);
+    showDynamicFetchState(toolId);
 
     const custom = toolCustomizations[toolId] || {};
     result.innerHTML = custom.customContent || '';
@@ -8358,11 +8623,33 @@ function runDynamicTool(toolId) {
         // `new Function`, not eval: the body is compiled in global scope, so it
         // closes over nothing in here and cannot reach the app's own variables by
         // accident. It still runs on the page, which is the deal this tool makes.
-        const fn = new Function('el', 'data', 'api', '"use strict";\n' + src);
-        fn(result, data, dynamicToolApi(toolId));
+        //
+        // `source` is a fourth argument rather than a replacement for `data`: a tool
+        // that reads a feed usually also has settings — which field, what to call
+        // it, when to go red — and folding the two together would mean one of them
+        // had to live in the code.
+        const fn = new Function('el', 'data', 'api', 'source', '"use strict";\n' + src);
+        fn(result, data, dynamicToolApi(toolId), dynamicSourceValue(custom));
     } catch (e) {
         showDynamicError(tool, (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : String(e)));
     }
+
+    // After the run, so a script that changed the URL or the interval through
+    // api.save is scheduled on what it actually asked for.
+    scheduleDynamicSource(toolId);
+}
+
+/**
+ * The framework's entry point: draw it, then read the URL if a read is due.
+ *
+ * The fetch is deliberately downstream of the trust gate — an unapproved script
+ * means an unapproved URL too. A tool that arrived from someone else should not be
+ * reaching out to a host they chose before anyone here has said yes to it.
+ */
+function runDynamicTool(toolId) {
+    renderDynamicTool(toolId);
+    const custom = toolCustomizations[toolId] || {};
+    if ((custom.toolScript || '').trim() && dynamicScriptApproved(custom)) maybeFetchDynamicSource(toolId);
 }
 
 function renderToolContent(text, plainText, transforms) {
@@ -9977,7 +10264,7 @@ async function instantiateBoardTemplate(boardId) {
             Object.assign(toolCustomizations[toolId], toolConfig.state);
             // Except that one: a board template is free to carry a script, and not
             // free to declare it already approved.
-            toolCustomizations[toolId] = withoutScriptApproval(toolCustomizations[toolId]);
+            toolCustomizations[toolId] = withoutLocalFacts(toolCustomizations[toolId]);
         }
     });
 
@@ -10649,7 +10936,7 @@ function exportTools() {
             // The script travels; the fact that you approved it does not. It says
             // nothing about whoever opens this file, and carried along it would
             // answer a question only they can be asked.
-            customizations: withoutScriptApproval(toolCustomizations[toolId] || {}),
+            customizations: withoutLocalFacts(toolCustomizations[toolId] || {}),
             position: positions[toolId] || null
         };
         exportData.tools.push(toolData);
@@ -10681,7 +10968,7 @@ function exportBoards() {
             name: board.name,
             variables: JSON.parse(localStorage.getItem(`finance_${boardId}_variables`) || 'null'),
             positions: JSON.parse(localStorage.getItem(`finance_${boardId}_positions`) || '{}'),
-            toolCustomizations: withoutScriptApprovals(
+            toolCustomizations: withoutLocalFactsIn(
                 JSON.parse(localStorage.getItem(`finance_${boardId}_toolCustomizations`) || '{}')),
             customTools: JSON.parse(localStorage.getItem(`finance_${boardId}_customTools`) || '[]'),
             hiddenTools: JSON.parse(localStorage.getItem(`finance_${boardId}_hiddenTools`) || '[]'),
@@ -10741,7 +11028,7 @@ function exportBoardAsHTML() {
         currentBoard: 'default',
         variables: variables,
         positions: positions,
-        toolCustomizations: withoutScriptApprovals(toolCustomizations),
+        toolCustomizations: withoutLocalFactsIn(toolCustomizations),
         customTools: customTools,
         hiddenTools: hiddenTools,
         toolboardSettings: toolboardSettings,
@@ -11121,7 +11408,7 @@ function placeToolFromSource(source, toolData) {
         localId = 'custom-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
     }
     if (toolData.isCustom && !customTools.includes(localId)) customTools.push(localId);
-    toolCustomizations[localId] = withoutScriptApproval({ ...(toolData.customizations || {}) });
+    toolCustomizations[localId] = withoutLocalFacts({ ...(toolData.customizations || {}) });
     if (toolData.position) {
         const pos = { ...toolData.position };
         pos.z = ++maxZ;
@@ -11158,7 +11445,7 @@ function syncToolsFromSource(source, data, options = {}) {
             // it should — or does not, which is a source that changed its code
             // under a board that trusted the old one, and it stops and asks.
             const approved = (toolCustomizations[mapped] || {})[SCRIPT_APPROVAL_KEY];
-            toolCustomizations[mapped] = withoutScriptApproval({ ...(toolData.customizations || {}) });
+            toolCustomizations[mapped] = withoutLocalFacts({ ...(toolData.customizations || {}) });
             if (approved != null) toolCustomizations[mapped][SCRIPT_APPROVAL_KEY] = approved;
             result.updated++;
             return;
@@ -11255,7 +11542,7 @@ function importTools(data) {
         // the script inert: approval is a local fact, and one carried in a file
         // would be the file approving itself.
         if (toolData.customizations && Object.keys(toolData.customizations).length > 0) {
-            toolCustomizations[toolId] = withoutScriptApproval({ ...toolData.customizations });
+            toolCustomizations[toolId] = withoutLocalFacts({ ...toolData.customizations });
         }
 
         // Import position (with offset if position exists)
@@ -11301,7 +11588,7 @@ function importBoards(data) {
         }
         if (boardData.toolCustomizations) {
             localStorage.setItem(`finance_${boardId}_toolCustomizations`,
-                JSON.stringify(withoutScriptApprovals(boardData.toolCustomizations)));
+                JSON.stringify(withoutLocalFactsIn(boardData.toolCustomizations)));
         }
         if (boardData.customTools) {
             localStorage.setItem(`finance_${boardId}_customTools`, JSON.stringify(boardData.customTools));
@@ -11981,7 +12268,7 @@ function exportToolAsFullHtml(toolId, title) {
             }
         },
         toolCustomizations: {
-            [toolId]: withoutScriptApproval(custom)
+            [toolId]: withoutLocalFacts(custom)
         },
         customTools: customTools.includes(toolId) ? [toolId] : [],
         hiddenTools: customTools.filter(id => id !== toolId),

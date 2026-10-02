@@ -69,6 +69,21 @@ const type = async (id, field, text) => {
     await page.waitForTimeout(700);
 };
 
+/** Raise a window before clicking inside it. By the end of this suite a dozen tools
+ *  are stacked with the usual offset, so one tool's header sits over another's
+ *  controls — which a person resolves by clicking the window first. */
+const focusTool = (id) => page.evaluate((i) => {
+    const t = document.querySelector('.tool[data-tool="' + i + '"]');
+    if (t) t.style.zIndex = ++maxZ;
+}, id);
+
+/** Bring a tab to the front, for the panes that hold controls rather than text. */
+const showTab = async (id, tab) => {
+    await focusTool(id);
+    await page.click(sel(id, '.dyn-tab[data-tab="' + tab + '"]'));
+    await page.waitForTimeout(150);
+};
+
 const resultText = (id) => page.textContent(sel(id, '.authoring-result'));
 const errorOf = (id) => page.evaluate((s) => {
     const strip = document.querySelector(s);
@@ -85,9 +100,14 @@ await page.waitForTimeout(700);
 ok('a new dynamic tool opens with the source and the running tool side by side',
     await page.evaluate((id) => document.querySelector('.tool[data-tool="' + id + '"]')
         .classList.contains('authoring-split'), starter));
-ok('its source is three tabs: the markup, the script and the data',
+ok('its source is four tabs: the markup, the script, the data and where to read from',
     await page.evaluate((id) => [...document.querySelectorAll('.tool[data-tool="' + id + '"] .dyn-tab')]
-        .map(b => b.textContent).join(','), starter) === 'Body,Script,Data');
+        .map(b => b.textContent).join(','), starter) === 'Body,Script,Data,Source');
+ok('and a ? in the header, because none of that is guessable',
+    await page.evaluate((id) => {
+        const btn = document.querySelector('.tool[data-tool="' + id + '"] .guide-btn');
+        return !!btn && guideFor(id) === 'learn/tools/dynamic-tool.html';
+    }, starter));
 ok('the markup it ships with is rendered', await page.evaluate((s) => !!document.querySelector(s),
     sel(starter, '.authoring-result .q')));
 
@@ -284,6 +304,150 @@ await page.waitForTimeout(300);
 ok('a plain note still renders its markdown exactly once', await page.evaluate((s) =>
     document.querySelectorAll(s).length, sel(note, '.markdown-content h1')) === 1);
 
+// 11b. Reading from a URL, and on a schedule.
+//
+// The fetch sits downstream of the render on purpose: a read redraws, and a redraw
+// must not read, or the two would chase each other. The cache is the other half —
+// a board has to draw something the moment it opens, including when the host is
+// unreachable, so what came back last is kept.
+const FEED = path.join(OUT, 'dynamic-tool-feed.json');
+const FEED_URL = 'http://localhost:8777/tests/out/dynamic-tool-feed.json';
+const feed = (count) => fs.writeFileSync(FEED, JSON.stringify({ count: count, label: 'open' }));
+
+feed(7);
+const reader = await makeTool({
+    customContent: '<p class="n"></p>',
+    toolScript: 'el.querySelector(".n").textContent = source ? data.label + "=" + source[data.field] : "no source";',
+    toolData: '{"field":"count","label":"open"}',
+    sourceUrl: FEED_URL
+});
+await page.waitForTimeout(900);
+ok('what the URL returned reaches the script as `source`',
+    await resultText(reader) === 'open=7', await resultText(reader));
+ok('and `data` is still the config that was typed, not the payload',
+    await page.evaluate((id) => JSON.parse(toolCustomizations[id].toolData).field, reader) === 'count');
+ok('the Source pane says when it was last read, and by which route',
+    /Read .* ago · direct/.test(await page.textContent(sel(reader, '.dyn-fetch-state'))),
+    await page.textContent(sel(reader, '.dyn-fetch-state')));
+ok('the payload is kept, so the next open has something to draw',
+    await page.evaluate((id) => !!toolCustomizations[id].sourceCache, reader));
+
+// Read now, against a file that has changed underneath it.
+feed(9);
+await showTab(reader, 'source');
+await page.click(sel(reader, '.dyn-source-status .dyn-btn'));
+await page.waitForTimeout(900);
+ok('Read now picks up what changed', await resultText(reader) === 'open=9', await resultText(reader));
+
+// A tool with no URL is not broken, it just has no source.
+const sourceless = await makeTool({
+    customContent: '<p class="n"></p>',
+    toolScript: 'el.querySelector(".n").textContent = source === null ? "null source" : "something";'
+});
+ok('a tool with no URL gets a null source rather than an error',
+    await resultText(sourceless) === 'null source', await resultText(sourceless));
+
+// The schedule. Five seconds is the floor, so this is the shortest real interval.
+feed(11);
+await page.evaluate((id) => {
+    toolCustomizations[id].refreshSeconds = 5;
+    saveToolCustomizations(toolCustomizations);
+    runDynamicTool(id);
+}, reader);
+await page.waitForTimeout(600);
+ok('setting a refresh says so in the pane',
+    /every 5s/.test(await page.textContent(sel(reader, '.dyn-fetch-state'))),
+    await page.textContent(sel(reader, '.dyn-fetch-state')));
+feed(13);
+await page.waitForTimeout(6000);
+ok('and the tool re-reads on its own without being touched',
+    await resultText(reader) === 'open=13', await resultText(reader));
+
+// A mistyped interval cannot be used to hammer someone else's host.
+await page.evaluate((id) => {
+    toolCustomizations[id].refreshSeconds = 1;
+    saveToolCustomizations(toolCustomizations);
+    runDynamicTool(id);
+}, reader);
+await page.waitForTimeout(400);
+ok('an interval below the floor is raised to it rather than honoured',
+    /every 5s/.test(await page.textContent(sel(reader, '.dyn-fetch-state'))),
+    await page.textContent(sel(reader, '.dyn-fetch-state')));
+
+// Switching board has to stop the schedule, like every other timer here. Read the
+// board we left out of storage rather than coming back to look: returning finds a
+// cache older than the interval and reads again straight away, which is right, and
+// would hide whether anything had been polling in the meantime.
+await page.evaluate(() => switchToBoard('second'));
+await page.waitForTimeout(500);
+feed(99);
+await page.waitForTimeout(6500);
+const whileAway = await page.evaluate((id) => {
+    const map = JSON.parse(localStorage.getItem('finance_default_toolCustomizations') || '{}');
+    return JSON.parse((map[id] || {}).sourceCache || '{}').count;
+}, reader);
+ok('a board switch stops the schedule rather than leaving it polling',
+    whileAway !== 99, String(whileAway));
+
+await page.evaluate(() => switchToBoard('default'));
+await page.waitForTimeout(1500);
+ok('and coming back reads again, because what it holds is older than the interval',
+    await resultText(reader) === 'open=99', await resultText(reader));
+
+// Offline: the cache is what makes a board usable with the network down. The
+// interval stays on, so the load really does try the host and really does fail.
+const cached = await page.evaluate((id) => JSON.parse(toolCustomizations[id].sourceCache).count, reader);
+await page.route('**/dynamic-tool-feed.json', r => r.abort());
+await goto();
+ok('with the host unreachable it still draws the last thing it read',
+    await resultText(reader) === 'open=' + cached, await resultText(reader));
+await showTab(reader, 'source');
+await page.click(sel(reader, '.dyn-source-status .dyn-btn'));
+await page.waitForTimeout(900);
+ok('and a read that fails says so rather than pretending the number is current',
+    /could not be read|does not allow|answered/.test(await page.textContent(sel(reader, '.dyn-fetch-state'))),
+    await page.textContent(sel(reader, '.dyn-fetch-state')));
+ok('while leaving the last good payload in place',
+    await resultText(reader) === 'open=' + cached, await resultText(reader));
+await page.unroute('**/dynamic-tool-feed.json');
+
+// A URL that answers something that is not JSON is text, not an error: a feed is
+// not always JSON, and a tool reading a plain-text endpoint should not have to pretend.
+fs.writeFileSync(path.join(OUT, 'dynamic-tool-plain.txt'), 'all good');
+const plainFeed = await makeTool({
+    customContent: '<p class="n"></p>',
+    toolScript: 'el.querySelector(".n").textContent = typeof source + ":" + source;',
+    sourceUrl: 'http://localhost:8777/tests/out/dynamic-tool-plain.txt'
+});
+await page.waitForTimeout(900);
+ok('a non-JSON endpoint arrives as the text it is',
+    await resultText(plainFeed) === 'string:all good', await resultText(plainFeed));
+
+// An unapproved script means an unapproved URL. A tool that arrived from someone
+// else must not reach out to a host they chose before anyone here has said yes.
+// Built without an approval rather than approved and then broken: a tool that has
+// already read the URL once proves nothing about whether an unapproved one would.
+const unapproved = await page.evaluate((url) => {
+    const id = createNoteWithTemplate('script', { skipEditor: true });
+    Object.assign(toolCustomizations[id], {
+        customContent: '<p class="n"></p>',
+        toolScript: 'el.querySelector(".n").textContent = "ran";',
+        sourceUrl: url
+    });
+    delete toolCustomizations[id].scriptApproved;
+    saveToolCustomizations(toolCustomizations);
+    setToolMode(id, 'split');
+    return id;
+}, FEED_URL);
+await page.waitForTimeout(1200);
+ok('a tool whose script is not approved does not read its URL either',
+    await page.evaluate((id) => toolCustomizations[id].sourceCache === undefined, unapproved));
+await focusTool(unapproved);
+await page.click(sel(unapproved, '.dyn-untrusted .dyn-btn-go'));
+await page.waitForTimeout(1000);
+ok('and reads it as soon as the script is approved',
+    await page.evaluate((id) => !!toolCustomizations[id].sourceCache, unapproved));
+
 // 12. Code that arrived from somewhere else.
 //
 // Until this tool existed, importing a board could not run anything. A script that
@@ -338,6 +502,7 @@ ok('but its script has not run, and the tool says so',
 ok('and the file does not get to approve its own script', await page.evaluate((id) =>
     (toolCustomizations[id] || {}).scriptApproved === undefined, ELSEWHERE));
 
+await focusTool(ELSEWHERE);
 await page.click(sel(ELSEWHERE, '.dyn-untrusted .dyn-btn'));
 await page.waitForTimeout(400);
 ok('Review puts the code it is asking about in front of you', await page.evaluate((id) => {
@@ -347,6 +512,7 @@ ok('Review puts the code it is asking about in front of you', await page.evaluat
         t.querySelector('.dyn-source[data-field="toolScript"]').value.includes('the script ran');
 }, ELSEWHERE));
 
+await focusTool(ELSEWHERE);
 await page.click(sel(ELSEWHERE, '.dyn-untrusted .dyn-btn-go'));
 await page.waitForTimeout(400);
 ok('and Run it runs the script', await resultText(ELSEWHERE) === 'the script ran', await resultText(ELSEWHERE));
@@ -369,6 +535,7 @@ ok('the new code is what is offered for review', await page.evaluate((id) =>
     document.querySelector('.tool[data-tool="' + id + '"] .dyn-source[data-field="toolScript"]')
         .value.includes('different code'), ELSEWHERE));
 
+await focusTool(ELSEWHERE);
 await page.click(sel(ELSEWHERE, '.dyn-untrusted .dyn-btn-go'));
 await page.waitForTimeout(400);
 ok('approving the new code runs that', await resultText(ELSEWHERE) === 'different code', await resultText(ELSEWHERE));
@@ -466,6 +633,13 @@ const shipped = exported.tools[0].customizations;
 ok('an exported tool takes its script with it', /mine/.test(shipped.toolScript || ''), JSON.stringify(shipped.toolScript));
 ok('and leaves the approval behind', shipped.scriptApproved === undefined, JSON.stringify(Object.keys(shipped)));
 
-ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 200));
+// A read that cannot reach its host logs at the browser level, not the app's: the
+// offline section above pulls a host away on purpose and ERR_FAILED is the browser
+// saying so. Everything else still has to be silent.
+const NETWORK_NOISE = /ERR_FAILED|Failed to load resource|net::|Access to fetch at|CORS policy/;
+const appErrors = errors.filter(e => !NETWORK_NOISE.test(e));
+ok('a failed read is reported by the browser, as it should be',
+    errors.some(e => NETWORK_NOISE.test(e)), JSON.stringify(errors).slice(0, 120));
+ok('and the app itself logged nothing', appErrors.length === 0, JSON.stringify(appErrors).slice(0, 200));
 await page.screenshot({ path: OUT + '/dynamic-tool.png' });
 await browser.close();

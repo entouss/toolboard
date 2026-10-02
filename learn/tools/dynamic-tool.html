@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Tool — Toolboard</title>
+<meta name="description" content="Write a small tool straight onto your board: some markup, a script, the values it reads, and a URL to read more from. No plugin, no install, no repository.">
+<link rel="stylesheet" href="../assets/learn.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="site-mark" href="../index.html"><span class="glyph">▦</span>Toolboard</a>
+    <nav>
+        <a href="../index.html">Guides</a>
+        <a href="https://toolboard.me">Open Toolboard</a>
+    </nav>
+</header>
+
+<div class="wrap">
+
+<section class="hero">
+    <p class="eyebrow">Core</p>
+    <h1>Dynamic Tool</h1>
+    <p class="tagline">A tool you write on the board itself, in about ten lines.</p>
+    <p class="lede">
+        Every other tool here arrives as a plugin somebody wrote, released and installed. Some
+        jobs are too small for that and too particular to ever be worth it: the link you build
+        by hand six times a day, the one number you keep opening a dashboard to read, the
+        formula only your team uses. This is a window with four tabs — markup, a script, its
+        data, and somewhere to read from — and whatever you put in them is a tool.
+    </p>
+
+    <div class="actions">
+        <a class="btn primary" href="/#tool/script">
+            Add one to your board
+            <small>arrives working · nothing to install</small>
+        </a>
+        <a class="btn" href="https://toolboard.me">Open Toolboard</a>
+    </div>
+    <p class="note">
+        A new one starts as a working search-link builder, so there is something to read before
+        there is something to write. Everything stays in your browser: the script runs on the
+        page, and nothing is uploaded.
+    </p>
+</section>
+
+<h2>The four tabs</h2>
+<div class="grid">
+    <div class="card">
+        <div class="card-head">Body</div>
+        <div class="card-body">
+            HTML — the fields, buttons and places where the answer goes. Plain markup, not
+            Markdown, because a script needs something to hold on to.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Script</div>
+        <div class="card-body">
+            JavaScript, run against that markup when the tool opens and whenever you change
+            something. No build step and no boilerplate — the body of a function.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Data</div>
+        <div class="card-body">
+            The values the script reads, as JSON. This is the tab you come back to: the URL
+            template, the field name, the threshold that turns the number red.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Source</div>
+        <div class="card-body">
+            A URL to read, and how often. What comes back is handed to the script, and the last
+            answer is kept so the tool still draws when the network is down.
+        </div>
+    </div>
+</div>
+
+<h2>What your script is given</h2>
+<p>
+    Four things, and nothing else to learn:
+</p>
+
+<pre><code>function (el, data, api, source) { … }</code></pre>
+
+<ul class="plain">
+    <li><code>el</code> — this tool's own content area. Not the page, not the board, not the
+        other copy of this tool two windows over.</li>
+    <li><code>data</code> — the Data tab, parsed.</li>
+    <li><code>source</code> — what the Source URL returned, or <code>null</code> when there
+        isn't one. Parsed as JSON where it is JSON, handed over as text where it isn't.</li>
+    <li><code>api.save(value)</code> — store <code>value</code> as this tool's data. It survives
+        a reload and appears in the Data tab, so the state is visible rather than hidden.</li>
+    <li><code>api.onCleanup(fn)</code> — run <code>fn</code> when the tool is closed, re-run, or
+        the board switches away. Anything you start, stop here.</li>
+    <li><code>api.reload()</code> — read the Source URL again now, whatever the schedule says.</li>
+</ul>
+
+<p class="note">
+    <strong>Why <code>source</code> is separate from <code>data</code>.</strong> A tool that reads
+    a feed almost always has settings too — which field, what to call it, when to go red. Folding
+    the two together would force one of them to live in the code, which is the thing the Data tab
+    exists to avoid.
+</p>
+
+<h2>Three worth copying</h2>
+
+<div class="card">
+    <div class="card-head">
+        A live number
+        <span class="meta">Source + schedule</span>
+    </div>
+    <div class="card-body">
+        <p>
+            Put a URL in Source, set a refresh, and name the field in Data. The tool draws the
+            cached answer the instant the board opens, then replaces it when the read lands.
+        </p>
+<pre><code>el.querySelector('.n').textContent =
+    source ? source[data.field] : '—';</code></pre>
+        <p>
+            Data: <code>{ "field": "count" }</code> · Source: your endpoint, refresh every
+            <code>60</code> seconds.
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        A form that writes the thing you were going to type
+        <span class="meta">Body + Data</span>
+    </div>
+    <div class="card-body">
+        <p>
+            Commit messages, standup lines, a <code>kubectl</code> incantation, an address block.
+            Fill the fields, press the button, paste the result.
+        </p>
+<pre><code>const get = (c) =&gt; el.querySelector(c).value;
+
+el.querySelector('.go').onclick = () =&gt; {
+    const text = data.template.replace(
+        /\{(\w+)\}/g, (m, k) =&gt; get('.' + k));
+    el.querySelector('.out').textContent = text;
+    copyTextToClipboard(text, 'Copied');
+};</code></pre>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        A roll-up of the other tools on the board
+        <span class="meta">The one a plugin would be needed for</span>
+    </div>
+    <div class="card-body">
+        <p>
+            The script runs on the page, so it can read what the rest of the board holds — here,
+            every checklist on it at once.
+        </p>
+<pre><code>let done = 0, open = 0;
+Object.values(toolCustomizations).forEach(c =&gt;
+    (c.checklistItems || []).forEach(i =&gt;
+        i.status === 'done' ? done++ : open++));
+
+el.textContent = done + ' done, ' + open + ' to go';</code></pre>
+    </div>
+</div>
+
+<h2>What it is good for</h2>
+<p>
+    The question that decides it: does this need to exist in a repository, or just on your board?
+</p>
+<ul class="plain">
+    <li><strong>Link builders and launchers.</strong> Ticket IDs, internal search, an environment
+        dashboard. The templates live in Data, so adding a destination is editing JSON.</li>
+    <li><strong>Live readouts.</strong> A status endpoint, an open-issue count, a rate, a queue
+        depth. One number, fresh when you look at it.</li>
+    <li><strong>Calculators with your own formula.</strong> The ones no generic tool ships:
+        pricing, a trade conversion, a rule of thumb. Constants in Data, formula in Script.</li>
+    <li><strong>Form to formatted text.</strong> Kills the small tasks you were going to do by
+        hand again.</li>
+    <li><strong>Counters, tallies and logs.</strong> <code>api.save</code> means persistence is
+        already solved.</li>
+    <li><strong>Clocks, countdowns and timers.</strong> <code>api.onCleanup</code> keeps them
+        honest when the board changes.</li>
+    <li><strong>Paste-in, paste-out transformers.</strong> A regex you keep re-deriving, date
+        arithmetic, decoding a format only your company uses.</li>
+    <li><strong>Glue between tools.</strong> Summarising or cross-checking what another tool on
+        the board holds — otherwise a plugin.</li>
+    <li><strong>A prototype that earns its way in.</strong> Live with it for a week; if it
+        survives, lift the script into a plugin. Most ideas don't survive the week, and this is
+        the cheap way to find out which.</li>
+</ul>
+
+<h2>Where it stops</h2>
+<ul class="plain">
+    <li><strong>Anything wanting tests and review</strong> belongs in a plugin file, in version
+        control.</li>
+    <li><strong>Libraries.</strong> One function body, no build step. You can reach out to a CDN
+        at runtime, but the shape rewards small.</li>
+    <li><strong>Secrets.</strong> All four tabs travel in an export. An API key in Data is a key
+        you have shared.</li>
+    <li><strong>Hosts that forbid cross-origin reads.</strong> A read is tried directly and then
+        through the board's proxy, which answers only the published site — so a feed that works
+        on <a href="https://toolboard.me">toolboard.me</a> may not work on a copy you host
+        yourself, and the Source tab says which route the data came by.</li>
+    <li><strong>Elaborate interfaces.</strong> No stylesheet of your own — inline styles or the
+        board's theme variables, in a window the size of a window.</li>
+    <li><strong>Errors from your own handlers.</strong> A throw while the script is running is
+        caught and shown in the tool. One thrown later, from a click handler it installed, goes
+        to the browser console like any other page's would.</li>
+</ul>
+
+<h2>Sharing one, and running someone else's</h2>
+<p>
+    A dynamic tool exports like any other tool, and a board template can carry one. What that
+    means is that a board can now arrive with code in it — so it arrives switched off.
+</p>
+<ul class="plain">
+    <li>The markup and the data are drawn; the script does not run. The tool says so, and offers
+        <em>Review</em> — which puts the code in front of you — and <em>Run it</em>.</li>
+    <li>What is recorded when you press Run is the exact script text you approved, never a
+        yes-or-no. So a linked source that re-fetches unchanged keeps running, and the same source
+        pushing different code next week stops and asks again.</li>
+    <li>That approval never leaves your browser. An approval carried in a file would be the file
+        approving its own script.</li>
+</ul>
+
+<p class="note">
+    <strong>This is not a sandbox.</strong> A script that runs here can do anything the page can.
+    That is fine for code you wrote, and it is exactly why code that arrives waits to be read.
+    Read it before you press Run — the same care you would give a shell command somebody sent you.
+</p>
+
+<footer>
+    <p>
+        <a href="../index.html">All guides</a> · <a href="https://toolboard.me">Toolboard</a>
+    </p>
+    <p>
+        Toolboard runs entirely in your browser. What you write stays on your own device and is
+        never uploaded.
+    </p>
+</footer>
+
+</div>
+</body>
+</html>
