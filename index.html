@@ -1394,6 +1394,12 @@ header h1 {
     color: var(--text-secondary);
 }
 
+/* The same line, when it is a remark rather than a URL to read carefully. */
+.import-link-url.import-link-aside {
+    background: none; border: 0; padding: 0; font-style: italic;
+    color: var(--text-muted);
+}
+
 .import-link-warn { margin: 12px 0 0; font-size: 11px; color: var(--text-muted); }
 
 .import-link-actions {
@@ -3716,10 +3722,10 @@ tr:hover {
             </div>
             <div class="import-link-body">
                 <p class="import-link-lead">This link wants to add <b id="importLinkSummary"></b> to the board
-                    <b id="importLinkBoard"></b>, from:</p>
+                    <b id="importLinkBoard"></b><span id="importLinkLeadTail">, from:</span></p>
                 <div class="import-link-url" id="importLinkUrl"></div>
                 <label class="import-url-keep"><input type="checkbox" id="importLinkKeep">Keep this board in sync with the URL</label>
-                <p class="import-link-warn">Tools carry their own content, which is rendered as written. Load this
+                <p class="import-link-warn" id="importLinkWarn">Tools carry their own content, which is rendered as written. Load this
                     only from somewhere you trust — and a linked source can change after you accept it.</p>
             </div>
             <div class="import-link-actions">
@@ -3742,7 +3748,17 @@ tr:hover {
 
             <!-- Export Tool -->
             <div id="exportTool" class="import-export-tool active">
-                <h3>Export Tools</h3>
+                <h3>Where shared links point</h3>
+                <p class="import-url-hint">Links and exported files send people to this address. It is
+                    filled in from this page, so a board hosted anywhere hands out itself — change it
+                    if your Toolboard lives somewhere else, such as when this page was opened from a disk.</p>
+                <div class="import-url-row">
+                    <input type="url" id="shareHomeInput" class="import-url-input" spellcheck="false">
+                    <button id="shareHomeReset" class="import-btn import-url-btn" title="Use this page's own address">Reset</button>
+                </div>
+                <p class="import-url-hint" id="shareHomeNote"></p>
+
+                <h3 style="margin-top: 15px;">Export Tools</h3>
                 <div id="exportToolsList" class="checkbox-list"></div>
                 <button id="exportSelectedTools" class="export-btn">Export Selected Tools</button>
 
@@ -4049,6 +4065,7 @@ tr:hover {
             <button class="copy-tool-btn ts-single-only" id="toolSettingsCutBtn">Cut Tool</button>
             <button class="copy-tool-btn ts-single-only" id="toolSettingsPasteBtn">Paste Tool</button>
             <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyLinkBtn">Copy Tool Link</button>
+            <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyDataLinkBtn">Copy Link with Data</button>
             <button class="export-tool-btn ts-single-only" id="toolSettingsExportBtn">Export as HTML</button>
             <button class="export-png-btn ts-single-only" id="toolSettingsExportPngBtn">Export as PNG</button>
             <button class="send-to-back-btn ts-single-only" id="toolSettingsSendToBackBtn">Send to Back</button>
@@ -6411,6 +6428,31 @@ function setupToolControls() {
         const url = getToolShareUrl(currentSettingsToolId);
         closeSettingsModal();
         copyTextToClipboard(url, 'Tool link copied');
+    });
+
+    // The same link, with the tool's contents folded into it, so what the other
+    // person opens is this tool rather than an empty one.
+    document.getElementById('toolSettingsCopyDataLinkBtn').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!currentSettingsToolId) return;
+        const toolId = currentSettingsToolId;
+        closeSettingsModal();
+        let url;
+        try {
+            url = await buildToolDataLink(toolId);
+        } catch (err) {
+            showToolToast('Could not build a link for this tool.');
+            return;
+        }
+        if (url.length > SHARE_LINK_MAX) {
+            // Handing over a link that some mail client will cut in half is worse
+            // than saying so.
+            showToolToast('Too much in this tool for a link (' +
+                Math.round(url.length / 1000) + 'k characters). Export as HTML, or ' +
+                'export it from Import / Export and send the file.');
+            return;
+        }
+        copyTextToClipboard(url, 'Link copied, with this tool\u2019s contents in it');
     });
 
     // Export tool button in modal
@@ -9932,6 +9974,7 @@ function setupImportExport() {
     // Open modal
     document.getElementById('importExportBtn').onclick = () => {
         populateExportLists();
+        renderShareHome();
         modal.classList.add('open');
     };
 
@@ -9956,6 +9999,18 @@ function setupImportExport() {
             }
         };
     });
+
+    // Where links point. Saved as typed, because the next thing the person does is
+    // press an export button, and a setting that needed confirming would be missed.
+    const shareHomeInput = document.getElementById('shareHomeInput');
+    shareHomeInput.oninput = () => {
+        setShareHome(shareHomeInput.value);
+        renderShareHomeNote();
+    };
+    document.getElementById('shareHomeReset').onclick = () => {
+        setShareHome('');
+        renderShareHome();
+    };
 
     // Export buttons
     document.getElementById('exportSelectedTools').onclick = exportTools;
@@ -9998,15 +10053,236 @@ let lastShareUrl = '';
 /** Where the recipient's Toolboard lives. This page, normally — a self-hosted board
  *  should hand out itself — but a page opened from disk has no address worth
  *  sharing, so that falls back to the published site. */
-function shareLinkBase() {
-    if (window.location.protocol === 'file:') return 'https://toolboard.me/';
+// Where the links this board hands out should point. Normally that is simply this
+// page: a board serves its own address, so a copy hosted anywhere gives out itself.
+// Two cases need telling, and both are the same setting:
+//
+//   - a page opened from a disk has no address worth sharing, and used to fall back
+//     to a hardcoded toolboard.me — wrong for anyone whose Toolboard lives anywhere
+//     else, and useless where that host is blocked;
+//   - a board served from one address may want its links to name another, such as
+//     a public mirror of a board kept on an intranet.
+//
+// The setting is not board-scoped: it is a fact about where this person's Toolboard
+// lives, and it would be absurd to answer it once per board.
+const SHARE_HOME_KEY = 'toolboard_shareHome';
+const SHARE_HOME_FALLBACK = 'https://toolboard.me/';
+
+/** The address this page would hand out if nobody had said otherwise. */
+function shareHomeAutomatic() {
+    if (window.location.protocol === 'file:') return SHARE_HOME_FALLBACK;
     return window.location.origin + window.location.pathname;
+}
+
+function shareHomeOverride() {
+    try {
+        const stored = (localStorage.getItem(SHARE_HOME_KEY) || '').trim();
+        return /^https?:\/\/\S+$/i.test(stored) ? stored : '';
+    } catch (e) {
+        return '';
+    }
+}
+
+/** Keeps the address, or forgets it when given anything that is not one. Only an
+ *  http(s) address will do: a relative path would resolve against the reader's
+ *  board rather than this one, and quietly send them somewhere else.
+ *
+ *  Half an address forgets the last whole one rather than leaving it in force.
+ *  What is stored always matches what the field says, so a field reading
+ *  "example.org" cannot go on sending people to a different address typed before
+ *  it — which is exactly what nobody would think to check. */
+function setShareHome(url) {
+    const clean = (url || '').trim();
+    const usable = /^https?:\/\/\S+$/i.test(clean);
+    try {
+        if (usable) localStorage.setItem(SHARE_HOME_KEY, clean);
+        else localStorage.removeItem(SHARE_HOME_KEY);
+    } catch (e) {
+        return false;
+    }
+    return usable || !clean;
+}
+
+function shareLinkBase() {
+    const home = shareHomeOverride() || shareHomeAutomatic();
+    // A link is built by putting a hash on the end, so the page has to be named:
+    // "https://example.org" alone would make "https://example.org#tool/…", which is
+    // a different address from the one they typed.
+    return /\/$/.test(home) || /\.html?$/i.test(home) ? home : home + '/';
+}
+
+// ── A link that carries the tools it shares ───────────────────────────────────
+// The payload is the same JSON the Export tab writes, deflated and base64url'd
+// into the hash. A hash is never sent to a server, so this needs nothing hosted,
+// no account and no origin's permission — and because a tool's state is just
+// `toolCustomizations`, every tool that stores its state the ordinary way becomes
+// shareable without knowing this exists. The same bargain as undo.
+//
+// Where the link points is `shareLinkBase()`: whoever built it hands out their own
+// address, so a self-hosted board shares itself rather than somewhere else.
+const SHARE_DATA_PARAM = 'd';
+// A browser's address bar takes far more than this. A link that has to survive an
+// email client, a chat window and a wiki paste does not, and a link that arrives
+// truncated is worse than being told to send the file — so past this the sender is
+// told, rather than handed something that looks fine and is not.
+const SHARE_LINK_MAX = 7500;
+const SHARE_CODEC_DEFLATE = '1';
+const SHARE_CODEC_PLAIN = '0';
+
+// The codec is named in the first character rather than guessed at on the way in:
+// a link made today still has to be readable by a build that has changed its mind
+// about compression.
+function base64UrlFromBytes(bytes) {
+    let out = '';
+    // In chunks, because String.fromCharCode(...bytes) overflows the argument
+    // stack somewhere around a hundred thousand of them.
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+        out += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(out).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function bytesFromBase64Url(text) {
+    const padded = String(text || '').replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(padded + '='.repeat((4 - padded.length % 4) % 4));
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+}
+
+async function encodeSharePayload(payload) {
+    const bytes = new TextEncoder().encode(JSON.stringify(payload));
+    if (typeof CompressionStream === 'function') {
+        try {
+            const packed = await new Response(new Blob([bytes]).stream()
+                .pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer();
+            return SHARE_CODEC_DEFLATE + base64UrlFromBytes(new Uint8Array(packed));
+        } catch (e) {
+            // An older browser without the stream: the link is longer, and works.
+        }
+    }
+    return SHARE_CODEC_PLAIN + base64UrlFromBytes(bytes);
+}
+
+async function decodeSharePayload(packed) {
+    const raw = String(packed || '');
+    const codec = raw.slice(0, 1);
+    if (codec !== SHARE_CODEC_DEFLATE && codec !== SHARE_CODEC_PLAIN) {
+        throw new Error('That link does not carry a Toolboard tool.');
+    }
+    let bytes;
+    try {
+        bytes = bytesFromBase64Url(raw.slice(1));
+        if (codec === SHARE_CODEC_DEFLATE) {
+            bytes = new Uint8Array(await new Response(new Blob([bytes]).stream()
+                .pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+        }
+    } catch (e) {
+        throw new Error('That link is damaged — it may have been cut short on the way.');
+    }
+    try {
+        return JSON.parse(new TextDecoder().decode(bytes));
+    } catch (e) {
+        throw new Error('That link does not carry a Toolboard tool.');
+    }
+}
+
+/** One tool as the export format writes it. Shared by the Export tab, the share
+ *  link and the HTML export, so all three hand over the same thing. */
+function toolExportEntry(toolId) {
+    return {
+        id: toolId,
+        isCustom: customTools.includes(toolId),
+        // The script travels; the fact that you approved it does not. It says
+        // nothing about whoever opens this, and carried along it would answer a
+        // question only they can be asked.
+        customizations: withoutLocalFacts(toolCustomizations[toolId] || {}),
+        position: positions[toolId] || null
+    };
+}
+
+function toolSharePayload(toolId) {
+    return {
+        type: 'tools',
+        exportedAt: new Date().toISOString(),
+        tools: [toolExportEntry(toolId)]
+    };
+}
+
+/** No board name in front of the tool, for the same reason the import link has
+ *  none: it should land on whichever board the person following it is looking at. */
+async function buildToolDataLink(toolId) {
+    const packed = await encodeSharePayload(toolSharePayload(toolId));
+    return shareLinkBase() + buildToolboardHash('', toolHashId(toolId)) +
+        '?' + SHARE_DATA_PARAM + '=' + packed;
+}
+
+/** The CSS a tool's markup needs to look like itself once it is out of the app.
+ *
+ *  A tool's appearance is written in three places and an export that takes none of
+ *  them gets a run of unstyled inputs: the app's sheet holds the variables every
+ *  colour is expressed in and the authoring frame a tool is built in, each plugin
+ *  injects its own, and a dynamic tool may add more at runtime. So everything in
+ *  the document comes along, and the exported page re-asserts its own frame
+ *  afterwards — board rules like `.tool { position: absolute }` are the one part
+ *  that must not survive, because the exported page is a sheet of paper and not a
+ *  board.
+ *
+ *  Only the light values travel. They live on `:root` and the dark ones on
+ *  `body.dark-mode`, which the exported page never wears, so a board exported at
+ *  night still hands over a white page rather than a dark tool on a white sheet. */
+function exportedToolCss() {
+    const parts = [];
+    document.querySelectorAll('style').forEach(style => {
+        // A stylesheet cannot legally hold "</style>", but a comment inside one
+        // can, and it would close the tag early in the file being written.
+        if (style.textContent) parts.push(style.textContent.replace(/<\/style/gi, '<\\/style'));
+    });
+    return parts.join('\n');
+}
+
+/** Where a share link points, in a word, for a line of text in an exported file.
+ *  Never a hardcoded name: a board serves its own address, whatever that is. */
+function describeShareHost(url) {
+    const host = describeHost(url);
+    return host && host.length <= 60 ? host : 'Toolboard';
+}
+
+/** What the link is offering, in words — "1 tool" alone is not a preview. */
+function sharedPayloadSummary(data) {
+    const tools = data.tools || data.notes || [];
+    const named = tools.map(t => ((t.customizations || {}).title || '').trim()).filter(Boolean);
+    const shown = named.slice(0, 3).map(n => '\u201C' + n + '\u201D').join(', ');
+    return payloadSummary(data) + (shown ? ' \u2014 ' + shown +
+        (named.length > 3 ? ' and ' + (named.length - 3) + ' more' : '') : '');
 }
 
 /** No board name in front of `import`: the tools should land on whichever board the
  *  person who follows it is looking at, not on one named after mine. */
 function buildImportLink(url, keep) {
     return shareLinkBase() + '#import?src=' + encodeURIComponent(url) + (keep ? '&link=1' : '');
+}
+
+function renderShareHome() {
+    const field = document.getElementById('shareHomeInput');
+    if (!field) return;
+    field.value = shareHomeOverride();
+    field.placeholder = shareHomeAutomatic();
+    renderShareHomeNote();
+}
+
+/** Says what a link would look like, because the answer is the whole point of the
+ *  field and typing an address is easy to get subtly wrong. */
+function renderShareHomeNote() {
+    const note = document.getElementById('shareHomeNote');
+    if (!note) return;
+    const typed = (document.getElementById('shareHomeInput') || {}).value || '';
+    if (typed.trim() && !shareHomeOverride()) {
+        note.textContent = 'That is not a web address, so links still point to ' + shareLinkBase();
+        return;
+    }
+    note.textContent = 'Links will look like ' + shareLinkBase() + '#tool/…' +
+        (shareHomeOverride() ? '' : ' \u2014 taken from this page.');
 }
 
 function showImportShareLink(url) {
@@ -11170,17 +11446,7 @@ function exportTools() {
     };
 
     checkboxes.forEach(cb => {
-        const toolId = cb.value;
-        const toolData = {
-            id: toolId,
-            isCustom: customTools.includes(toolId),
-            // The script travels; the fact that you approved it does not. It says
-            // nothing about whoever opens this file, and carried along it would
-            // answer a question only they can be asked.
-            customizations: withoutLocalFacts(toolCustomizations[toolId] || {}),
-            position: positions[toolId] || null
-        };
-        exportData.tools.push(toolData);
+        exportData.tools.push(toolExportEntry(cb.value));
     });
 
     downloadJSON(exportData, `tools-export-${getTimestamp()}.json`);
@@ -11762,8 +12028,11 @@ function unlinkSource(url) {
     renderLinkedSources();
 }
 
+// Returns a map of the id each tool had in the payload to the id it landed under,
+// which is how a share link knows which tool to open once it arrives.
 function importTools(data) {
     const toolsList = data.tools || data.notes; // Support both new and old format
+    const landed = {};
     toolsList.forEach(toolData => {
         let toolId = toolData.id;
 
@@ -11797,12 +12066,15 @@ function importTools(data) {
             pos.z = ++maxZ;
             positions[toolId] = pos;
         }
+
+        landed[toolData.id] = toolId;
     });
 
     // Save changes
     saveCustomTools(customTools);
     saveToolCustomizations(toolCustomizations);
     savePositions(positions);
+    return landed;
 }
 
 function importBoards(data) {
@@ -12402,7 +12674,7 @@ function setupToolSelection() {
 }
 
 // Export a tool as HTML file
-function exportToolAsHtml(toolId) {
+async function exportToolAsHtml(toolId) {
     const custom = toolCustomizations[toolId] || {};
     const content = getToolContent(toolId);
     const title = custom.title || content.title || 'Tool';
@@ -12431,27 +12703,70 @@ function exportToolAsHtml(toolId) {
         bodyContent = renderChecklistForExport(custom.checklistItems);
     }
 
+    // The page is a snapshot, but the file is not a dead end: the tool's contents
+    // travel inside it, and the bar at the top offers them back to a live board.
+    // Where back *is* comes from shareLinkBase() — this page's own address — so a
+    // self-hosted board hands out itself rather than somewhere else.
+    const payload = toolSharePayload(toolId);
+    const packed = await encodeSharePayload(payload);
+    const target = shareLinkBase() + buildToolboardHash('', toolHashId(toolId)) +
+        '?' + SHARE_DATA_PARAM + '=' + packed;
+    const exportedFrom = describeShareHost(target);
+    const tooBigForLink = target.length > SHARE_LINK_MAX;
+    // The same payload again, uncompressed, for the download button: the file has
+    // to be able to hand over an import file without a Toolboard to decode it.
+    const plainPayload = base64UrlFromBytes(new TextEncoder().encode(JSON.stringify(payload)));
+    const fileBase = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+    // The tool's own classes come too. Which authoring mode a tool is in is one of
+    // them — `.tool.authoring-render .authoring-source { display: none }` — so an
+    // export that dropped them showed the Markdown source and the rendered page
+    // one above the other. Board state is not part of how a tool looks, though: a
+    // window that happened to be maximized or picked when it was exported should
+    // not export as either.
+    const BOARD_STATE_CLASSES = ['fullscreen', 'minimized', 'selected', 'dragging',
+        'resizing', 'is-dragging', 'is-resizing', 'snapping'];
+    const toolClasses = ['tool'].concat([...(noteEl ? noteEl.classList : [])]
+        .filter(c => c !== 'tool' && !BOARD_STATE_CLASSES.includes(c))).join(' ');
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(title)}</title>
+    \x3Cstyle>
+/* What the tool is written in: the app's variables and authoring frame, and the
+   CSS its plugin injected. Without this the markup below is a run of bare inputs. */
+${exportedToolCss()}
+    \x3C/style>
     <style>
+        /* The page's own frame, last so that it wins. The rules that have to be
+           restated are the ones that put a tool on a board — this is a sheet. */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f5f5f5;
+            color: #2c3e50;
+            font-size: 14px;
             padding: 20px;
             line-height: 1.6;
+            min-height: 0;
         }
         .tool {
+            position: static;
+            display: block;
+            height: auto;
+            min-height: 0;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 800px;
-            margin: 0 auto;
+            width: 100%;
+            min-width: 0;
+            max-width: none;
+            margin: 0;
             overflow: hidden;
+            resize: none;
         }
         .tool-header {
             background: ${headerColor};
@@ -12459,9 +12774,18 @@ function exportToolAsHtml(toolId) {
             padding: 15px 20px;
             font-size: 18px;
             font-weight: 600;
+            cursor: default;
         }
         .tool-content {
             padding: 20px;
+            /* A tool scrolls inside its window; a page grows instead — except
+               sideways, where something wider than the screen still has to be
+               reachable. */
+            height: auto;
+            max-height: none;
+            overflow: visible;
+            overflow-x: auto;
+            font-size: 12px;
         }
         h1, h2, h3, h4, h5, h6 { margin: 1em 0 0.5em; color: #2c3e50; }
         p { margin: 0.5em 0; }
@@ -12485,16 +12809,98 @@ function exportToolAsHtml(toolId) {
         .item-text.completed { text-decoration: line-through; color: #999; }
         .subitems { margin-left: 30px; padding-left: 10px; border-left: 2px solid #eee; }
         .exported-date { text-align: center; color: #999; font-size: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        /* The bar is chrome: it belongs to whoever is deciding what to do with the
+           file, and not to the page itself, so it leaves on the way to paper. */
+        /* Bar and card are one column: wide enough for prose, no wider than the
+           tool needs, and never wider than the window. A table of thirteen columns
+           was being cut off at the eighth by a fixed width. */
+        .tb-page { width: fit-content; min-width: min(800px, 100%); max-width: 100%; margin: 0 auto; }
+        .tb-share {
+            width: 100%; margin: 0 0 14px; display: flex; flex-wrap: wrap;
+            align-items: center; gap: 10px; font-size: 12px; color: #555;
+            background: white; border: 1px solid #e3e5e8; border-radius: 8px;
+            padding: 8px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .tb-share-what { margin-right: auto; }
+        .tb-share a, .tb-share button {
+            font: inherit; border: 1px solid #d6d9dd; border-radius: 5px;
+            padding: 4px 10px; background: #f7f8f9; color: #2c3e50;
+            text-decoration: none; cursor: pointer; white-space: nowrap;
+        }
+        .tb-share a.tb-share-open { background: #3498db; border-color: #3498db; color: white; }
+        .tb-share a:hover, .tb-share button:hover { filter: brightness(0.97); }
+        .tb-share-said { color: #27ae60; }
+        .tb-share-note { color: #8a9099; }
+        @media print { .tb-share { display: none; } }
     </style>
 </head>
 <body>
-    <div class="tool">
+    <div class="tb-page">
+    <div class="tb-share" id="tbShare" data-link="${escapeHtml(target)}">
+        <span class="tb-share-what"><b>${escapeHtml(title)}</b> &middot; exported from ${escapeHtml(exportedFrom)}</span>
+        ${tooBigForLink
+            ? '<span class="tb-share-note">Too much in this tool for a link \u2014 ' +
+              'download the file and use Import / Export \u25B8 Import.</span>'
+            : '<a class="tb-share-open" href="' + escapeHtml(target) + '">Open in Toolboard</a>' +
+              '<button type="button" data-tb="link">Copy link</button>'}
+        <button type="button" data-tb="json">Download .json</button>
+        <span class="tb-share-said" id="tbShareSaid"></span>
+    </div>
+    <div class="${escapeHtml(toolClasses)}">
         <div class="tool-header">${escapeHtml(title)}</div>
         <div class="tool-content">
             ${bodyContent}
-            <div class="exported-date">Exported from Toolboard.me on ${new Date().toLocaleDateString()}</div>
+            <div class="exported-date">Exported from ${escapeHtml(exportedFrom)} on ${new Date().toLocaleDateString()}</div>
         </div>
     </div>
+    </div>
+    \x3Cscript id="toolboard-tool-payload" type="application/json">${plainPayload}\x3C/script>
+    \x3Cscript>
+    // No framework here on purpose: this file has to work from a disk, offline,
+    // in whatever browser it is forwarded to.
+    (function () {
+        var bar = document.getElementById('tbShare');
+        if (!bar) return;
+        var said = document.getElementById('tbShareSaid');
+        var say = function (msg) {
+            said.textContent = msg;
+            setTimeout(function () { said.textContent = ''; }, 2500);
+        };
+        var copyLink = function () {
+            var link = bar.getAttribute('data-link') || '';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link)
+                    .then(function () { say('Link copied'); })
+                    .catch(function () { window.prompt('Copy this link:', link); });
+            } else {
+                window.prompt('Copy this link:', link);
+            }
+        };
+        var downloadJson = function () {
+            var node = document.getElementById('toolboard-tool-payload');
+            var b64 = (node ? node.textContent : '').replace(/-/g, '+').replace(/_/g, '/');
+            var raw = atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
+            var bytes = new Uint8Array(raw.length);
+            for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            var url = URL.createObjectURL(new Blob([bytes], { type: 'application/json' }));
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = '${fileBase}-tool.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            say('Downloaded');
+        };
+        bar.addEventListener('click', function (e) {
+            var what = e.target && e.target.getAttribute && e.target.getAttribute('data-tb');
+            if (!what) return;
+            e.preventDefault();
+            if (what === 'link') copyLink();
+            if (what === 'json') downloadJson();
+        });
+    })();
+    \x3C/script>
 </body>
 </html>`;
 
@@ -13432,6 +13838,13 @@ async function applyLocationHash(rawHash, options = {}) {
         return;
     }
 
+    // A tool hash may carry the tool's contents with it. Nothing is written until
+    // someone says so, so this is a confirmation and not a load.
+    if (toolId && params[SHARE_DATA_PARAM]) {
+        await openSharedToolConfirm(params[SHARE_DATA_PARAM], toolId);
+        return;
+    }
+
     if (toolId) {
         await openToolByHashId(toolId, params);
     } else if (!options.initial && !switchedBoard) {
@@ -13453,10 +13866,17 @@ async function openImportLinkConfirm(url, keepLinked) {
         return;
     }
 
+    overlay.querySelector('.board-manager-title').textContent = 'Load tools from a link?';
+    document.getElementById('importLinkLeadTail').textContent = ', from:';
+    document.getElementById('importLinkUrl').classList.remove('import-link-aside');
     document.getElementById('importLinkSummary').textContent = payloadSummary(data);
     document.getElementById('importLinkBoard').textContent = getBoardName(currentBoardId);
     document.getElementById('importLinkUrl').textContent = url;
+    document.getElementById('importLinkWarn').textContent =
+        'Tools carry their own content, which is rendered as written. Load this only ' +
+        'from somewhere you trust \u2014 and a linked source can change after you accept it.';
     const keepBox = document.getElementById('importLinkKeep');
+    keepBox.closest('label').style.display = '';
     const linkable = LINKED_SOURCE_TYPES.includes(data.type);
     keepBox.checked = keepLinked && linkable;
     keepBox.disabled = !linkable;
@@ -13480,6 +13900,67 @@ async function openImportLinkConfirm(url, keepLinked) {
             populateExportLists();
             renderLinkedSources();
             showToolToast('Loaded ' + outcome.summary + (outcome.linked ? ', kept in sync' : ''));
+        } catch (e) {
+            showToolToast(e.message);
+        }
+    };
+}
+
+// A link that carries its own tools. Nothing is fetched and nothing is written
+// until this is accepted: the payload is in the hash, which means it is content
+// someone else chose, and tool content is rendered as written.
+async function openSharedToolConfirm(packed, toolId) {
+    const overlay = document.getElementById('importLinkOverlay');
+    if (!overlay) return;
+
+    let data;
+    try {
+        data = await decodeSharePayload(packed);
+        const problem = validateImportPayload(data);
+        if (problem) throw new Error(problem);
+    } catch (e) {
+        showToolToast(e.message);
+        return;
+    }
+
+    overlay.querySelector('.board-manager-title').textContent = 'Add this to your board?';
+    document.getElementById('importLinkLeadTail').textContent = '.';
+    document.getElementById('importLinkUrl').classList.add('import-link-aside');
+    document.getElementById('importLinkSummary').textContent = sharedPayloadSummary(data);
+    document.getElementById('importLinkBoard').textContent = getBoardName(currentBoardId);
+    document.getElementById('importLinkUrl').textContent =
+        'Everything it adds is in the link itself \u2014 nothing is fetched.';
+    document.getElementById('importLinkWarn').textContent =
+        'Tools carry their own content, which is rendered as written. Accept this only ' +
+        'from someone you trust. Anything that came with a script of its own arrives ' +
+        'stopped, and asks you before it runs.';
+    const keepBox = document.getElementById('importLinkKeep');
+    // There is nothing to keep in sync with: a link is a copy, not a source.
+    keepBox.checked = false;
+    keepBox.closest('label').style.display = 'none';
+    overlay.classList.add('open');
+
+    const close = () => {
+        overlay.classList.remove('open');
+        keepBox.closest('label').style.display = '';
+        overlay.querySelectorAll('.import-link-cancel').forEach(b => { b.onclick = null; });
+        document.getElementById('importLinkGo').onclick = null;
+    };
+    overlay.querySelectorAll('.import-link-cancel').forEach(b => { b.onclick = close; });
+    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+    document.getElementById('importLinkGo').onclick = async () => {
+        close();
+        try {
+            await ensurePluginsForPayload(data);
+            const landed = importTools(data);
+            renderToolboard();
+            populateExportLists();
+            // Opening the tool is also what takes the payload back out of the URL:
+            // the hash it writes names the tool and nothing else.
+            await openToolByHashId(toolId, {});
+            const first = landed[(data.tools || data.notes || [{}])[0].id];
+            if (first) ensurePluginInstalledForTool((toolCustomizations[first] || {}).templateId || first);
+            showToolToast('Added ' + payloadSummary(data));
         } catch (e) {
             showToolToast(e.message);
         }

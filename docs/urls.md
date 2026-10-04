@@ -9,6 +9,7 @@ Every board and every tool is addressable by URL hash. A tool link works for som
 | `#BoardName` | Opens that board |
 | `#tool/<toolId>` | Opens that tool maximized on the current board |
 | `#BoardName/tool/<toolId>` | Opens the board, then the tool maximized |
+| `#tool/<toolId>?d=<payload>` | Offers that tool **with its contents**, carried in the link — see [A link that carries the tool](#a-link-that-carries-the-tool) |
 | `#tool/<toolId>/view` | Opens that tool alone, with no chrome — see [View only](#view-only) |
 | `#BoardName/tool/<toolId>/view` | The same, on that board |
 | `#import?src=<url>` | Offers to load a tools export from that URL — see [Loading from a URL](#loading-from-a-url) |
@@ -43,6 +44,121 @@ Anything the parameters name has to be reachable from the browser: `http`/`https
 - **Maximizing and the URL stay in sync.** Maximizing a tool writes its hash; restoring it (button, backdrop, `Esc`) writes the board hash back. Navigating back to a bare board hash restores the maximized tool.
 - **Reuse over duplication.** If the board already has an instance of the tool — same instance id, or anything created from the same template — it is focused and maximized instead of a second copy being created.
 - **A tool left maximized in a previous session stays maximized on load.** Only in-session hash changes count as navigation.
+
+## A link that carries the tool
+
+`#tool/<toolId>` hands over the tool. `#tool/<toolId>?d=…` hands over *this* tool:
+the plan in it, the columns, the settings. **Copy Link with Data**, in a tool's
+settings panel, builds it.
+
+```
+https://example.org/board/#tool/project-table?d=1dVVtTxs5EB4r9Qx…
+```
+
+The payload is the same JSON the Export tab writes — one tool's entry from a
+`tools` export — deflated and base64url'd. So every route in shares one format,
+one validator (`validateImportPayload`) and one importer (`importTools`); `d=`
+adds an encoding, not a second kind of export.
+
+**Nothing is hosted and nothing is fetched.** A hash never leaves the browser, so
+this needs no server, no account and no CORS. It also means **any** tool is
+shareable this way: a tool's state is just its entry in `toolCustomizations`, so a
+plugin gets this the way it got undo — by storing its state the ordinary way, and
+without knowing the feature exists.
+
+**Where the link points is wherever it was built.** `shareLinkBase()` is this
+page's own address, so a board hosted anywhere hands out itself — see
+[Where shared links point](#where-shared-links-point) for the two cases that need
+telling otherwise. Nothing hardcodes a host.
+
+**It asks before it writes.** The same window as an import link, with the
+keep-in-sync offer taken away — a link is a copy, not a source, and there is
+nothing to re-fetch. Accepting imports the tool, opens it maximized, and the hash
+it is left with is the ordinary `#Board/tool/<id>`: the payload leaves the address
+bar, so a reload does not offer it again. Cancelling writes nothing at all.
+`scriptApproved` is stripped on the way out and on the way in, so a tool that
+carries a script arrives stopped and asks whoever opened the link.
+
+### Where shared links point
+
+Every link this board hands out — `Copy Link with Data`, the import link, the way
+back inside an exported file — is built on `shareLinkBase()`, which is normally
+just this page. Two cases are not:
+
+- **a page opened from a disk** has no address worth sharing. It falls back to
+  `https://toolboard.me/`, which is only right for people whose Toolboard is
+  there — and useless to anyone who cannot reach that host at all;
+- **a board served from one address whose readers use another**, such as an
+  intranet copy of a board that is also published somewhere.
+
+So the fallback is a setting rather than a constant. **Import / Export ▸ Export ▸
+Where shared links point** holds an address; it is prefilled from this page, says
+what a link will look like as it is typed, and *Reset* hands the board back its
+own address. It is kept in `toolboard_shareHome`, which is **not** board-scoped:
+it is a fact about where this person's Toolboard lives, and asking it once per
+board would be absurd.
+
+Only an `http(s)` address is kept. Half an address forgets the last whole one
+rather than leaving it quietly in force, so a field reading `example.org` can
+never go on sending people to a different address typed before it.
+
+### When a tool is too big for a link
+
+`SHARE_LINK_MAX` (7500 characters) is well under what a browser's address bar
+takes, and about what survives an email client, a chat window and a wiki paste. A
+plan of around a hundred rows packs into four thousand characters; past the
+ceiling the sender is **told**, and pointed at the file routes, rather than handed
+a link that will arrive cut in half.
+
+A damaged payload, or one that was never a share link, is reported and nothing is
+written — the codec is named in the payload's first character rather than guessed
+at, so a link made today stays readable by a build that later changes its mind
+about compression.
+
+## From an exported HTML file
+
+**Export as HTML**, in a tool's settings, writes a standalone page. That page now
+carries the tool as well as showing it:
+
+- a bar at the top with **Open in Toolboard**, **Copy link** and **Download
+  .json**, built from `shareLinkBase()` at export time — so a file exported from a
+  self-hosted board offers its way back to *that* board;
+- `#toolboard-tool-payload`, the same export JSON, for the download button;
+- `@media print { .tb-share { display: none } }`, because the bar is chrome: the
+  page is also something people print and screenshot.
+
+**Open in Toolboard** is a plain `<a href>` carrying the `d=` link, so it works
+with no JavaScript, from a disk, offline, in whatever browser the file was
+forwarded to. Where the tool is too big for a link the anchor is left out and the
+file says so, offering the download instead.
+
+### Looking like itself
+
+A tool's appearance is written in three places, and an export that took none of
+them produced a run of bare inputs. `exportedToolCss()` brings all of them —
+the app's sheet, which holds the colour variables everything is expressed in and
+the authoring frame tools are built in; each plugin's injected `<style>`; and
+whatever a dynamic tool added at runtime. The exported page then restates its own
+frame **after** them, because the one part that must not survive is the handful of
+rules that put a tool on a board: `.tool { position: absolute }` above all. The
+file grows from 27 KB to about 290 KB, which is a fifth of what the whole-app
+export costs and the difference between a document and a mess.
+
+Only the light values travel. They live on `:root` and the dark ones on
+`body.dark-mode`, which an exported page never wears, so a board exported at night
+still hands over a white page.
+
+**The tool's own classes come with it**, minus board state (`fullscreen`,
+`minimized`, `selected`, and the drag and resize ones). Which authoring mode a
+tool is in is one of those classes — `.tool.authoring-render .authoring-source
+{ display: none }` — so an export that dropped them showed a note's Markdown
+source and the page it renders to, one above the other.
+
+The card is as wide as the tool needs and no wider than the window, and anything
+wider than that scrolls sideways inside it rather than being cut off.
+
+This covers the static export. `exportToolAsFullHtml`, the whole-app clone used
+for a handful of built-in widgets, is a separate path and does not carry the bar.
 
 ## Loading from a URL
 
@@ -79,8 +195,8 @@ inside a hash, which is the kind of thing someone gets wrong once and then distr
 Two things it deliberately does not do. It carries **no board name**, so the tools
 land on whichever board the person following it is looking at rather than one named
 after yours. And it is built from **this page's own address**, so a self-hosted board
-hands out itself; only a page opened from `file://`, which has no address worth
-sharing, falls back to the published site. A relative path is never offered, because
+hands out itself; a page opened from `file://` has no address worth sharing and
+uses [the share address setting](#where-shared-links-point) instead. A relative path is never offered, because
 it would resolve against their board and quietly fetch the wrong thing.
 
 Anything `src` names has to be reachable from the browser, exactly as for tool
@@ -131,7 +247,18 @@ Probing loads plugins that don't match; they stay registered for the session but
 
 ## Sharing
 
-`Copy Tool Link` in a tool's settings panel copies the absolute `#tool/<toolId>` form. `getToolShareUrl(toolId)` builds it.
+All of these point wherever [the share address setting](#where-shared-links-point)
+says, which is this page unless someone has said otherwise.
+
+A tool's settings panel offers two links, which are different offers:
+
+| Button | Hands over | Built by |
+| --- | --- | --- |
+| `Copy Tool Link` | the tool, empty | `getToolShareUrl(toolId)` |
+| `Copy Link with Data` | the tool, with what is in it | `buildToolDataLink(toolId)` |
+
+Both are absolute, and neither hardcodes a host. A third route, **Export as HTML**, hands over a file that carries
+the second link inside it.
 
 ## Adding tools to the scheme
 
