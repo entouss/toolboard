@@ -264,26 +264,98 @@ const sizeValue = () => page.evaluate(() =>
 ok('putting the column back shows the value that was always there',
     (await sizeValue()) === 'XL', await sizeValue());
 
-// 7. Links, several to a cell.
+// 7. Links: read in the cell, edited in a window.
+//
+//    A label field, an address field and a cross, three to a line, in a column as
+//    narrow as the rest of them, was three things fighting over sixty pixels.
 d = await data();
 const linkRow = 'tr[data-row="' + d.rows[0].id + '"]';
-await page.click(sel(linkRow + ' .proj-links .proj-btn'));
+const linkOpener = sel(linkRow + ' .proj-chips .proj-pick-add[data-col="links"]');
+const linkChips = () => page.evaluate((s) =>
+    [...document.querySelectorAll(s)].map(a => ({ text: a.textContent, href: a.getAttribute('href') })),
+    sel(linkRow + ' .proj-link-chip'));
+
+ok('an empty links cell offers a + and nothing else',
+    await page.evaluate((s) => !!document.querySelector(s), linkOpener) &&
+    (await linkChips()).length === 0, JSON.stringify(await linkChips()));
+await page.click(linkOpener);
+await page.waitForTimeout(300);
+ok('which opens a window, on the body where the tool cannot clip it',
+    await page.evaluate(() => !!document.querySelector('.proj-modal') &&
+        document.querySelector('.proj-modal').parentElement === document.body));
+ok('headed with the column and the task it belongs to',
+    (await page.evaluate(() => document.querySelector('.proj-modal-head span').textContent))
+        .startsWith('Links \u2014'),
+    await page.evaluate(() => document.querySelector('.proj-modal-head span').textContent));
+ok('and says so plainly while there is nothing in it',
+    /no links/i.test(await page.textContent('.proj-link-rows')),
+    await page.textContent('.proj-link-rows'));
+
+await page.click('.proj-link-add');
 await page.waitForTimeout(250);
-await page.click(sel(linkRow + ' .proj-links .proj-btn'));
+await page.click('.proj-link-add');
 await page.waitForTimeout(250);
 ok('a cell takes more than one link', (await data()).rows[0].cells.links.length === 2,
     JSON.stringify((await data()).rows[0].cells.links));
-await page.fill(sel(linkRow + ' [data-link="0"][data-part="label"]'), 'Spec');
-await page.fill(sel(linkRow + ' [data-link="0"][data-part="url"]'), 'https://example.com/spec');
+ok('each on its own line, with room for an address',
+    await page.evaluate(() => {
+        const rows = [...document.querySelectorAll('.proj-modal-link')];
+        return rows.length === 2 &&
+            rows[0].querySelector('.proj-modal-url').getBoundingClientRect().width > 200;
+    }),
+    String(await page.evaluate(() =>
+        Math.round(document.querySelector('.proj-modal-url').getBoundingClientRect().width))));
+
+await page.fill('.proj-modal-link[data-link="0"] .proj-modal-label', 'Spec');
+await page.fill('.proj-modal-link[data-link="0"] .proj-modal-url', 'https://example.com/spec');
 await page.waitForTimeout(300);
 ok('each has its own label and address',
     (await data()).rows[0].cells.links[0].label === 'Spec' &&
     (await data()).rows[0].cells.links[0].url === 'https://example.com/spec',
     JSON.stringify((await data()).rows[0].cells.links[0]));
-await page.click(sel(linkRow + ' .proj-x[data-link="1"]'));
+ok('and is openable from the window as soon as the address is one',
+    await page.evaluate(() =>
+        (document.querySelector('.proj-modal-link[data-link="0"] a') || {}).href ===
+        'https://example.com/spec'),
+    await page.evaluate(() =>
+        (document.querySelector('.proj-modal-link[data-link="0"] a') || {}).href));
+ok('while the window stays open under the typing',
+    await page.evaluate(() => !!document.querySelector('.proj-modal')));
+
+await page.click('.proj-modal-link[data-link="1"] .proj-x');
 await page.waitForTimeout(300);
 ok('and one can be removed without taking the other', (await data()).rows[0].cells.links.length === 1,
     JSON.stringify((await data()).rows[0].cells.links));
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(350);
+ok('Escape closes the window', await page.evaluate(() => !document.querySelector('.proj-modal')));
+ok('and the cell shows the link by name, as a link',
+    (await linkChips()).length === 1 && (await linkChips())[0].text === 'Spec' &&
+    (await linkChips())[0].href === 'https://example.com/spec', JSON.stringify(await linkChips()));
+
+// A link with no label is still worth naming: where it goes.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows[0].cells.links = [
+        { label: '', url: 'https://docs.example.com/a/b' },
+        { label: 'Bad', url: 'javascript:alert(1)' }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+ok('an unlabelled link is called where it goes',
+    (await linkChips())[0].text === 'docs.example.com', JSON.stringify(await linkChips()));
+ok('and an address that is not a web address is not made into one',
+    await page.evaluate((s) => ({
+        links: document.querySelectorAll(s + ' a.proj-link-chip').length,
+        inert: document.querySelectorAll(s + ' .proj-link-blank').length
+    }), sel(linkRow)).then(c => c.links === 1 && c.inert === 1),
+    JSON.stringify(await page.evaluate((s) => ({
+        links: document.querySelectorAll(s + ' a.proj-link-chip').length,
+        inert: document.querySelectorAll(s + ' .proj-link-blank').length
+    }), sel(linkRow))));
 
 // 8. The chart. Dependencies guide it and nothing else.
 const bars = () => page.evaluate(() => [...document.querySelectorAll('.proj-bar')]
@@ -476,19 +548,6 @@ await page.fill(notesField, 'short again');
 await page.waitForTimeout(250);
 ok('and narrows again when the text does', (await fieldWidth(notesField)) < capped,
     capped + 'px then ' + (await fieldWidth(notesField)) + 'px');
-
-const urlField = sel('tr[data-row="r-grow"] [data-link="0"][data-part="url"]');
-await page.fill(urlField, 'https://x.co');
-await page.waitForTimeout(250);
-const shortUrl = await fieldWidth(urlField);
-await page.fill(urlField, 'https://example.com/a/rather/longer/path/to/somewhere');
-await page.waitForTimeout(250);
-const longUrl = await fieldWidth(urlField);
-ok('a link address does the same', longUrl > shortUrl, shortUrl + 'px then ' + longUrl + 'px');
-await page.fill(urlField, 'https://example.com/' + 'y'.repeat(300));
-await page.waitForTimeout(250);
-ok('up to its own ceiling', Math.abs((await fieldWidth(urlField)) - longUrl) < 30,
-    longUrl + 'px then ' + (await fieldWidth(urlField)) + 'px');
 
 await page.evaluate((id) => {
     const dd = projGetData(id);
@@ -838,9 +897,12 @@ await page.waitForTimeout(300);
 ok('clicking it opens a window', await page.evaluate(() => !!document.querySelector('.proj-modal')));
 ok('on the body, so the tool window cannot clip it', await page.evaluate(() =>
     document.querySelector('.proj-modal').parentElement === document.body));
-ok('headed with the column and the row it belongs to',
+// What the window is comes first, then which cell: a note headed with the column
+// name read as though the column were the subject, and every note on one row then
+// looked like it was labelled with the task.
+ok('headed Notes, then the row and the column it belongs to',
     (await page.evaluate(() => document.querySelector('.proj-modal-head span').textContent)) ===
-    'Task — Doing',
+    'Notes — Doing · Task',
     await page.evaluate(() => document.querySelector('.proj-modal-head span').textContent));
 ok('with the caret already in it', await page.evaluate(() =>
     document.activeElement === document.querySelector('.proj-modal-text')));
@@ -888,7 +950,7 @@ await page.waitForTimeout(300);
 ok('another column in the same row opens empty, because the note is the cell\'s',
     (await page.inputValue('.proj-modal-text')) === '', await page.inputValue('.proj-modal-text'));
 ok('headed with that column', (await page.evaluate(() =>
-    document.querySelector('.proj-modal-head span').textContent)) === 'Deadline — Doing',
+    document.querySelector('.proj-modal-head span').textContent)) === 'Notes — Doing · Deadline',
     await page.evaluate(() => document.querySelector('.proj-modal-head span').textContent));
 await page.fill('.proj-modal-text', 'Fixed by the launch event.');
 await page.waitForTimeout(250);
@@ -1706,9 +1768,17 @@ const spans = await page.evaluate((id) => {
 }, toolId);
 ok('ten days of work reaches past ten days of calendar once weekends are skipped',
     spans.tenWork > spans.tenFlat && spans.tenFlat === 10, JSON.stringify(spans));
-ok('by exactly the weekends it crosses — two weeks of work, two weekends',
-    spans.tenWork === spans.tenFlat + 4 || spans.tenWork === spans.tenFlat + 2,
+// Two, three or four days off, depending on which day of the week today happens to
+// be — from a Monday the span covers one weekend, from a Saturday it covers two and
+// the Saturday itself. Stated as the range rather than the case, so it does not
+// depend on the day this runs.
+ok('by exactly the days off it crosses — at least one weekend, never more than two',
+    spans.tenWork - spans.tenFlat >= 2 && spans.tenWork - spans.tenFlat <= 4,
     JSON.stringify(spans));
+ok('and it ends on a working day, whatever day it started on', await page.evaluate((id) => {
+    const u = projUnits(projGetData(id));
+    return projIsWorkday(projToday() + (projFinishOffset(10, u) - 1) * 86400000, u);
+}, toolId));
 ok('four days of work may cross one weekend or none, never more',
     spans.fourWork - spans.fourFlat <= 2 && spans.fourWork >= spans.fourFlat, JSON.stringify(spans));
 ok('and nothing left to do finishes now', spans.zero === 0, JSON.stringify(spans));

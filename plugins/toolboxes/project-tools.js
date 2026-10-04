@@ -158,6 +158,30 @@
 }
 .proj-modal-text:focus { outline: none; border-color: var(--proj-size-3); }
 .proj-modal-foot { display: flex; align-items: center; gap: 8px; }
+/* A link is a label and an address, and an address is long. In the window they each
+   get a line and the address gets most of it, which is the thing a table column
+   cannot offer and the reason this is a window at all. */
+.proj-link-rows { display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+.proj-modal-link { display: flex; align-items: center; gap: 6px; }
+.proj-modal-link input {
+    padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px;
+    background: var(--input-bg); color: var(--text-primary); font-size: 12px; min-width: 0;
+}
+.proj-modal-link input:focus { outline: none; border-color: var(--proj-size-3); }
+.proj-modal-label { flex: 0 1 180px; }
+.proj-modal-url { flex: 1 1 auto; }
+.proj-modal-link a { color: var(--proj-size-3); text-decoration: none; flex: 0 0 auto; }
+.proj-modal-nolink { color: var(--text-muted); opacity: 0.4; flex: 0 0 auto; cursor: default; }
+.proj-link-add { align-self: flex-start; }
+/* In the cell, a link is what it is called, and clicking it opens it. */
+.proj-link-chip {
+    display: inline-block; max-width: 110px; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; padding: 0 4px; border-radius: 9px; font-size: 10px;
+    border: 1px solid var(--border-color); background: var(--bg-tertiary);
+    color: var(--proj-size-3); text-decoration: none;
+}
+.proj-link-chip:hover { text-decoration: underline; }
+.proj-link-chip.proj-link-blank { color: var(--text-muted); font-style: italic; }
 .proj-modal-hint { color: var(--text-muted); font-size: 11px; margin-right: auto; }
 .proj-ticket { display: flex; align-items: center; gap: 2px; }
 .proj-ticket a { color: var(--proj-size-3); text-decoration: none; flex: 0 0 auto; }
@@ -321,8 +345,13 @@
 /* The + and the dropdown it opens sit at the right edge of the column rather than
    wherever the chips happen to end, so they line up down the column instead of
    stepping in and out with the length of each row's list. */
+/* Its own class rather than the × button's: a + that adds and a × that removes are
+   not the same control, and sharing one made each answer to the other's selector. */
 .proj-pick-add, .proj-pick { margin-left: auto; width: auto; flex: 0 0 auto; }
-.proj-pick-add { font-size: 12px; line-height: 1; padding: 0 2px; color: var(--text-secondary); }
+.proj-pick-add {
+    border: none; background: none; cursor: pointer; font-size: 12px; line-height: 1;
+    padding: 0 2px; color: var(--text-secondary);
+}
 .proj-pick-add:hover { color: var(--text-primary); }
 .proj-dep-chip {
     display: inline-flex; align-items: center; gap: 2px; padding: 0 2px 0 5px;
@@ -564,9 +593,9 @@ const PROJ_CSV_NOTE_SUFFIX = ' notes';
 let projSchedStamp = 0;
 let projSchedCache = null;
 
-// The description window's Escape handler, while one is open. Module-level because
-// there is one window at a time, by construction.
-let projDescKeyHandler = null;
+// The open window's Escape handler, while there is one. Module-level because there
+// is one window at a time, by construction.
+let projModalKeyHandler = null;
 
 // Not a resource anybody would type, and not a control character either — one of
 // those in an attribute is a value some browsers and some tools quietly drop.
@@ -891,6 +920,29 @@ function projResourceList(data, colId) {
 function projSetResources(row, colId, list) {
     row.cells = row.cells || {};
     row.cells[colId] = list;
+}
+
+/**
+ * An address fit to put in an `href`, or ''.
+ *
+ * http and https only. A link can arrive from a CSV somebody else wrote, and
+ * `javascript:` reaching an href is how that becomes their script running on this
+ * board — the same reason the ticket address is checked.
+ */
+function projSafeUrl(url) {
+    const text = String(url == null ? '' : url).trim();
+    return /^https?:\/\//i.test(text) ? text : '';
+}
+
+/** What to call a link that was never given a label: where it goes. */
+function projLinkHost(url) {
+    const safe = projSafeUrl(url);
+    if (!safe) return '';
+    try {
+        return new URL(safe).hostname.replace(/^www\./, '');
+    } catch (e) {
+        return '';
+    }
 }
 
 /** A cell's value, or a sensible empty. Reading through this rather than the object
@@ -1748,7 +1800,7 @@ function projChipHtml(label, onRemove, attrs) {
  */
 function projPickerHtml(options, selectClass, onChange, attrs, title) {
     if (!options) return '';
-    return '<button class="proj-x proj-pick-add" onclick="projRevealPicker(this)" ' +
+    return '<button class="proj-pick-add" onclick="projRevealPicker(this)" ' +
             'title="' + escapeHtml(title) + '">+</button>' +
         '<select class="proj-cell-select proj-pick ' + selectClass + '" ' + attrs +
             ' onchange="' + onChange + '" hidden>' +
@@ -1918,25 +1970,26 @@ function projCellHtml(data, row, col) {
             '</div>';
         }
         case 'links': {
+            // Two fields and a cross per link, in a column as wide as the rest of
+            // them, is three things fighting over 60 pixels. The cell shows what is
+            // there and opens — the editing happens in a window with room in it.
             const links = Array.isArray(value) ? value : [];
-            const rows = links.map((link, i) =>
-                '<span class="proj-link-row">' +
-                    (link.url ? '<a href="' + escapeHtml(link.url) + '" target="_blank" rel="noopener" ' +
-                        'title="' + escapeHtml(link.url) + '">↗</a>' : '') +
-                    '<input class="proj-cell-input" placeholder="label" data-row="' + row.id +
-                        '" data-col="' + col.id + '" data-link="' + i + '" data-part="label" ' +
-                        'size="' + projFieldSize(link.label, 5, 14) + '"' + projGrowAttrs(5, 14) + ' ' +
-                        'oninput="projOnLink(this)" value="' + escapeHtml(String(link.label || '')) + '">' +
-                    '<input class="proj-cell-input" placeholder="https://" data-row="' + row.id +
-                        '" data-col="' + col.id + '" data-link="' + i + '" data-part="url" ' +
-                        'size="' + projFieldSize(link.url, 8, 22) + '"' + projGrowAttrs(8, 22) + ' ' +
-                        'oninput="projOnLink(this)" value="' + escapeHtml(String(link.url || '')) + '">' +
-                    '<button class="proj-x" onclick="projRemoveLink(this)" data-row="' + row.id +
-                        '" data-col="' + col.id + '" data-link="' + i + '">×</button>' +
-                '</span>').join('');
-            return '<div class="proj-links">' + rows +
-                '<button class="proj-btn" onclick="projAddLink(this)" data-row="' + row.id +
-                '" data-col="' + col.id + '">+ Link</button></div>';
+            const chips = links.map(link => {
+                const href = projSafeUrl(link.url);
+                const label = String(link.label || '').trim() || projLinkHost(link.url) || 'link';
+                return href
+                    ? '<a class="proj-link-chip" href="' + escapeHtml(href) + '" target="_blank" ' +
+                        'rel="noopener" title="' + escapeHtml(link.url) + '">' +
+                        escapeHtml(label) + '</a>'
+                    : '<span class="proj-link-chip proj-link-blank" title="' +
+                        escapeHtml(String(link.url || '') ? 'Not a web address: ' + link.url
+                            : 'No address yet') + '">' + escapeHtml(label) + '</span>';
+            }).join('');
+            return '<div class="proj-chips">' + chips +
+                '<button class="proj-pick-add" onclick="projOpenLinks(this)" ' +
+                    'data-row="' + row.id + '" data-col="' + col.id + '" ' +
+                    'title="' + (links.length ? 'Add or change links' : 'Add a link') + '">+</button>' +
+            '</div>';
         }
         default:
             return '<input class="proj-cell-input" ' + id + ' oninput="projOnCell(this)" ' +
@@ -2616,6 +2669,61 @@ function projOnTicketBase(input) {
  * That also means `projToolId()` cannot find its way home from here — `closest('.tool')`
  * has nothing to find — so the window carries the tool's id with it.
  */
+/**
+ * The window that both the notes and the links open in.
+ *
+ * Built on `document.body`: the tool window can be 300px wide and clips its own
+ * contents, which is the whole reason either of these is a window rather than a
+ * cell. It carries the tool's id, since `closest('.tool')` has nothing to find from
+ * out here, and the heading is set as text rather than interpolated — a heading is
+ * somebody's task name.
+ */
+function projOpenModal(toolId, rowId, colId, heading, bodyHtml, hint) {
+    projCloseModal();
+    const overlay = document.createElement('div');
+    overlay.className = 'proj-modal';
+    overlay.setAttribute('data-tool', toolId);
+    overlay.setAttribute('data-row', rowId);
+    overlay.setAttribute('data-col', colId);
+    overlay.innerHTML = '<div class="proj-modal-box">' +
+        '<div class="proj-modal-head"><span></span>' +
+            '<button class="proj-x" onclick="projCloseModal()" title="Close">\u00D7</button></div>' +
+        bodyHtml +
+        '<div class="proj-modal-foot">' +
+            '<span class="proj-modal-hint">' + escapeHtml(hint) + '</span>' +
+            '<button class="proj-btn" onclick="projCloseModal()">Done</button>' +
+        '</div></div>';
+    overlay.querySelector('.proj-modal-head span').textContent = heading;
+    // Clicking the backdrop is closing; clicking the box is not.
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) projCloseModal(); });
+    document.body.appendChild(overlay);
+    // On the capture phase, and the event stops here: Escape belongs to the topmost
+    // thing that is open, and the board's own Escape handler would otherwise take the
+    // tool out of fullscreen behind this window at the same time.
+    projModalKeyHandler = (e) => {
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        e.stopPropagation();
+        projCloseModal();
+    };
+    document.addEventListener('keydown', projModalKeyHandler, true);
+    return overlay;
+}
+
+/**
+ * The heading a cell's window wears: what the window is for, then which cell.
+ *
+ * What it is comes first, because that is the part that is the same every time and
+ * so the part a reader skips to recognise the window — a note window headed with the
+ * column name read as though the column were the subject, and every note on one row
+ * then looked like it was labelled with the task.
+ */
+function projModalHeading(data, row, kind, colId) {
+    const col = projColumn(data, colId);
+    const where = projCell(row, 'item') || 'Untitled';
+    return kind + ' \u2014 ' + where + (col && col.title !== kind ? ' \u00B7 ' + col.title : '');
+}
+
 function projOpenNote(btn) {
     const toolId = projToolId(btn);
     if (!toolId) return;
@@ -2624,43 +2732,16 @@ function projOpenNote(btn) {
     const data = projGetData(toolId);
     const row = data.rows.find(r => r.id === rowId);
     if (!row) return;
-    const col = projColumn(data, colId);
-    const heading = (col ? col.title : 'Notes') + ' \u2014 ' +
-        (projCell(row, 'item') || 'Untitled');
 
-    projCloseNote();
-    const overlay = document.createElement('div');
-    overlay.className = 'proj-modal';
-    overlay.setAttribute('data-tool', toolId);
-    overlay.innerHTML = '<div class="proj-modal-box">' +
-        '<div class="proj-modal-head"><span></span>' +
-            '<button class="proj-x" onclick="projCloseNote()" title="Close">\u00D7</button></div>' +
+    const overlay = projOpenModal(toolId, rowId, colId,
+        projModalHeading(data, row, 'Notes', colId),
         '<textarea class="proj-modal-text" data-row="' + escapeHtml(rowId) + '" ' +
             'data-col="' + escapeHtml(colId) + '" oninput="projOnNoteInput(this)" ' +
-            'placeholder="What this is, why it is here, what done looks like."></textarea>' +
-        '<div class="proj-modal-foot">' +
-            '<span class="proj-modal-hint">Saved as you type \u00B7 Esc closes</span>' +
-            '<button class="proj-btn" onclick="projCloseNote()">Done</button>' +
-        '</div></div>';
-    // Set rather than interpolated: a heading is somebody's item text, and the value
-    // goes in as text wherever it can rather than as markup that has to be escaped.
-    overlay.querySelector('.proj-modal-head span').textContent = heading;
+            'placeholder="What this is, why it is here, what done looks like."></textarea>',
+        'Saved as you type \u00B7 Esc closes');
     const text = overlay.querySelector('.proj-modal-text');
     text.value = projNote(row, colId);
-    // Clicking the backdrop is closing; clicking the box is not.
-    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) projCloseNote(); });
-    document.body.appendChild(overlay);
     text.focus();
-    // On the capture phase, and the event stops here: Escape belongs to the topmost
-    // thing that is open, and the board's own Escape handler would otherwise take the
-    // tool out of fullscreen behind this window at the same time.
-    projDescKeyHandler = (e) => {
-        if (e.key !== 'Escape') return;
-        e.preventDefault();
-        e.stopPropagation();
-        projCloseNote();
-    };
-    document.addEventListener('keydown', projDescKeyHandler, true);
 }
 
 function projOnNoteInput(textarea) {
@@ -2677,10 +2758,10 @@ function projOnNoteInput(textarea) {
     projSetData(toolId, data);
 }
 
-function projCloseNote() {
-    if (projDescKeyHandler) {
-        document.removeEventListener('keydown', projDescKeyHandler, true);
-        projDescKeyHandler = null;
+function projCloseModal() {
+    if (projModalKeyHandler) {
+        document.removeEventListener('keydown', projModalKeyHandler, true);
+        projModalKeyHandler = null;
     }
     const overlay = document.querySelector('.proj-modal');
     if (!overlay) return;
@@ -2935,43 +3016,121 @@ function projLinksOf(data, rowId, colId) {
     return row.cells[colId];
 }
 
-function projAddLink(btn) {
+
+
+/**
+ * The links window: a label and an address per line, with room for both.
+ *
+ * The rows are redrawn as they are added and removed but never while one is being
+ * typed into — the same rule the table follows, for the same reason.
+ */
+function projOpenLinks(btn) {
+    const toolId = projToolId(btn);
+    if (!toolId) return;
     const rowId = btn.getAttribute('data-row');
     const colId = btn.getAttribute('data-col');
-    projMutate(btn, (data) => {
-        const links = projLinksOf(data, rowId, colId);
-        if (links) links.push({ label: '', url: '' });
-    });
+    const data = projGetData(toolId);
+    const row = data.rows.find(r => r.id === rowId);
+    if (!row) return;
+
+    const overlay = projOpenModal(toolId, rowId, colId,
+        projModalHeading(data, row, 'Links', colId),
+        '<div class="proj-link-rows"></div>' +
+        '<button class="proj-btn proj-link-add" onclick="projAddLinkRow(this)">+ Add a link</button>',
+        'Saved as you type \u00B7 Esc closes');
+    projRenderLinkRows(overlay);
+    const first = overlay.querySelector('.proj-modal-link input');
+    if (first) first.focus();
+    else overlay.querySelector('.proj-link-add').focus();
 }
 
-function projOnLink(input) {
-    const rowId = input.getAttribute('data-row');
-    const colId = input.getAttribute('data-col');
-    const index = Number(input.getAttribute('data-link'));
-    const part = input.getAttribute('data-part');
-    const value = input.value;
-    const toolId = projToolId(input);
-    if (!toolId) return;
-    // Saved without a re-render, for the caret's sake — same reason as a column
-    // title. The link's own anchor catches up on the next render.
+function projRenderLinkRows(overlay) {
+    const list = overlay.querySelector('.proj-link-rows');
+    if (!list) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const rowId = overlay.getAttribute('data-row');
+    const colId = overlay.getAttribute('data-col');
+    const links = projLinksOf(projGetData(toolId), rowId, colId) || [];
+    list.innerHTML = links.length
+        ? links.map((link, i) => {
+            const href = projSafeUrl(link.url);
+            return '<div class="proj-modal-link" data-link="' + i + '">' +
+                '<input class="proj-modal-label" data-link="' + i + '" data-part="label" ' +
+                    'placeholder="What it is" oninput="projOnModalLink(this)" value="' +
+                    escapeHtml(String(link.label || '')) + '">' +
+                '<input class="proj-modal-url" data-link="' + i + '" data-part="url" ' +
+                    'placeholder="https://" spellcheck="false" oninput="projOnModalLink(this)" value="' +
+                    escapeHtml(String(link.url || '')) + '">' +
+                (href ? '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener" ' +
+                    'title="Open in a new tab">\u2197</a>'
+                    : '<span class="proj-modal-nolink" title="' +
+                        (String(link.url || '').trim() ? 'Not a web address' : 'No address yet') +
+                        '">\u2197</span>') +
+                '<button class="proj-x" data-link="' + i + '" onclick="projRemoveLinkRow(this)" ' +
+                    'title="Remove this link">\u00D7</button>' +
+            '</div>';
+        }).join('')
+        : '<div class="proj-empty">No links yet.</div>';
+}
+
+function projOnModalLink(input) {
+    const overlay = input.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
     const data = projGetData(toolId);
-    const links = projLinksOf(data, rowId, colId);
-    if (links && links[index]) {
-        links[index][part] = value;
-        projGrowField(input);
-        projSetData(toolId, data);
+    const links = projLinksOf(data, overlay.getAttribute('data-row'), overlay.getAttribute('data-col'));
+    const index = Number(input.getAttribute('data-link'));
+    if (!links || !links[index]) return;
+    links[index][input.getAttribute('data-part')] = input.value;
+    // Saved without redrawing the rows: the caret is in one of them. The arrow beside
+    // it is the one thing that has to keep up, so it is moved by hand.
+    projSetData(toolId, data);
+    const line = input.closest('.proj-modal-link');
+    const href = projSafeUrl(links[index].url);
+    const arrow = line ? line.querySelector('a, .proj-modal-nolink') : null;
+    if (arrow) {
+        const next = document.createElement(href ? 'a' : 'span');
+        next.textContent = '\u2197';
+        if (href) {
+            next.href = href;
+            next.target = '_blank';
+            next.rel = 'noopener';
+            next.title = 'Open in a new tab';
+        } else {
+            next.className = 'proj-modal-nolink';
+            next.title = String(links[index].url || '').trim() ? 'Not a web address' : 'No address yet';
+        }
+        arrow.replaceWith(next);
     }
 }
 
-function projRemoveLink(btn) {
-    const rowId = btn.getAttribute('data-row');
-    const colId = btn.getAttribute('data-col');
-    const index = Number(btn.getAttribute('data-link'));
-    projMutate(btn, (data) => {
-        const links = projLinksOf(data, rowId, colId);
-        if (links) links.splice(index, 1);
-    });
+function projAddLinkRow(btn) {
+    const overlay = btn.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const data = projGetData(toolId);
+    const links = projLinksOf(data, overlay.getAttribute('data-row'), overlay.getAttribute('data-col'));
+    if (!links) return;
+    links.push({ label: '', url: '' });
+    projSetData(toolId, data);
+    projRenderLinkRows(overlay);
+    const rows = overlay.querySelectorAll('.proj-modal-link');
+    const last = rows[rows.length - 1];
+    if (last) last.querySelector('input').focus();
 }
+
+function projRemoveLinkRow(btn) {
+    const overlay = btn.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const data = projGetData(toolId);
+    const links = projLinksOf(data, overlay.getAttribute('data-row'), overlay.getAttribute('data-col'));
+    if (!links) return;
+    links.splice(Number(btn.getAttribute('data-link')), 1);
+    projSetData(toolId, data);
+    projRenderLinkRows(overlay);
+}
+
 
 /** Fold a column away, or unfold it. Kept with the plan: a board handed over folded
  *  is folded for whoever opens it, which is the point of folding it. */
@@ -3098,16 +3257,19 @@ function projRowDrop(tr, event) {
         projResourcesOf, projResourceList, projSetResources, projOnResource,
         projRemoveResource, projRevealPicker, projChipHtml, projPickerHtml,
         projKnownSize, projAddLateColumns, projToggleSettings, projRenderSettingsToggle,
-        projNote, projNoteOpener, projOpenNote, projOnNoteInput, projCloseNote,
+        projNote, projNoteOpener, projOpenModal, projModalHeading, projOpenNote,
+        projOnNoteInput, projCloseModal,
         projRolledSize, projSizeStep, projPercentStep, projSchedule,
         projInit, projOnRender, projRender, projAutoFit, projRefresh, projRenderSizes,
         projColumnHeadHtml, projCellHtml, projRenderTable, projTickStep, projRenderGantt,
         projMutate, projUpdateDerived, projOnSizeDays, projOnCell, projOnColumnTitle, projOnColumnType,
         projCsvField, projCsvParse, projCsvValue, projToCsv, projExportCsv, projPickCsv,
         projParseLinks, projFromCsv, projImportCsvFile,
+        projSafeUrl, projLinkHost, projOpenLinks, projRenderLinkRows, projOnModalLink,
+        projAddLinkRow, projRemoveLinkRow,
         projEditColumnTitle, projAddColumn, projDeleteColumn, projAddRow, projDeleteRow,
         projIndentRow, projOutdentRow,
-        projAddDep, projRemoveDep, projLinksOf, projAddLink, projOnLink, projRemoveLink,
+        projAddDep, projRemoveDep, projLinksOf,
         projToggleColumn, projColDragStart, projColDragEnd, projColDragOver,
         projColDragLeave, projColDrop,
         projRowDragStart, projRowDragOver, projRowDragLeave, projRowDragEnd, projRowDrop
@@ -3123,7 +3285,7 @@ function projRowDrop(tr, event) {
 
         'window.PROJ_RES_NEW = ' + JSON.stringify(PROJ_RES_NEW) + ';\n' +
         'window.PROJ_CSV_NOTE_SUFFIX = ' + JSON.stringify(PROJ_CSV_NOTE_SUFFIX) + ';\n' +
-        'window.projDescKeyHandler = null;\n' +
+        'window.projModalKeyHandler = null;\n' +
         'window.projSchedStamp = 0;\n' +
         'window.projSchedCache = null;\n' +
         'window.PROJ_DEFAULT_SIZES = ' + JSON.stringify(PROJ_DEFAULT_SIZES) + ';\n' +

@@ -225,6 +225,21 @@ a re-render, because the cell being typed into is deliberately not redrawn — r
 it and the caret goes with it. Notes and the two link fields are the ones that grow;
 each carries its own floor and ceiling in `data-min`/`data-max`.
 
+**Links are read in the cell and edited in a window.** A label field, an address
+field and a cross, three to a line, in a column as narrow as the rest of them, was
+three things fighting over sixty pixels. The cell shows each link as a chip you can
+click — its label, or the host it goes to when it has none, since "docs.example.com"
+is worth more than "link" — and the `+` opens the window, where a label and a long
+address each get a line and the address gets most of it. Rows are redrawn as they are
+added and removed but never while one is being typed into, which is the rule the
+table follows for the same reason.
+
+**An address is only a link where it is one.** `projSafeUrl()` passes `http:` and
+`https:` and nothing else, in the cell and in the window alike: a link can arrive
+from a CSV somebody else wrote, and `javascript:` reaching an `href` is how that
+becomes their script running on this board. An address that does not pass is still
+shown — it is the user's text — but as inert type rather than as a link.
+
 **Notes belong to a cell, and have no column.** Prose is paragraphs, and a column of
 paragraphs is either a column of ellipses or a table one row tall — so every cell
 carries an opener instead, in the corner, out of the flow and invisible until the
@@ -233,10 +248,14 @@ permanently visible buttons is a table you cannot see the plan in.
 
 They live in `row.notes`, keyed by column id, rather than in `cells`: a note can then
 never collide with the value it is about, and deleting a column does not take the
-writing about it with it. The window is built on `document.body`, because a 300px
-tool window clips its own contents and that is not where somebody writes three
-paragraphs; it carries the tool id in a `data-tool` attribute, since
-`closest('.tool')` has nothing to find from there. Escape closes it on the **capture**
+writing about it with it. Both windows are built on `document.body` by `projOpenModal()`, because a 300px tool
+window clips its own contents and that is not where somebody writes three paragraphs
+or reads a long URL; the window carries the tool id in a `data-tool` attribute, since
+`closest('.tool')` has nothing to find from there. It is headed with **what it is
+first** — `Notes — Discovery · Deadline` — because that is the part that is the same
+every time and so the part a reader skips to recognise the window; headed with the
+column, a note read as though the column were the subject and every note on one row
+looked as though it were labelled with the task. Escape closes it on the **capture**
 phase and stops the event, or the board's own Escape handler would take the tool out
 of fullscreen behind the open window.
 
