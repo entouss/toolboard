@@ -157,7 +157,8 @@ in days, which columns exist, and the rows.
 
 ```js
 {
-  sizes:   { O: 0, XS: 2, S: 5, M: 10, L: 30, XL: 60, '?': 0 },
+  sizes:   { O: 0, XXXS: 0.5, XXS: 1, XS: 3, S: 5, M: 10, L: 30, XL: 60,
+             XXL: 120, XXXL: 240, '?': 0 },
   ticketBase: 'https://tickets.example.com/browse/',   // '' until one is set
   hideSettings: false,         // the three strips above the table, folded away
   addedColumns: { ticket: true },                      // migrations already run
@@ -174,11 +175,29 @@ in days, which columns exist, and the rows.
 ```
 
 **The sizes start on the ladder's rungs**: S is a week, M a sprint, L a timebox, XL
-a quarter, and XS the couple of days that sit under a week — so "that's an M" and
-"that's a sprint" say the same thing until somebody changes one of them. They are
-only a starting point: `sizes` is typed into and the ladder is typed into, and
-neither is derived from the other, because an estimate is a judgement rather than a
-calculation.
+a quarter, and XS the few days that sit under a week — so "that's an M" and "that's a
+sprint" say the same thing until somebody changes one of them. Either end goes
+further than the ladder does: XXXS and XXS are half a day and a day, for work
+measured in afternoons, and XXL and XXXL are two quarters and four, for work nobody
+is going to break down yet. They are only a starting point: `sizes` is typed into and
+the ladder is typed into, and neither is derived from the other, because an estimate
+is a judgement rather than a calculation.
+
+**Nine sizes, five colours.** `PROJ_SIZE_STEPS` maps the ramp onto the five-step
+green→red scale and stops there. Those five are the best green→red there is at that
+length — the cost of even five is written down below — and nine steps would put
+neighbouring sizes closer together than anybody could tell apart, with some pairs
+identical to a reader who sees colour differently. So the new sizes join the end they
+belong to, the five that were here first keep exactly the colours they had, and what
+distinguishes XXL from XL is what has always done it: the letters, inside the
+control.
+
+**The days are in the list, not in the cell.** A closed `<select>` shows the text of
+the option that is selected, so writing "M · 10 d" into the options would put the
+days in every row — the size table copied down the column, which is the thing the
+size table exists to avoid. `projSizeMenu()` writes the days in on focus and takes
+them out again on blur, so they are there while somebody is choosing and gone the
+moment they are not.
 
 **`O` and `?` are not points on that scale.** O is nothing to do; ? is not estimated
 yet. Both are worth zero days, both sit in the list — O below XS, ? after XL, because
@@ -191,8 +210,9 @@ sizes worth nothing, so a parent of unestimated children shows no derived size
 rather than claiming they add up to an O.
 
 **The column order is the user's**, and so is which of them are showing. The
-built-ins start in the order the questions get asked — Ticket, Task, Dependencies,
-Size, % Done, Start, End, Total, Left, Deadline, Slack, Assigned, Notes, Links — and
+built-ins start in the order the questions get asked — ID, Ticket, Task, Title,
+Dependencies, Size, % Done, Start, End, Total, Left, Deadline, Slack, Assigned,
+Notes, Links — and
 `columns` is the record of where they have been moved to since. The headings are a
 word each: a heading is read a hundred times and holds its column open while it does,
 so the long version lives in the tooltip. Total and Left are **work**; Slack is
@@ -204,13 +224,60 @@ from the data. `collapsed` folds a column to a 16px strip with its heading turne
 its side — out of the way of the columns either side of it, still in its place, and
 nothing under it touched. Folding is not deleting.
 
-A row with a `parent` is a **sub-item**, one level deep — a row that has children
-cannot itself have a parent. `projOrderedRows` is what turns the stored array into
+**A project is a row.** Rows nest three deep — a project, the tasks in it, the
+sub-tasks in those — through `parent`, and `PROJ_MAX_DEPTH` is the ceiling: deeper
+than that is an outline rather than a plan, and every reader has to hold the nesting
+in their head to read a row. `projOrderedRows` is what turns the stored array into
 reading order; the array keeps sibling order only.
 
+Everything a project needs is the roll-up a parent already does: its dates are its
+children's, its work is their work added once, its completion is weighted by days,
+and it has its own Deadline and Slack cells like any row. So there is deliberately
+**no plan-level name, deadline or summary strip** — that was a second mechanism
+doing a job the first one already did, in a place where a table holding two projects
+could not use it.
+
+Indenting moves a row under the nearest row above it **at its own level**, so a
+sub-task joins the sub-task above rather than jumping under a project, and it is
+refused where the row or anything under it would land past the third level — the
+button is simply absent there, since a button that sometimes explains itself is
+worse than one that does nothing at the edge. Outdenting moves out one level, not
+all the way. `projIndentTarget()` answers both "may this be indented" and "under
+what", so what the button offers and what it does cannot drift apart. Deleting a row
+hands its children to whatever it hung from: a sub-task whose task goes becomes a
+task, not suddenly a project.
+
+**Every row has a number.** `projRowNumber()` reads a row's place off the table: 2 is
+the second item, 2.1 its first task, 2.1.1 that task's first sub-task. The number is
+derived rather than stored,
+so it is always what somebody counting down the rows would say, and moving a row
+renumbers it and everything under it.
+
+That is also what makes a dependency decidable. Two tasks can be called the same
+thing — a "Review" under each of three parents is an ordinary way to write a plan —
+and a dropdown offering three identical options is one you have to guess at, so the
+options and the chips read `2.1 · Review`. Dependencies go on **storing the row's
+own id**, which never changes: the number is what they are shown as, so renumbering
+can never quietly repoint one.
+
+**Title is the three of them in a line** — `projRowTitle()` joins the project, the
+task above it and the task, dropping empty parts along with their separator so a
+plan with no name yet reads "Build - Review" rather than " - Build - Review". It is
+made of what is already on the row rather than typed again, so renaming the project
+or the parent moves every title that mentions it, as it is typed. The column is
+**folded by default**, because it earns its width only when somebody is about to
+take it somewhere else, and it carries a copy button — chrome, like every other
+per-cell button here, revealed by the cell under the pointer. One line, cut off
+rather than wrapped: three names end to end would otherwise make the tallest row in
+the table out of a column meant to be copied, not read at length. The whole of it is
+in the tooltip and on the clipboard.
+
+Both are derived, so a spreadsheet gets them as values and a file cannot put a stale
+one back.
+
 Column `type` is what a cell *is*, not what it looks like: `size`, `percent`, `item`,
-`date`, `text`, `notes`, `number`, `ticket`, `deps`, `links`, and the three calculated ones —
-`calcTotal`, `calcRemaining`, `calcSlack`. Only built-ins carry a fixed id; a column
+`date`, `text`, `notes`, `number`, `ticket`, `deps`, `links`, `title`, and the four
+calculated ones — `calcTotal`, `calcRemaining`, `calcSlack`, `calcNumber`. Only built-ins carry a fixed id; a column
 the user adds gets a minted one and may be renamed, re-typed or deleted — including
 to `notes`, which any column of prose wants.
 
@@ -491,10 +558,13 @@ where it actually falls.
 
 **Export CSV** writes the table as it stands; **Import CSV** replaces the rows,
 after asking. Two things that have no column in the table get one in the file:
-`Parent` holds a sub-item's parent by its Item text, and dependencies travel as a
-list of item names rather than ids — a file somebody opens in a spreadsheet should
-read as sentences, and an id from another machine would mean nothing. Both resolve
-by name on the way back. Links go as `label <url>; label <url>`.
+`Parent` holds a sub-item's parent and dependencies travel as a list, and both are
+written as **the row's number then its name** — `1.2 Build`. An internal id would
+mean nothing in a spreadsheet; a name alone stopped meaning one thing the moment a
+plan could hold two tasks called "Review", and the importer would have picked
+whichever came first and said nothing. The number decides it, the name keeps the
+file worth reading, and a file written by hand with only a name still resolves by
+name. A row that comes back deeper than three levels is promoted until it fits. Links go as `label <url>; label <url>`.
 
 Start and End go out as the effective dates — which is what a spreadsheet is for —
 and are read past on the way in with the calculated columns: a CSV cannot say which

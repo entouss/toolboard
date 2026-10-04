@@ -63,6 +63,27 @@
 .proj-settings-hidden .proj-sizes,
 .proj-settings-hidden .proj-units,
 .proj-settings-hidden .proj-tickets { display: none; }
+/* The row's place in the plan: a column of numbers read down rather than across,
+   so they are set in the same tabular figures as the days. */
+.proj-num { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.proj-title { display: flex; align-items: center; gap: 4px; }
+/* One line, cut off rather than wrapped: three names end to end would otherwise
+   make the tallest row in the table out of a column that is there to be copied, not
+   read at length. The whole of it is in the tooltip and on the clipboard. */
+.proj-title-text {
+    flex: 1 1 auto; min-width: 0; max-width: 260px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+/* Chrome, like every other per-cell button here: there to be used, gone to be
+   looked at. */
+.proj-title-copy {
+    flex: 0 0 auto; border: 0; background: none; cursor: pointer; padding: 0 2px;
+    color: var(--text-muted); font-size: 12px; line-height: 1; opacity: 0;
+    transition: opacity 0.12s;
+}
+.proj-table tbody td:hover .proj-title-copy,
+.proj-table tbody td:focus-within .proj-title-copy { opacity: 1; }
+.proj-title-copy:hover { color: var(--proj-size-3); }
 .proj-settings-toggle { margin-right: auto; }
 .proj-sizes { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; flex: 0 0 auto; }
 .proj-sizes-label { color: var(--text-muted); font-size: 11px; }
@@ -399,7 +420,9 @@
     background: transparent !important; border: 2px solid var(--text-muted);
     border-radius: 3px; top: 7px; height: 14px; opacity: 0.8;
 }
-.proj-gantt-label.proj-sub-label { padding-left: 12px; color: var(--text-secondary); }
+.proj-gantt-label.proj-sub-label { color: var(--text-secondary); }
+.proj-gantt-label.proj-depth-1 { padding-left: 12px; }
+.proj-gantt-label.proj-depth-2 { padding-left: 24px; }
 .proj-done-dot {
     position: absolute; top: 10px; width: 8px; height: 8px; border-radius: 50%;
     background: var(--proj-good); transform: translateX(-4px);
@@ -468,6 +491,10 @@ PluginRegistry.registerTool({
     // left on a wall display do the right thing for free.
     authoring: {
         modes: ['edit', 'split', 'render'],
+        // The three are ways of looking at one plan, not a draft and a finished
+        // thing, so looking away does not put this back to the chart: the view
+        // somebody picked is the view they meant.
+        settle: false,
         // Both, not Table: the chart is half of what this tool is for, and a plan
         // that opens without it reads as a spreadsheet with extra columns.
         defaultMode: 'split',
@@ -496,7 +523,7 @@ PluginRegistry.registerTool({
 // list below because O and ? are not points on a scale: one is no work and the other
 // is work nobody has looked at yet, and painting either of them green-to-red would
 // say something about size that neither of them knows.
-const PROJ_SIZE_RAMP = ['XS', 'S', 'M', 'L', 'XL'];
+const PROJ_SIZE_RAMP = ['XXXS', 'XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 // What the dropdown offers, in order. O first — it is less than the smallest — and ?
 // last, because unknown is not a size and belongs at the end rather than in the
 // middle of the scale.
@@ -506,7 +533,9 @@ const PROJ_SIZE_ORDER = ['O', ...PROJ_SIZE_RAMP, '?'];
 // of days that sit under a week. Move the ladder and the sizes stay where they
 // are — they are an estimate, not a derivation — but starting them lined up means
 // "that's an M" and "that's a sprint" agree until somebody says otherwise.
-const PROJ_DEFAULT_SIZES = { O: 0, XS: 2, S: 5, M: 10, L: 30, XL: 60, '?': 0 };
+const PROJ_DEFAULT_SIZES = {
+    O: 0, XXXS: 0.5, XXS: 1, XS: 3, S: 5, M: 10, L: 30, XL: 60, XXL: 120, XXXL: 240, '?': 0
+};
 
 /** Slack bands, worst first. `mark` is what keeps the colour from carrying the
  *  meaning on its own — a status colour always ships with a label beside it. */
@@ -533,8 +562,12 @@ const PROJ_NOTE_ROWS = 6;
 // order the questions are asked in. The id is what everything else refers to, so
 // `item` keeps its name while the heading says Task.
 const PROJ_BUILTIN_COLUMNS = [
+    { id: 'number', title: 'ID', type: 'calcNumber' },
     { id: 'ticket', title: 'Ticket', type: 'ticket' },
     { id: 'item', title: 'Task', type: 'item' },
+    // Folded to begin with: it is made of three things already on the row, so it is
+    // worth room only when somebody is about to take it away with them.
+    { id: 'title', title: 'Title', type: 'title', collapsed: true },
     { id: 'deps', title: 'Dependencies', type: 'deps' },
     { id: 'size', title: 'Size', type: 'size' },
     { id: 'pct', title: '% Done', type: 'percent' },
@@ -565,6 +598,11 @@ const PROJ_COLUMN_HINTS = {
     calcRemaining: 'Days of work still to do',
     calcSlack: 'Calendar days between the deadline and the day this would finish ' +
         'if it started now: positive is room to spare, negative is late',
+    calcNumber: 'Where this row sits: 2 is the second item, 2.1 its first task, ' +
+        '2.1.1 that task\u2019s first sub-task. It follows the table, so moving a row ' +
+        'renumbers it',
+    title: 'Everything this row hangs from, outermost first \u2014 project, task, ' +
+        'sub-task \u2014 in one line, ready to paste somewhere else',
     ticket: 'The ticket number. It becomes a link when a ticket URL is set above',
     item: 'What has to be done',
     resources: 'Who is on it. Pick somebody already in the plan, or add a new one',
@@ -841,6 +879,8 @@ function projGetData(toolId) {
  * the next load, which is a tool arguing with its user.
  */
 const PROJ_LATE_COLUMNS = [
+    { id: 'number', before: 'ticket' },
+    { id: 'title', before: 'deps' },
     { id: 'ticket', before: 'item' },
     { id: 'start', before: 'deadline' },
     { id: 'end', before: 'deadline' }
@@ -964,8 +1004,20 @@ function projCell(row, colId) {
  * arbitrary-depth roll-ups and a loop to guard against for a kind of plan this
  * table is not trying to be. A row with a parent cannot itself take children.
  */
+/** Three levels: a project, the tasks in it, and the sub-tasks in those. Deeper than
+ *  that is an outline rather than a plan, and every reader has to hold the nesting in
+ *  their head to read a row. */
+const PROJ_MAX_DEPTH = 2;
+
 function projChildren(data, rowId) {
     return data.rows.filter(r => r.parent === rowId);
+}
+
+/** The deepest row under this one, counted from it. */
+function projSubtreeDepth(data, rowId) {
+    const kids = projChildren(data, rowId);
+    if (!kids.length) return 0;
+    return 1 + Math.max(...kids.map(k => projSubtreeDepth(data, k.id)));
 }
 
 function projIsParent(data, row) {
@@ -974,16 +1026,83 @@ function projIsParent(data, row) {
 
 /** Rows in reading order: each top-level row followed by its own children. The
  *  stored array keeps sibling order; this is what turns it into the table. */
+/** How deep a row sits: 0 for a project, 1 for a task, 2 for a sub-task. A chain
+ *  that points at itself stops at the ceiling rather than hanging the browser. */
+function projRowDepth(data, row) {
+    let depth = 0, at = row;
+    while (at && at.parent && depth < PROJ_MAX_DEPTH) {
+        at = data.rows.find(r => r.id === at.parent);
+        if (at) depth++;
+    }
+    return depth;
+}
+
+/** Every row from the outermost down to this one, this one last. */
+function projAncestry(data, row) {
+    const chain = [row];
+    let at = row;
+    while (at && at.parent && chain.length <= PROJ_MAX_DEPTH) {
+        at = data.rows.find(r => r.id === at.parent);
+        if (at) chain.unshift(at);
+    }
+    return chain;
+}
+
 function projOrderedRows(data) {
     const out = [];
+    const walk = (parentId) => {
+        projChildren(data, parentId).forEach(row => {
+            if (out.indexOf(row) >= 0) return; // a loop in the parents, not a tree
+            out.push(row);
+            walk(row.id);
+        });
+    };
     data.rows.filter(r => !r.parent).forEach(row => {
         out.push(row);
-        projChildren(data, row.id).forEach(child => out.push(child));
+        walk(row.id);
     });
     // Anything whose parent has gone is still somebody's row, so it is shown
     // rather than quietly dropped.
     data.rows.forEach(r => { if (out.indexOf(r) < 0) out.push(r); });
     return out;
+}
+
+/**
+ * Where a row sits, as an outline number: 2 is the second item, 2.1 its first
+ * sub-item.
+ *
+ * Read off the table rather than stored, so it is always what somebody counting
+ * down the rows would say — and so moving a row renumbers it and everything under
+ * it. Dependencies go on storing the row's own id, which never changes; the number
+ * is what they are *shown* as, which is the point of having one.
+ */
+function projRowNumber(data, row) {
+    if (row.parent) {
+        const parent = data.rows.find(r => r.id === row.parent);
+        if (parent) {
+            const at = projChildren(data, parent.id).findIndex(r => r.id === row.id);
+            return projRowNumber(data, parent) + '.' + (at + 1);
+        }
+    }
+    const tops = data.rows.filter(r => !r.parent);
+    const at = tops.findIndex(r => r.id === row.id);
+    return String(at < 0 ? data.rows.findIndex(r => r.id === row.id) + 1 : at + 1);
+}
+
+/**
+ * The one-line name of a row: project, task, sub-task — which is to say, everything
+ * it hangs from, outermost first.
+ *
+ * Made of what is already on those rows rather than typed again, so renaming a
+ * project or the task a sub-task sits under moves every title that mentions them.
+ * Parts that are empty are left out along with their separator: a row under a
+ * project nobody has named yet reads "Build - Review", not " - Build - Review".
+ */
+function projRowTitle(data, row) {
+    return projAncestry(data, row)
+        .map(r => String(projCell(r, 'item') || '').trim())
+        .filter(Boolean)
+        .join(' - ');
 }
 
 // A parent's numbers are its children's, added up. It has no size of its own and no
@@ -1373,12 +1492,48 @@ function projPeriodSpans(units, mode, originDay, fromDay, toDay) {
     return spans.filter(s => s.start + s.length > fromDay && s.start <= toDay);
 }
 
-/** Which of the five ordinal steps a value sits on, 1-based. */
-/** Which step of the colour ramp a size is, or 0 for one that is off it — O, ? and
- *  anything the table does not recognise, all of which are drawn neutral. */
+/**
+ * Which step of the colour ramp a size is, or 0 for one that is off it — O, ? and
+ * anything the table does not recognise, all of which are drawn neutral.
+ *
+ * The ramp has nine sizes and five colours, and it stays five: those five are the
+ * best green→red there is at that length, and nine steps of it would put
+ * neighbouring sizes closer together than anybody could tell apart — including
+ * people who see colour differently, for whom some pairs would be the same colour.
+ *
+ * Written out rather than worked out, so the five sizes that were here first keep
+ * exactly the colours they had: the four new ones join the end they belong to.
+ * What distinguishes XXL from XL is what has always done the distinguishing — the
+ * letters, inside the control.
+ */
+const PROJ_SIZE_STEPS = {
+    XXXS: 1, XXS: 1, XS: 1, S: 2, M: 3, L: 4, XL: 5, XXL: 5, XXXL: 5
+};
+
 function projSizeStep(size) {
-    const i = PROJ_SIZE_RAMP.indexOf(size);
-    return i < 0 ? 0 : i + 1;
+    return PROJ_SIZE_STEPS[size] || 0;
+}
+
+/**
+ * What a size is worth, for the list it is picked from.
+ *
+ * Only while the list is open. A closed select shows the option that is selected, so
+ * writing the days into the option text would put them in the cell too — and a
+ * column of "M · 10 d" is the size table copied into every row, which is the thing
+ * the size table exists to avoid. So the options carry the days while somebody is
+ * choosing, and go back to being letters the moment they are not.
+ */
+function projSizeMenu(select, open) {
+    const toolId = projToolId(select);
+    if (!toolId) return;
+    const sizes = projGetData(toolId).sizes || {};
+    [...select.options].forEach(option => {
+        if (!option.value) return;
+        const days = Number(sizes[option.value]);
+        option.textContent = (open && isFinite(days))
+            ? option.value + ' \u00B7 ' + projRoundDays(days) + ' d'
+            : option.value;
+    });
 }
 
 /** Whether this is a size the table knows, which is not the same as having a colour. */
@@ -1819,6 +1974,18 @@ function projColumnHeadHtml(col) {
 }
 
 /** One chip: a value, and the × that takes it off this row. */
+/**
+ * How one row is named in another row's dependencies.
+ *
+ * Two tasks can be called the same thing — "Review" under each of three parents is
+ * an ordinary way to write a plan — and a list of three identical options is a list
+ * you have to guess at. The number in front is the row you can point at in the
+ * table, so the choice is decidable from the dropdown alone.
+ */
+function projDepLabel(data, row) {
+    return projRowNumber(data, row) + ' \u00B7 ' + (projCell(row, 'item') || 'Untitled');
+}
+
 function projChipHtml(label, onRemove, attrs) {
     return '<span class="proj-dep-chip">' + escapeHtml(String(label)) +
         '<button class="proj-x" onclick="' + onRemove + '" ' + attrs +
@@ -1868,10 +2035,11 @@ function projCellHtml(data, row, col) {
                 : 'T-shirt size';
             return '<select class="proj-size-select' + (projKnownSize(shown) ? '' : ' proj-size-unset') + '" ' + id +
                     ' onchange="projOnCell(this)"' + style + (isParent ? ' disabled' : '') +
-                    ' title="' + escapeHtml(title) + '">' +
+                    ' title="' + escapeHtml(title) + '"' +
+                ' onfocus="projSizeMenu(this, true)" onblur="projSizeMenu(this, false)">' +
                 '<option value="">' + (isParent ? '—' : 'size') + '</option>' +
                 PROJ_SIZE_ORDER.map(s => '<option value="' + s + '"' +
-                    (s === shown ? ' selected' : '') + '>' + s + '</option>').join('') +
+                    (s === shown ? ' selected' : '') + '>' + escapeHtml(s) + '</option>').join('') +
             '</select>';
         }
         case 'percent': {
@@ -1951,6 +2119,21 @@ function projCellHtml(data, row, col) {
             return '<input type="number" class="proj-cell-input proj-cell-num" ' + id +
                 ' size="' + projFieldSize(value, 4, 10) + '"' +
                 ' oninput="projOnCell(this)" value="' + escapeHtml(String(value)) + '">';
+        case 'calcNumber':
+            return '<span class="proj-num">' + escapeHtml(projRowNumber(data, row)) + '</span>';
+        case 'title': {
+            const text = projRowTitle(data, row);
+            // The button carries the text rather than the row, so what is copied is
+            // what is on the screen — and a copy cannot quietly go and fetch
+            // something else.
+            return '<span class="proj-title">' +
+                '<span class="proj-title-text" title="' + escapeHtml(text) + '">' +
+                    escapeHtml(text) + '</span>' +
+                (text ? '<button class="proj-title-copy" onclick="projCopyTitle(this)" ' +
+                    'data-title="' + escapeHtml(text) + '" title="Copy this title">' +
+                    '\u29C9</button>' : '') +
+            '</span>';
+        }
         case 'calcTotal': {
             const total = projRoundDays(projTotalDays(data, row));
             return '<span class="proj-calc" title="' +
@@ -1974,12 +2157,12 @@ function projCellHtml(data, row, col) {
             const others = data.rows.filter(r => r.id !== row.id && deps.indexOf(r.id) < 0);
             const chips = deps.map(depId => {
                 const dep = data.rows.find(r => r.id === depId);
-                const label = dep ? (projCell(dep, 'item') || 'Untitled') : 'missing';
+                const label = dep ? projDepLabel(data, dep) : 'missing';
                 return projChipHtml(label, 'projRemoveDep(this)',
                     'data-row="' + row.id + '" data-dep="' + escapeHtml(depId) + '"');
             }).join('');
             const options = others.map(r => '<option value="' + escapeHtml(r.id) + '">' +
-                escapeHtml(String(projCell(r, 'item') || 'Untitled')) + '</option>').join('');
+                escapeHtml(projDepLabel(data, r)) + '</option>').join('');
             return '<div class="proj-chips">' + chips +
                 projPickerHtml(options, 'proj-dep-add', 'projAddDep(this)',
                     'data-row="' + row.id + '"', 'Add a dependency') +
@@ -2072,18 +2255,17 @@ function projRenderTable(widget, data) {
     const ordered = projOrderedRows(data);
     const body = '<tbody>' + (ordered.length
         ? ordered.map((row, i) => {
-            const isChild = !!row.parent;
+            const depth = projRowDepth(data, row);
             const isParent = projIsParent(data, row);
-            // Indent is offered where there is something above to indent under, and
-            // only one level deep — a row that already has children cannot become
-            // somebody's child.
-            const canIndent = !isChild && !isParent && i > 0;
+            // One step of indent per level it already sits at, so a sub-task lines up
+            // under its task rather than under the project.
+            const canIndent = !!projIndentTarget(data, ordered, i);
             const tools = '<span class="proj-row-tools">' +
-                (isChild ? '<span class="proj-indent"></span>' : '') +
+                '<span class="proj-indent"></span>'.repeat(depth) +
                 '<span class="proj-handle">☰</span>' +
                 (canIndent ? '<button class="proj-x proj-nest" title="Make this a sub-item" ' +
                     'onclick="projIndentRow(this)" data-row="' + row.id + '">↳</button>' : '') +
-                (isChild ? '<button class="proj-x proj-nest" title="Promote to its own item" ' +
+                (depth ? '<button class="proj-x proj-nest" title="Move it out one level" ' +
                     'onclick="projOutdentRow(this)" data-row="' + row.id + '">↰</button>' : '') +
             '</span>';
             const classes = (isParent ? ' proj-is-parent' : '') +
@@ -2144,7 +2326,11 @@ function projRenderGantt(widget, data) {
         const reach = barSpan(sched[row.id] || { start: 0, days: 0 });
         dayMax = Math.max(dayMax, reach.end);
         const d = deadlineOffset(row);
-        if (d !== null) { dayMax = Math.max(dayMax, d); dayMin = Math.min(dayMin, d); }
+        // A deadline marks a day, so the window reaches the end of that day — the
+        // same convention the bars use. Reaching only its start put a marker on the
+        // furthest deadline at exactly 100%, which is outside the track and so
+        // invisible: the one deadline most worth seeing was the one that vanished.
+        if (d !== null) { dayMax = Math.max(dayMax, d + 1); dayMin = Math.min(dayMin, d); }
     });
     const span = Math.max(1, dayMax - dayMin);
     const pos = (day) => ((day - dayMin) / span) * 100;
@@ -2275,7 +2461,8 @@ function projRenderGantt(widget, data) {
             ? when.start.slice(5)
             : when.start.slice(5) + ' \u2013 ' + when.end.slice(5);
         return '<div class="proj-gantt-row">' +
-            '<span class="proj-gantt-label' + (row.parent ? ' proj-sub-label' : '') + '">' +
+            '<span class="proj-gantt-label' +
+                (row.parent ? ' proj-sub-label proj-depth-' + projRowDepth(data, row) : '') + '">' +
                 '<span class="proj-gantt-name" title="' + escapeHtml(label) + '">' +
                     escapeHtml(label) + '</span>' +
                 '<span class="proj-gantt-when" title="' + escapeHtml(label) + ': ' +
@@ -2324,6 +2511,25 @@ function projRenderGantt(widget, data) {
 
 const PROJ_CSV_PARENT = 'Parent';
 
+/**
+ * How one row names another in a file: its number, then what it is called.
+ *
+ * The name alone stopped being enough the moment a plan could hold two tasks called
+ * "Review" — the importer would have picked whichever came first and said nothing.
+ * The number decides it; the name is there so the file is still worth reading. A
+ * file written before this, with only a name, still resolves by name.
+ */
+function projCsvRef(data, row) {
+    const name = String(projCell(row, 'item') || '').trim();
+    return (projRowNumber(data, row) + ' ' + name).trim();
+}
+
+/** The number at the front of such a reference, if it has one. */
+function projCsvRefNumber(text) {
+    const match = /^\s*(\d+(?:\.\d+)*)\s/.exec(String(text || '') + ' ');
+    return match ? match[1] : '';
+}
+
 /** One field, quoted only where it has to be. */
 function projCsvField(value) {
     const text = value == null ? '' : String(value);
@@ -2363,6 +2569,8 @@ function projCsvParse(text) {
 /** What a cell looks like in a spreadsheet, which is not always what it is here. */
 function projCsvValue(data, row, col) {
     switch (col.type) {
+        case 'calcNumber': return projRowNumber(data, row);
+        case 'title': return projRowTitle(data, row);
         case 'calcTotal': return projRoundDays(projTotalDays(data, row));
         case 'calcRemaining': return projRoundDays(projRemainingDays(data, row));
         case 'calcSlack': {
@@ -2382,7 +2590,7 @@ function projCsvValue(data, row, col) {
             if (!Array.isArray(deps)) return '';
             return deps.map(id => {
                 const dep = data.rows.find(r => r.id === id);
-                return dep ? String(projCell(dep, 'item') || '') : '';
+                return dep ? projCsvRef(data, dep) : '';
             }).filter(Boolean).join('; ');
         }
         case 'links': {
@@ -2405,7 +2613,7 @@ function projToCsv(data) {
         const parent = row.parent ? data.rows.find(r => r.id === row.parent) : null;
         const values = data.columns.map(col => projCsvValue(data, row, col))
             .concat(noted.map(col => projNote(row, col.id)),
-                [parent ? String(projCell(parent, 'item') || '') : '']);
+                [parent ? projCsvRef(data, parent) : '']);
         lines.push(values.map(projCsvField).join(','));
     });
     // A leading BOM, or Excel reads anything non-ASCII as mojibake.
@@ -2489,7 +2697,8 @@ function projFromCsv(rows, data) {
             }
             const col = target.col;
             if (col.type === 'calcTotal' || col.type === 'calcRemaining' ||
-                col.type === 'calcSlack' || col.type === 'start' || col.type === 'end') return;
+                col.type === 'calcSlack' || col.type === 'calcNumber' || col.type === 'title' ||
+                col.type === 'start' || col.type === 'end') return;
             if (col.type === 'deps') { row.cells[col.id] = raw; return; } // names for now
             if (col.type === 'links') { row.cells[col.id] = projParseLinks(raw); return; }
             if (col.type === 'resources') {
@@ -2505,24 +2714,43 @@ function projFromCsv(rows, data) {
 
     // Names become ids once every row exists — a dependency may point forwards.
     const byName = {};
+    // Two ways to find a row the file points at: the number it was exported with,
+    // which is exact, and its name, which is what a file typed by hand will have.
+    const byNumber = {};
+    const numberCol = columns.find(c => c.type === 'calcNumber');
     built.forEach(b => {
         const name = norm(projCell(b.row, 'item'));
         if (name && !byName[name]) byName[name] = b.row.id;
+        const n = numberCol ? String(b.row.cells[numberCol.id] || '').trim() : '';
+        if (n && !byNumber[n]) byNumber[n] = b.row.id;
     });
+    const refTo = (text) => {
+        const n = projCsvRefNumber(text);
+        if (n && byNumber[n]) return byNumber[n];
+        const bare = String(text || '').replace(/^\s*\d+(?:\.\d+)*\s+/, '');
+        return byName[norm(bare)] || byName[norm(text)] || null;
+    };
     const depsCol = columns.find(c => c.type === 'deps');
     built.forEach(b => {
         if (depsCol) {
-            const names = String(b.row.cells[depsCol.id] || '').split(';').map(norm).filter(Boolean);
-            b.row.cells[depsCol.id] = names.map(n => byName[n]).filter(id => id && id !== b.row.id);
+            const refs = String(b.row.cells[depsCol.id] || '').split(';')
+                .map(s => s.trim()).filter(Boolean);
+            b.row.cells[depsCol.id] = refs.map(refTo).filter(id => id && id !== b.row.id);
         }
-        const parentId = byName[norm(b.parentName)];
+        const parentId = refTo(b.parentName);
         if (parentId && parentId !== b.row.id) b.row.parent = parentId;
     });
-    // One level only, as everywhere else: a row whose parent is itself a child is
-    // promoted rather than quietly making a deeper tree.
-    const childIds = {};
-    built.forEach(b => { if (b.row.parent) childIds[b.row.id] = true; });
-    built.forEach(b => { if (b.row.parent && childIds[b.row.parent]) delete b.row.parent; });
+    // Three levels, as everywhere else: a row deeper than that is promoted until it
+    // fits rather than quietly making a deeper tree than the table can draw.
+    const rowsNow = { rows: built.map(b => b.row) };
+    built.forEach(b => {
+        let guard = 0;
+        while (b.row.parent && projRowDepth(rowsNow, b.row) > PROJ_MAX_DEPTH && guard++ < 8) {
+            const parent = rowsNow.rows.find(r => r.id === b.row.parent);
+            if (parent && parent.parent) b.row.parent = parent.parent;
+            else delete b.row.parent;
+        }
+    });
 
     return { columns: columns, rows: built.map(b => b.row) };
 }
@@ -2622,10 +2850,12 @@ function projUpdateDerived(widget, data) {
             } else if (col.type === 'size' && projIsParent(data, row)) {
                 // Rolled up, so it moves when a sub-item does.
                 td.innerHTML = projCellHtml(data, row, col);
-            } else if (col.type === 'deps') {
+            } else if (col.type === 'deps' || col.type === 'title' || col.type === 'calcNumber') {
                 // Dependency chips carry *another* row's item text, so renaming an
                 // item has to reach them. Left out at first, which meant a renamed
-                // item kept its old name everywhere it was depended on.
+                // item kept its old name everywhere it was depended on. A title is
+                // made of the project's name and the task's, and a number is made of
+                // where the row sits, so the same is true of both.
                 td.innerHTML = projCellHtml(data, row, col);
             } else if (col.type === 'start' || col.type === 'end') {
                 // Every row's dates move when any row's size, completion, dependency
@@ -2679,6 +2909,19 @@ function projOnSizeDays(input) {
  * have to catch up is every ticket cell in the table, which is what makes the link
  * appear as soon as the address is a real one; `projUpdateDerived` does that part.
  */
+/** The title, on the clipboard. The board's own helper where there is one, since it
+ *  already answers the case where the clipboard API is not available at all. */
+function projCopyTitle(btn) {
+    const text = btn.getAttribute('data-title') || '';
+    if (!text) return;
+    if (typeof copyTextToClipboard === 'function') {
+        copyTextToClipboard(text, 'Title copied');
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
+    else window.prompt('Copy this title:', text);
+}
+
 function projOnTicketBase(input) {
     const toolId = projToolId(input);
     const widget = projWidget(input);
@@ -2978,28 +3221,60 @@ function projAddRow(btn) {
 }
 
 /** Make this row a sub-item of the nearest top-level row above it. */
+/**
+ * The row this one would go under if it were indented, or null where it could not
+ * be. Asked by the renderer, to decide whether to offer the button, and by the press
+ * itself — one answer, so what the button offers and what it does cannot drift.
+ */
+function projIndentTarget(data, ordered, index) {
+    const row = ordered[index];
+    if (!row || index < 1) return null;
+    const depth = projRowDepth(data, row);
+    // Everything under it comes along, so the whole subtree has to fit.
+    if (depth + 1 + projSubtreeDepth(data, row.id) > PROJ_MAX_DEPTH) return null;
+    for (let i = index - 1; i >= 0; i--) {
+        const above = ordered[i];
+        const aboveDepth = projRowDepth(data, above);
+        if (aboveDepth === depth) return above.id === row.id ? null : above;
+        // Something shallower came first, so there is no sibling above to join.
+        if (aboveDepth < depth) return null;
+    }
+    return null;
+}
+
+/**
+ * Make this row a child of the row above it at its own level.
+ *
+ * The one above *at its own level* rather than simply the one above: indenting a
+ * sub-task should not jump it under another sub-task, and the row it joins is the
+ * one somebody can see it lining up with.
+ *
+ * Refused where it would push the row, or anything under it, past the third level —
+ * silently, because the button is the only thing that could say so and a button that
+ * sometimes explains itself is worse than one that simply does nothing at the edge.
+ */
 function projIndentRow(btn) {
     const rowId = btn.getAttribute('data-row');
     projMutate(btn, (data) => {
         const ordered = projOrderedRows(data);
         const at = ordered.findIndex(r => r.id === rowId);
-        if (at < 1) return;
-        let parent = null;
-        for (let i = at - 1; i >= 0; i--) {
-            if (!ordered[i].parent) { parent = ordered[i]; break; }
-        }
-        // Only one level, and nothing becomes its own parent.
-        if (!parent || parent.id === rowId || projIsParent(data, data.rows.find(r => r.id === rowId))) return;
+        const parent = projIndentTarget(data, ordered, at);
+        if (!parent) return;
         const row = data.rows.find(r => r.id === rowId);
         if (row) row.parent = parent.id;
     });
 }
 
+/** Out one level, to sit beside what it used to sit under — not all the way out,
+ *  which would take a sub-task past its task in one press. */
 function projOutdentRow(btn) {
     const rowId = btn.getAttribute('data-row');
     projMutate(btn, (data) => {
         const row = data.rows.find(r => r.id === rowId);
-        if (row) delete row.parent;
+        if (!row || !row.parent) return;
+        const parent = data.rows.find(r => r.id === row.parent);
+        if (parent && parent.parent) row.parent = parent.parent;
+        else delete row.parent;
     });
 }
 
@@ -3008,8 +3283,16 @@ function projDeleteRow(btn) {
     projMutate(btn, (data) => {
         // Sub-items are promoted rather than deleted with their parent: they are
         // rows somebody typed, and losing several of them to one × is not a thing
-        // to find out about afterwards.
-        data.rows.forEach(r => { if (r.parent === rowId) delete r.parent; });
+        // to find out about afterwards. They move up one level, to whatever the
+        // deleted row hung from — a sub-task whose task goes becomes a task, not
+        // suddenly a project of its own.
+        const gone = data.rows.find(r => r.id === rowId);
+        const grandparent = gone ? gone.parent : null;
+        data.rows.forEach(r => {
+            if (r.parent !== rowId) return;
+            if (grandparent) r.parent = grandparent;
+            else delete r.parent;
+        });
         data.rows = data.rows.filter(r => r.id !== rowId);
         // And nothing is left depending on a row that no longer exists.
         data.rows.forEach(r => {
@@ -3281,6 +3564,10 @@ function projRowDrop(tr, event) {
         projSeedData, projGetData, projSetData, projColumn, projCell,
         projFieldSize, projLongestLine, projNoteCols, projNoteRows,
         projGrowAttrs, projGrowField, projChildren, projIsParent, projOrderedRows,
+        projSizeMenu,
+        projRowDepth, projAncestry, projSubtreeDepth, projIndentTarget,
+        projRowNumber, projRowTitle, projDepLabel, projCopyTitle,
+        projCsvRef, projCsvRefNumber, projRoundDays, projAssigneeCount,
         projTotalDays, projPercent, projRemainingDays, projSlackDays, projSlackBand,
         projUnits, projUnitDays, projSayDuration, projIsWorkday, projNthWorkdayOffset,
         projFinishOffset, projYearStart, projYearLabel, projCalendarDaysOf,
@@ -3324,6 +3611,7 @@ function projRowDrop(tr, event) {
         'window.projSchedStamp = 0;\n' +
         'window.projSchedCache = null;\n' +
         'window.PROJ_DEFAULT_SIZES = ' + JSON.stringify(PROJ_DEFAULT_SIZES) + ';\n' +
+        'window.PROJ_SIZE_STEPS = ' + JSON.stringify(PROJ_SIZE_STEPS) + ';\n' +
         'window.PROJ_SLACK_BANDS = ' + JSON.stringify(PROJ_SLACK_BANDS) + ';\n' +
         'window.PROJ_COLUMN_TYPES = ' + JSON.stringify(PROJ_COLUMN_TYPES) + ';\n' +
         'window.PROJ_COLUMN_HINTS = ' + JSON.stringify(PROJ_COLUMN_HINTS) + ';\n' +
@@ -3334,6 +3622,7 @@ function projRowDrop(tr, event) {
         'window.PROJ_MIN_WIDTH = ' + JSON.stringify(PROJ_MIN_WIDTH) + ';\n' +
         'window.PROJ_WIDTH_CHROME = ' + JSON.stringify(PROJ_WIDTH_CHROME) + ';\n' +
         'window.PROJ_CSV_PARENT = ' + JSON.stringify(PROJ_CSV_PARENT) + ';\n' +
+        'window.PROJ_MAX_DEPTH = ' + JSON.stringify(PROJ_MAX_DEPTH) + ';\n' +
         'window.PROJ_DEFAULT_UNITS = ' + JSON.stringify(PROJ_DEFAULT_UNITS) + ';\n' +
         'window.PROJ_UNIT_FIELDS = ' + JSON.stringify(PROJ_UNIT_FIELDS) + ';\n' +
         'window.PROJ_AXIS_MODES = ' + JSON.stringify(PROJ_AXIS_MODES) + ';\n' +

@@ -47,9 +47,15 @@ const headings = () => page.evaluate(() =>
     [...document.querySelectorAll('.proj-table thead .proj-col-title')].map(i => i.textContent).join(','));
 // Left to right: what it is, what it waits for, how big, how far along, when it
 // runs, what that comes to, when it is due and how that compares.
+// Title is here too, folded away, so it has no heading to read until section 14e
+// unfolds it — a folded column is a strip with its name on its side.
+const PROJ_COLS = 16;
 ok('with the columns asked for, in the order asked for', (await headings()) ===
-    'Ticket,Task,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
+    'ID,Ticket,Task,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
     await headings());
+ok('and the one that is folded to begin with is there, just not open',
+    (await data()).columns.length === PROJ_COLS &&
+    (await data()).columns[3].id === 'title', String((await data()).columns.length));
 // The settings start folded — what somebody opens a plan for is the plan — and most
 // of what follows is set from those strips, so they are unfolded once, here.
 ok('the settings start folded away', (await data()).hideSettings === true,
@@ -62,7 +68,7 @@ await page.waitForTimeout(350);
 const sizeStrip = () => page.evaluate(() =>
     [...document.querySelectorAll('.proj-sizes .proj-size-field input')].map(i => i.value).join(','));
 ok('and the preconfigured size table, lined up with the ladder, with O and ? either side',
-    (await sizeStrip()) === '0,2,5,10,30,60,0', await sizeStrip());
+    (await sizeStrip()) === '0,0.5,1,3,5,10,30,60,120,240,0', await sizeStrip());
 const rungs = () => page.evaluate(() =>
     [...document.querySelectorAll('.proj-units input[type="number"]')].map(i => i.value).join(','));
 ok('and the ladder, each rung counted in the one below it', (await rungs()) === '7,2,3,2,1', await rungs());
@@ -85,8 +91,8 @@ ok('and opens showing both the table and the chart', await page.evaluate((id) =>
     await page.evaluate((id) =>
         document.querySelector('.tool[data-tool="' + id + '"]').className, toolId));
 ok('with the chart drawn, not merely allotted room', await page.evaluate(() =>
-    document.querySelectorAll('.proj-bar').length) === 3,
-    String(await page.evaluate(() => document.querySelectorAll('.proj-bar').length)));
+    document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar').length) === 3,
+    String(await page.evaluate(() => document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar').length)));
 
 // 2. The calculated columns. Total comes from the size table, Remaining from the
 //    completion, and Slack from the deadline — each only from what it says.
@@ -219,36 +225,37 @@ ok('a row can be added', (await data()).rows.length === before + 1, String((awai
 await page.click(sel('.proj-toolbar .proj-btn:has-text("+ Column")'));
 await page.waitForTimeout(300);
 let d = await data();
-ok('a column can be added', d.columns.length === 15, String(d.columns.length));
+ok('a column can be added', d.columns.length === PROJ_COLS + 1, String(d.columns.length));
+const added = d.columns[d.columns.length - 1];
 ok('and it is typed, with text as the sensible default',
-    d.columns[14].type === 'text' && !d.columns[14].builtin, JSON.stringify(d.columns[14]));
+    added.type === 'text' && !added.builtin, JSON.stringify(added));
 
-await page.click(sel('.proj-col-title[data-col="' + d.columns[14].id + '"]'));
+await page.click(sel('.proj-col-title[data-col="' + added.id + '"]'));
 await page.waitForTimeout(200);
-await page.fill(sel('.proj-col-title-edit[data-col="' + d.columns[14].id + '"]'), 'Owner');
+await page.fill(sel('.proj-col-title-edit[data-col="' + added.id + '"]'), 'Owner');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(400);
-ok('a column can be renamed', (await data()).columns[14].title === 'Owner',
-    (await data()).columns[14].title);
+ok('a column can be renamed', (await data()).columns[d.columns.length - 1].title === 'Owner',
+    (await data()).columns[d.columns.length - 1].title);
 ok('and goes back to being a heading rather than staying a field',
     await page.evaluate(() => !document.querySelector('.proj-col-title-edit')));
-await page.selectOption(sel('.proj-col-type[data-col="' + d.columns[14].id + '"]'), 'date');
+await page.selectOption(sel('.proj-col-type[data-col="' + added.id + '"]'), 'date');
 await page.waitForTimeout(300);
 ok('and re-typed, which changes what its cells are',
-    (await data()).columns[14].type === 'date' &&
+    (await data()).columns[d.columns.length - 1].type === 'date' &&
     await page.evaluate((id) => !!document.querySelector('.proj-table tbody td input[data-col="' + id + '"][type="date"]'),
-        d.columns[14].id));
+        added.id));
 
-await page.click(sel('.proj-col-del[data-col="' + d.columns[14].id + '"]'));
+await page.click(sel('.proj-col-del[data-col="' + added.id + '"]'));
 await page.waitForTimeout(300);
-ok('a column can be deleted', (await data()).columns.length === 14, String((await data()).columns.length));
+ok('a column can be deleted', (await data()).columns.length === PROJ_COLS, String((await data()).columns.length));
 
 // Deleting a column takes the column away, not the values under it — so the
 // arithmetic goes on working and putting the column back shows what was there.
 await page.click(sel('.proj-col-del[data-col="size"]'));
 await page.waitForTimeout(400);
 ok('deleting the size column does not break the tool',
-    !!(await page.$(sel('.proj-table'))) && (await data()).columns.length === 13,
+    !!(await page.$(sel('.proj-table'))) && (await data()).columns.length === PROJ_COLS - 1,
     String((await data()).columns.length));
 ok('and the values under it survive, so Total Days still answers',
     (await calcText(0))[0] === '60 d', (await calcText(0))[0]);
@@ -358,7 +365,7 @@ ok('and an address that is not a web address is not made into one',
     }), sel(linkRow))));
 
 // 8. The chart. Dependencies guide it and nothing else.
-const bars = () => page.evaluate(() => [...document.querySelectorAll('.proj-bar')]
+const bars = () => page.evaluate(() => [...document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar')]
     .map(b => ({ left: parseFloat(b.style.left), width: parseFloat(b.style.width) })));
 await page.evaluate((id) => setToolMode(id, 'split'), toolId);
 await page.waitForTimeout(500);
@@ -415,7 +422,7 @@ await page.evaluate((id) => {
 await page.waitForTimeout(400);
 ok('a finished item becomes a marker rather than nothing',
     await page.evaluate(() => document.querySelectorAll('.proj-done-dot').length) === 1 &&
-    await page.evaluate(() => document.querySelectorAll('.proj-bar').length) === 2);
+    await page.evaluate(() => document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar').length) === 2);
 
 // 9. A dependency loop is a contradiction, and must not hang the tool.
 await page.evaluate((id) => {
@@ -446,7 +453,7 @@ await page.waitForSelector('.proj-widget', { timeout: 25000 });
 await page.waitForTimeout(1500);
 ok('the table comes back after a reload', (await data()).rows[0].cells.item === 'Kept',
     (await data()).rows[0].cells.item);
-ok('and the chart with it', await page.evaluate(() => document.querySelectorAll('.proj-bar').length) >= 1);
+ok('and the chart with it', await page.evaluate(() => document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar').length) >= 1);
 ok('the plan is one key, so an export carries the whole tool',
     await page.evaluate((id) => Object.keys(toolCustomizations[id]).filter(k =>
         k === 'sizes' || k === 'rows' || k === 'columns' || k === 'projectData').join(','), toolId) === 'projectData',
@@ -723,9 +730,9 @@ await page.evaluate((id) => {
 await page.waitForTimeout(400);
 
 // 10f. O and ?: two entries in the size list that are not points on the scale.
-ok('O and ? are offered beside the five sizes', await page.evaluate(() =>
+ok('O and ? are offered either side of the ramp', await page.evaluate(() =>
     [...document.querySelectorAll('.proj-size-select')[0].options].map(o => o.value).join(',')) ===
-    ',O,XS,S,M,L,XL,?',
+    ',O,XXXS,XXS,XS,S,M,L,XL,XXL,XXXL,?',
     await page.evaluate(() => [...document.querySelectorAll('.proj-size-select')[0].options].map(o => o.value).join(',')));
 ok('and both are worth nothing, which is the point of them',
     (await data()).sizes.O === 0 && (await data()).sizes['?'] === 0,
@@ -734,7 +741,7 @@ ok('neither takes a colour off the ramp, because neither is a size',
     await page.evaluate(() => projSizeStep('O') === 0 && projSizeStep('?') === 0 &&
         projSizeStep('XS') === 1 && projSizeStep('XL') === 5));
 ok('but both are sizes the table knows, so a cell holding one is not blank',
-    await page.evaluate(() => projKnownSize('O') && projKnownSize('?') && !projKnownSize('XXL')));
+    await page.evaluate(() => projKnownSize('O') && projKnownSize('?') && !projKnownSize('XXXXL')));
 
 await page.evaluate((id) => {
     const dd = projGetData(id);
@@ -771,7 +778,7 @@ const barPaint = await page.evaluate((id) => {
     ];
     projSetData(id, dd);
     projOnRender(id);
-    return [...document.querySelectorAll('.proj-bar')].map(b => b.style.background);
+    return [...document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar')].map(b => b.style.background);
 }, toolId);
 ok('a bar that will miss its deadline is painted critical',
     barPaint[0] === 'var(--proj-critical)', JSON.stringify(barPaint));
@@ -792,7 +799,7 @@ const parentPaint = await page.evaluate((id) => {
     ];
     projSetData(id, dd);
     projOnRender(id);
-    const bar = document.querySelector('.proj-bar-parent');
+    const bar = document.querySelector('.proj-gantt-row:not(.proj-plan-row) .proj-bar-parent');
     return { border: bar.style.borderColor, background: bar.style.background,
              filled: getComputedStyle(bar).backgroundColor };
 }, toolId);
@@ -879,7 +886,7 @@ const noteBtn = (rowId, colId) =>
 ok('every cell carries an opener, not only the task',
     await page.evaluate(() =>
         document.querySelectorAll('tr[data-row="r-doing"] .proj-note-btn').length) ===
-    (await data()).columns.length,
+    (await data()).columns.filter(c => !c.collapsed).length,
     String(await page.evaluate(() =>
         document.querySelectorAll('tr[data-row="r-doing"] .proj-note-btn').length)));
 ok('and each one sits in the cell it is about', await page.evaluate(() => {
@@ -1083,9 +1090,9 @@ ok('the end follows the pinned start by the days that are left',
 ok('and what depends on it moves with it',
     (await whenValue('r-next', 'start')) === (await iso2(15)), await whenValue('r-next', 'start'));
 ok('the chart agrees, because both read the same schedule', await page.evaluate(() =>
-    document.querySelector('.proj-gantt-row .proj-gantt-when').textContent.trim()) ===
+    document.querySelector('.proj-gantt-row:not(.proj-plan-row) .proj-gantt-when').textContent.trim()) ===
     (await iso2(10)).slice(5) + ' \u2013 ' + (await iso2(14)).slice(5),
-    await page.evaluate(() => document.querySelector('.proj-gantt-row .proj-gantt-when').textContent));
+    await page.evaluate(() => document.querySelector('.proj-gantt-row:not(.proj-plan-row) .proj-gantt-when').textContent));
 
 // Pinning the end stretches the bar to it, whatever the size said.
 await page.fill(whenCell('r-first', 'end'), await iso2(24));
@@ -1177,13 +1184,14 @@ await page.evaluate(() => {
 });
 await page.waitForTimeout(400);
 ok('dropping one column on another puts it in that one\'s place',
-    (await colOrder()).startsWith('deps,ticket,item'), await colOrder());
+    (await colOrder()).startsWith('number,deps,ticket,item'), await colOrder());
 ok('and the table is redrawn in the new order, not just the data',
     (await headOrder()) === (await colOrder()), (await headOrder()) + ' vs ' + (await colOrder()));
 ok('the cells moved with their heading',
     await page.evaluate(() => {
+        // One for the row's own handle, then the ID, then the two that swapped.
         const cells = document.querySelector('.proj-table tbody tr').children;
-        return !!cells[1].querySelector('.proj-chips') && !!cells[2].querySelector('.proj-ticket');
+        return !!cells[2].querySelector('.proj-chips') && !!cells[3].querySelector('.proj-ticket');
     }));
 ok('and nothing was lost on the way', (await colOrder()).split(',').length ===
     columnsBefore.split(',').length, await colOrder());
@@ -1314,7 +1322,7 @@ await page.evaluate((id) => {
 await page.waitForTimeout(500);
 const depChip = () => page.evaluate(() =>
     (document.querySelector('.proj-dep-chip') || {}).textContent || '');
-ok('a dependency shows the item it points at', (await depChip()).indexOf('First') === 0, await depChip());
+ok('a dependency shows the item it points at', /\bFirst\b/.test(await depChip()), await depChip());
 // What is on show is a + at the column's right edge — not a dropdown sitting open in
 // every cell — and at the right edge rather than wherever that row's chips stop, so
 // the pluses line up down the column instead of stepping in and out.
@@ -1354,9 +1362,9 @@ ok('and the chip comes off again',
 await page.fill(sel('tr[data-row="r-one"] [data-col="item"]'), 'Renamed');
 await page.waitForTimeout(400);
 ok('and follows that item when it is renamed — it used to keep the old name',
-    (await depChip()).indexOf('Renamed') === 0, await depChip());
+    /\bRenamed\b/.test(await depChip()), await depChip());
 const ganttLabels = () => page.evaluate(() =>
-    [...document.querySelectorAll('.proj-gantt-label')].map(l => l.textContent).join(','));
+    [...document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-gantt-label')].map(l => l.textContent).join(','));
 ok('the chart label followed it too', (await ganttLabels()).indexOf('Renamed') === 0, await ganttLabels());
 
 // 12. Sub-items, and what rolls up.
@@ -1457,7 +1465,7 @@ const parentBar = await page.evaluate((id) => projSchedule(projGetData(id))['r-p
 ok('in the chart a parent spans its children rather than adding work of its own',
     parentBar.start === 0 && parentBar.days === 40 && parentBar.parent === true, JSON.stringify(parentBar));
 ok('and is drawn as a bracket, not a block that would count the days twice',
-    await page.evaluate(() => !!document.querySelector('.proj-bar-parent')));
+    await page.evaluate(() => !!document.querySelector('.proj-gantt-row:not(.proj-plan-row) .proj-bar-parent')));
 
 // Indent and outdent are how a row becomes a sub-item and stops being one.
 await page.evaluate((id) => {
@@ -1597,15 +1605,21 @@ await page.waitForTimeout(500);
 const csv = await page.evaluate((id) => projToCsv(projGetData(id)), toolId);
 const lines = csv.replace(/^\uFEFF/, '').trim().split('\r\n');
 ok('the export has a header row naming every column, plus Parent',
-    lines[0] === 'Ticket,Task,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links,Parent',
+    lines[0] === 'ID,Ticket,Task,Title,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links,Parent',
     lines[0]);
 ok('a row per item, parents and sub-items alike', lines.length === 4, String(lines.length));
 ok('calculated columns go out as values, since a spreadsheet cannot do the sums',
     lines[1].indexOf('20,12,') > 0 || /,20,12,/.test(lines[1]), lines[1]);
-ok('a sub-item names its parent', /,Platform$/.test(lines[2]), lines[2]);
+// By number and name both: the number is what the importer reads, the name is what
+// makes the file worth opening.
+ok('a sub-item names its parent, by number and by name', /,1 Platform$/.test(lines[2]), lines[2]);
+// By heading rather than by counting commas, so a new column does not move it.
+const csvField = (line, name) =>
+    line.split(',')[lines[0].split(',').indexOf(name)];
 ok('a parent exports the size it is showing, not the blank it stores',
-    lines[1].split(',')[3] === 'M', lines[1].split(',')[3]);
-ok('dependencies go out as item names rather than ids', /Schema/.test(lines[3]), lines[3]);
+    csvField(lines[1], 'Size') === 'M', csvField(lines[1], 'Size'));
+ok('dependencies go out as something a person can read, not an internal id',
+    /1\.1 Schema/.test(lines[3]), lines[3]);
 ok('a link keeps its label and its address', /Spec <https:\/\/example.com\/s>/.test(lines[2]), lines[2]);
 ok('and a comma inside a cell is quoted rather than splitting the row',
     /"needs, a comma"/.test(lines[1]), lines[1]);
@@ -1631,8 +1645,7 @@ const round = await page.evaluate((args) => {
         topHasNoParent: byItem['Platform'].parent === undefined
     };
 }, [toolId, csv]);
-ok('reading it back gives the same columns', round.columns ===
-    'Ticket,Task,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
+ok('reading it back gives the same columns', round.columns === 'ID,Ticket,Task,Title,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
     round.columns);
 ok('and the same rows in the same order', round.rows === 'Platform,Schema,Launch', round.rows);
 ok('sizes and completions survive', round.schemaSize === 'M' && round.schemaPct === 40,
@@ -1687,7 +1700,7 @@ const [download] = await Promise.all([
 ]);
 const saved = fs.readFileSync(await download.path(), 'utf8');
 ok('and Export CSV downloads a file that starts with the headings',
-    saved.replace(/^\uFEFF/, '').startsWith('Ticket,Task,Dependencies,Size'), saved.slice(0, 60));
+    saved.replace(/^\uFEFF/, '').startsWith('ID,Ticket,Task,Title,Dependencies,Size'), saved.slice(0, 60));
 ok('with a BOM, so Excel does not mangle anything non-ASCII', saved.charCodeAt(0) === 0xFEFF,
     String(saved.charCodeAt(0)));
 
@@ -1763,6 +1776,367 @@ await page.evaluate((id) => {
 await page.waitForTimeout(400);
 ok('a parent adds up what its children now take, and its own names divide nothing',
     (await totalOf('p-top')) === '45 d', await totalOf('p-top'));
+
+// 14e. A plan has a name, every row has a number, and the two of them plus the task
+// make a title worth pasting somewhere else.
+await page.context().grantPermissions(['clipboard-read', 'clipboard-write'],
+    { origin: 'http://localhost:8777' });
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.rows = [
+        { id: 'n-one', cells: { item: 'Discovery', size: 'M', pct: 0, deps: [], links: [] } },
+        { id: 'n-two', cells: { item: 'Build', size: 'L', pct: 0, deps: [], links: [] } },
+        // The same name twice, under different parents, which is the ordinary way a
+        // plan is written and the reason a dependency list needs more than a name.
+        { id: 'n-two-a', parent: 'n-two', cells: { item: 'Review', size: 'S', pct: 0, deps: [], links: [] } },
+        { id: 'n-three', cells: { item: 'Launch', size: 'S', pct: 0, deps: [], links: [] } },
+        { id: 'n-three-a', parent: 'n-three', cells: { item: 'Review', size: 'S', pct: 0, deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(500);
+
+ok('the Title is folded away to begin with, since it is made of things already on the row',
+    (await data()).columns.find(c => c.id === 'title').collapsed === true,
+    JSON.stringify((await data()).columns.find(c => c.id === 'title')));
+
+const titleOf = (rowId) => page.evaluate((r) => {
+    const el = document.querySelector('tr[data-row="' + r + '"] .proj-title-text');
+    return el ? el.textContent.trim() : null;
+}, rowId);
+const numberOf = (rowId) => page.evaluate((r) => {
+    const el = document.querySelector('tr[data-row="' + r + '"] .proj-num');
+    return el ? el.textContent.trim() : null;
+}, rowId);
+
+// Unfold it by its strip, the way anybody would: the rest of this is about what it
+// says, and a folded column says it sideways.
+await page.click(sel('th[data-col="title"] .proj-col-folded'));
+await page.waitForTimeout(400);
+ok('and once it is open it sits between the task and what the task waits for',
+    (await headings()).split(',').slice(0, 5).join(',') === 'ID,Ticket,Task,Title,Dependencies',
+    (await headings()).split(',').slice(0, 5).join(','));
+
+ok('rows are numbered down the table', (await numberOf('n-one')) === '1' &&
+    (await numberOf('n-two')) === '2' && (await numberOf('n-three')) === '3',
+    JSON.stringify([await numberOf('n-one'), await numberOf('n-two'), await numberOf('n-three')]));
+ok('and a sub-item is numbered inside the one it belongs to',
+    (await numberOf('n-two-a')) === '2.1' && (await numberOf('n-three-a')) === '3.1',
+    JSON.stringify([await numberOf('n-two-a'), await numberOf('n-three-a')]));
+
+ok('a row that hangs from nothing has itself for a title',
+    (await titleOf('n-one')) === 'Discovery', await titleOf('n-one'));
+ok('and one that hangs from something names that first',
+    (await titleOf('n-two-a')) === 'Build - Review', await titleOf('n-two-a'));
+
+// A title is made of the rows above it, so renaming one of those has to reach it.
+await page.fill(sel('tr[data-row="n-two"] input[data-col="item"]'), 'Construction');
+await page.waitForTimeout(500);
+ok('renaming a task moves its own title and its sub-items\u2019 with it',
+    (await titleOf('n-two')) === 'Construction' &&
+    (await titleOf('n-two-a')) === 'Construction - Review',
+    JSON.stringify([await titleOf('n-two'), await titleOf('n-two-a')]));
+
+await page.click(sel('tr[data-row="n-two-a"] .proj-title-copy'));
+await page.waitForTimeout(400);
+ok('the copy button hands over the whole line',
+    (await page.evaluate(() => navigator.clipboard.readText())) === 'Construction - Review',
+    await page.evaluate(() => navigator.clipboard.readText()));
+
+// The reason the number is worth showing: two tasks called Review.
+const depOptions = (rowId) => page.evaluate((r) =>
+    [...document.querySelectorAll('tr[data-row="' + r + '"] .proj-dep-add option')]
+        .map(o => o.textContent.trim()), rowId);
+ok('two tasks with one name are told apart in the dependency list',
+    (await depOptions('n-one')).filter(t => /Review/.test(t)).join(' | ') === '2.1 · Review | 3.1 · Review',
+    JSON.stringify(await depOptions('n-one')));
+// The dropdown is behind the +, which is the whole point of the + being there.
+await page.click(sel('tr[data-row="n-one"] .proj-chips:has(.proj-dep-add) .proj-pick-add'));
+await page.waitForTimeout(250);
+await page.selectOption(sel('tr[data-row="n-one"] .proj-dep-add'), 'n-three-a');
+await page.waitForTimeout(450);
+ok('and the chip says which one was picked, not just its name',
+    await page.evaluate(() => {
+        const chip = document.querySelector('tr[data-row="n-one"] .proj-dep-chip');
+        return chip ? chip.textContent.replace('×', '').trim() : null;
+    }) === '3.1 · Review',
+    await page.evaluate(() => {
+        const chip = document.querySelector('tr[data-row="n-one"] .proj-dep-chip');
+        return chip ? chip.textContent.replace('×', '').trim() : null;
+    }));
+
+// Moving a row renumbers it, which is what a number read off the table means.
+await page.click(sel('tr[data-row="n-three"] .proj-move-up, tr[data-row="n-three"] [onclick*="projMoveRow"]'))
+    .catch(() => {});
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    const at = dd.rows.findIndex(r => r.id === 'n-three');
+    const moved = dd.rows.splice(at, 1)[0];
+    dd.rows.unshift(moved);
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(450);
+ok('moving a row to the top makes it the first, and shifts the rest down',
+    (await numberOf('n-three')) === '1' && (await numberOf('n-one')) === '2',
+    JSON.stringify([await numberOf('n-three'), await numberOf('n-one')]));
+
+// Both are derived, so a spreadsheet gets them as values and a file cannot put a
+// stale one back.
+const titleCsv = await page.evaluate((id) => projToCsv(projGetData(id)), toolId);
+const titleHead = titleCsv.replace(/^\uFEFF/, '').split('\r\n')[0].split(',');
+ok('the spreadsheet carries the number and the title',
+    titleHead[0] === 'ID' && titleHead.includes('Title') &&
+    titleCsv.includes('Construction - Review'), titleHead.slice(0, 5).join(','));
+await page.evaluate((args) => {
+    const [id, csv] = args;
+    const rows = projCsvParse(csv.replace('Construction - Review', 'Nonsense - From - A - File')
+        .replace(/(\r\n|^)1,/, '$199,'));
+    const dd = projGetData(id);
+    projFromCsv(rows, dd);
+    projSetData(id, dd);
+    projOnRender(id);
+}, [toolId, titleCsv]);
+await page.waitForTimeout(450);
+ok('and reads past both on the way back in, since a stale one would be a lie',
+    (await titleOf('n-two-a')) === 'Construction - Review' &&
+    !(await page.evaluate(() => document.body.innerText.includes('Nonsense - From'))),
+    await titleOf('n-two-a'));
+
+// 14f. Three levels, which is what a project, its tasks and their sub-tasks are.
+// There is no plan-level anything: the project is the outermost row, and everything
+// a plan needs — its dates, its work, its deadline, its slack — is the roll-up that
+// a parent row already does.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.rows = [
+        { id: 'd-top', cells: { item: 'Atlas', size: '', pct: 0, deps: [], links: [] } },
+        { id: 'd-mid', parent: 'd-top', cells: { item: 'Build', size: '', pct: 0, deps: [], links: [] } },
+        { id: 'd-low', parent: 'd-mid', cells: { item: 'Schema', size: 'M', pct: 0, deps: [], links: [] } },
+        { id: 'd-other', cells: { item: 'Elsewhere', size: 'S', pct: 0, deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(500);
+
+const depthOf = (rowId) => page.evaluate(([id, r]) => {
+    const dd = projGetData(id);
+    return projRowDepth(dd, dd.rows.find(x => x.id === r));
+}, [toolId, rowId]);
+const numberOfRow = (rowId) => page.evaluate((r) => {
+    const el = document.querySelector('tr[data-row="' + r + '"] .proj-num');
+    return el ? el.textContent.trim() : null;
+}, rowId);
+const titleOfRow = (rowId) => page.evaluate((r) => {
+    const el = document.querySelector('tr[data-row="' + r + '"] .proj-title-text');
+    return el ? el.textContent.trim() : null;
+}, rowId);
+
+ok('a row can sit three deep: a project, a task in it, a sub-task in that',
+    (await depthOf('d-top')) === 0 && (await depthOf('d-mid')) === 1 &&
+    (await depthOf('d-low')) === 2,
+    JSON.stringify([await depthOf('d-top'), await depthOf('d-mid'), await depthOf('d-low')]));
+ok('and the numbering goes with it', (await numberOfRow('d-low')) === '1.1.1' &&
+    (await numberOfRow('d-other')) === '2',
+    JSON.stringify([await numberOfRow('d-top'), await numberOfRow('d-mid'),
+        await numberOfRow('d-low'), await numberOfRow('d-other')]));
+ok('they are drawn in reading order rather than parents first',
+    await page.evaluate(() => [...document.querySelectorAll('.proj-table tbody tr')]
+        .map(tr => tr.getAttribute('data-row')).join(',')) === 'd-top,d-mid,d-low,d-other',
+    await page.evaluate(() => [...document.querySelectorAll('.proj-table tbody tr')]
+        .map(tr => tr.getAttribute('data-row')).join(',')));
+
+await page.click(sel('th[data-col="title"] .proj-col-folded'));
+await page.waitForTimeout(400);
+ok('the title is everything the row hangs from, outermost first',
+    (await titleOfRow('d-low')) === 'Atlas - Build - Schema', await titleOfRow('d-low'));
+ok('and a row that hangs from nothing is just itself',
+    (await titleOfRow('d-other')) === 'Elsewhere', await titleOfRow('d-other'));
+await page.fill(sel('tr[data-row="d-top"] input[data-col="item"]'), 'Atlas II');
+await page.waitForTimeout(500);
+ok('renaming the outermost row moves every title underneath it',
+    (await titleOfRow('d-low')) === 'Atlas II - Build - Schema', await titleOfRow('d-low'));
+
+// The project's own line is the roll-up a parent already does.
+ok('the project adds up the work under it, two levels down',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        return projTotalDays(dd, dd.rows.find(r => r.id === 'd-top'));
+    }, toolId) === 10,
+    String(await page.evaluate((id) => projTotalDays(projGetData(id),
+        projGetData(id).rows.find(r => r.id === 'd-top')), toolId)));
+ok('and its dates are the dates of what is under it', await page.evaluate((id) => {
+    const dd = projGetData(id);
+    const top = projRowDates(dd, dd.rows.find(r => r.id === 'd-top'));
+    const low = projRowDates(dd, dd.rows.find(r => r.id === 'd-low'));
+    return top.start === low.start && top.end === low.end;
+}, toolId));
+ok('so the chart draws it as a bracket above its own rows', await page.evaluate(() => {
+    const bar = document.querySelector('.proj-gantt-row .proj-bar-parent');
+    return !!bar && !bar.style.background;
+}));
+ok('and nothing claims to be a plan outside the table',
+    await page.evaluate(() => !document.querySelector('.proj-summary')));
+
+// Indenting steps one level at a time, and stops at the third.
+await page.click(sel('tr[data-row="d-other"] button[onclick*="projIndentRow"]'));
+await page.waitForTimeout(400);
+ok('indenting puts a row under the one above it at its own level',
+    (await depthOf('d-other')) === 1 &&
+    (await data()).rows.find(r => r.id === 'd-other').parent === 'd-top',
+    JSON.stringify((await data()).rows.find(r => r.id === 'd-other')));
+await page.click(sel('tr[data-row="d-other"] button[onclick*="projIndentRow"]'));
+await page.waitForTimeout(400);
+ok('and again puts it under its new neighbour, three deep',
+    (await depthOf('d-other')) === 2,
+    String(await depthOf('d-other')));
+ok('with no fourth level on offer, since the button is simply not there',
+    await page.evaluate(() =>
+        !document.querySelector('tr[data-row="d-other"] button[onclick*="projIndentRow"]')));
+await page.click(sel('tr[data-row="d-other"] button[onclick*="projOutdentRow"]'));
+await page.waitForTimeout(400);
+ok('out moves it one level, not all the way out',
+    (await depthOf('d-other')) === 1,
+    String(await depthOf('d-other')));
+
+// Deleting a row in the middle hands its children to what it hung from.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows = [
+        { id: 'k-top', cells: { item: 'Project', size: '', pct: 0, deps: [], links: [] } },
+        { id: 'k-mid', parent: 'k-top', cells: { item: 'Task', size: '', pct: 0, deps: [], links: [] } },
+        { id: 'k-low', parent: 'k-mid', cells: { item: 'Sub', size: 'S', pct: 0, deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+page.once('dialog', (d) => d.accept());
+await page.click(sel('tr[data-row="k-mid"] .proj-x[data-row="k-mid"]:not(.proj-nest)'));
+await page.waitForTimeout(500);
+ok('a sub-task whose task is deleted becomes a task, not suddenly a project',
+    (await data()).rows.find(r => r.id === 'k-low').parent === 'k-top',
+    JSON.stringify((await data()).rows.map(r => [r.id, r.parent])));
+
+// 14g. The view somebody picked is the view they meant. Turning your attention
+// elsewhere on the board puts an ordinary tool back to its result — a note's Markdown
+// is scaffolding you go into, and a board of half-edited notes is not what anyone
+// wants to come back to. A plan is not that: Table, Both and Chart are three ways of
+// looking at one thing, and jumping to the chart on every click elsewhere loses the
+// view that was chosen, repeatedly, for no visible reason.
+await page.evaluate(() => {
+    const id = createNoteWithTemplate('blank', { skipEditor: true });
+    const custom = loadToolCustomizations();
+    custom[id] = { ...custom[id], title: 'A note', customContent: 'Some words.' };
+    saveToolCustomizations(custom);
+    renderToolboard();
+    window.__noteId = id;
+});
+await page.waitForTimeout(700);
+
+const modeOf = (id) => page.evaluate((i) => getToolMode(i), id);
+const noteId = await page.evaluate(() => window.__noteId);
+
+await page.evaluate((id) => setToolMode(id, 'split'), toolId);
+await page.evaluate((id) => setToolMode(id, 'edit'), noteId);
+await page.waitForTimeout(400);
+ok('both tools start in the mode they were put in',
+    (await modeOf(toolId)) === 'split' && (await modeOf(noteId)) === 'edit',
+    JSON.stringify([await modeOf(toolId), await modeOf(noteId)]));
+
+// A press on the board itself, which is what "clicking away" is.
+await page.evaluate(() => {
+    const board = document.getElementById('toolboard');
+    board.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+});
+await page.waitForTimeout(500);
+ok('clicking away leaves the plan in the view it was in',
+    (await modeOf(toolId)) === 'split', await modeOf(toolId));
+ok('and still puts a note back to its finished side, which is the point of the rule',
+    (await modeOf(noteId)) === 'render', await modeOf(noteId));
+
+// Escape is the same rule by a different key.
+await page.evaluate((id) => setToolMode(id, 'edit'), toolId);
+await page.waitForTimeout(300);
+await page.click(sel('.proj-table'));
+await page.keyboard.press('Escape');
+await page.waitForTimeout(400);
+ok('and Escape in the table does not send the plan to the chart either',
+    (await modeOf(toolId)) === 'edit', await modeOf(toolId));
+await page.evaluate(() => {
+    customTools = customTools.filter(id => id !== window.__noteId);
+    saveCustomTools(customTools);
+    renderToolboard();
+});
+await page.evaluate((id) => setToolMode(id, 'split'), toolId);
+await page.waitForTimeout(500);
+
+// 14h. Nine sizes on a five-colour ramp, and a list that says what each is worth.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.sizes = { ...PROJ_DEFAULT_SIZES };
+    dd.rows = [{ id: 's-one', cells: { item: 'Sized', size: 'XXL', pct: 0, deps: [], links: [] } }];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+
+ok('the smallest sizes are worth part of a day and a day',
+    (await data()).sizes.XXXS === 0.5 && (await data()).sizes.XXS === 1,
+    JSON.stringify((await data()).sizes));
+ok('and the largest are worth a season and a year of work',
+    (await data()).sizes.XXL === 120 && (await data()).sizes.XXXL === 240,
+    JSON.stringify((await data()).sizes));
+ok('a size half a day long still counts as half a day',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        dd.rows[0].cells.size = 'XXXS';
+        return projTotalDays(dd, dd.rows[0]);
+    }, toolId) === 0.5);
+
+// Five colours, not nine: the letters are what tell XXL from XL, and a ninth step of
+// green-to-red would be a colour nobody could tell from its neighbour.
+ok('the ramp keeps its five colours rather than growing to nine',
+    await page.evaluate(() => PROJ_SIZE_RAMP.map(projSizeStep).join(',')) === '1,1,1,2,3,4,5,5,5',
+    await page.evaluate(() => PROJ_SIZE_RAMP.map(projSizeStep).join(',')));
+ok('and the five that were here first kept the colours they had',
+    await page.evaluate(() => ['XS', 'S', 'M', 'L', 'XL'].map(projSizeStep).join(',')) === '1,2,3,4,5',
+    await page.evaluate(() => ['XS', 'S', 'M', 'L', 'XL'].map(projSizeStep).join(',')));
+ok('while O and ? stay off the ramp, drawn neutral',
+    await page.evaluate(() => projSizeStep('O') === 0 && projSizeStep('?') === 0));
+
+// The days belong in the list, where a size is picked — not in the cell, which would
+// be the size table copied into every row.
+const sizeSel = sel('tr[data-row="s-one"] .proj-size-select');
+const optionText = () => page.evaluate((s) =>
+    [...document.querySelector(s).options].map(o => o.textContent).join(','), sizeSel);
+ok('a size cell reads as the size alone', (await optionText()).includes('XXL') &&
+    !(await optionText()).includes('d'), await optionText());
+await page.focus(sizeSel);
+await page.waitForTimeout(300);
+ok('and the list it opens says what each size is worth',
+    (await optionText()).includes('XXL \u00B7 120 d') &&
+    (await optionText()).includes('M \u00B7 10 d'), await optionText());
+ok('including the half day, said as a half rather than to fifteen places',
+    (await optionText()).includes('XXXS \u00B7 0.5 d'), await optionText());
+await page.evaluate((s) => document.querySelector(s).blur(), sizeSel);
+await page.waitForTimeout(300);
+ok('and it goes back to letters the moment it is not being chosen from',
+    !(await optionText()).includes('d'), await optionText());
+ok('which is what keeps the days out of the cell itself',
+    await page.evaluate((s) => {
+        const el = document.querySelector(s);
+        return el.options[el.selectedIndex].textContent.trim();
+    }, sizeSel) === 'XXL',
+    await page.evaluate((s) => {
+        const el = document.querySelector(s);
+        return el.options[el.selectedIndex].textContent.trim();
+    }, sizeSel));
 
 // 15. The ladder: each rung built from the one below, and a week that can be made of
 //     working days rather than calendar ones.
