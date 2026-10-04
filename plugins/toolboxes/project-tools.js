@@ -560,7 +560,8 @@ const PROJ_BUILTIN_COLUMNS = [
 const PROJ_COLUMN_HINTS = {
     size: 'T-shirt size. Days come from the scale above the table',
     percent: 'How much of this item is done',
-    calcTotal: 'Days of work the size implies, start to finish',
+    calcTotal: 'Days of work the size implies, start to finish \u2014 shared out ' +
+        'between the people assigned, so a second name halves it',
     calcRemaining: 'Days of work still to do',
     calcSlack: 'Calendar days between the deadline and the day this would finish ' +
         'if it started now: positive is room to spare, negative is late',
@@ -788,8 +789,8 @@ function projSeedData() {
     const today = projToday();
     const at = (days) => projFormatDate(today + days * PROJ_DAY);
     const rows = [
-        { id: 'r-discovery', cells: { item: 'Discovery', size: 'M', pct: 60, deadline: at(10), resources: 'One analyst', notes: '', links: [], deps: [] } },
-        { id: 'r-build', cells: { item: 'Build', size: 'L', pct: 0, deadline: at(45), resources: 'Two engineers', notes: '', links: [], deps: ['r-discovery'] } },
+        { id: 'r-discovery', cells: { item: 'Discovery', size: 'M', pct: 60, deadline: at(10), resources: ['John'], notes: '', links: [], deps: [] } },
+        { id: 'r-build', cells: { item: 'Build', size: 'L', pct: 0, deadline: at(45), resources: ['Jane'], notes: '', links: [], deps: ['r-discovery'] } },
         { id: 'r-launch', cells: { item: 'Launch', size: 'S', pct: 0, deadline: at(55), resources: '', notes: '', links: [], deps: ['r-build'] } }
     ];
     return {
@@ -989,11 +990,45 @@ function projOrderedRows(data) {
 // completion of its own — the inputs are shown disabled rather than hidden, so it
 // is clear they are derived rather than missing.
 
+/**
+ * How many people are on a row.
+ *
+ * Never fewer than one: an unassigned item still takes as long as it takes, and
+ * dividing by nobody would make every unstaffed task infinite. Read off the
+ * Assigned column by type rather than by id, so renaming or moving it changes
+ * nothing — and a plan with that column deleted has one assignee everywhere,
+ * which is what it meant before anyone was named.
+ */
+function projAssigneeCount(data, row) {
+    const col = data.columns.find(c => c.type === 'resources');
+    if (!col) return 1;
+    return Math.max(1, projResourcesOf(row, col.id).length);
+}
+
+/**
+ * The days this row takes, start to finish.
+ *
+ * A size is how much work there is; how long that takes depends on how many people
+ * are doing it, so the work is divided among them. Two on a thirty-day item is
+ * fifteen days, and everything downstream — what is left, the slack, the dates, the
+ * length of the bar — follows from this one number rather than each working it out
+ * again.
+ *
+ * A parent is still the sum of its children, and its own Assigned list does not
+ * divide anything: the people are on the work, and the work is underneath.
+ */
 function projTotalDays(data, row) {
     const kids = projChildren(data, row.id);
     if (kids.length) return kids.reduce((sum, k) => sum + projTotalDays(data, k), 0);
     const days = data.sizes[projCell(row, 'size')];
-    return typeof days === 'number' && isFinite(days) ? days : 0;
+    const work = typeof days === 'number' && isFinite(days) ? days : 0;
+    return work / projAssigneeCount(data, row);
+}
+
+/** Days as a number somebody can read. Three people on a ten-day item is 3.3, not
+ *  3.3333333333333335, and the tenth is kept because halves are the common case. */
+function projRoundDays(n) {
+    return Math.round(n * 10) / 10;
 }
 
 function projRemainingDays(data, row) {
@@ -1917,12 +1952,12 @@ function projCellHtml(data, row, col) {
                 ' size="' + projFieldSize(value, 4, 10) + '"' +
                 ' oninput="projOnCell(this)" value="' + escapeHtml(String(value)) + '">';
         case 'calcTotal': {
-            const total = projTotalDays(data, row);
+            const total = projRoundDays(projTotalDays(data, row));
             return '<span class="proj-calc" title="' +
                 escapeHtml(projSayDuration(total, projUnits(data))) + '">' + total + ' d</span>';
         }
         case 'calcRemaining': {
-            const rem = Math.round(projRemainingDays(data, row) * 10) / 10;
+            const rem = projRoundDays(projRemainingDays(data, row));
             return '<span class="proj-calc" title="' +
                 escapeHtml(projSayDuration(rem, projUnits(data))) + '">' + rem + ' d</span>';
         }
@@ -2328,8 +2363,8 @@ function projCsvParse(text) {
 /** What a cell looks like in a spreadsheet, which is not always what it is here. */
 function projCsvValue(data, row, col) {
     switch (col.type) {
-        case 'calcTotal': return projTotalDays(data, row);
-        case 'calcRemaining': return Math.round(projRemainingDays(data, row) * 10) / 10;
+        case 'calcTotal': return projRoundDays(projTotalDays(data, row));
+        case 'calcRemaining': return projRoundDays(projRemainingDays(data, row));
         case 'calcSlack': {
             const slack = projSlackDays(data, row);
             return slack === null ? '' : slack;

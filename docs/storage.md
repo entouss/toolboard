@@ -360,9 +360,22 @@ is still in the plan and still counts towards a parent's roll-up, it is just not
 anybody is looking for, and it comes back to full strength under the pointer or while
 it is being edited.
 
+**Work is divided among the people on it.** A size says how much work there is;
+how long that takes depends on how many are doing it, so Total is the size's days
+over the length of the Assigned list — two names on a thirty-day item is fifteen
+days, and what is left, the slack, the dates and the length of the bar all follow
+from that one number rather than each working it out again. The count never falls
+below one: an unassigned item still takes as long as it takes, and dividing by
+nobody would make every unstaffed row infinite. The list is found by column
+**type** rather than id, so renaming or moving Assigned changes nothing and
+deleting it means one assignee everywhere — which is what the table meant before
+anyone could be named. A parent divides nothing by its own list: it is the sum of
+its children, and the people are on the work underneath. Days print to a tenth,
+because three people on a ten-day item is 3.3 and not 3.3333333333333335.
+
 Nothing is computed into storage. Total Days, Remaining Days and the slack are
-derived on every render from `sizes`, the completion and the deadline, so editing
-the size table moves every row that uses that size. **Deleting a column removes the
+derived on every render from `sizes`, the Assigned list, the completion and the
+deadline, so editing the size table moves every row that uses that size. **Deleting a column removes the
 column, not the values under it** — put the column back and what was there is still
 there, and a calculation goes on reading the cell whether or not a column is showing
 it.

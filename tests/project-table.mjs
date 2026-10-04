@@ -1691,6 +1691,79 @@ ok('and Export CSV downloads a file that starts with the headings',
 ok('with a BOM, so Excel does not mangle anything non-ASCII', saved.charCodeAt(0) === 0xFEFF,
     String(saved.charCodeAt(0)));
 
+// 14d. Work is shared between the people on it. A size says how much work there is;
+// how long that takes depends on how many are doing it, so the two are not the same
+// number and the table has to say which it is showing.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.sizes = { ...dd.sizes, M: 10, L: 30 };
+    dd.rows = [
+        { id: 'r-solo', cells: { item: 'Alone', size: 'L', pct: 0, resources: ['Robin'], deps: [], links: [] } },
+        { id: 'r-pair', cells: { item: 'A pair', size: 'L', pct: 0, resources: ['Robin', 'Sam'], deps: [], links: [] } },
+        { id: 'r-three', cells: { item: 'Three', size: 'M', pct: 0, resources: ['Robin', 'Sam', 'Ash'], deps: [], links: [] } },
+        { id: 'r-nobody', cells: { item: 'Nobody', size: 'L', pct: 0, resources: [], deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+
+// The calculated cells of one row, in column order: Total, Left, Slack. A td does
+// not carry its column, so they are read by position as everywhere else here.
+const calcIn = (rowId) => page.evaluate((r) =>
+    [...document.querySelectorAll('tr[data-row="' + r + '"] .proj-calc')]
+        .map(c => c.textContent.trim()), rowId);
+const totalOf = async (rowId) => (await calcIn(rowId))[0];
+const leftOf = async (rowId) => (await calcIn(rowId))[1];
+
+ok('one person on a thirty-day item takes thirty days',
+    (await totalOf('r-solo')) === '30 d', await totalOf('r-solo'));
+ok('two of them takes half as long', (await totalOf('r-pair')) === '15 d',
+    await totalOf('r-pair'));
+ok('and a third of a ten-day item is said to a tenth, not to fifteen places',
+    (await totalOf('r-three')) === '3.3 d', await totalOf('r-three'));
+ok('an item nobody is on still takes as long as it takes',
+    (await totalOf('r-nobody')) === '30 d', await totalOf('r-nobody'));
+ok('what is left halves with it, since it is the same work',
+    (await leftOf('r-pair')) === '15 d', await leftOf('r-pair'));
+
+// The schedule is downstream of that one number, so the bar has to shorten with it.
+const spanOf = (rowId) => page.evaluate((r) => {
+    const id = document.querySelector('.proj-widget').closest('.tool').getAttribute('data-tool');
+    const d = projGetData(id);
+    const row = d.rows.find(x => x.id === r);
+    const dates = projRowDates(d, row);
+    return (projParseDate(dates.end) - projParseDate(dates.start)) / 86400000;
+}, rowId);
+ok('and the dates cover the days it now takes, not the days of work in it',
+    (await spanOf('r-pair')) < (await spanOf('r-solo')),
+    JSON.stringify([await spanOf('r-solo'), await spanOf('r-pair')]));
+
+// Adding somebody through the chips is how this is actually reached.
+await page.click(sel('tr[data-row="r-solo"] .proj-chips:has(.proj-res-select) .proj-pick-add'));
+await page.waitForTimeout(250);
+await page.selectOption(sel('tr[data-row="r-solo"] .proj-res-select'), 'Sam');
+await page.waitForTimeout(500);
+ok('putting a second name on a row halves it there and then',
+    (await totalOf('r-solo')) === '15 d', await totalOf('r-solo'));
+
+// A parent is the sum of what is underneath, and its own list divides nothing: the
+// people are on the work, and the work is in the children.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows = [
+        { id: 'p-top', cells: { item: 'Parent', size: '', pct: 0, resources: ['Robin', 'Sam', 'Ash'], deps: [], links: [] } },
+        { id: 'p-a', parent: 'p-top', cells: { item: 'One', size: 'L', pct: 0, resources: ['Robin', 'Sam'], deps: [], links: [] } },
+        { id: 'p-b', parent: 'p-top', cells: { item: 'Two', size: 'L', pct: 0, resources: ['Ash'], deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+ok('a parent adds up what its children now take, and its own names divide nothing',
+    (await totalOf('p-top')) === '45 d', await totalOf('p-top'));
+
 // 15. The ladder: each rung built from the one below, and a week that can be made of
 //     working days rather than calendar ones.
 //
