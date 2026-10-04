@@ -245,6 +245,18 @@ header h1 {
     background: rgba(255,255,255,0.3);
 }
 
+/* Undo and redo are the two header buttons that are often not available. They
+   stay in place rather than disappearing, so the row does not move under the
+   cursor between one edit and the next. */
+.header-settings-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.header-settings-btn:disabled:hover {
+    background: rgba(255,255,255,0.2);
+}
+
 .toolboard-settings {
     position: absolute;
     top: 100%;
@@ -3650,6 +3662,8 @@ tr:hover {
             <button id="boardSelectorTrigger" class="board-selector-trigger" title="Manage Boards"></button>
         </div>
         <div class="header-section header-section-notes">
+            <button id="undoBtn" class="header-settings-btn" title="Undo (Ctrl+Z)" disabled>&#8630;</button>
+            <button id="redoBtn" class="header-settings-btn" title="Redo (Ctrl+Shift+Z)" disabled>&#8631;</button>
             <button id="addToolBtn" class="header-settings-btn" title="Add Tool">+</button>
             <button id="minimizeAllBtn" class="header-settings-btn" title="Minimize/Maximize All">&#8211;</button>
             <button id="allToolsSettingsBtn" class="header-settings-btn" title="Settings for All Tools">&#8942;</button>
@@ -4912,8 +4926,139 @@ function loadVariables() {
 
 // Save variables to localStorage
 function saveVariables(variables) {
-    localStorage.setItem(boardKey('variables'), JSON.stringify(variables));
+    trackedSave('variables', variables);
+}
+
+
+// ============================================================
+// Undo / redo
+//
+// Every piece of a board — where the tools are, what is in them, which exist, the
+// board's own settings — reaches localStorage through one of the save functions
+// below, so undo listens *there* rather than in each tool. A plugin that stores its
+// state the ordinary way gets undo without knowing this exists, and a tool written
+// tomorrow gets it too.
+//
+// A step is one key's text before and after a write. Restoring writes the old text
+// back and reloads the board from storage: nothing is replayed, nothing is inverted,
+// so there is no operation that can be inverted wrongly.
+//
+// Deliberately not kept: history does not survive a reload. It would have to live in
+// the same localStorage it is protecting, it would grow without a natural end, and
+// "undo something from last Tuesday" is not a promise this can keep.
+// ============================================================
+
+const UNDO_LIMIT = 50;
+// One keystroke is not one undo. Writes to the same key inside this window are the
+// same edit — which is also what turns a drag that saves on every mousemove, and a
+// typed sentence, into one step.
+const UNDO_MERGE_MS = 600;
+// Rendering a restored board can write back on its own — a tool that auto-fits its
+// window, say — and those writes arrive a frame or two later. They are the restore
+// finishing, not a new edit, so the gate stays shut a moment longer than the call.
+const UNDO_SETTLE_MS = 400;
+
+const UNDO_LABELS = {
+    toolCustomizations: 'tool contents',
+    positions: 'the layout',
+    customTools: 'the tools',
+    hiddenTools: 'the tools',
+    variables: 'the variables',
+    toolboardSettings: 'the board settings',
+    linkedSources: 'the linked sources'
+};
+
+// One history per board, in memory. Switching boards puts the other board's history
+// aside rather than throwing it away, and never mixes the two.
+const undoHistories = {};
+let undoRestoring = false;
+let undoSettleTimer = null;
+
+function undoHistory() {
+    if (!undoHistories[currentBoardId]) undoHistories[currentBoardId] = { undo: [], redo: [] };
+    return undoHistories[currentBoardId];
+}
+
+/**
+ * Write one board key, and remember what was there.
+ *
+ * `value === undefined` means remove the key, which is what the reset functions do.
+ * A write that changes nothing records nothing: saves fire on plenty of occasions
+ * where the user did not actually change anything, and each one would otherwise cost
+ * a press of Ctrl+Z that appears to do nothing.
+ */
+function trackedSave(key, value) {
+    const full = boardKey(key);
+    const before = localStorage.getItem(full);
+    const after = value === undefined ? null : JSON.stringify(value);
+    if (after === null) localStorage.removeItem(full);
+    else localStorage.setItem(full, after);
+    if (before !== after) undoRecord(key, before, after);
     updateStorageIndicator();
+}
+
+function undoRecord(key, before, after) {
+    if (undoRestoring) return;
+    const history = undoHistory();
+    const now = Date.now();
+    const top = history.undo[history.undo.length - 1];
+    if (top && top.key === key && now - top.at < UNDO_MERGE_MS) {
+        top.after = after;
+        top.at = now;
+    } else {
+        history.undo.push({ key: key, before: before, after: after, at: now,
+            label: UNDO_LABELS[key] || key });
+        if (history.undo.length > UNDO_LIMIT) history.undo.shift();
+    }
+    // A new edit is a new future: whatever was undone is no longer ahead of us.
+    history.redo.length = 0;
+    updateUndoButtons();
+}
+
+function undoWrite(key, raw) {
+    const full = boardKey(key);
+    if (raw === null) localStorage.removeItem(full);
+    else localStorage.setItem(full, raw);
+}
+
+function undoStep(direction) {
+    const history = undoHistory();
+    const from = direction === 'undo' ? history.undo : history.redo;
+    const onto = direction === 'undo' ? history.redo : history.undo;
+    const step = from.pop();
+    if (!step) return false;
+
+    undoRestoring = true;
+    clearTimeout(undoSettleTimer);
+    try {
+        undoWrite(step.key, direction === 'undo' ? step.before : step.after);
+        reloadBoardState();
+    } finally {
+        undoSettleTimer = setTimeout(() => { undoRestoring = false; }, UNDO_SETTLE_MS);
+    }
+
+    onto.push(step);
+    updateUndoButtons();
+    showToolToast((direction === 'undo' ? 'Undid ' : 'Redid ') + step.label);
+    return true;
+}
+
+function undoLast() { return undoStep('undo'); }
+function redoLast() { return undoStep('redo'); }
+
+function updateUndoButtons() {
+    const history = undoHistory();
+    const pairs = [
+        ['undoBtn', history.undo, 'Undo', 'Nothing to undo', 'Ctrl+Z'],
+        ['redoBtn', history.redo, 'Redo', 'Nothing to redo', 'Ctrl+Shift+Z']
+    ];
+    pairs.forEach(([id, stack, verb, empty, keys]) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        const top = stack[stack.length - 1];
+        btn.disabled = !top;
+        btn.title = top ? verb + ' ' + top.label + ' (' + keys + ')' : empty;
+    });
 }
 
 // Load tool positions from localStorage or use defaults
@@ -4932,20 +5077,17 @@ function loadPositions() {
 
 // Save tool positions to localStorage
 function savePositions(positions) {
-    localStorage.setItem(boardKey('positions'), JSON.stringify(positions));
-    updateStorageIndicator();
+    trackedSave('positions', positions);
 }
 
 // Reset everything
 function resetVariables() {
-    localStorage.removeItem(boardKey('variables'));
-    updateStorageIndicator();
+    trackedSave('variables', undefined);
     return DEFAULT_VARIABLES;
 }
 
 function resetPositions() {
-    localStorage.removeItem(boardKey('positions'));
-    updateStorageIndicator();
+    trackedSave('positions', undefined);
     return { ...generateDefaultPositions() };
 }
 
@@ -7342,8 +7484,7 @@ function loadToolboardSettings() {
 }
 
 function saveToolboardSettings(settings) {
-    localStorage.setItem(boardKey('toolboardSettings'), JSON.stringify(settings));
-    updateStorageIndicator();
+    trackedSave('toolboardSettings', settings);
 }
 
 let toolboardSettings = loadToolboardSettings();
@@ -7835,10 +7976,9 @@ function loadToolCustomizations() {
 
 // Save tool customizations
 function saveToolCustomizations(customizations) {
-    localStorage.setItem(boardKey('toolCustomizations'), JSON.stringify(customizations));
+    trackedSave('toolCustomizations', customizations);
     // Keep the global in sync so stale-global saves don't overwrite fresh-load saves
     toolCustomizations = customizations;
-    updateStorageIndicator();
 }
 
 // Custom tools storage
@@ -7859,8 +7999,7 @@ function loadLinkedSources() {
 }
 
 function saveLinkedSources(sources) {
-    localStorage.setItem(boardKey('linkedSources'), JSON.stringify(sources));
-    updateStorageIndicator();
+    trackedSave('linkedSources', sources);
 }
 
 function loadCustomTools() {
@@ -7876,8 +8015,7 @@ function loadCustomTools() {
 }
 
 function saveCustomTools(tools) {
-    localStorage.setItem(boardKey('customTools'), JSON.stringify(tools));
-    updateStorageIndicator();
+    trackedSave('customTools', tools);
 }
 
 // Hidden tools storage (for built-in tools that have been deleted)
@@ -7894,8 +8032,7 @@ function loadHiddenTools() {
 }
 
 function saveHiddenTools(tools) {
-    localStorage.setItem(boardKey('hiddenTools'), JSON.stringify(tools));
-    updateStorageIndicator();
+    trackedSave('hiddenTools', tools);
 }
 
 let toolCustomizations = loadToolCustomizations();
@@ -11712,6 +11849,10 @@ function importBoards(data) {
 }
 
 function setupButtons() {
+    document.getElementById('undoBtn').onclick = undoLast;
+    document.getElementById('redoBtn').onclick = redoLast;
+    updateUndoButtons();
+
     document.getElementById('addToolBtn').onclick = addNewNote;
 
     // Minimize/Maximize all
@@ -12222,6 +12363,23 @@ function setupToolSelection() {
     // Copy / cut / paste tools. Deliberately yields to normal text editing: if the
     // caret is in a field or the user has highlighted text, the browser's own
     // clipboard behaviour wins.
+    // Undo and redo. Inside a text field the browser's own undo is the right one —
+    // it knows about the characters, this only knows about saved state — so the
+    // board's undo stays out of the way until the focus is back on the board.
+    document.addEventListener('keydown', (e) => {
+        if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+        const key = (e.key || '').toLowerCase();
+        if (key !== 'z' && key !== 'y') return;
+
+        const el = document.activeElement;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+        if (document.querySelector('.modal.open')) return;
+
+        e.preventDefault();
+        if (key === 'y' || e.shiftKey) redoLast();
+        else undoLast();
+    });
+
     document.addEventListener('keydown', (e) => {
         if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
         const key = (e.key || '').toLowerCase();
@@ -12958,13 +13116,15 @@ function createNewBoard() {
     setTimeout(createNewBoardInline, 50);
 }
 
-function switchToBoard(boardId) {
-    if (boardId === currentBoardId) return;
-
-    currentBoardId = boardId;
-    setCurrentBoardId(boardId);
-
-    // Reload all board-specific data
+/**
+ * Read the whole board back out of storage and draw it.
+ *
+ * Every global here caches a localStorage key, so anything that changes those keys
+ * behind the globals' backs — switching board, undoing an edit — has to come through
+ * here or the screen and the storage disagree. One function, so there is one answer
+ * to "what does a board being loaded consist of".
+ */
+function reloadBoardState() {
     variables = loadVariables();
     positions = loadPositions();
     toolCustomizations = loadToolCustomizations();
@@ -12973,6 +13133,17 @@ function switchToBoard(boardId) {
     toolboardSettings = loadToolboardSettings();
     linkedSources = loadLinkedSources();
     maxZ = Math.max(...Object.values(positions).map(p => p.z || 1), 1);
+
+    applyToolboardSettings();
+    renderToolboard();
+    updateUndoButtons();
+}
+
+function switchToBoard(boardId) {
+    if (boardId === currentBoardId) return;
+
+    currentBoardId = boardId;
+    setCurrentBoardId(boardId);
 
     // Update URL hash to board name
     const board = boards.find(b => b.id === boardId);
@@ -12985,10 +13156,9 @@ function switchToBoard(boardId) {
     clearToolSelection();
     closeBoardManager();
 
-    // Update UI
+    // Update UI. The history belongs to the board, so the buttons change with it.
     updateBoardSelectorLabel();
-    applyToolboardSettings();
-    renderToolboard();
+    reloadBoardState();
     syncLinkedSources();
 }
 

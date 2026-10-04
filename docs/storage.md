@@ -12,6 +12,48 @@ All data is board-scoped via `boardKey(key)` → `finance_${currentBoardId}_${ke
 - `variables` — user-defined variables
 - `linkedSources` — URLs this board loads tools from, and what each one placed
 
+Every one of them is written through `trackedSave(key, value)` rather than through
+`localStorage.setItem` directly, which is what gives the board undo — see below.
+Passing `undefined` removes the key, which is what the reset functions do.
+
+### Undo and redo
+
+Undo lives in the storage layer, not in any tool. A board is made of the keys above,
+all of them written by one of the save functions, so **a plugin that stores its state
+the ordinary way gets undo without knowing undo exists** — including one written
+after this was.
+
+A step is one key's text before and after a write:
+
+```js
+{ key: 'toolCustomizations', before: '<json or null>', after: '<json>',
+  at: 1760000000000, label: 'tool contents' }
+```
+
+Restoring writes the old text back and calls `reloadBoardState()`, which re-reads
+every global that caches a key and redraws. Nothing is replayed and nothing is
+inverted, so there is no operation that can be inverted wrongly — the cost is that a
+restore is a full re-render, the same as switching board.
+
+Four rules carry the behaviour:
+
+| Rule | Why |
+| --- | --- |
+| Writes to the same key within `UNDO_MERGE_MS` (600) merge into one step | A save fires per keystroke and per mousemove. Without this, one press of Ctrl+Z gives back one character |
+| A write that changes nothing records nothing | Saves fire on plenty of occasions where nothing was edited, and each would cost a press that appears to do nothing |
+| A new edit empties the redo stack | There is one future, and it is the one just taken |
+| `UNDO_LIMIT` (50) steps, in memory, per board | History would otherwise live in the same localStorage it is protecting, and grow without an end. Switching boards sets the other board's history aside rather than merging or clearing it |
+
+**Ctrl+Z inside a text field is the text field's.** The browser's undo knows about
+characters; this one only knows about saved state, so the board's undo stays out of
+the way until focus is back on the board. Same guard as cut/copy/paste, which this
+sits beside.
+
+A restore can provoke writes of its own — a tool that auto-fits its window on being
+drawn — and those arrive a frame or two later. `UNDO_SETTLE_MS` (400) keeps the
+recorder shut that much longer than the call, so the restore finishing is not filed
+as a new edit.
+
 ### Placement guides
 
 `toolboardSettings` carries the two guides a board is laid out against:
