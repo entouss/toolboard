@@ -18,4 +18,5 @@ Each toolbox file follows this pattern in order:
 - `plugins/toolboxes/finance-tools.js` — Investment Calculator, Tax Calculator, Loan Calculator
 - `plugins/toolboxes/creative-tools.js` — Color Picker, Drawing Canvas, Emoticon Picker, Family Tree, Image Viewer
 - `plugins/toolboxes/educational-tools.js` — Analog Clock, Money Counter, World Map
+- `plugins/toolboxes/project-tools.js` — Project Table (T-shirt sizing, deadlines, and the Gantt chart they imply)
 - `plugins/toolboxes/school-tools.js` — Curriculum Builder, Curriculum Doctor, Curriculum Explorer
