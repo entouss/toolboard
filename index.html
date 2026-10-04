@@ -4285,7 +4285,15 @@ function normalizeAuthoring(declared) {
         result: declared.result || null,
         actions: declared.actions || null,
         onRender: declared.onRender || null,
-        doubleClickToEdit: declared.doubleClickToEdit !== false
+        doubleClickToEdit: declared.doubleClickToEdit !== false,
+        // Whether looking away puts this tool back to its result. True for anything
+        // whose source is scaffolding you go into — a note's Markdown, a diagram's
+        // text. False where the modes are three ways of looking at one thing and
+        // none of them is "the source": a plan's table is not a draft of its chart,
+        // and a table that jumped to the chart whenever you clicked elsewhere on the
+        // board would be losing the view you chose, repeatedly, for no reason you
+        // could see.
+        settle: declared.settle !== false
     };
 }
 
@@ -7310,6 +7318,7 @@ function setupContentEditor() {
         const toolId = tool.getAttribute('data-tool');
         const authoring = getAuthoring(toolId);
         if (!authoring) return;
+        if (!authoring.settle) return;
         const mode = getToolMode(toolId);
         if (mode !== 'edit' && mode !== 'split') return;
         e.preventDefault();
@@ -7332,7 +7341,7 @@ function setupContentEditor() {
             if (tool === from) return;
             const id = tool.getAttribute('data-tool');
             const decl = getAuthoring(id);
-            if (decl) setToolMode(id, authoringResultMode(id, decl));
+            if (decl && decl.settle) setToolMode(id, authoringResultMode(id, decl));
         });
     });
 }
