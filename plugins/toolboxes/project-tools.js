@@ -1187,9 +1187,31 @@ function projPercent(data, row) {
 function projSlackDays(data, row) {
     const deadline = projParseDate(projCell(row, 'deadline'));
     if (deadline === null) return null;
-    // The finish is a calendar date, so the working week is what turns days of work
-    // into one: ten days' work started today does not finish a week on Tuesday.
-    const finish = projToday() + projFinishOffset(projRemainingDays(data, row), projUnits(data)) * PROJ_DAY;
+    const units = projUnits(data);
+
+    // A parent has no work of its own. Its days are its children's, and those run in
+    // whatever order and whatever parallel the plan puts them in — which is exactly
+    // what its own End already says. Adding its children's days up and laying them
+    // end to end from today assumes one person doing all of it in sequence, and a
+    // project of two streams that each fit comfortably then reads as badly late: the
+    // table showed an End of 11-11 against a deadline of 11-30 and called it eleven
+    // days over.
+    if (projIsParent(data, row)) {
+        const end = projParseDate(projRowDates(data, row).end);
+        return end === null ? null : Math.round((deadline - end) / PROJ_DAY);
+    }
+
+    const left = projRemainingDays(data, row);
+    // The day the work is still being done on, which is the date the End column
+    // shows — not the day after it. `projFinishOffset` answers "how long is this
+    // stretch", and a stretch's length is one more than its last day; measuring the
+    // deadline against that made a row finishing exactly on its deadline a day late,
+    // and every row in a plan that just fits read as late by one.
+    //
+    // The working week is what turns days of work into a date: ten days' work
+    // started today does not finish a week on Tuesday.
+    const lastDay = left > 0 ? projNthWorkdayOffset(Math.ceil(left) - 1, units) : 0;
+    const finish = projToday() + lastDay * PROJ_DAY;
     return Math.round((deadline - finish) / PROJ_DAY);
 }
 
@@ -2422,7 +2444,11 @@ function projRenderGantt(widget, data) {
         const paint = band ? 'var(--proj-' + band.role + ')' : 'var(--proj-size-0)';
         const d = deadlineOffset(row);
         const finish = cal.end;
-        const missed = d !== null && finish > d;
+        // The last day the bar covers, for the same reason: `cal.end` is where the
+        // bar stops, which is the day after the work, and a deadline names a day the
+        // work is allowed to be happening on. Nothing left is never missed — the
+        // work is done, and a done row draws a dot rather than a bar.
+        const missed = d !== null && s.days > 0 && finish - 1 > d;
 
         // A finished item has no remaining work and so no bar. It becomes a marker
         // rather than nothing, because "done" and "not in the plan" are different.

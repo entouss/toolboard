@@ -598,7 +598,22 @@ span its children occupy, drawn as a bracket rather than a block — its own day
 theirs, and a solid bar would count them twice. The Slack column
 keeps measuring from today, so the two can disagree for a dependent item — the
 chart's deadline marker turns red where the order of work overshoots, which is where
-that disagreement becomes visible. A dependency loop is detected rather than
+that disagreement becomes visible.
+
+**A parent is measured against the span it occupies**, not against its children's
+days laid end to end. It has no work of its own: its days are theirs, and theirs run
+in whatever order and whatever parallel the plan puts them in — which is what its own
+End already says. Adding them up and starting from today assumes one person doing all
+of it in sequence, so a project of two streams that each fit comfortably read as
+badly late, with the answer contradicting the End date on the same row. A leaf still
+answers the question a leaf is asked: its own work, from today.
+
+**A deadline names a day the work is allowed to be happening on**, so both the Slack
+column and the chart's missed marker measure to the **last day the work occupies** —
+the date the End column shows — and not to the day after it. Measuring to the day
+after is what `projFinishOffset()` answers, because the length of a stretch is one
+more than its last day, and using it here made a row that finished exactly on its
+deadline read as a day late. In a plan that just fits, that was every row. A dependency loop is detected rather than
 followed; those rows are drawn from today and the chart says so.
 
 ### Curriculum Explorer — a record of schools

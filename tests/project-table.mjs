@@ -149,18 +149,45 @@ const slackFor = async (deadlineDays) => {
     });
     return cell;
 };
+// Ten days of work starting today occupies days 0 to 9, so it is still being worked
+// on day 9 and the deadlines below are counted against that day — not against day
+// 10, which is the day *after* the work and the day this used to measure to.
 let slack = await slackFor(30);
 ok('a deadline well past the finish is comfortable, and says so',
-    slack.text === '✓ +20 d' && /proj-good/.test(slack.color), JSON.stringify(slack));
-slack = await slackFor(13);
+    slack.text === '✓ +21 d' && /proj-good/.test(slack.color), JSON.stringify(slack));
+slack = await slackFor(12);
 ok('three days spare is a warning', slack.text === '▲ +3 d' && /proj-warning/.test(slack.color), JSON.stringify(slack));
-slack = await slackFor(11);
+slack = await slackFor(10);
 ok('one day spare is more serious', slack.text === '▲ +1 d' && /proj-serious/.test(slack.color), JSON.stringify(slack));
 slack = await slackFor(4);
 ok('and a deadline before the finish is critical, with the shortfall named',
-    slack.text === '● -6 d' && /proj-critical/.test(slack.color), JSON.stringify(slack));
+    slack.text === '● -5 d' && /proj-critical/.test(slack.color), JSON.stringify(slack));
 ok('the colour never carries it alone — there is a mark and a number either way',
     /^[●▲✓] [+-]?\d+ d$/.test(slack.text), slack.text);
+
+// The one that was wrong, and the reason the numbers above moved by a day. A
+// deadline names a day the work is allowed to be happening on, so a row that is
+// still being worked on that day has met it with nothing to spare — it is not a day
+// late, which is what every row in a plan that exactly fits used to read as.
+slack = await slackFor(9);
+ok('a row that finishes on the day it is due has no room, and is not late',
+    slack.text === '▲ 0 d' && /proj-serious/.test(slack.color), JSON.stringify(slack));
+ok('and the Slack column agrees with the End column about which day that is',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        const row = dd.rows[0];
+        const end = projParseDate(projRowDates(dd, row).end);
+        const due = projParseDate(projCell(row, 'deadline'));
+        return projSlackDays(dd, row) === Math.round((due - end) / PROJ_DAY);
+    }, toolId));
+ok('and the chart does not mark that deadline as missed either',
+    await page.evaluate(() => !document.querySelector('.proj-deadline.proj-missed')),
+    await page.evaluate(() => document.querySelectorAll('.proj-deadline.proj-missed').length + ' missed'));
+slack = await slackFor(8);
+ok('while a day earlier than that really is a day late',
+    slack.text === '● -1 d' && /proj-critical/.test(slack.color), JSON.stringify(slack));
+ok('and the chart marks that one', await page.evaluate(() =>
+    !!document.querySelector('.proj-deadline.proj-missed')));
 
 await setCell(0, 'deadline', '');
 ok('and no deadline reads as nothing rather than as late', (await calcText(0))[2] === '—', (await calcText(0))[2]);
@@ -410,7 +437,7 @@ ok('a deadline the sequence overshoots is marked on the chart',
     await page.evaluate(() => document.querySelectorAll('.proj-deadline.proj-missed').length) === 1,
     String(await page.evaluate(() => document.querySelectorAll('.proj-deadline.proj-missed').length)));
 ok('while the Slack column still answers for the item on its own',
-    (await calcText(1))[2] === '▲ +2 d', (await calcText(1))[2]);
+    (await calcText(1))[2] === '▲ +3 d', (await calcText(1))[2]);
 
 // A finished row has no bar to draw, and must not simply vanish.
 await page.evaluate((id) => {
@@ -2137,6 +2164,80 @@ ok('which is what keeps the days out of the cell itself',
         const el = document.querySelector(s);
         return el.options[el.selectedIndex].textContent.trim();
     }, sizeSel));
+
+// 14i. A parent's slack is the span it occupies, not its children's days in a line.
+// Two streams that each fit comfortably used to make a project read as badly late:
+// the days underneath were added up and laid end to end from today, as though one
+// person were doing all of it in sequence, and the answer contradicted the End date
+// on the very same row.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.sizes = { ...PROJ_DEFAULT_SIZES };
+    const day = 86400000, t = projToday();
+    const iso = (n) => projFormatDate(t + n * day);
+    dd.rows = [
+        // Thirty days of work in each of two streams, running side by side: thirty
+        // days of calendar, sixty days of work.
+        { id: 'par-top', cells: { item: 'Project', size: '', pct: 0, deadline: iso(45), deps: [], links: [] } },
+        { id: 'par-a', parent: 'par-top', cells: { item: 'One stream', size: 'L', pct: 0, deps: [], links: [] } },
+        { id: 'par-b', parent: 'par-top', cells: { item: 'The other', size: 'L', pct: 0, deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(500);
+
+const parentFacts = () => page.evaluate((id) => {
+    const dd = projGetData(id);
+    const row = dd.rows.find(r => r.id === 'par-top');
+    const dates = projRowDates(dd, row);
+    return {
+        end: dates.end,
+        due: projCell(row, 'deadline'),
+        left: projRemainingDays(dd, row),
+        slack: projSlackDays(dd, row),
+        byTheDates: Math.round((projParseDate(projCell(row, 'deadline')) -
+            projParseDate(dates.end)) / PROJ_DAY)
+    };
+}, toolId);
+
+ok('the two streams are sixty days of work in thirty days of calendar',
+    (await parentFacts()).left === 60 &&
+    (await page.evaluate((id) => {
+        const dd = projGetData(id);
+        const a = projRowDates(dd, dd.rows.find(r => r.id === 'par-a'));
+        const b = projRowDates(dd, dd.rows.find(r => r.id === 'par-b'));
+        return a.start === b.start && a.end === b.end;
+    }, toolId)),
+    JSON.stringify(await parentFacts()));
+ok('so the project is measured against the day it actually ends',
+    (await parentFacts()).slack === (await parentFacts()).byTheDates,
+    JSON.stringify(await parentFacts()));
+ok('which is room to spare rather than badly late',
+    (await parentFacts()).slack > 0 && (await parentFacts()).slack === 16,
+    JSON.stringify(await parentFacts()));
+ok('and the chart paints the bracket to match, rather than contradicting its own bar',
+    await page.evaluate(() => {
+        const bar = document.querySelector('.proj-gantt-row .proj-bar-parent');
+        return !!bar && /proj-good/.test(bar.style.borderColor);
+    }),
+    await page.evaluate(() => {
+        const bar = document.querySelector('.proj-gantt-row .proj-bar-parent');
+        return bar ? bar.style.borderColor : 'no bracket';
+    }));
+
+// A leaf is still asked the question a leaf is asked: its own work, from today.
+ok('a row with work of its own is still measured from today, as before',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        const row = dd.rows.find(r => r.id === 'par-a');
+        row.cells.deadline = projFormatDate(projToday() + 40 * PROJ_DAY);
+        projSetData(id, dd);
+        return projSlackDays(dd, row);
+    }, toolId) === 11,
+    String(await page.evaluate((id) => projSlackDays(projGetData(id),
+        projGetData(id).rows.find(r => r.id === 'par-a')), toolId)));
 
 // 15. The ladder: each rung built from the one below, and a week that can be made of
 //     working days rather than calendar ones.
