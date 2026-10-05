@@ -168,6 +168,7 @@ in days, which columns exist, and the rows.
                cells: { item: 'Discovery', size: 'M', pct: 60, deadline: '2026-10-12',
                         start: '', end: '',               // '' = left to the plan
                         resources: ['Robin', 'Alex'],
+                        ticket: [ { id: 'ABC-1', type: 'Bug' } ],   // type optional
                         deps: ['r-…'], links: [ { label, url } ] },
                notes: { item: 'The long version…', deadline: 'Fixed by the event' } },
              { id: 'r-…', parent: 'r-…', cells: { … } } ]
@@ -393,17 +394,35 @@ is a plan that quietly schedules work on a Saturday. UTC has no such hour. The l
 clock is read in `projToday()` and nowhere else, only to ask which calendar day it is
 for the person reading the plan.
 
-**Tickets.** A `ticket` cell holds a number — `ABC-123` — and `ticketBase` holds the
-one address the board turns numbers into links with, because writing the whole URL
-into every row is what the column exists to stop. `projTicketUrl()` is the only
-thing that builds the address: `{ticket}` anywhere in the base is replaced by the
-number, and a base without it has the number appended with exactly one slash
-between them however the base was typed. **A base that is not `http:` or `https:`
-makes no link at all, and the number is URL-encoded**, because a base is typed in
-here but a row can arrive from a CSV somebody else wrote, and `javascript:` reaching
-an `href` is how that becomes their script running on this board. The cell stays an
-input and the arrow beside it is what opens the ticket, so a cell you can edit never
-turns into a link that swallows the click.
+**Tickets.** A `ticket` cell holds a **list** — `[{ id: 'ABC-123', type: 'Bug' }, …]`
+— because a row is often tracked in two places at once, and `ticketBase` holds the
+one address the board turns numbers into links with, since writing the whole URL into
+every row is what the column exists to stop. A **type is optional** and is whatever
+somebody types; the window offers the types already in the plan, so `Bug` and `bug`
+do not quietly become two. `projTicketsOf()` is the only reader, and it takes a bare
+string as a list of one — a table stored when a row had a single number opens with
+its tickets intact and **nothing is migrated**, the same bargain the Assigned column
+makes.
+
+`projTicketUrl()` is the only thing that builds the address: `{ticket}` anywhere in
+the base is replaced by the number, `{type}` by the ticket's type — so one base can
+reach two trackers when the type is what says which — and a base without `{ticket}`
+has the number appended with exactly one slash between them however the base was
+typed. A base that asks for a type and a ticket that has none make **no link**,
+rather than an address with a hole in it. **A base that is not `http:` or `https:`
+makes no link at all, and both the number and the type are URL-encoded**, because a
+base is typed in here but a row can arrive from a CSV somebody else wrote, and
+`javascript:` reaching an `href` is how that becomes their script running on this
+board.
+
+In the cell each ticket is a chip, with the **number first and the type after it**:
+the chip is what gives way when the table is wider than the window, and of the two it
+is the number that says which ticket this is. Editing is in a window, like links and
+for the same reason — a number, a type and a cross per ticket is three things
+fighting over sixty pixels. In a spreadsheet they travel as `ABC-1 (Tech Debt);
+DEF-2`: brackets rather than a bare second word, because a type can be two words and
+`ABC-1 Tech Debt` has no honest way back. On the way in, a bracket is the type, and
+failing that a second word is, since that is what a file typed by hand will have.
 
 Columns that arrive after people already have tables are listed in
 `PROJ_LATE_COLUMNS`, each with the column it goes before, and `projAddLateColumns()`

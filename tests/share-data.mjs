@@ -237,10 +237,10 @@ ok('and the cell note that belonged to it', await c.evaluate(() => {
         (t.projectData.rows[0].notes || {}).item === 'A note that must travel');
 }));
 ok('and the board-wide settings it needs to make sense of itself', await c.evaluate(() => {
-    const a = document.querySelector('.proj-ticket a');
+    const a = document.querySelector('a.proj-ticket-chip');
     return a ? a.href : null;
 }) === 'https://tickets.example.com/browse/ABC-7',
-    await c.evaluate(() => (document.querySelector('.proj-ticket a') || {}).href));
+    await c.evaluate(() => (document.querySelector('a.proj-ticket-chip') || {}).href));
 ok('it opens maximized, like any tool link', await c.evaluate(() =>
     /fullscreen|maximized/.test((document.querySelector('.proj-widget').closest('.tool') || {}).className || '')),
     await c.evaluate(() => (document.querySelector('.proj-widget').closest('.tool') || {}).className));

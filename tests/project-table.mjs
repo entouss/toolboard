@@ -661,8 +661,9 @@ ok('and the one that compares two things says which two',
     /between the deadline and/i.test(headTitles['Slack']), headTitles['Slack']);
 ok('while renaming is still offered there', /rename/i.test(headTitles['Task']), headTitles['Task']);
 
-// 10e. Tickets. A number in a cell, an address for the board, and a link only
-//      where the two of them make one.
+// 10e. Tickets. A row can be tracked in more than one place, and each ticket can
+//      say what kind it is. The numbers are the row's, the address is the board's,
+//      and a link exists only where the two of them make one.
 await page.evaluate((id) => {
     const dd = projGetData(id);
     dd.ticketBase = '';
@@ -672,39 +673,136 @@ await page.evaluate((id) => {
 }, toolId);
 await page.waitForTimeout(500);
 
-const ticketField = sel('tr[data-row="r-tick"] [data-col="ticket"]');
-const ticketLink = () => page.evaluate((s) => {
-    const a = document.querySelector(s).parentElement.querySelector('a');
-    return a ? a.getAttribute('href') : null;
-}, ticketField);
+// The + is the only control in the cell now: two fields and a cross per ticket do
+// not fit in a column this wide, so the editing is in a window, as links are.
+const ticketPlus = sel('tr[data-row="r-tick"] button.proj-pick-add[data-col="ticket"]');
+const chips = () => page.evaluate((s) => [...document.querySelectorAll(s)].map(c => ({
+    text: c.textContent.replace(/\s+/g, ' ').trim(),
+    href: c.getAttribute('href'),
+    title: c.getAttribute('title')
+})), sel('tr[data-row="r-tick"] .proj-ticket-chip'));
+const stored = async () => (await data()).rows.find(r => r.id === 'r-tick').cells.ticket;
 
-await page.fill(ticketField, 'ABC-123');
+await page.click(ticketPlus);
 await page.waitForTimeout(300);
-ok('a ticket number with no address behind it is just text',
-    (await ticketLink()) === null, String(await ticketLink()));
+ok('the + on an empty ticket cell opens a window with a line already waiting',
+    await page.evaluate(() => {
+        const field = document.querySelector('.proj-modal .proj-modal-num');
+        return !!field && document.activeElement === field;
+    }));
+
+await page.fill('.proj-modal .proj-modal-num', 'ABC-123');
+await page.waitForTimeout(350);
+ok('a number typed in the window is in the cell before the window closes',
+    (await chips()).length === 1 && (await chips())[0].text === 'ABC-123',
+    JSON.stringify(await chips()));
+ok('and with no address behind it, it stays a chip rather than becoming a link',
+    (await chips())[0].href === null, JSON.stringify(await chips()));
+
+await page.fill('.proj-modal .proj-modal-type', 'Bug');
+await page.waitForTimeout(350);
+ok('a type is optional and sits after the number, which is the part that must survive a cut',
+    /^ABC-123\b/.test((await chips())[0].text) && /Bug/.test((await chips())[0].text),
+    JSON.stringify(await chips()));
+ok('and both of them are stored on the row, as one ticket',
+    Array.isArray(await stored()) && (await stored()).length === 1 &&
+    (await stored())[0].id === 'ABC-123' && (await stored())[0].type === 'Bug',
+    JSON.stringify(await stored()));
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(250);
 
 const baseField = sel('.proj-ticket-base');
 await page.fill(baseField, 'https://tickets.example.com/browse/');
-await page.waitForTimeout(350);
+await page.waitForTimeout(400);
 ok('setting the board\'s ticket address turns the numbers into links',
-    (await ticketLink()) === 'https://tickets.example.com/browse/ABC-123', String(await ticketLink()));
-ok('and the number itself is painted as one', await page.evaluate((s) =>
-    document.querySelector(s).classList.contains('proj-ticket-linked'), ticketField));
+    (await chips())[0].href === 'https://tickets.example.com/browse/ABC-123',
+    JSON.stringify(await chips()));
 ok('the address is kept with the plan rather than with the row',
     (await data()).ticketBase === 'https://tickets.example.com/browse/', (await data()).ticketBase);
 ok('typing the address keeps the caret in it, as every other field does',
     await page.evaluate((s) => document.activeElement === document.querySelector(s), baseField));
+ok('and the chip says where it goes, in full, however narrow the column is',
+    (await chips())[0].title === 'ABC-123 \u00B7 Bug \u2014 https://tickets.example.com/browse/ABC-123',
+    (await chips())[0].title);
 
 // A base typed with a trailing slash and one typed without are the same base.
 await page.fill(baseField, 'https://tickets.example.com/browse');
-await page.waitForTimeout(350);
+await page.waitForTimeout(400);
 ok('a missing trailing slash is not a broken link',
-    (await ticketLink()) === 'https://tickets.example.com/browse/ABC-123', String(await ticketLink()));
+    (await chips())[0].href === 'https://tickets.example.com/browse/ABC-123',
+    JSON.stringify(await chips()));
 
 await page.fill(baseField, 'https://tickets.example.com/t/{ticket}/view');
-await page.waitForTimeout(350);
+await page.waitForTimeout(400);
 ok('and a number that belongs in the middle has somewhere to go',
-    (await ticketLink()) === 'https://tickets.example.com/t/ABC-123/view', String(await ticketLink()));
+    (await chips())[0].href === 'https://tickets.example.com/t/ABC-123/view',
+    JSON.stringify(await chips()));
+
+// One board, two trackers: the type is what says which, so it can be in the address.
+await page.fill(baseField, 'https://tickets.example.com/{type}/{ticket}');
+await page.waitForTimeout(400);
+ok('a type can be part of the address, so one base can reach two trackers',
+    (await chips())[0].href === 'https://tickets.example.com/Bug/ABC-123',
+    JSON.stringify(await chips()));
+ok('and a ticket with no type makes no link from an address that needs one',
+    await page.evaluate(() =>
+        projTicketUrl({ ticketBase: 'https://t.example.com/{type}/{ticket}' }, 'ABC-1', '') === ''),
+    await page.evaluate(() =>
+        projTicketUrl({ ticketBase: 'https://t.example.com/{type}/{ticket}' }, 'ABC-1', '')));
+
+await page.fill(baseField, 'https://tickets.example.com/browse/');
+await page.waitForTimeout(400);
+
+// A second ticket on the same row: the thing a single field could not do.
+await page.click(ticketPlus);
+await page.waitForTimeout(300);
+await page.click('.proj-modal .proj-ticket-add');
+await page.waitForTimeout(250);
+await page.fill('.proj-modal .proj-modal-ticket[data-ticket="1"] .proj-modal-num', 'DEF-9');
+await page.waitForTimeout(350);
+ok('a row can be in two trackers at once, and the cell shows both',
+    (await chips()).length === 2 &&
+    (await chips())[1].href === 'https://tickets.example.com/browse/DEF-9',
+    JSON.stringify(await chips()));
+ok('a type already used in the plan is offered rather than retyped, so Bug and bug do not become two',
+    await page.evaluate(() => [...document.querySelectorAll('#proj-ticket-types option')]
+        .map(o => o.value).join(',')) === 'Bug',
+    await page.evaluate(() => [...document.querySelectorAll('#proj-ticket-types option')]
+        .map(o => o.value).join(',')));
+
+await page.click('.proj-modal .proj-modal-ticket[data-ticket="0"] .proj-x');
+await page.waitForTimeout(350);
+ok('removing one leaves the other, rather than the one that was removed',
+    (await chips()).length === 1 && (await chips())[0].text === 'DEF-9',
+    JSON.stringify(await chips()));
+await page.keyboard.press('Escape');
+await page.waitForTimeout(250);
+
+// The window opens with a line already in it, so closing one without typing must
+// not leave an empty ticket behind on the row.
+await page.click(ticketPlus);
+await page.waitForTimeout(300);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+ok('opening the window and typing nothing leaves nothing behind',
+    (await stored()).length === 1 && (await chips()).length === 1,
+    JSON.stringify(await stored()));
+
+// Stored as a single number before a row could have several. Nothing migrates it:
+// a string is read as a list of one, which is the same bargain the resources column
+// makes, and the reason an old board opens with its tickets intact.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows.find(r => r.id === 'r-tick').cells.ticket = 'LEG-1';
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+ok('a table stored when a row had one ticket still shows it, with no migration',
+    (await chips()).length === 1 &&
+    (await chips())[0].href === 'https://tickets.example.com/browse/LEG-1',
+    JSON.stringify(await chips()));
 
 ok('a base that is not a web address makes no link at all', await page.evaluate((id) =>
     projTicketUrl({ ticketBase: 'javascript:alert(1)' }, 'ABC-123') === '' &&
@@ -713,15 +811,50 @@ ok('and a ticket number cannot smuggle its own address in',
     await page.evaluate(() => projTicketUrl({ ticketBase: 'https://t.example.com/' }, '../../evil')) ===
     'https://t.example.com/..%2F..%2Fevil',
     await page.evaluate(() => projTicketUrl({ ticketBase: 'https://t.example.com/' }, '../../evil')));
+ok('nor can a type, which arrives from a file the same way a number does',
+    await page.evaluate(() => projTicketUrl(
+        { ticketBase: 'https://t.example.com/{type}/{ticket}' }, 'ABC-1', '../../evil')) ===
+    'https://t.example.com/..%2F..%2Fevil/ABC-1',
+    await page.evaluate(() => projTicketUrl(
+        { ticketBase: 'https://t.example.com/{type}/{ticket}' }, 'ABC-1', '../../evil')));
 
-await page.fill(ticketField, '');
-await page.waitForTimeout(300);
-ok('clearing the number takes the link away again', (await ticketLink()) === null, String(await ticketLink()));
-await page.fill(baseField, 'https://tickets.example.com/browse/');
-await page.fill(ticketField, 'ABC-9');
-await page.waitForTimeout(300);
-ok('and typing a new one puts it back', (await ticketLink()) === 'https://tickets.example.com/browse/ABC-9',
-    String(await ticketLink()));
+// To a spreadsheet and back. A type can be two words, so it travels in brackets —
+// `ABC-1 Tech Debt` has no honest way back.
+const ticketTrip = await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows = [{ id: 'r-trip', cells: { item: 'Trip', size: 'S', pct: 0,
+        ticket: [{ id: 'ABC-1', type: 'Tech Debt' }, { id: 'DEF-2', type: '' }],
+        deps: [], links: [] } }];
+    projSetData(id, dd);
+    const text = projToCsv(dd);
+    const col = dd.columns.findIndex(c => c.type === 'ticket');
+    const cell = projCsvParse(text)[1][col];
+    const back = projFromCsv(projCsvParse(text), dd);
+    return { cell: cell, back: back.rows[0].cells[dd.columns[col].id],
+        loose: projParseTickets('ABC-7 Bug; DEF-8') };
+}, toolId);
+ok('a spreadsheet gets every ticket on the row, each with its type after it',
+    ticketTrip.cell === 'ABC-1 (Tech Debt); DEF-2', ticketTrip.cell);
+ok('and the file comes back as the same two tickets, types and all',
+    JSON.stringify(ticketTrip.back) ===
+    JSON.stringify([{ id: 'ABC-1', type: 'Tech Debt' }, { id: 'DEF-2', type: '' }]),
+    JSON.stringify(ticketTrip.back));
+ok('a file typed by hand without the brackets is read the way it was meant',
+    JSON.stringify(ticketTrip.loose) ===
+    JSON.stringify([{ id: 'ABC-7', type: 'Bug' }, { id: 'DEF-8', type: '' }]),
+    JSON.stringify(ticketTrip.loose));
+
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows = [{ id: 'r-tick', cells: { item: 'A', size: 'S', pct: 0,
+        ticket: [{ id: 'ABC-9', type: '' }], deps: [], links: [] } }];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+ok('a number with no type is a link like any other', (await chips()).length === 1 &&
+    (await chips())[0].href === 'https://tickets.example.com/browse/ABC-9',
+    JSON.stringify(await chips()));
 
 // A table stored before the column existed gets it, once, and only once.
 const migrated = await page.evaluate((id) => {
@@ -1217,8 +1350,11 @@ ok('and the table is redrawn in the new order, not just the data',
 ok('the cells moved with their heading',
     await page.evaluate(() => {
         // One for the row's own handle, then the ID, then the two that swapped.
+        // Both of them hold chips now, so each is known by the column its own
+        // controls name rather than by what it looks like.
         const cells = document.querySelector('.proj-table tbody tr').children;
-        return !!cells[2].querySelector('.proj-chips') && !!cells[3].querySelector('.proj-ticket');
+        return !!cells[2].querySelector('[data-col="deps"]') &&
+            !!cells[3].querySelector('[data-col="ticket"]');
     }));
 ok('and nothing was lost on the way', (await colOrder()).split(',').length ===
     columnsBefore.split(',').length, await colOrder());
@@ -1369,7 +1505,8 @@ await page.waitForTimeout(300);
 ok('clicking the + is what brings the dropdown out',
     await page.evaluate(() => {
         const s = document.querySelector('tr[data-row="r-three"] .proj-dep-add');
-        const plus = document.querySelector('tr[data-row="r-three"] .proj-pick-add');
+        const plus = document.querySelector(
+            'tr[data-row="r-three"] .proj-chips:has(.proj-dep-add) .proj-pick-add');
         return !s.hidden && plus.hidden && document.activeElement === s;
     }));
 await page.selectOption(sel('tr[data-row="r-three"] .proj-dep-add'), { index: 1 });

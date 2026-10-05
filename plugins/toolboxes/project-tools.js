@@ -181,15 +181,18 @@
    get a line and the address gets most of it, which is the thing a table column
    cannot offer and the reason this is a window at all. */
 .proj-link-rows { display: flex; flex-direction: column; gap: 6px; overflow: auto; }
-.proj-modal-link { display: flex; align-items: center; gap: 6px; }
-.proj-modal-link input {
+.proj-modal-link, .proj-modal-ticket { display: flex; align-items: center; gap: 6px; }
+.proj-modal-ticket input, .proj-modal-link input {
     padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px;
     background: var(--input-bg); color: var(--text-primary); font-size: 12px; min-width: 0;
 }
-.proj-modal-link input:focus { outline: none; border-color: var(--proj-size-3); }
+.proj-modal-ticket input:focus, .proj-modal-link input:focus { outline: none; border-color: var(--proj-size-3); }
 .proj-modal-label { flex: 0 1 180px; }
 .proj-modal-url { flex: 1 1 auto; }
-.proj-modal-link a { color: var(--proj-size-3); text-decoration: none; flex: 0 0 auto; }
+/* The number leads, because it is the one that is never optional. */
+.proj-modal-num { flex: 1 1 auto; }
+.proj-modal-type { flex: 0 1 160px; }
+.proj-modal-ticket a, .proj-modal-link a { color: var(--proj-size-3); text-decoration: none; flex: 0 0 auto; }
 .proj-modal-nolink { color: var(--text-muted); opacity: 0.4; flex: 0 0 auto; cursor: default; }
 .proj-link-add { align-self: flex-start; }
 /* In the cell, a link is what it is called, and clicking it opens it. */
@@ -202,10 +205,20 @@
 .proj-link-chip:hover { text-decoration: underline; }
 .proj-link-chip.proj-link-blank { color: var(--text-muted); font-style: italic; }
 .proj-modal-hint { color: var(--text-muted); font-size: 11px; margin-right: auto; }
-.proj-ticket { display: flex; align-items: center; gap: 2px; }
-.proj-ticket a { color: var(--proj-size-3); text-decoration: none; flex: 0 0 auto; }
-.proj-ticket a:hover { text-decoration: underline; }
-.proj-ticket-input.proj-ticket-linked { color: var(--proj-size-3); text-decoration: underline; }
+/* A ticket in the cell is a chip, like everything else a row can have several of.
+   It keeps its own max-width rather than sharing the dependency chip's: what is cut
+   here is the type at the end, and the number in front of it is the part that has to
+   survive. */
+.proj-ticket-chip {
+    display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; padding: 0 5px; border-radius: 9px; font-size: 10px;
+    border: 1px solid var(--border-color); background: var(--bg-tertiary);
+    color: var(--proj-size-3); text-decoration: none;
+}
+.proj-ticket-chip:hover { text-decoration: underline; }
+/* No address behind it yet: still a ticket, just not a link. */
+.proj-ticket-chip.proj-ticket-plain { color: var(--text-secondary); }
+.proj-ticket-type { color: var(--text-muted); margin-left: 3px; }
 /* The toolbar is chrome rather than plan: a board on a wall, or in a PNG export,
    should show the table and the chart and not the buttons that built them. It fades
    in on hover like the framework's own mode bar, and keeps its space while hidden so
@@ -609,7 +622,8 @@ const PROJ_COLUMN_HINTS = {
         'renumbers it',
     title: 'Everything this row hangs from, outermost first \u2014 project, task, ' +
         'sub-task \u2014 in one line, ready to paste somewhere else',
-    ticket: 'The ticket number. It becomes a link when a ticket URL is set above',
+    ticket: 'The tickets this row is tracked in, each with a type if it needs one. ' +
+        'They become links when a ticket URL is set above',
     item: 'What has to be done',
     resources: 'Who is on it. Pick somebody already in the plan, or add a new one',
     start: 'When work starts: after whatever it depends on, unless a date is typed in',
@@ -940,18 +954,66 @@ function projColumn(data, id) {
  * appended, with exactly one slash between them however the base was typed — the
  * trailing slash is the thing nobody remembers, and it is not worth a broken link.
  *
- * http(s) only, and the number is encoded: a base is typed in by the person using
+ * `{type}` is replaced by the ticket's type, so a plan whose rows live in two
+ * trackers can still have one base: the type is what says which. A base that asks
+ * for a type and a ticket that has none make no link, rather than an address with a
+ * hole in it.
+ *
+ * http(s) only, and both parts are encoded: a base is typed in by the person using
  * the board, but a row can arrive from a CSV somebody else wrote, and `javascript:`
  * reaching an href is how that becomes their script running here.
  */
-function projTicketUrl(data, number) {
+function projTicketUrl(data, number, type) {
     const base = String((data || {}).ticketBase || '').trim();
     const id = String(number == null ? '' : number).trim();
+    const kind = String(type == null ? '' : type).trim();
     if (!base || !id) return '';
     if (!/^https?:\/\//i.test(base)) return '';
     const safe = encodeURIComponent(id);
-    if (base.indexOf('{ticket}') >= 0) return base.split('{ticket}').join(safe);
-    return base.replace(/\/+$/, '') + '/' + safe;
+    let url = base;
+    if (url.indexOf('{type}') >= 0) {
+        if (!kind) return '';
+        url = url.split('{type}').join(encodeURIComponent(kind));
+    }
+    if (url.indexOf('{ticket}') >= 0) return url.split('{ticket}').join(safe);
+    return url.replace(/\/+$/, '') + '/' + safe;
+}
+
+/**
+ * The tickets on one row, as a list of `{ id, type }`.
+ *
+ * Stored as one number before a row could point at several, so a string is read as a
+ * list of one rather than being thrown away — the same rule the resources column
+ * follows, and the reason nothing has to be migrated on load. A type is optional and
+ * comes back as '' when there is none, so callers never have to check.
+ */
+function projTicketsOf(row, colId) {
+    const v = (row.cells || {})[colId];
+    const list = Array.isArray(v) ? v : [String(v == null ? '' : v)];
+    return list.map(t => (t && typeof t === 'object')
+            ? { id: String(t.id == null ? '' : t.id).trim(), type: String(t.type == null ? '' : t.type).trim() }
+            : { id: String(t == null ? '' : t).trim(), type: '' })
+        .filter(t => t.id || t.type);
+}
+
+/** Every ticket type the plan already uses, once each and sorted. What the window
+ *  offers rather than what it allows: a type is whatever somebody types. */
+function projTicketTypes(data, colId) {
+    const seen = {};
+    data.rows.forEach(row => {
+        projTicketsOf(row, colId).forEach(t => { if (t.type) seen[t.type] = true; });
+    });
+    return Object.keys(seen).sort((a, b) => a.localeCompare(b));
+}
+
+/** The tickets on a row, as the stored list, made into one if it was a bare string.
+ *  The window writes through this, which is what turns an old cell into a new one. */
+function projTicketListOf(data, rowId, colId) {
+    const row = data.rows.find(r => r.id === rowId);
+    if (!row) return null;
+    row.cells = row.cells || {};
+    if (!Array.isArray(row.cells[colId])) row.cells[colId] = projTicketsOf(row, colId);
+    return row.cells[colId];
 }
 
 /** The resources on one row, as a list. Stored as one before it could be several, so
@@ -1841,12 +1903,13 @@ function projRenderTickets(widget, data) {
     const el = widget.querySelector('.proj-tickets');
     if (!el) return;
     const base = String(data.ticketBase || '');
-    const example = projTicketUrl(data, 'ABC-123');
+    const example = projTicketUrl(data, 'ABC-123', 'bug');
     el.innerHTML = '<span class="proj-sizes-label">Ticket link</span>' +
         '<input type="url" class="proj-ticket-base" spellcheck="false" ' +
             'placeholder="https://tickets.example.com/browse/" ' +
             'title="The address a ticket number is added to. Put {ticket} in it if the ' +
-                'number belongs somewhere other than the end." ' +
+                'number belongs somewhere other than the end, and {type} if the ticket\'s ' +
+                'type is part of the address." ' +
             'oninput="projOnTicketBase(this)" value="' + escapeHtml(base) + '">' +
         '<span class="proj-ticket-note">' +
             (example ? 'ABC-123 \u2192 ' + escapeHtml(example)
@@ -2100,15 +2163,29 @@ function projCellHtml(data, row, col) {
                 '</span></div>';
         }
         case 'ticket': {
-            const num = String(value == null ? '' : value);
-            const url = projTicketUrl(data, num);
-            return '<span class="proj-ticket">' +
-                (url ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" ' +
-                    'title="' + escapeHtml(url) + '">\u2197</a>' : '') +
-                '<input class="proj-cell-input proj-ticket-input' + (url ? ' proj-ticket-linked' : '') + '" ' +
-                    id + ' oninput="projOnCell(this)" ' +
-                    'size="' + projFieldSize(num, 6, 16) + '"' + projGrowAttrs(6, 16) + ' ' +
-                    'value="' + escapeHtml(num) + '"></span>';
+            // A row can be two tickets — the one the work is tracked in and the one
+            // it was asked for in — so this is a list, and a list in a 60px column
+            // is chips with the editing in a window, the way links already work.
+            //
+            // The number is at the front and the type after it: the cut lands on the
+            // end, and of the two it is the number that says which ticket this is.
+            const tickets = projTicketsOf(row, col.id);
+            const chips = tickets.map(t => {
+                const url = projTicketUrl(data, t.id, t.type);
+                const text = t.id || '(no number)';
+                const label = escapeHtml(text) +
+                    (t.type ? '<span class="proj-ticket-type">\u00B7 ' + escapeHtml(t.type) + '</span>' : '');
+                const title = text + (t.type ? ' \u00B7 ' + t.type : '') + (url ? ' \u2014 ' + url : '');
+                return url
+                    ? '<a class="proj-ticket-chip" href="' + escapeHtml(url) + '" target="_blank" ' +
+                        'rel="noopener" title="' + escapeHtml(title) + '">' + label + '</a>'
+                    : '<span class="proj-ticket-chip proj-ticket-plain" title="' +
+                        escapeHtml(title) + '">' + label + '</span>';
+            }).join('');
+            return '<div class="proj-chips">' + chips +
+                '<button class="proj-pick-add" onclick="projOpenTickets(this)" ' + id + ' ' +
+                    'title="' + (tickets.length ? 'Add or change tickets' : 'Add a ticket') + '">+</button>' +
+            '</div>';
         }
         case 'item': {
             // A floor rather than a preference. `size` is only what a cell would
@@ -2639,6 +2716,7 @@ function projCsvValue(data, row, col) {
         case 'start':
         case 'end': return projCell(row, col.id) || projRowDates(data, row)[col.type];
         case 'resources': return projResourcesOf(row, col.id).join('; ');
+        case 'ticket': return projTicketsOf(row, col.id).map(projCsvTicket).join('; ');
         case 'size': return projIsParent(data, row) ? projRolledSize(data, row) : projCell(row, col.id);
         case 'percent': return projPercent(data, row);
         case 'deps': {
@@ -2706,6 +2784,34 @@ function projParseLinks(text) {
     });
 }
 
+/** One ticket, as a spreadsheet should show it: the number, and its type in
+ *  brackets after it when it has one. Brackets rather than a bare second word — a
+ *  type can be two words, and `ABC-1 Tech Debt` has no honest way back. */
+function projCsvTicket(ticket) {
+    const id = String((ticket || {}).id || '').trim();
+    const type = String((ticket || {}).type || '').trim();
+    if (!id) return type ? '(' + type + ')' : '';
+    return type ? id + ' (' + type + ')' : id;
+}
+
+/**
+ * Tickets back out of a cell in a file: `ABC-1 (Bug); ABC-2`.
+ *
+ * Tolerant on the way in, because a file typed by hand is the common case. A
+ * trailing bracket is the type; failing that, a second word is, since `ABC-1 Bug` is
+ * what somebody writes without reading this. One word is just a number.
+ */
+function projParseTickets(text) {
+    return String(text || '').split(';').map(s => s.trim()).filter(Boolean).map(part => {
+        const m = part.match(/^(.*?)\s*\(([^)]*)\)$/);
+        if (m) return { id: m[1].trim(), type: m[2].trim() };
+        const bits = part.split(/\s+/);
+        return bits.length > 1
+            ? { id: bits[0], type: bits.slice(1).join(' ') }
+            : { id: part, type: '' };
+    }).filter(t => t.id || t.type);
+}
+
 /**
  * Build a table from parsed CSV.
  *
@@ -2757,6 +2863,7 @@ function projFromCsv(rows, data) {
                 col.type === 'start' || col.type === 'end') return;
             if (col.type === 'deps') { row.cells[col.id] = raw; return; } // names for now
             if (col.type === 'links') { row.cells[col.id] = projParseLinks(raw); return; }
+            if (col.type === 'ticket') { row.cells[col.id] = projParseTickets(raw); return; }
             if (col.type === 'resources') {
                 row.cells[col.id] = raw.split(';').map(s => s.trim()).filter(Boolean);
                 return;
@@ -2869,10 +2976,10 @@ function projUpdateDerived(widget, data) {
             // Cells that are rebuilt must never be rebuilt under the caret. The
             // progress bar is exempt: only the fill's own style is touched, and
             // that is the cell whose input is being typed into most of the time.
-            // A ticket and a date are exempt for the same reason the bar is: what
-            // changes is what sits beside the field, not the field being typed into.
+            // A date is exempt for the same reason the bar is: what changes is what
+            // sits beside the field, not the field being typed into.
             const typing = td.contains(document.activeElement);
-            if (col.type !== 'percent' && col.type !== 'ticket' &&
+            if (col.type !== 'percent' &&
                 col.type !== 'start' && col.type !== 'end' && typing) return;
             if (col.type === 'percent') {
                 const fill = td.querySelector('.proj-bar-fill');
@@ -2886,32 +2993,18 @@ function projUpdateDerived(widget, data) {
                 // A parent's own number is derived, so it follows its children.
                 const input = td.querySelector('.proj-pct-input');
                 if (input && input.disabled) input.value = String(pct);
-            } else if (col.type === 'ticket') {
-                const input = td.querySelector('.proj-ticket-input');
-                if (!input) return;
-                const url = projTicketUrl(data, input.value);
-                let link = td.querySelector('.proj-ticket a');
-                if (url && !link) {
-                    link = document.createElement('a');
-                    link.target = '_blank';
-                    link.rel = 'noopener';
-                    link.textContent = '\u2197';
-                    input.parentNode.insertBefore(link, input);
-                }
-                if (link) {
-                    if (url) { link.href = url; link.title = url; }
-                    else link.remove();
-                }
-                input.classList.toggle('proj-ticket-linked', !!url);
             } else if (col.type === 'size' && projIsParent(data, row)) {
                 // Rolled up, so it moves when a sub-item does.
                 td.innerHTML = projCellHtml(data, row, col);
-            } else if (col.type === 'deps' || col.type === 'title' || col.type === 'calcNumber') {
+            } else if (col.type === 'deps' || col.type === 'title' ||
+                    col.type === 'calcNumber' || col.type === 'ticket') {
                 // Dependency chips carry *another* row's item text, so renaming an
                 // item has to reach them. Left out at first, which meant a renamed
                 // item kept its old name everywhere it was depended on. A title is
                 // made of the project's name and the task's, and a number is made of
-                // where the row sits, so the same is true of both.
+                // where the row sits, so the same is true of both. Ticket chips are
+                // made of the board's ticket address, which is typed in the strip
+                // above them — that is how the links appear as it is typed.
                 td.innerHTML = projCellHtml(data, row, col);
             } else if (col.type === 'start' || col.type === 'end') {
                 // Every row's dates move when any row's size, completion, dependency
@@ -2987,7 +3080,7 @@ function projOnTicketBase(input) {
     projSetData(toolId, data);
     const note = widget.querySelector('.proj-ticket-note');
     if (note) {
-        const example = projTicketUrl(data, 'ABC-123');
+        const example = projTicketUrl(data, 'ABC-123', 'bug');
         note.textContent = example ? 'ABC-123 \u2192 ' + example
             : data.ticketBase ? 'Needs to start with http:// or https://'
             : 'Numbers in the Ticket column become links once this is set';
@@ -3055,7 +3148,12 @@ function projOpenModal(toolId, rowId, colId, heading, bodyHtml, hint) {
 function projModalHeading(data, row, kind, colId) {
     const col = projColumn(data, colId);
     const where = projCell(row, 'item') || 'Untitled';
-    return kind + ' \u2014 ' + where + (col && col.title !== kind ? ' \u00B7 ' + col.title : '');
+    // The column is named when it is not the window's own name — a column somebody
+    // renamed to "Jira" is worth saying. A window for several of what the column
+    // holds one of is the same word, not another one: Tickets — … · Ticket reads as
+    // a stutter.
+    const named = col && col.title !== kind && col.title + 's' !== kind;
+    return kind + ' \u2014 ' + where + (named ? ' \u00B7 ' + col.title : '');
 }
 
 function projOpenNote(btn) {
@@ -3100,6 +3198,22 @@ function projCloseModal() {
     const overlay = document.querySelector('.proj-modal');
     if (!overlay) return;
     const toolId = overlay.getAttribute('data-tool');
+    // A tickets window opens with a line already in it, so closing one without
+    // typing would otherwise leave an empty ticket on the row. It shows as nothing
+    // either way; this is so it is nothing in the file too.
+    if (toolId && overlay.querySelector('.proj-ticket-rows')) {
+        const data = projGetData(toolId);
+        const tickets = projTicketListOf(data, overlay.getAttribute('data-row'),
+            overlay.getAttribute('data-col'));
+        if (tickets) {
+            const kept = tickets.filter(t => String(t.id || '').trim() || String(t.type || '').trim());
+            if (kept.length !== tickets.length) {
+                tickets.length = 0;
+                kept.forEach(t => tickets.push(t));
+                projSetData(toolId, data);
+            }
+        }
+    }
     overlay.remove();
     if (toolId) projOnRender(toolId);
 }
@@ -3493,6 +3607,142 @@ function projAddLinkRow(btn) {
     if (last) last.querySelector('input').focus();
 }
 
+/**
+ * The tickets window: a number and a type per line, with room for both.
+ *
+ * The same window as links, for the same reason — a cell this narrow cannot hold two
+ * fields and a cross, and a row can have more than one ticket. The types already in
+ * the plan are offered as you type: a plan where half the rows say "Bug" and half say
+ * "bug" is two types that are one, and nobody notices until they are filtering.
+ *
+ * Opened with nothing on the row, it starts a line rather than showing an empty
+ * window: clicking + on an empty cell means "I want to add one".
+ */
+function projOpenTickets(btn) {
+    const toolId = projToolId(btn);
+    if (!toolId) return;
+    const rowId = btn.getAttribute('data-row');
+    const colId = btn.getAttribute('data-col');
+    const data = projGetData(toolId);
+    const row = data.rows.find(r => r.id === rowId);
+    if (!row) return;
+
+    const overlay = projOpenModal(toolId, rowId, colId,
+        projModalHeading(data, row, 'Tickets', colId),
+        '<div class="proj-ticket-rows"></div>' +
+        '<datalist id="proj-ticket-types"></datalist>' +
+        '<button class="proj-btn proj-ticket-add" onclick="projAddTicketRow(this)">+ Add a ticket</button>',
+        'Saved as you type \u00B7 Esc closes');
+    if (!projTicketsOf(row, colId).length) projAddTicketRow(overlay.querySelector('.proj-ticket-add'));
+    else projRenderTicketRows(overlay);
+    const first = overlay.querySelector('.proj-modal-ticket input');
+    if (first) first.focus();
+    else overlay.querySelector('.proj-ticket-add').focus();
+}
+
+function projRenderTicketRows(overlay) {
+    const list = overlay.querySelector('.proj-ticket-rows');
+    if (!list) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const colId = overlay.getAttribute('data-col');
+    const data = projGetData(toolId);
+    const tickets = projTicketListOf(data, overlay.getAttribute('data-row'), colId) || [];
+    const types = overlay.querySelector('#proj-ticket-types');
+    if (types) {
+        types.innerHTML = projTicketTypes(data, colId)
+            .map(t => '<option value="' + escapeHtml(t) + '"></option>').join('');
+    }
+    list.innerHTML = tickets.length
+        ? tickets.map((t, i) => {
+            const url = projTicketUrl(data, t.id, t.type);
+            return '<div class="proj-modal-ticket" data-ticket="' + i + '">' +
+                '<input class="proj-modal-num" data-ticket="' + i + '" data-part="id" ' +
+                    'placeholder="ABC-123" spellcheck="false" oninput="projOnModalTicket(this)" value="' +
+                    escapeHtml(String(t.id || '')) + '">' +
+                '<input class="proj-modal-type" data-ticket="' + i + '" data-part="type" ' +
+                    'list="proj-ticket-types" placeholder="Type (optional)" ' +
+                    'oninput="projOnModalTicket(this)" value="' +
+                    escapeHtml(String(t.type || '')) + '">' +
+                (url ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" ' +
+                    'title="Open in a new tab">\u2197</a>'
+                    : '<span class="proj-modal-nolink" title="' +
+                        (String(t.id || '').trim() ? 'No ticket address set for this board'
+                            : 'No number yet') + '">\u2197</span>') +
+                '<button class="proj-x" data-ticket="' + i + '" onclick="projRemoveTicketRow(this)" ' +
+                    'title="Remove this ticket">\u00D7</button>' +
+            '</div>';
+        }).join('')
+        : '<div class="proj-empty">No tickets yet.</div>';
+}
+
+function projOnModalTicket(input) {
+    const overlay = input.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const data = projGetData(toolId);
+    const tickets = projTicketListOf(data, overlay.getAttribute('data-row'),
+        overlay.getAttribute('data-col'));
+    const index = Number(input.getAttribute('data-ticket'));
+    if (!tickets || !tickets[index]) return;
+    tickets[index][input.getAttribute('data-part')] = input.value;
+    // Saved without redrawing the rows: the caret is in one of them. The arrow beside
+    // it is the one thing that has to keep up, so it is moved by hand — the same
+    // bargain the links window makes.
+    projSetData(toolId, data);
+    const line = input.closest('.proj-modal-ticket');
+    const arrow = line ? line.querySelector('a, .proj-modal-nolink') : null;
+    if (arrow) {
+        const url = projTicketUrl(data, tickets[index].id, tickets[index].type);
+        const next = document.createElement(url ? 'a' : 'span');
+        next.textContent = '\u2197';
+        if (url) {
+            next.className = '';
+            next.href = url;
+            next.target = '_blank';
+            next.rel = 'noopener';
+            next.title = 'Open in a new tab';
+        } else {
+            next.className = 'proj-modal-nolink';
+            next.title = String(tickets[index].id || '').trim()
+                ? 'No ticket address set for this board' : 'No number yet';
+        }
+        arrow.parentNode.replaceChild(next, arrow);
+    }
+    const widget = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    if (widget) projUpdateDerived(widget, data);
+}
+
+function projAddTicketRow(btn) {
+    const overlay = btn.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const data = projGetData(toolId);
+    const tickets = projTicketListOf(data, overlay.getAttribute('data-row'),
+        overlay.getAttribute('data-col'));
+    if (!tickets) return;
+    tickets.push({ id: '', type: '' });
+    projSetData(toolId, data);
+    projRenderTicketRows(overlay);
+    const rows = overlay.querySelectorAll('.proj-modal-ticket');
+    const last = rows[rows.length - 1];
+    if (last) last.querySelector('input').focus();
+}
+
+function projRemoveTicketRow(btn) {
+    const overlay = btn.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const data = projGetData(toolId);
+    const tickets = projTicketListOf(data, overlay.getAttribute('data-row'),
+        overlay.getAttribute('data-col'));
+    if (!tickets) return;
+    tickets.splice(Number(btn.getAttribute('data-ticket')), 1);
+    projSetData(toolId, data);
+    projRenderTicketRows(overlay);
+    const widget = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    if (widget) projUpdateDerived(widget, data);
+}
+
 function projRemoveLinkRow(btn) {
     const overlay = btn.closest('.proj-modal');
     if (!overlay) return;
@@ -3630,7 +3880,10 @@ function projRowDrop(tr, event) {
         projPeriodCalendarDays, projQuarterPlan, projPeriodSpans,
         projPeriodPath, projPeriodLabel, projPeriodShortLabel,
         projRenderUnits, projOnUnit, projOnAxis, projOnPeriodStart, projClearPeriodStart,
-        projTicketUrl, projRenderTickets, projOnTicketBase,
+        projTicketUrl, projTicketsOf, projTicketTypes, projTicketListOf,
+        projRenderTickets, projOnTicketBase,
+        projOpenTickets, projRenderTicketRows, projOnModalTicket,
+        projAddTicketRow, projRemoveTicketRow, projParseTickets, projCsvTicket,
         projWorkdayIndexAt, projPinnedIndex, projScheduleOf, projRowDates, projClearDate,
         projResourcesOf, projResourceList, projSetResources, projOnResource,
         projRemoveResource, projRevealPicker, projChipHtml, projPickerHtml,
