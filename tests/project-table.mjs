@@ -2239,6 +2239,79 @@ ok('a row with work of its own is still measured from today, as before',
     String(await page.evaluate((id) => projSlackDays(projGetData(id),
         projGetData(id).rows.find(r => r.id === 'par-a')), toolId)));
 
+// 14j. What gives way when the table is wider than the window. Every text cell is
+// `width: 100%; min-width: 0`, so the browser takes the space back from whichever
+// column will give it — and it took it from the name of the task, which is the one
+// cell a row cannot be read without.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true, collapsed: false }));
+    dd.rows = [
+        { id: 'w-long', cells: { item: 'Discovery of the existing schema', size: 'M', pct: 0,
+            deps: [], links: [], resources: ['John'] } },
+        { id: 'w-dep', cells: { item: 'Build the ingestion pipeline', size: 'L', pct: 0,
+            deps: ['w-long'], links: [], resources: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(600);
+
+const cutOff = (selector) => page.evaluate((s) =>
+    [...document.querySelectorAll(s)].map(el => el.scrollWidth > el.clientWidth + 1), selector);
+
+ok('a long task name is shown whole, however many columns are fighting for room',
+    (await cutOff('.proj-cell-item')).every(c => !c), JSON.stringify(await cutOff('.proj-cell-item')));
+ok('and so is the title it is part of, which is longer still',
+    (await cutOff('.proj-title-text')).every(c => !c), JSON.stringify(await cutOff('.proj-title-text')));
+ok('the task field holds a floor rather than a preference, so nothing can squeeze it',
+    await page.evaluate(() => {
+        const el = document.querySelector('.proj-cell-item');
+        return /ch$/.test(el.style.minWidth) && parseInt(el.style.minWidth, 10) > 20;
+    }),
+    await page.evaluate(() => document.querySelector('.proj-cell-item').style.minWidth));
+await page.fill(sel('tr[data-row="w-long"] input[data-col="item"]'),
+    'Discovery of the existing schema and everything that reads from it');
+await page.waitForTimeout(400);
+ok('and the floor moves as the name is typed, not only when the table is redrawn',
+    await page.evaluate(() => {
+        const el = document.querySelector('.proj-cell-item');
+        return el.scrollWidth <= el.clientWidth + 1;
+    }),
+    await page.evaluate(() => document.querySelector('.proj-cell-item').style.minWidth));
+
+// The chip is the column that should give way: it names a row that is already in
+// the table, and now names it twice over.
+const chipText = () => page.evaluate(() =>
+    [...document.querySelectorAll('tr[data-row="w-dep"] .proj-chip-text')].map(c => c.textContent));
+ok('a dependency chip carries the number and the name both',
+    (await chipText())[0].startsWith('1 \u00B7 Discovery'), JSON.stringify(await chipText()));
+ok('and it is the thing that gets cut when there is not room for everything',
+    await page.evaluate(() => {
+        const c = document.querySelector('tr[data-row="w-dep"] .proj-chip-text');
+        return c.scrollWidth > c.clientWidth + 1;
+    }),
+    await page.evaluate(() => {
+        const c = document.querySelector('tr[data-row="w-dep"] .proj-chip-text');
+        return c.scrollWidth + ' vs ' + c.clientWidth;
+    }));
+ok('cut from the end, so the number that decides which row it is survives',
+    await page.evaluate(() => {
+        const c = document.querySelector('tr[data-row="w-dep"] .proj-chip-text');
+        return getComputedStyle(c).textOverflow === 'ellipsis' &&
+            c.getBoundingClientRect().width > 40;
+    }));
+ok('with the whole of it in the tooltip for whoever needs the rest',
+    (await page.getAttribute(sel('tr[data-row="w-dep"] .proj-chip-text'), 'title'))
+        .endsWith('Discovery of the existing schema and everything that reads from it'),
+    await page.getAttribute(sel('tr[data-row="w-dep"] .proj-chip-text'), 'title'));
+ok('while a short chip is left alone — it is length that is the problem, not chips',
+    await page.evaluate(() => {
+        const c = [...document.querySelectorAll('tr[data-row="w-long"] .proj-chip-text')]
+            .find(x => x.textContent === 'John');
+        return !!c && c.scrollWidth <= c.clientWidth + 1;
+    }));
+
 // 15. The ladder: each rung built from the one below, and a week that can be made of
 //     working days rather than calendar ones.
 //

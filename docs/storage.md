@@ -292,6 +292,17 @@ a re-render, because the cell being typed into is deliberately not redrawn — r
 it and the caret goes with it. Notes and the two link fields are the ones that grow;
 each carries its own floor and ceiling in `data-min`/`data-max`.
 
+**Which column gives way.** Every text cell is `width: 100%; min-width: 0`, so when
+the table is wider than the window the browser takes the space back from whichever
+column will give it — and it took it from the name of the task, which is the one cell
+a row cannot be read without. The Task field now carries a `min-width` in `ch` to
+match its contents, moved as it is typed, so it is a floor rather than a preference;
+Title, which is longer still and the whole reason somebody unfolds that column, is
+not cut either. What gives way instead is the dependency chip: it names a row that is
+already in the table and now names it twice over, number and name both, so it
+ellipsises at 110px — from the end, which leaves the number that decides *which* row
+it is, with the whole of it in the tooltip.
+
 **Links are read in the cell and edited in a window.** A label field, an address
 field and a cross, three to a line, in a column as narrow as the rest of them, was
 three things fighting over sixty pixels. The cell shows each link as a chip you can

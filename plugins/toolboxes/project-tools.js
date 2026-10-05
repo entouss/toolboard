@@ -67,13 +67,11 @@
    so they are set in the same tabular figures as the days. */
 .proj-num { color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .proj-title { display: flex; align-items: center; gap: 4px; }
-/* One line, cut off rather than wrapped: three names end to end would otherwise
-   make the tallest row in the table out of a column that is there to be copied, not
-   read at length. The whole of it is in the tooltip and on the clipboard. */
-.proj-title-text {
-    flex: 1 1 auto; min-width: 0; max-width: 260px; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
-}
+/* One line, and the whole of it. Three names end to end make this the widest thing
+   in the table, which is why the column is folded away until somebody wants it —
+   but somebody who unfolds it wants to read it, and half a title is no use to them
+   or to the copy button beside it. */
+.proj-title-text { flex: 0 0 auto; white-space: nowrap; }
 /* Chrome, like every other per-cell button here: there to be used, gone to be
    looked at. */
 .proj-title-copy {
@@ -378,6 +376,14 @@
     display: inline-flex; align-items: center; gap: 2px; padding: 0 2px 0 5px;
     border: 1px solid var(--border-color); border-radius: 9px; font-size: 10px;
     background: var(--bg-tertiary); white-space: nowrap;
+}
+/* A chip names a row that is already in the table, and now names it twice over —
+   the number and the name both. That is what makes it decidable and also what makes
+   it long, so this is the column that gives way: the number is at the front where
+   the cut cannot reach it, and the whole of it is in the tooltip. */
+.proj-chip-text {
+    display: inline-block; max-width: 110px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom;
 }
 .proj-empty { color: var(--text-muted); font-style: italic; padding: 8px 2px; }
 
@@ -734,6 +740,16 @@ function projLongestLine(text) {
         .reduce((n, line) => Math.max(n, line.length), 0);
 }
 
+/**
+ * How wide the Task column is allowed to grow.
+ *
+ * Wider than the other text columns on purpose: this is the name of the thing, and
+ * a row reading "Environm" is a row nobody can read. Not unbounded, because one
+ * pathological name should not own the whole table — but far enough out that a name
+ * somebody actually types fits whole.
+ */
+const PROJ_ITEM_MAX = 60;
+
 /** How wide a note's field should be: its longest line, kept inside the same
  *  bounds the field carries for typing. */
 function projNoteCols(text, min, max) {
@@ -783,6 +799,9 @@ function projGrowField(input) {
     }
     const next = projFieldSize(input.value, min, max);
     if (Number(input.size) !== next) input.size = next;
+    // A field that holds its own floor moves it too, or the floor is only right
+    // until somebody types.
+    if (input.style.minWidth) input.style.minWidth = next + 'ch';
 }
 
 function projNewId(prefix) {
@@ -2009,7 +2028,9 @@ function projDepLabel(data, row) {
 }
 
 function projChipHtml(label, onRemove, attrs) {
-    return '<span class="proj-dep-chip">' + escapeHtml(String(label)) +
+    return '<span class="proj-dep-chip">' +
+        '<span class="proj-chip-text" title="' + escapeHtml(String(label)) + '">' +
+            escapeHtml(String(label)) + '</span>' +
         '<button class="proj-x" onclick="' + onRemove + '" ' + attrs +
         ' title="Remove">\u00D7</button></span>';
 }
@@ -2089,10 +2110,19 @@ function projCellHtml(data, row, col) {
                     'size="' + projFieldSize(num, 6, 16) + '"' + projGrowAttrs(6, 16) + ' ' +
                     'value="' + escapeHtml(num) + '"></span>';
         }
-        case 'item':
-            return '<input class="proj-cell-input" ' + id + ' oninput="projOnCell(this)" ' +
-                'size="' + projFieldSize(value, 6, 28) + '"' + projGrowAttrs(6, 28) + ' ' +
-                'value="' + escapeHtml(String(value)) + '">';
+        case 'item': {
+            // A floor rather than a preference. `size` is only what a cell would
+            // like to be: when the table is wider than the window, the browser
+            // takes the space back from whatever can give it, and an input with
+            // `width: 100%; min-width: 0` gives all of it. Every other column can
+            // afford that; the one holding the name of the task cannot.
+            const chars = projFieldSize(value, 6, PROJ_ITEM_MAX);
+            return '<input class="proj-cell-input proj-cell-item" ' + id +
+                ' oninput="projOnCell(this)" size="' + chars + '"' +
+                projGrowAttrs(6, PROJ_ITEM_MAX) +
+                ' style="min-width:' + chars + 'ch"' +
+                ' value="' + escapeHtml(String(value)) + '">';
+        }
         case 'notes': {
             // A textarea, so Enter is a new line rather than nothing at all. Drawn
             // at the size the text already needs; projGrowField keeps up from there.
