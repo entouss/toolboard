@@ -659,6 +659,8 @@ ok('each calculated heading explains itself on hover',
     JSON.stringify([headTitles['Total'], headTitles['Left'], headTitles['Slack']]));
 ok('and the one that compares two things says which two',
     /between the deadline and/i.test(headTitles['Slack']), headTitles['Slack']);
+ok('and says where it stops, since a finished row has no number to read',
+    /finished/i.test(headTitles['Slack']), headTitles['Slack']);
 ok('while renaming is still offered there', /rename/i.test(headTitles['Task']), headTitles['Task']);
 
 // 10e. Tickets. A row can be tracked in more than one place, and each ticket can
@@ -2593,6 +2595,89 @@ ok('while January still belongs to the fiscal year that began the April before',
 // Named for the year it ends in: October 2026 opens the year that closes in
 // September 2027, and that year is FY27 throughout.
 ok('October 2026 is FY27, not FY26', /^FY27 /.test(labels.octFis), JSON.stringify(labels));
+
+// 14k. Finished work has no slack. Slack is room still to be used, and a task that
+//      is done has nothing left to use it: left alone, a row finished last month
+//      would report a healthier green every day, which reads as news about work
+//      that is over.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.sizes = { ...PROJ_DEFAULT_SIZES };
+    const day = 86400000, t = projToday();
+    const iso = (n) => projFormatDate(t + n * day);
+    dd.rows = [
+        { id: 'done-top', cells: { item: 'Project', size: '', pct: 0, deadline: iso(20), deps: [], links: [] } },
+        { id: 'done-a', parent: 'done-top', cells: { item: 'Finished', size: 'M', pct: 100, deadline: iso(10), deps: [], links: [] } },
+        { id: 'done-b', parent: 'done-top', cells: { item: 'Still going', size: 'M', pct: 50, deadline: iso(10), deps: [], links: [] } },
+        // A deadline it is well past, and done anyway: the one that would otherwise
+        // read as late forever.
+        { id: 'done-late', cells: { item: 'Late but done', size: 'S', pct: 100, deadline: iso(-30), deps: [], links: [] } },
+        // Unfinished and undated: the other reason a cell holds a dash.
+        { id: 'done-none', cells: { item: 'No deadline', size: 'S', pct: 0, deadline: '', deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(500);
+
+// Slack is the third of a row's calculated cells, read by position as everywhere
+// else here, with its tooltip: the dash has two meanings and the tooltip is which.
+const slackCell = (rowId) => page.evaluate((r) => {
+    const cells = [...document.querySelectorAll('tr[data-row="' + r + '"] .proj-calc')];
+    const cell = cells[2];
+    return cell ? { text: cell.textContent.trim(), title: cell.getAttribute('title') || '' } : null;
+}, rowId);
+const slackOf = (rowId) => page.evaluate((args) => {
+    const dd = projGetData(args[0]);
+    return projSlackDays(dd, dd.rows.find(r => r.id === args[1]));
+}, [toolId, rowId]);
+
+ok('a finished task is asked for no slack at all', (await slackOf('done-a')) === null,
+    JSON.stringify(await slackCell('done-a')));
+ok('and its cell shows a dash rather than a number', (await slackCell('done-a')).text === '\u2014',
+    JSON.stringify(await slackCell('done-a')));
+ok('which says it is finished, not that there was nothing to measure against',
+    /finish/i.test((await slackCell('done-a')).title),
+    JSON.stringify(await slackCell('done-a')));
+ok('a task finished long after its deadline is not reported as still late',
+    (await slackOf('done-late')) === null && (await slackCell('done-late')).text === '\u2014',
+    JSON.stringify(await slackCell('done-late')));
+ok('the row beside it, which is only half done, still has its number',
+    typeof (await slackOf('done-b')) === 'number' && /d$/.test((await slackCell('done-b')).text),
+    JSON.stringify(await slackCell('done-b')));
+ok('a dash for want of a deadline says that instead, since they are not the same thing to know',
+    /deadline/i.test((await slackCell('done-none')).title),
+    JSON.stringify(await slackCell('done-none')));
+ok('a project with work left in it keeps its own slack',
+    typeof (await slackOf('done-top')) === 'number', String(await slackOf('done-top')));
+
+// And a parent is done when everything under it is, which is what its own weighted
+// per cent already says — so finishing the last sub-item is what takes its slack away.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows.find(r => r.id === 'done-b').cells.pct = 100;
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+ok('finishing the last sub-item takes the project\'s slack away too',
+    (await slackOf('done-top')) === null && (await slackCell('done-top')).text === '\u2014',
+    JSON.stringify(await slackCell('done-top')));
+ok('and a spreadsheet gets an empty cell rather than a stale number',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        const col = dd.columns.findIndex(c => c.type === 'calcSlack');
+        const rows = projCsvParse(projToCsv(dd));
+        const of = (rowId) => rows.find(r => r[2] === projCell(
+            dd.rows.find(x => x.id === rowId), 'item'));
+        return of('done-top')[col] === '' && of('done-late')[col] === '';
+    }, toolId));
+ok('the chart draws finished rows as dots, so it never needed a colour for them',
+    await page.evaluate(() => document.querySelectorAll('.proj-gantt-row .proj-done-dot').length >= 3 &&
+        document.querySelectorAll('.proj-gantt-row .proj-bar').length === 1),
+    await page.evaluate(() => document.querySelectorAll('.proj-gantt-row .proj-done-dot').length +
+        ' dots, ' + document.querySelectorAll('.proj-gantt-row .proj-bar').length + ' bars'));
 
 // 15c. The planning week: the week that makes a quarter thirteen rather than twelve.
 //      Two timeboxes of three sprints are 84 days; a quarter is 91. That last week is

@@ -638,6 +638,18 @@ of it in sequence, so a project of two streams that each fit comfortably read as
 badly late, with the answer contradicting the End date on the same row. A leaf still
 answers the question a leaf is asked: its own work, from today.
 
+**Finished work has no slack at all.** Slack is room still to be used, and a row
+that is done has nothing left to use it: left alone, a task finished last month would
+report a healthier positive number every day it sat there, which reads as news about
+work that is over, and one finished a week late would go on being scored as late
+forever. `projIsDone()` is the test — a per cent of 100, which for a parent is the
+weighted roll-up, so finishing the last sub-item takes the project's slack with it —
+and `projSlackDays()` returns null, so **the column, the CSV and the chart agree
+without being told to**: the column shows a dash, the file an empty cell, and the
+chart already drew a done row as a dot rather than asking for a colour. The dash has
+two meanings now and the **tooltip is which**: nothing to measure against, or
+finished.
+
 **A deadline names a day the work is allowed to be happening on**, so both the Slack
 column and the chart's missed marker measure to the **last day the work occupies** —
 the date the End column shows — and not to the day after it. Measuring to the day

@@ -616,7 +616,8 @@ const PROJ_COLUMN_HINTS = {
         'between the people assigned, so a second name halves it',
     calcRemaining: 'Days of work still to do',
     calcSlack: 'Calendar days between the deadline and the day this would finish ' +
-        'if it started now: positive is room to spare, negative is late',
+        'if it started now: positive is room to spare, negative is late. ' +
+        'Finished rows have none \u2014 there is no room left to need',
     calcNumber: 'Where this row sits: 2 is the second item, 2.1 its first task, ' +
         '2.1.1 that task\u2019s first sub-task. It follows the table, so moving a row ' +
         'renumbers it',
@@ -1257,6 +1258,12 @@ function projPercent(data, row) {
     return Math.min(100, Math.max(0, n));
 }
 
+/** Finished: everything this row covers is done. A parent is done when its
+ *  sub-items are, which its weighted per cent already says. */
+function projIsDone(data, row) {
+    return projPercent(data, row) >= 100;
+}
+
 /**
  * Days between the deadline and the day the work would finish if it started today.
  *
@@ -1264,10 +1271,17 @@ function projPercent(data, row) {
  * dependencies guide the chart and nothing else, so this column answers "is there
  * room for this item on its own", and the chart answers "and does the order allow
  * it". Where the two disagree, the chart's deadline marker is what shows it.
+ *
+ * A finished row has none at all, rather than a growing positive number. Slack is
+ * room still to be used, and once the work is done there is nothing left to use it:
+ * a task finished last month would otherwise go on reporting a healthier and
+ * healthier green every day, which reads as news about work that is over. The chart
+ * agrees by construction — a done row draws its dot and never asks for a colour.
  */
 function projSlackDays(data, row) {
     const deadline = projParseDate(projCell(row, 'deadline'));
     if (deadline === null) return null;
+    if (projIsDone(data, row)) return null;
     const units = projUnits(data);
 
     // A parent has no work of its own. Its days are its children's, and those run in
@@ -2275,7 +2289,15 @@ function projCellHtml(data, row, col) {
         }
         case 'calcSlack': {
             const slack = projSlackDays(data, row);
-            if (slack === null) return '<span class="proj-calc" style="color:var(--text-muted)">—</span>';
+            // Two reasons for a dash, and they are not the same thing to know: one
+            // row has no deadline to measure against, the other has finished.
+            if (slack === null) {
+                const why = projIsDone(data, row)
+                    ? 'Finished \u2014 no room left to need'
+                    : projCell(row, 'deadline') ? 'No slack to measure' : 'No deadline set';
+                return '<span class="proj-calc" style="color:var(--text-muted)" title="' +
+                    escapeHtml(why) + '">—</span>';
+            }
             const band = projSlackBand(slack);
             return '<span class="proj-calc" style="color:var(--proj-' + band.role + ')" title="' +
                 escapeHtml(band.title) + '">' + band.mark + ' ' +
@@ -2572,7 +2594,7 @@ function projRenderGantt(widget, data) {
                 projFormatDate(today + cal.start * PROJ_DAY) + ' to ' +
                 projFormatDate(today + Math.max(cal.start, finish - 1) * PROJ_DAY) +
                 (d !== null ? ', deadline ' + projFormatDate(today + d * PROJ_DAY) +
-                    ' — ' + band.title : '') +
+                    (band ? ' — ' + band.title : '') : '') +
                 (s.cycle ? ' — in a dependency loop' : '') + '"></span>'
             : '<span class="proj-done-dot" style="left:' + pos(d !== null ? d : cal.start) +
                 '%" title="' + escapeHtml(label) + ' — complete"></span>';
@@ -3874,7 +3896,8 @@ function projRowDrop(tr, event) {
         projRowDepth, projAncestry, projSubtreeDepth, projIndentTarget,
         projRowNumber, projRowTitle, projDepLabel, projCopyTitle,
         projCsvRef, projCsvRefNumber, projRoundDays, projAssigneeCount,
-        projTotalDays, projPercent, projRemainingDays, projSlackDays, projSlackBand,
+        projTotalDays, projPercent, projRemainingDays, projIsDone,
+        projSlackDays, projSlackBand,
         projUnits, projUnitDays, projSayDuration, projIsWorkday, projNthWorkdayOffset,
         projFinishOffset, projYearStart, projYearLabel, projCalendarDaysOf,
         projPeriodCalendarDays, projQuarterPlan, projPeriodSpans,
