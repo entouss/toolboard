@@ -49,13 +49,16 @@ const headings = () => page.evaluate(() =>
 // runs, what that comes to, when it is due and how that compares.
 // Title is here too, folded away, so it has no heading to read until section 14e
 // unfolds it — a folded column is a strip with its name on its side.
-const PROJ_COLS = 16;
+const PROJ_COLS = 18;
 ok('with the columns asked for, in the order asked for', (await headings()) ===
     'ID,Ticket,Task,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
     await headings());
-ok('and the one that is folded to begin with is there, just not open',
+// Three of them are folded: Team and System name a row rather than describing it,
+// and the Title is made of them.
+ok('and the three that are folded to begin with are there, just not open',
     (await data()).columns.length === PROJ_COLS &&
-    (await data()).columns[3].id === 'title', String((await data()).columns.length));
+    (await data()).columns.filter(c => c.collapsed).map(c => c.id).join(',') === 'team,system,title',
+    (await data()).columns.filter(c => c.collapsed).map(c => c.id).join(','));
 // The settings start folded — what somebody opens a plan for is the plan — and most
 // of what follows is set from those strips, so they are unfolded once, here.
 ok('the settings start folded away', (await data()).hideSettings === true,
@@ -1346,7 +1349,7 @@ await page.evaluate(() => {
 });
 await page.waitForTimeout(400);
 ok('dropping one column on another puts it in that one\'s place',
-    (await colOrder()).startsWith('number,deps,ticket,item'), await colOrder());
+    (await colOrder()).startsWith('number,deps,ticket,team,system,item'), await colOrder());
 ok('and the table is redrawn in the new order, not just the data',
     (await headOrder()) === (await colOrder()), (await headOrder()) + ' vs ' + (await colOrder()));
 ok('the cells moved with their heading',
@@ -1771,7 +1774,7 @@ await page.waitForTimeout(500);
 const csv = await page.evaluate((id) => projToCsv(projGetData(id)), toolId);
 const lines = csv.replace(/^\uFEFF/, '').trim().split('\r\n');
 ok('the export has a header row naming every column, plus Parent',
-    lines[0] === 'ID,Ticket,Task,Title,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links,Parent',
+    lines[0] === 'ID,Ticket,Team,System,Task,Title,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links,Parent',
     lines[0]);
 ok('a row per item, parents and sub-items alike', lines.length === 4, String(lines.length));
 ok('calculated columns go out as values, since a spreadsheet cannot do the sums',
@@ -1811,7 +1814,7 @@ const round = await page.evaluate((args) => {
         topHasNoParent: byItem['Platform'].parent === undefined
     };
 }, [toolId, csv]);
-ok('reading it back gives the same columns', round.columns === 'ID,Ticket,Task,Title,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
+ok('reading it back gives the same columns', round.columns === 'ID,Ticket,Team,System,Task,Title,Dependencies,Size,% Done,Start,End,Total,Left,Deadline,Slack,Assigned,Notes,Links',
     round.columns);
 ok('and the same rows in the same order', round.rows === 'Platform,Schema,Launch', round.rows);
 ok('sizes and completions survive', round.schemaSize === 'M' && round.schemaPct === 40,
@@ -1866,7 +1869,7 @@ const [download] = await Promise.all([
 ]);
 const saved = fs.readFileSync(await download.path(), 'utf8');
 ok('and Export CSV downloads a file that starts with the headings',
-    saved.replace(/^\uFEFF/, '').startsWith('ID,Ticket,Task,Title,Dependencies,Size'), saved.slice(0, 60));
+    saved.replace(/^\uFEFF/, '').startsWith('ID,Ticket,Team,System,Task,Title,Dependencies,Size'), saved.slice(0, 60));
 ok('with a BOM, so Excel does not mangle anything non-ASCII', saved.charCodeAt(0) === 0xFEFF,
     String(saved.charCodeAt(0)));
 
@@ -2668,8 +2671,11 @@ ok('and a spreadsheet gets an empty cell rather than a stale number',
     await page.evaluate((id) => {
         const dd = projGetData(id);
         const col = dd.columns.findIndex(c => c.type === 'calcSlack');
+        // Both columns by position rather than by number: columns have been added
+        // in front of these before and will be again.
+        const name = dd.columns.findIndex(c => c.type === 'item');
         const rows = projCsvParse(projToCsv(dd));
-        const of = (rowId) => rows.find(r => r[2] === projCell(
+        const of = (rowId) => rows.find(r => r[name] === projCell(
             dd.rows.find(x => x.id === rowId), 'item'));
         return of('done-top')[col] === '' && of('done-late')[col] === '';
     }, toolId));
@@ -2678,6 +2684,63 @@ ok('the chart draws finished rows as dots, so it never needed a colour for them'
         document.querySelectorAll('.proj-gantt-row .proj-bar').length === 1),
     await page.evaluate(() => document.querySelectorAll('.proj-gantt-row .proj-done-dot').length +
         ' dots, ' + document.querySelectorAll('.proj-gantt-row .proj-bar').length + ' bars'));
+
+// 14m. Team and System: two columns in front of the task, folded away, and part of
+//      what the Title says. A row that leaves one blank takes the one above it,
+//      because nobody fills these in on every line.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows = [
+        { id: 't-top', cells: { item: 'Billing move', team: 'Payments', system: 'Ledger',
+            size: '', pct: 0, deps: [], links: [] } },
+        { id: 't-kid', parent: 't-top', cells: { item: 'Reconcile', size: 'S', pct: 0, deps: [], links: [] } },
+        { id: 't-own', parent: 't-top', cells: { item: 'Notify', team: 'Growth',
+            size: 'S', pct: 0, deps: [], links: [] } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+const titleOfRowNow = (rowId) => page.evaluate((r) => {
+    const dd = projGetData(projToolId(document.querySelector('.proj-widget')));
+    return projRowTitle(dd, dd.rows.find(x => x.id === r));
+}, rowId);
+
+ok('Team and System sit in front of the task, where the things that name a row are',
+    (await data()).columns.map(c => c.id).join(',').indexOf('ticket,team,system,item') >= 0,
+    (await data()).columns.map(c => c.id).join(','));
+ok('and both are folded to begin with, like the Title they feed',
+    (await data()).columns.filter(c => c.id === 'team' || c.id === 'system')
+        .every(c => c.collapsed === true));
+ok('the title says where the work belongs before it says what it is',
+    (await titleOfRowNow('t-top')) === 'Payments - Ledger - Billing move',
+    await titleOfRowNow('t-top'));
+ok('a row that says nothing takes the team and the system above it',
+    (await titleOfRowNow('t-kid')) === 'Payments - Ledger - Billing move - Reconcile',
+    await titleOfRowNow('t-kid'));
+ok('and a row that says something different is taken at its word',
+    (await titleOfRowNow('t-own')) === 'Growth - Ledger - Billing move - Notify',
+    await titleOfRowNow('t-own'));
+ok('they travel to a spreadsheet as their own columns, where they can be sorted on',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        const rows = projCsvParse(projToCsv(dd));
+        const team = dd.columns.findIndex(c => c.id === 'team');
+        const system = dd.columns.findIndex(c => c.id === 'system');
+        return rows[0][team] === 'Team' && rows[0][system] === 'System' &&
+            rows[1][team] === 'Payments' && rows[1][system] === 'Ledger';
+    }, toolId));
+ok('and an older table is given them, in their place to the left of the task',
+    await page.evaluate((id) => {
+        const dd = projGetData(id);
+        const without = JSON.parse(JSON.stringify(dd));
+        without.columns = without.columns.filter(c => c.id !== 'team' && c.id !== 'system');
+        delete without.addedColumns;
+        toolCustomizations[id].projectData = without;
+        const back = projGetData(id);
+        return back.columns.map(c => c.id).join(',').indexOf('ticket,team,system,item') >= 0;
+    }, toolId),
+    await page.evaluate((id) => projGetData(id).columns.map(c => c.id).join(','), toolId));
 
 // 15c. The planning week: the week that makes a quarter thirteen rather than twelve.
 //      Two timeboxes of three sprints are 84 days; a quarter is 91. That last week is

@@ -583,6 +583,11 @@ const PROJ_NOTE_ROWS = 6;
 const PROJ_BUILTIN_COLUMNS = [
     { id: 'number', title: 'ID', type: 'calcNumber' },
     { id: 'ticket', title: 'Ticket', type: 'ticket' },
+    // In front of the task and folded like Title, because they are part of what
+    // names a row rather than facts about it: a plan that needs them needs them on
+    // every row, and one that does not should not pay two columns for them.
+    { id: 'team', title: 'Team', type: 'text', collapsed: true },
+    { id: 'system', title: 'System', type: 'text', collapsed: true },
     { id: 'item', title: 'Task', type: 'item' },
     // Folded to begin with: it is made of three things already on the row, so it is
     // worth room only when somebody is about to take it away with them.
@@ -621,11 +626,16 @@ const PROJ_COLUMN_HINTS = {
     calcNumber: 'Where this row sits: 2 is the second item, 2.1 its first task, ' +
         '2.1.1 that task\u2019s first sub-task. It follows the table, so moving a row ' +
         'renumbers it',
-    title: 'Everything this row hangs from, outermost first \u2014 project, task, ' +
-        'sub-task \u2014 in one line, ready to paste somewhere else',
+    title: 'Everything that places this row, outermost first \u2014 team, system, ' +
+        'project, task, sub-task \u2014 in one line, ready to paste somewhere else',
     ticket: 'The tickets this row is tracked in, each with a type if it needs one. ' +
         'They become links when a ticket URL is set above',
     item: 'What has to be done',
+    team: 'Whose work this is. It goes in the Title, and a row that leaves it ' +
+        'blank takes the one above it',
+    system: 'What it touches \u2014 the service, the component, the area of the ' +
+        'product. It goes in the Title, and a row that leaves it blank takes the ' +
+        'one above it',
     resources: 'Who is on it. Pick somebody already in the plan, or add a new one',
     start: 'When work starts: after whatever it depends on, unless a date is typed in',
     end: 'When work finishes: start plus the days left, unless a date is typed in',
@@ -917,7 +927,9 @@ const PROJ_LATE_COLUMNS = [
     { id: 'title', before: 'deps' },
     { id: 'ticket', before: 'item' },
     { id: 'start', before: 'deadline' },
-    { id: 'end', before: 'deadline' }
+    { id: 'end', before: 'deadline' },
+    { id: 'team', before: 'item' },
+    { id: 'system', before: 'item' }
 ];
 
 function projAddLateColumns(data) {
@@ -1172,8 +1184,8 @@ function projRowNumber(data, row) {
 }
 
 /**
- * The one-line name of a row: project, task, sub-task — which is to say, everything
- * it hangs from, outermost first.
+ * What a row is called when it is read away from the table: team, system, project,
+ * task, sub-task — everything that places it, outermost first.
  *
  * Made of what is already on those rows rather than typed again, so renaming a
  * project or the task a sub-task sits under moves every title that mentions them.
@@ -1181,10 +1193,28 @@ function projRowNumber(data, row) {
  * project nobody has named yet reads "Build - Review", not " - Build - Review".
  */
 function projRowTitle(data, row) {
-    return projAncestry(data, row)
-        .map(r => String(projCell(r, 'item') || '').trim())
+    return [projRowOwner(data, row, 'team'), projRowOwner(data, row, 'system')]
+        .concat(projAncestry(data, row).map(r => String(projCell(r, 'item') || '').trim()))
         .filter(Boolean)
         .join(' - ');
+}
+
+/**
+ * This row's team, or system, falling back to the nearest row above it that has one.
+ *
+ * Nobody fills these in on every line. They are set on the project and left blank on
+ * the work underneath, which is the same thing as saying "the same as the project" —
+ * and a sub-task whose title had dropped the team would be a title that cannot be
+ * pasted anywhere, which is the one job the title has. A row that says something
+ * different from its project is taken at its word.
+ */
+function projRowOwner(data, row, colId) {
+    const chain = projAncestry(data, row);
+    for (let i = chain.length - 1; i >= 0; i--) {
+        const value = String(projCell(chain[i], colId) || '').trim();
+        if (value) return value;
+    }
+    return '';
 }
 
 // A parent's numbers are its children's, added up. It has no size of its own and no
@@ -2071,7 +2101,10 @@ function projColumnHeadHtml(col) {
             PROJ_COLUMN_TYPES.map(t => '<option value="' + t + '"' +
                 (t === col.type ? ' selected' : '') + '>' + t + '</option>').join('') +
         '</select>';
-    const hint = PROJ_COLUMN_HINTS[col.type];
+    // By id first, then by type: two built-in columns can share a type and still
+    // have different things to say — Team and System are both text, and "a line of
+    // text" is not what either of them is for.
+    const hint = PROJ_COLUMN_HINTS[col.id] || PROJ_COLUMN_HINTS[col.type];
     const title = (hint ? hint + '. ' : '') + 'Click to rename';
     // The grip is what drags, not the whole heading: a heading is clicked to rename
     // and holds a dropdown, and a draggable ancestor makes both of those awkward.
@@ -3894,7 +3927,7 @@ function projRowDrop(tr, event) {
         projGrowAttrs, projGrowField, projChildren, projIsParent, projOrderedRows,
         projSizeMenu,
         projRowDepth, projAncestry, projSubtreeDepth, projIndentTarget,
-        projRowNumber, projRowTitle, projDepLabel, projCopyTitle,
+        projRowNumber, projRowTitle, projRowOwner, projDepLabel, projCopyTitle,
         projCsvRef, projCsvRefNumber, projRoundDays, projAssigneeCount,
         projTotalDays, projPercent, projRemainingDays, projIsDone,
         projSlackDays, projSlackBand,

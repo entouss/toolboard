@@ -165,7 +165,8 @@ in days, which columns exist, and the rows.
   columns: [ { id: 'size', title: 'TS-Size', type: 'size', builtin: true,
                collapsed: false }, … ],
   rows:    [ { id: 'r-…',
-               cells: { item: 'Discovery', size: 'M', pct: 60, deadline: '2026-10-12',
+               cells: { item: 'Discovery', team: 'Payments', system: 'Ledger',
+                        size: 'M', pct: 60, deadline: '2026-10-12',
                         start: '', end: '',               // '' = left to the plan
                         resources: ['Robin', 'Alex'],
                         ticket: [ { id: 'ABC-1', type: 'Bug' } ],   // type optional
@@ -211,9 +212,9 @@ sizes worth nothing, so a parent of unestimated children shows no derived size
 rather than claiming they add up to an O.
 
 **The column order is the user's**, and so is which of them are showing. The
-built-ins start in the order the questions get asked — ID, Ticket, Task, Title,
-Dependencies, Size, % Done, Start, End, Total, Left, Deadline, Slack, Assigned,
-Notes, Links — and
+built-ins start in the order the questions get asked — ID, Ticket, Team, System,
+Task, Title, Dependencies, Size, % Done, Start, End, Total, Left, Deadline, Slack,
+Assigned, Notes, Links — and
 `columns` is the record of where they have been moved to since. The headings are a
 word each: a heading is read a hundred times and holds its column open while it does,
 so the long version lives in the tooltip. Total and Left are **work**; Slack is
@@ -261,11 +262,12 @@ options and the chips read `2.1 · Review`. Dependencies go on **storing the row
 own id**, which never changes: the number is what they are shown as, so renumbering
 can never quietly repoint one.
 
-**Title is the three of them in a line** — `projRowTitle()` joins the project, the
-task above it and the task, dropping empty parts along with their separator so a
-plan with no name yet reads "Build - Review" rather than " - Build - Review". It is
-made of what is already on the row rather than typed again, so renaming the project
-or the parent moves every title that mentions it, as it is typed. The column is
+**Title is everything that places a row, in a line** — `projRowTitle()` joins the
+team, the system, the project, the task above it and the task, dropping empty parts
+along with their separator so a plan with no name yet reads "Build - Review" rather
+than " - Build - Review". It is made of what is already on the row rather than typed
+again, so renaming the project or the parent moves every title that mentions it, as
+it is typed. The column is
 **folded by default**, because it earns its width only when somebody is about to
 take it somewhere else, and it carries a copy button — chrome, like every other
 per-cell button here, revealed by the cell under the pointer. One line, cut off
@@ -423,6 +425,16 @@ fighting over sixty pixels. In a spreadsheet they travel as `ABC-1 (Tech Debt);
 DEF-2`: brackets rather than a bare second word, because a type can be two words and
 `ABC-1 Tech Debt` has no honest way back. On the way in, a bracket is the type, and
 failing that a second word is, since that is what a file typed by hand will have.
+
+**Team and System are part of what names a row**, not facts about it, so they sit in
+front of the Task with the ID and the Ticket, they are folded away like the Title, and
+the Title is made of them: `Payments - Ledger - Billing move - Reconcile`. A row that
+leaves one blank takes the nearest one above it (`projRowOwner()`), because nobody
+fills these in on every line — they are set on the project and left blank on the work
+underneath, which is the same thing as saying "the same as the project". A row that
+says something different is taken at its word. Without that rule a sub-task's title
+would drop the team, and a title that cannot be pasted anywhere has lost the one job
+it has.
 
 Columns that arrive after people already have tables are listed in
 `PROJ_LATE_COLUMNS`, each with the column it goes before, and `projAddLateColumns()`
