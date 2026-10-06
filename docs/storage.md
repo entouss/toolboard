@@ -161,6 +161,7 @@ in days, which columns exist, and the rows.
              XXL: 120, XXXL: 240, '?': 0 },
   ticketBase: 'https://tickets.example.com/browse/',   // '' until one is set
   hideSettings: false,         // the three strips above the table, folded away
+  mdShow: { dates: true, notes: false, … },   // what the Markdown summary carries
   addedColumns: { ticket: true },                      // migrations already run
   columns: [ { id: 'size', title: 'TS-Size', type: 'size', builtin: true,
                collapsed: false }, … ],
@@ -620,6 +621,49 @@ not have becomes a new text column rather than being dropped. CSV rather than
 `.xlsx`: nothing to load, it round-trips, and Excel, Numbers and Sheets open it
 directly — what it cannot carry is colour and column type, which belong to the tool
 rather than to the file.
+
+### Writing the plan out as Markdown
+
+**Markdown** opens the plan as text somebody can read in a document, a ticket or a
+message. Headings and bullets rather than a pipe table: a note is prose and a link
+is a link, and neither survives a table cell. A row becomes a heading at the depth
+it sits at (`## 1`, `### 1.1`, `#### 1.1.1`), carrying its number so a dependency
+can name it the way the CSV does; under it go one line of **what it is** — size,
+days, how far along, who is on it, with the work already divided between them — the
+**note on the task as a block quote**, and a bullet for each of the things a row can
+hold several of: tickets with their types and addresses, dependencies, links, any
+column somebody added, and **what was written about each cell**, named by its
+column. Cell notes live in a window and are otherwise the part of a plan nobody ever
+reads; this is where they come out.
+
+**There is a switch for each of those**, listed in `PROJ_MD_PARTS`, because a plan
+is written out for a reason and the reason decides what belongs: a status update
+wants how far along and who is on it; a scope review wants the notes and the tickets
+and none of the dates; something pasted into a ticket wants the links. Everything is
+on to begin with — the full version is the one you can cut down — except **Full
+title**, which heads each row with the whole of its Title instead of the task's own
+name. That one is off by default: the headings already nest, so inside the document a
+task knows what it belongs to, and the full title is for when a row will be read away
+from the rest of them. With size and completion both off a row is its heading and its
+bullets rather than a pair of empty asterisks, and the summary line at the top stops
+counting days the rows no longer carry.
+
+**The dates switch covers everything date-shaped** — Start, End, the deadline, the
+slack, a note about a date, a date column somebody added, and the "as of" line. Start
+and End move whenever anything above them moves, so a summary that carries them is
+stale by the afternoon and cannot be diffed against last week's; with them off the
+text changes only when the plan does, which is what makes it worth keeping.
+
+The choices are stored as `mdShow` on the plan rather than in this browser, because
+they are decisions about this plan and whoever opens the board next wants the summary
+the last person meant. **Every switch is written, not only the one that moved**:
+half a set of choices is how a later default silently changes an answer somebody
+already gave.
+
+The window is **read-only**: the text is written from the table, so an edit made
+there would be thrown away by the next keystroke anywhere in the plan. Copy it and
+edit it where it lands. `projToMarkdown(data, { title, dates })` is the whole of it
+and takes no DOM, so what the window shows is exactly what a test reads.
 
 One other key sits beside `projectData`: `projFitWidth`, the width the tool last
 sized itself to. It is layout rather than plan. The window fits the table up to

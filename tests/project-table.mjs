@@ -2685,6 +2685,194 @@ ok('the chart draws finished rows as dots, so it never needed a colour for them'
     await page.evaluate(() => document.querySelectorAll('.proj-gantt-row .proj-done-dot').length +
         ' dots, ' + document.querySelectorAll('.proj-gantt-row .proj-bar').length + ' bars'));
 
+// 14l. The plan written out. A table is a working surface; this is the plan said in
+//      a way somebody can read in a document or a ticket — notes and all, since a
+//      note lives in a window and is otherwise the part of a plan nobody ever sees.
+//      Dates are optional because dates are what changes.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.columns = PROJ_BUILTIN_COLUMNS.map(c => ({ ...c, builtin: true }));
+    dd.sizes = { ...PROJ_DEFAULT_SIZES };
+    dd.ticketBase = 'https://tickets.example.com/browse/';
+    delete dd.mdDates;
+    const day = 86400000, t = projToday();
+    const iso = (n) => projFormatDate(t + n * day);
+    dd.rows = [
+        { id: 'md-top', cells: { item: 'Platform migration', size: '', pct: 0,
+            deadline: iso(40), deps: [], links: [] },
+          notes: { item: 'Move everything off the old cluster.\nTwo streams, side by side.' } },
+        { id: 'md-a', parent: 'md-top', cells: { item: 'Environment', size: 'M', pct: 100,
+            ticket: [{ id: 'ABC-123', type: 'Bug' }], resources: ['John'], deps: [], links: [],
+            notes: 'Finished last week' } },
+        { id: 'md-b', parent: 'md-top', cells: { item: 'Data move', size: 'L', pct: 30,
+            deadline: iso(35), resources: ['Jane', 'Sam'], deps: ['md-a'],
+            links: [{ label: 'Spec', url: 'https://example.com/spec' }] },
+          notes: { deadline: 'Fixed by the conference' } }
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(500);
+
+await page.click(sel('.proj-md-out'));
+await page.waitForTimeout(400);
+const mdText = () => page.inputValue('.proj-md-text');
+let md = await mdText();
+
+ok('the toolbar offers the plan as Markdown, and it opens written out',
+    md.startsWith('# '), md.slice(0, 60));
+ok('a row is a heading at the depth it sits at, numbered as the table numbers it',
+    /^## 1 Platform migration$/m.test(md) && /^### 1\.1 Environment$/m.test(md), md.slice(0, 400));
+ok('with how big it is, how far along, and who is on it \u2014 the work divided between them',
+    /^\*\*L \u00B7 15 d \u00B7 30% done, 10.5 d left\*\* \u00B7 Jane, Sam$/m.test(md),
+    (md.match(/^\*\*.*Jane.*$/m) || [''])[0]);
+ok('and a finished row says so rather than counting what is left of nothing',
+    /^\*\*M \u00B7 10 d \u00B7 done\*\* \u00B7 John$/m.test(md),
+    (md.match(/^\*\*M.*$/m) || [''])[0]);
+ok('the note on a task is quoted under it, every line of it',
+    /^> Move everything off the old cluster\.\n> Two streams, side by side\.$/m.test(md), md.slice(0, 500));
+ok('and a note written about a cell is named by its column, since nothing else would say it',
+    /^- Deadline note: Fixed by the conference$/m.test(md),
+    (md.match(/^- Deadline note.*$/m) || ['missing'])[0]);
+ok('tickets come with their types and their addresses',
+    /^- Ticket: \[ABC-123\]\(https:\/\/tickets\.example\.com\/browse\/ABC-123\) \(Bug\)$/m.test(md),
+    (md.match(/^- Ticket.*$/m) || ['missing'])[0]);
+ok('dependencies name the row they point at, number and all, so they can be followed',
+    /^- Dependencies: 1\.1 Environment$/m.test(md),
+    (md.match(/^- Dependencies.*$/m) || ['missing'])[0]);
+ok('links are links', /^- Links: \[Spec\]\(https:\/\/example\.com\/spec\)$/m.test(md),
+    (md.match(/^- Links.*$/m) || ['missing'])[0]);
+ok('a column of prose is carried over too, under its own name',
+    /^- Notes: Finished last week$/m.test(md), (md.match(/^- Notes.*$/m) || ['missing'])[0]);
+ok('and the top says what the whole plan comes to',
+    /^\*3 items \u00B7 25 d of work \u00B7 10.5 d left \u00B7 58% done/m.test(md),
+    (md.match(/^\*3 items.*$/m) || ['missing'])[0]);
+
+// The switch. Everything date-shaped goes together: Start and End move whenever
+// anything above them moves, and a summary that carries them is stale by the
+// afternoon and cannot be diffed against last week's.
+ok('with dates on, a row says when it runs, when it is due and how that compares',
+    /^- Dates: \d{4}-\d\d-\d\d \u2192 \d{4}-\d\d-\d\d \u00B7 deadline \d{4}-\d\d-\d\d \u00B7 \d+ d spare$/m.test(md),
+    (md.match(/^- Dates.*$/m) || ['missing'])[0]);
+ok('and the summary says when it was written', /as of \d{4}-\d\d-\d\d/.test(md),
+    (md.match(/^\*3 items.*$/m) || [''])[0]);
+
+await page.uncheck('.proj-md-bar input[data-part="dates"]');
+await page.waitForTimeout(400);
+const noDates = await mdText();
+ok('turning dates off takes every one of them out \u2014 start, end, deadline and slack',
+    !/Dates:/.test(noDates) && !/deadline/i.test(noDates) && !/\d{4}-\d\d-\d\d/.test(noDates),
+    (noDates.match(/.*\d{4}-\d\d-\d\d.*/) || ['none left'])[0]);
+ok('and a note about a date goes with them, being about one',
+    !/Fixed by the conference/.test(noDates), noDates.slice(0, 200));
+ok('while everything that is not a date stays',
+    /ABC-123/.test(noDates) && /Dependencies: 1\.1 Environment/.test(noDates) &&
+    /Spec/.test(noDates) && /Move everything off the old cluster/.test(noDates) &&
+    /\*\*L \u00B7 15 d/.test(noDates), noDates.slice(0, 300));
+ok('so what is left changes only when the plan does, which is what makes it worth keeping',
+    noDates.split('\n').length < md.split('\n').length, noDates.split('\n').length + ' vs ' + md.split('\n').length);
+ok('and the switch is kept with the plan, not with this browser',
+    (await data()).mdShow.dates === false, JSON.stringify((await data()).mdShow));
+// Every switch is written, not only the one that moved: half a set of choices is how
+// a later default silently changes an answer somebody already gave.
+ok('and so is every other choice beside it, rather than only the one that moved',
+    Object.keys((await data()).mdShow).length >= 9 &&
+    (await data()).mdShow.notes === true, JSON.stringify((await data()).mdShow));
+
+// It is written from the table, so it must not be the place anybody edits.
+ok('the text is read-only, since an edit here would be thrown away by the next keystroke',
+    await page.evaluate(() => document.querySelector('.proj-md-text').readOnly));
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+await page.click(sel('.proj-md-out'));
+await page.waitForTimeout(400);
+ok('reopening it remembers the choice rather than asking again',
+    await page.evaluate(() => !document.querySelector('.proj-md-bar input[data-part="dates"]').checked) &&
+    !/Dates:/.test(await mdText()));
+await page.check('.proj-md-bar input[data-part="dates"]');
+await page.waitForTimeout(400);
+ok('and turning them back on puts them back', /^- Dates: /m.test(await mdText()),
+    ((await mdText()).match(/^- Dates.*$/m) || ['missing'])[0]);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+
+// One switch per thing a row carries, because a plan is written out for a reason and
+// the reason decides what belongs: a status update wants how far along and who is on
+// it, a scope review wants the notes and none of the dates.
+await page.click(sel('.proj-md-out'));
+await page.waitForTimeout(400);
+const partOff = async (part) => {
+    await page.uncheck('.proj-md-bar input[data-part="' + part + '"]');
+    await page.waitForTimeout(250);
+    return mdText();
+};
+const partOn = async (part) => {
+    await page.check('.proj-md-bar input[data-part="' + part + '"]');
+    await page.waitForTimeout(250);
+    return mdText();
+};
+
+ok('there is a switch for each thing a row carries, not only for the dates',
+    await page.evaluate(() => [...document.querySelectorAll('.proj-md-bar input[data-part]')]
+        .map(i => i.getAttribute('data-part')).join(',')) ===
+    'fullTitle,size,done,dates,assigned,tickets,deps,links,notes,extra',
+    await page.evaluate(() => [...document.querySelectorAll('.proj-md-bar input[data-part]')]
+        .map(i => i.getAttribute('data-part')).join(',')));
+
+let cut = await partOff('assigned');
+ok('who is on it can be left off \u2014 a plan read outside the team is about the work',
+    !/Jane, Sam/.test(cut) && /Data move/.test(cut), (cut.match(/^\*\*.*$/m) || [''])[0]);
+cut = await partOff('done');
+ok('and so can how far along it is, which is what a scope review is not about',
+    !/% done/.test(cut) && !/d left/.test(cut) && /\*\*L \u00B7 15 d\*\*/.test(cut),
+    (cut.match(/^\*\*.*$/m) || [''])[0]);
+cut = await partOff('size');
+ok('with both of those off a row is its name and its bullets, not a pair of empty asterisks',
+    !/\*\*/.test(cut) && /^### 1\.1 Environment$/m.test(cut), cut.slice(0, 220));
+cut = await partOff('notes');
+ok('notes go as one \u2014 the task\u2019s, the Notes column and anything written about a cell',
+    !/Move everything off/.test(cut) && !/Notes: Finished last week/.test(cut) &&
+    !/Deadline note/.test(cut), cut.slice(0, 260));
+cut = await partOff('tickets');
+ok('tickets can be left out of a summary that is not about tracking', !/ABC-123/.test(cut), cut.slice(0, 260));
+cut = await partOff('deps');
+ok('and so can the order of the work', !/Dependencies:/.test(cut), cut.slice(0, 260));
+cut = await partOff('links');
+ok('and the links', !/Spec/.test(cut), cut.slice(0, 260));
+cut = await partOff('dates');
+ok('what is left is the plan at its barest: the names, numbered and nested',
+    /^# /m.test(cut) && /^## 1 Platform migration$/m.test(cut) &&
+    /^### 1\.1 Environment$/m.test(cut) && cut.split('\n').filter(l => l.startsWith('- ')).length === 0,
+    cut.split('\n').filter(l => l.startsWith('- ')).join(' | ') || 'no bullets left');
+ok('and the top line stops counting days the rows no longer carry',
+    /^\*3 items\*$/m.test(cut), (cut.match(/^\*3 items.*$/m) || ['missing'])[0]);
+
+// Back on, one at a time, because a switch that only works downwards is half a switch.
+await partOn('size'); await partOn('done'); await partOn('assigned');
+await partOn('tickets'); await partOn('deps'); await partOn('links'); await partOn('dates');
+const back = await partOn('notes');
+ok('every one of them puts back what it took away',
+    /Jane, Sam/.test(back) && /% done/.test(back) && /ABC-123/.test(back) &&
+    /Dependencies:/.test(back) && /Spec/.test(back) && /Move everything off/.test(back) &&
+    /- Dates: /.test(back),
+    back.slice(0, 200));
+
+// The heading is the task's own name, or the whole of its Title — which is the thing
+// to paste when a row is going to be read away from the rest of them.
+const titled = await partOn('fullTitle');
+ok('a row can be headed with its full title instead of the task\u2019s own name',
+    /^### 1\.1 Platform migration - Environment$/m.test(titled),
+    (titled.match(/^### 1\.1.*$/m) || ['missing'])[0]);
+ok('and the switch is off until it is asked for, since the headings already nest',
+    await page.evaluate((id) => {
+        const dd = JSON.parse(JSON.stringify(projGetData(id)));
+        delete dd.mdShow;
+        return projMdOptions(dd).fullTitle === false && projMdOptions(dd).notes === true;
+    }, toolId));
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+
 // 14m. Team and System: two columns in front of the task, folded away, and part of
 //      what the Title says. A row that leaves one blank takes the one above it,
 //      because nobody fills these in on every line.
@@ -2741,6 +2929,15 @@ ok('and an older table is given them, in their place to the left of the task',
         return back.columns.map(c => c.id).join(',').indexOf('ticket,team,system,item') >= 0;
     }, toolId),
     await page.evaluate((id) => projGetData(id).columns.map(c => c.id).join(','), toolId));
+
+// An empty plan is a document that says so, rather than a heading and nothing.
+ok('an empty plan writes a line saying it is empty, rather than a bare heading',
+    await page.evaluate((id) => {
+        const dd = JSON.parse(JSON.stringify(projGetData(id)));
+        dd.rows = [];
+        const text = projToMarkdown(dd, { title: 'Nothing yet' });
+        return /^# Nothing yet$/m.test(text) && /Nothing in this plan yet/.test(text);
+    }, toolId));
 
 // 15c. The planning week: the week that makes a quarter thirteen rather than twelve.
 //      Two timeboxes of three sprints are 84 days; a quarter is 91. That last week is

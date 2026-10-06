@@ -177,6 +177,25 @@
 }
 .proj-modal-text:focus { outline: none; border-color: var(--proj-size-3); }
 .proj-modal-foot { display: flex; align-items: center; gap: 8px; }
+/* The switches on the left, the one button on the right, and the text under both.
+   They wrap rather than squeezing: there is one per thing a row carries, and a row
+   of nine squashed labels is harder to read than two rows of nine. */
+.proj-md-bar {
+    display: flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; flex: 0 0 auto;
+}
+.proj-md-label { font-size: 11px; color: var(--text-muted); }
+.proj-md-part {
+    display: flex; align-items: center; gap: 4px; cursor: pointer;
+    font-size: 11px; color: var(--text-secondary); white-space: nowrap;
+}
+.proj-md-part input { cursor: pointer; }
+.proj-md-copy { margin-left: auto; }
+/* Monospace, because what is in it is source: the hyphens and hashes are supposed to
+   line up, and a proportional font hides a broken bullet. */
+.proj-md-text {
+    min-height: 320px; white-space: pre; overflow-wrap: normal; overflow-x: auto;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 11px;
+}
 /* A link is a label and an address, and an address is long. In the window they each
    get a line and the address gets most of it, which is the thing a table column
    cannot offer and the reason this is a window at all. */
@@ -495,6 +514,9 @@ PluginRegistry.registerTool({
                         'Export CSV</button>' +
                     '<button class="proj-btn proj-csv-in" onclick="projPickCsv(this)" ' +
                         'title="Replace the rows from a CSV file">Import CSV</button>' +
+                    '<button class="proj-btn proj-md-out" onclick="projOpenMarkdown(this)" ' +
+                        'title="The plan written out as Markdown, notes and all, ' +
+                            'to paste into a document or a ticket">Markdown</button>' +
                     '<input type="file" class="proj-csv-file" accept=".csv,text/csv" ' +
                         'style="display:none" onchange="projImportCsvFile(this)">' +
                 '</div>' +
@@ -2998,6 +3020,239 @@ function projImportCsvFile(input) {
 }
 
 // ============================================================
+// Markdown, out
+//
+// The table is a working surface; this is the plan said in a way somebody can read
+// in a document, a ticket or a message. Headings and bullets rather than a pipe
+// table: a note is prose and a link is a link, and neither survives a table cell.
+//
+// Dates are optional because dates are what changes. Start and End move every time
+// anything above them moves, so a summary that carries them is out of date by the
+// afternoon and cannot be diffed against the one from last week. With them off, the
+// text only changes when the plan does — which is the thing worth reading.
+// ============================================================
+
+/** The columns the summary speaks for itself, by type: anything else a table has is
+ *  somebody's own column and gets a line of its own. */
+const PROJ_MD_SPOKEN_FOR = ['calcNumber', 'item', 'title', 'size', 'percent',
+    'start', 'end', 'calcTotal', 'calcRemaining', 'calcSlack', 'resources',
+    'deps', 'links', 'ticket'];
+
+/**
+ * What a summary can be made of, and what each switch is called.
+ *
+ * One per thing a row carries, in the order the document says them, because a plan
+ * is written out for a reason and the reason decides what belongs: a status update
+ * wants how far along and who is on it; a scope review wants the notes and the
+ * tickets and none of the dates; something pasted into a ticket wants the links.
+ * Everything is on to begin with — the full version is the one you can cut down.
+ */
+const PROJ_MD_PARTS = [
+    // Off to begin with, and first in the row because it changes the heading rather
+    // than adding a line under it. The headings already nest, so in the document
+    // itself a task knows what it belongs to; the full title is for when a row is
+    // going to be read away from the rest of them.
+    { id: 'fullTitle', label: 'Full title', off: true,
+      hint: 'Head each row with the whole of its Title \u2014 project, task and ' +
+            'sub-task \u2014 rather than with the task\u2019s own name' },
+    { id: 'size', label: 'Size & days',
+      hint: 'The size, and the days of work it comes to' },
+    { id: 'done', label: '% Done',
+      hint: 'How far along each row is, and the days still left on it' },
+    { id: 'dates', label: 'Dates',
+      hint: 'Start, End, deadlines, slack, and anything else date-shaped. They move ' +
+            'whenever anything above them moves, so a summary meant to be kept is ' +
+            'usually better without them' },
+    { id: 'assigned', label: 'Assigned', hint: 'Who is on each row' },
+    { id: 'tickets', label: 'Tickets', hint: 'The tickets each row is tracked in' },
+    { id: 'deps', label: 'Dependencies', hint: 'What each row waits for' },
+    { id: 'links', label: 'Links', hint: 'The links kept on each row' },
+    { id: 'notes', label: 'Notes',
+      hint: 'The note on the task, the Notes column, and anything written about a ' +
+            'cell \u2014 which lives in a window and is otherwise never read' },
+    { id: 'extra', label: 'Other columns',
+      hint: 'Columns added to this table that nothing else in this list names' }
+];
+
+/** Which parts this plan is set to show. Absent means all of them: a switch is only
+ *  stored once somebody has turned something off. */
+function projMdOptions(data) {
+    const stored = (data && data.mdShow && typeof data.mdShow === 'object') ? data.mdShow : {};
+    const show = {};
+    // On unless turned off, except the few that are off until turned on.
+    PROJ_MD_PARTS.forEach(part => {
+        show[part.id] = part.off ? stored[part.id] === true : stored[part.id] !== false;
+    });
+    return show;
+}
+
+/** A note, as a block quote. Every line of it: a note is prose and the second
+ *  paragraph of one is not decoration. */
+function projMdQuote(text) {
+    return String(text || '').replace(/\r/g, '').split('\n').map(l => ('> ' + l).trimEnd());
+}
+
+/** A note on a bullet, with its later lines indented so they stay on that bullet
+ *  rather than ending the list. */
+function projMdIndent(text) {
+    return String(text || '').replace(/\r/g, '').split('\n')
+        .map((l, i) => (i ? '  ' + l : l).trimEnd()).join('\n');
+}
+
+/**
+ * What this row says on one line: how big, how far along, and who is on it.
+ *
+ * Any of the three can be switched off, so the line is built from what is left and
+ * is '' when nothing is — a row with every switch down is its heading and its
+ * bullets, not a pair of empty asterisks.
+ */
+function projMdFacts(data, row, show) {
+    const bits = [];
+    if (show.size) {
+        const parent = projIsParent(data, row);
+        const size = parent ? projRolledSize(data, row) : String(projCell(row, 'size') || '').trim();
+        if (size) bits.push(size);
+        bits.push(projRoundDays(projTotalDays(data, row)) + ' d');
+    }
+    if (show.done) {
+        const pct = projPercent(data, row);
+        bits.push(pct >= 100 ? 'done'
+            : pct + '% done, ' + projRoundDays(projRemainingDays(data, row)) + ' d left');
+    }
+    let line = bits.length ? '**' + bits.join(' \u00B7 ') + '**' : '';
+    if (!show.assigned) return line;
+    const col = data.columns.find(c => c.type === 'resources');
+    const who = col ? projResourcesOf(row, col.id) : [];
+    if (!who.length) return line;
+    return line ? line + ' \u00B7 ' + who.join(', ') : who.join(', ');
+}
+
+/** When this row runs, due when, and how that compares. Only ever called with dates
+ *  turned on, so the caller decides and this one does not have to. */
+function projMdDates(data, row) {
+    const when = projRowDates(data, row);
+    const bits = [when.start + ' \u2192 ' + when.end];
+    const due = String(projCell(row, 'deadline') || '').trim();
+    if (due) bits.push('deadline ' + due);
+    const slack = projSlackDays(data, row);
+    if (slack !== null) bits.push(slack >= 0 ? slack + ' d spare' : (-slack) + ' d late');
+    return bits.join(' \u00B7 ');
+}
+
+/** One row: a heading at its own depth, what it is, what was written about it, and
+ *  then a bullet for each of the things a row can carry several of. */
+function projRowMarkdown(data, row, show) {
+    const out = [];
+    const depth = projRowDepth(data, row);
+    const own = String(projCell(row, 'item') || '').trim();
+    const name = (show.fullTitle ? projRowTitle(data, row).trim() : own) || own || 'Untitled';
+    // Six is as deep as a heading goes; three levels never reach it, but a stored
+    // table from somewhere else might.
+    out.push('#'.repeat(Math.min(6, 2 + depth)) + ' ' + projRowNumber(data, row) + ' ' + name);
+    const facts = projMdFacts(data, row, show);
+    if (facts) { out.push(''); out.push(facts); }
+
+    const about = show.notes ? projNote(row, 'item').trim() : '';
+    if (about) { out.push(''); projMdQuote(about).forEach(l => out.push(l)); }
+
+    const bullets = [];
+    if (show.dates) bullets.push('Dates: ' + projMdDates(data, row));
+    data.columns.forEach(col => {
+        if (col.type === 'ticket') {
+            if (!show.tickets) return;
+            const tickets = projTicketsOf(row, col.id).map(t => {
+                const url = projTicketUrl(data, t.id, t.type);
+                const text = t.id || '(no number)';
+                return (url ? '[' + text + '](' + url + ')' : text) + (t.type ? ' (' + t.type + ')' : '');
+            });
+            if (tickets.length) bullets.push(col.title + ': ' + tickets.join(', '));
+            return;
+        }
+        if (col.type === 'deps') {
+            if (!show.deps) return;
+            const deps = (projCell(row, col.id) || []);
+            const named = (Array.isArray(deps) ? deps : []).map(id => {
+                const dep = data.rows.find(r => r.id === id);
+                return dep ? projCsvRef(data, dep) : '';
+            }).filter(Boolean);
+            if (named.length) bullets.push(col.title + ': ' + named.join(', '));
+            return;
+        }
+        if (col.type === 'links') {
+            if (!show.links) return;
+            const links = projCell(row, col.id);
+            const named = (Array.isArray(links) ? links : []).map(l => {
+                const label = String(l.label || '').trim() || projLinkHost(l.url) || 'link';
+                const url = projSafeUrl(l.url);
+                return url ? '[' + label + '](' + url + ')' : label;
+            }).filter(Boolean);
+            if (named.length) bullets.push(col.title + ': ' + named.join(', '));
+            return;
+        }
+        // Somebody's own column, and the Notes column, which is one of these too —
+        // but the Notes column is notes, and goes with the rest of them rather than
+        // with somebody's extra column of numbers. A date column is a date wherever
+        // it came from, so it follows the dates switch.
+        if (PROJ_MD_SPOKEN_FOR.indexOf(col.type) >= 0) return;
+        if (col.id === 'deadline') return;
+        if (col.type === 'notes' ? !show.notes : !show.extra) return;
+        if (col.type === 'date' && !show.dates) return;
+        const value = String(projCell(row, col.id) == null ? '' : projCell(row, col.id)).trim();
+        if (value) bullets.push(projMdIndent(col.title + ': ' + value));
+    });
+    // What was written about a cell, which is in a window and so is the part of a
+    // plan that never gets read. Said once per column, named by the column.
+    data.columns.forEach(col => {
+        if (!show.notes) return;
+        if (col.id === 'item') return;
+        if (col.type === 'date' && !show.dates) return;
+        const note = projNote(row, col.id).trim();
+        if (note) bullets.push(projMdIndent(col.title + ' note: ' + note));
+    });
+    if (bullets.length) {
+        out.push('');
+        bullets.forEach(b => out.push('- ' + b));
+    }
+    return out;
+}
+
+/**
+ * The whole plan as Markdown.
+ *
+ * `title` is the tool's own, since that is what the plan is called on the board.
+ */
+function projToMarkdown(data, opts) {
+    const o = opts || {};
+    const show = o.show || projMdOptions(data);
+    const out = ['# ' + (String(o.title || '').trim() || 'Project'), ''];
+    const tops = data.rows.filter(r => !r.parent ||
+        !data.rows.some(p => p.id === r.parent));
+    const total = projRoundDays(tops.reduce((s, r) => s + projTotalDays(data, r), 0));
+    const left = projRoundDays(tops.reduce((s, r) => s + projRemainingDays(data, r), 0));
+    const done = total ? Math.round((1 - left / total) * 100) : 0;
+    // The line that says what the whole thing comes to, made of the same parts the
+    // rows are: a summary that counted days the rows no longer carry would be
+    // answering a question the document has stopped asking.
+    const head = [data.rows.length + (data.rows.length === 1 ? ' item' : ' items')];
+    if (show.size) head.push(total + ' d of work');
+    if (show.done) {
+        if (left !== total) head.push(left + ' d left');
+        head.push(done + '% done');
+    }
+    if (show.dates) head.push('as of ' + projFormatDate(projToday()));
+    out.push('*' + head.join(' \u00B7 ') + '*');
+    if (!data.rows.length) {
+        out.push('', '*Nothing in this plan yet.*');
+        return out.join('\n') + '\n';
+    }
+    projOrderedRows(data).forEach(row => {
+        out.push('');
+        projRowMarkdown(data, row, show).forEach(l => out.push(l));
+    });
+    return out.join('\n') + '\n';
+}
+
+// ============================================================
 // Editing
 // ============================================================
 
@@ -3811,6 +4066,85 @@ function projRemoveLinkRow(btn) {
 }
 
 
+/** What the plan is called, which is what the board calls the tool. */
+function projPlanTitle(toolId) {
+    return String((toolCustomizations[toolId] || {}).title || '').trim() || 'Project';
+}
+
+/**
+ * The Markdown window: the plan written out, with a switch for the dates.
+ *
+ * Read-only on purpose. It is generated from the table, so an edit made here would
+ * be thrown away by the next keystroke anywhere in the plan — better to copy it and
+ * edit it where it is going. The switch is kept with the plan rather than with this
+ * browser: whoever opens the board next wants the summary the last person meant.
+ */
+function projOpenMarkdown(btn) {
+    const toolId = projToolId(btn);
+    if (!toolId) return;
+    const data = projGetData(toolId);
+    const show = projMdOptions(data);
+    const switches = PROJ_MD_PARTS.map(part =>
+        '<label class="proj-md-part" title="' + escapeHtml(part.hint) + '">' +
+            '<input type="checkbox" data-part="' + part.id + '"' +
+            (show[part.id] ? ' checked' : '') +
+            ' onchange="projOnMarkdownPart(this)"> ' + escapeHtml(part.label) +
+        '</label>').join('');
+    const overlay = projOpenModal(toolId, '', '',
+        'Markdown \u2014 ' + projPlanTitle(toolId),
+        '<div class="proj-md-bar">' +
+            '<span class="proj-md-label">Include</span>' + switches +
+            '<button class="proj-btn proj-md-copy" onclick="projCopyMarkdown(this)">Copy</button>' +
+        '</div>' +
+        '<textarea class="proj-modal-text proj-md-text" spellcheck="false" readonly ' +
+            'title="Written from the table \u2014 copy it and edit it where you paste it">' +
+        '</textarea>',
+        'Kept with the plan \u00B7 Esc closes');
+    projFillMarkdown(overlay);
+    // Focused so Ctrl+A is the whole document without reaching for the mouse, and
+    // scrolled back afterwards: focusing a textarea is itself enough to move it.
+    const text = overlay.querySelector('.proj-md-text');
+    if (text) { text.focus(); text.setSelectionRange(0, 0); text.scrollTop = 0; }
+}
+
+function projFillMarkdown(overlay) {
+    const toolId = overlay.getAttribute('data-tool');
+    const text = overlay.querySelector('.proj-md-text');
+    if (!text) return;
+    const data = projGetData(toolId);
+    text.value = projToMarkdown(data, { title: projPlanTitle(toolId), show: projMdOptions(data) });
+    // Back to the top, or flipping the switch leaves you looking at the end of a
+    // document you were reading the start of.
+    text.scrollTop = 0;
+}
+
+/** One switch, kept with the plan. Every one of them is written, not only the one
+ *  that moved: half a set of choices is how a later default silently changes an
+ *  answer somebody already gave. */
+function projOnMarkdownPart(input) {
+    const overlay = input.closest('.proj-modal');
+    if (!overlay) return;
+    const toolId = overlay.getAttribute('data-tool');
+    const data = projGetData(toolId);
+    const show = projMdOptions(data);
+    show[input.getAttribute('data-part')] = input.checked;
+    data.mdShow = show;
+    projSetData(toolId, data);
+    projFillMarkdown(overlay);
+}
+
+function projCopyMarkdown(btn) {
+    const overlay = btn.closest('.proj-modal');
+    const text = overlay ? overlay.querySelector('.proj-md-text') : null;
+    if (!text) return;
+    if (typeof copyTextToClipboard === 'function') {
+        copyTextToClipboard(text.value, 'Markdown copied');
+        return;
+    }
+    text.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text.value);
+}
+
 /** Fold a column away, or unfold it. Kept with the plan: a board handed over folded
  *  is folded for whoever opens it, which is the point of folding it. */
 function projToggleColumn(el) {
@@ -3952,6 +4286,10 @@ function projRowDrop(tr, event) {
         projMutate, projUpdateDerived, projOnSizeDays, projOnCell, projOnColumnTitle, projOnColumnType,
         projCsvField, projCsvParse, projCsvValue, projToCsv, projExportCsv, projPickCsv,
         projParseLinks, projFromCsv, projImportCsvFile,
+        projMdQuote, projMdIndent, projMdFacts, projMdDates,
+        projRowMarkdown, projToMarkdown, projPlanTitle,
+        projMdOptions, projOpenMarkdown, projFillMarkdown, projOnMarkdownPart,
+        projCopyMarkdown,
         projSafeUrl, projLinkHost, projOpenLinks, projRenderLinkRows, projOnModalLink,
         projAddLinkRow, projRemoveLinkRow,
         projEditColumnTitle, projAddColumn, projDeleteColumn, projAddRow, projDeleteRow,
