@@ -661,8 +661,14 @@ half a set of choices is how a later default silently changes an answer somebody
 already gave.
 
 The window is **read-only**: the text is written from the table, so an edit made
-there would be thrown away by the next keystroke anywhere in the plan. Copy it and
-edit it where it lands. `projToMarkdown(data, { title, dates })` is the whole of it
+there would be thrown away by the next keystroke anywhere in the plan. **Copy** takes
+it away as it is, and **New note** leaves it on this board as a note — which is the
+thing somebody does with a summary next: edit the wording, send it, keep it beside
+the plan it came from. That note is a **copy rather than a view**. The plan will move
+on, and a summary that quietly rewrote itself afterwards would be a record of
+nothing. It is made with the framework's `createNoteWithText()`, and a note can be
+copied out again as Markdown or as formatted text — see
+[Architecture](architecture.md#copying-a-note). `projToMarkdown(data, { title, dates })` is the whole of it
 and takes no DOM, so what the window shows is exactly what a test reads.
 
 One other key sits beside `projectData`: `projFitWidth`, the width the tool last

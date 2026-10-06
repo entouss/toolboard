@@ -8290,6 +8290,12 @@ function noteShellHtml(toolId, custom) {
         '<div class="note-actions">' +
             '<button class="note-btn" onclick="openContentEditor(toolIdOf(this))" ' +
                 'title="The big editor: find and replace, line sorting, word count">Editor</button>' +
+            '<button class="note-btn" onclick="noteCopyMarkdown(this)" ' +
+                'title="The Markdown itself, for somewhere that reads Markdown">' +
+                'Copy Markdown</button>' +
+            '<button class="note-btn" onclick="noteCopyRendered(this)" ' +
+                'title="The note as it looks, so headings and lists survive a paste ' +
+                    'into a document, an email or a chat">Copy formatted</button>' +
         '</div>' +
         '<div class="authoring-split">' +
             '<div class="authoring-source">' +
@@ -8317,6 +8323,71 @@ function noteRender(toolId) {
     if (!result) return;
     const custom = toolCustomizations[toolId] || {};
     result.innerHTML = noteBodyHtml(custom.customContent != null ? custom.customContent : '', custom);
+}
+
+/** The Markdown as it is written here, for somewhere that reads Markdown. */
+function noteCopyMarkdown(btn) {
+    const toolId = toolIdOf(btn);
+    const custom = toolCustomizations[toolId] || {};
+    copyTextToClipboard(custom.customContent != null ? custom.customContent : '', 'Markdown copied');
+}
+
+/**
+ * The note as it looks, for somewhere that does not read Markdown.
+ *
+ * A document, an email or a chat message keeps the headings and the lists if what
+ * arrives on the clipboard is HTML; paste the source into one of those and you get
+ * hashes and asterisks. Both go on the clipboard — the markup and the words — and
+ * the target takes whichever it understands.
+ */
+function noteCopyRendered(btn) {
+    const tool = btn.closest('.tool');
+    const result = tool && tool.querySelector('.authoring-result');
+    if (!result) return;
+    copyRichTextToClipboard(result.innerHTML, result.innerText, 'Copied with its formatting');
+}
+
+/**
+ * Rich text on the clipboard, by whichever of the three ways this browser allows.
+ *
+ * `ClipboardItem` is the one that states what it is doing. Where it is missing or
+ * refused — it needs a secure context, and Safari has been particular about when —
+ * a hidden editable copy of the markup is selected and copied, which is the old way
+ * and still the one that works everywhere. If even that fails, the words go on
+ * their own: something on the clipboard beats a button that did nothing.
+ */
+function copyRichTextToClipboard(html, plain, message) {
+    const fallback = () => {
+        const holder = document.createElement('div');
+        holder.setAttribute('contenteditable', 'true');
+        holder.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+        holder.innerHTML = html;
+        document.body.appendChild(holder);
+        const range = document.createRange();
+        range.selectNodeContents(holder);
+        const selection = window.getSelection();
+        const had = selection.rangeCount ? selection.getRangeAt(0) : null;
+        selection.removeAllRanges();
+        selection.addRange(range);
+        let copied = false;
+        try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+        selection.removeAllRanges();
+        if (had) selection.addRange(had);
+        holder.remove();
+        if (copied) showToolToast(message);
+        else copyTextToClipboard(plain, message);
+    };
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        try {
+            const item = new ClipboardItem({
+                'text/html': new Blob([html], { type: 'text/html' }),
+                'text/plain': new Blob([plain], { type: 'text/plain' })
+            });
+            navigator.clipboard.write([item]).then(() => showToolToast(message)).catch(fallback);
+            return;
+        } catch (e) { /* fall through to the way that works everywhere */ }
+    }
+    fallback();
 }
 
 function noteOnInput(textarea) {
@@ -11389,6 +11460,44 @@ function createNoteWithTemplate(templateId, options = {}) {
         }
     }
 
+    return toolId;
+}
+
+/**
+ * A new note on this board, already holding something.
+ *
+ * The framework's job rather than any tool's: a tool that has something worth
+ * keeping — a summary, a report, a list it just worked out — should be able to put
+ * it on the board as a note without knowing how notes are made, and without each
+ * one reinventing the id, the position and the save.
+ *
+ * The content is written after `createNoteWithTemplate` has built the tool, so the
+ * panes that are already on screen are brought into step by hand — the same two
+ * lines the big editor runs when it saves.
+ */
+function createNoteWithText(text, title) {
+    // A maximized tool covers the whole board, so a note made from inside one would
+    // land behind it and read as nothing having happened. Whatever asked for a note
+    // wants to see the note.
+    if (typeof exitToolFullscreen === 'function') exitToolFullscreen();
+    const toolId = createNoteWithTemplate('blank', { skipEditor: true });
+    if (!toolId) return null;
+    const custom = toolCustomizations[toolId] || (toolCustomizations[toolId] = {});
+    custom.customContent = String(text == null ? '' : text);
+    if (title) custom.title = String(title);
+    saveToolCustomizations(toolCustomizations);
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    if (tool) {
+        const source = tool.querySelector('.note-source');
+        if (source) source.value = custom.customContent;
+        const heading = tool.querySelector('.tool-title');
+        if (heading && title) heading.textContent = title;
+        noteRender(toolId);
+        // Notes are laid out a step down and to the right of each other, so on a
+        // board with a few of them the newest one can be past the bottom of the
+        // window. It is the thing that was just asked for; it should be on screen.
+        if (tool.scrollIntoView) tool.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
     return toolId;
 }
 

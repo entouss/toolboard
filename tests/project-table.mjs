@@ -2873,6 +2873,63 @@ ok('and the switch is off until it is asked for, since the headings already nest
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
 
+// A summary is a thing somebody wrote on a day. What they do with it next is edit
+// the wording, send it, keep it beside the plan it came from — all of which a note
+// on this board already does, and none of which a window can.
+await page.click(sel('.proj-md-out'));
+await page.waitForTimeout(400);
+const wanted = await mdText();
+await page.click('.proj-md-note');
+await page.waitForTimeout(900);
+const noteFacts = await page.evaluate(() => {
+    const notes = [...document.querySelectorAll('.tool')].filter(t => t.querySelector('.note-widget'));
+    const tool = notes[notes.length - 1];
+    if (!tool) return null;
+    const id = tool.getAttribute('data-tool');
+    return { id: id, title: tool.querySelector('.tool-title').textContent,
+        stored: (toolCustomizations[id] || {}).customContent,
+        source: tool.querySelector('.note-source').value,
+        headings: [...tool.querySelectorAll('.authoring-result h1, .authoring-result h2')]
+            .map(h => h.textContent).join('|') };
+});
+ok('the summary can be put on the board as a note, holding exactly what the window showed',
+    !!noteFacts && noteFacts.stored === wanted, (noteFacts || {}).stored ? 'same' : 'no note');
+ok('named after the plan it came from, so two of them are told apart',
+    /summary$/.test((noteFacts || {}).title || '') &&
+    (noteFacts || {}).title.indexOf('Project Table') === 0, (noteFacts || {}).title);
+ok('and drawn as a document rather than as the source it is written in',
+    /Project Table/.test((noteFacts || {}).headings || ''), (noteFacts || {}).headings);
+ok('the window closes behind it, since the thing it was for is now on the board',
+    await page.evaluate(() => !document.querySelector('.proj-modal')));
+
+// A copy, not a view: the plan will move on, and a summary that quietly rewrote
+// itself afterwards would be a record of nothing.
+await page.evaluate((id) => {
+    const dd = projGetData(id);
+    dd.rows[0].cells.item = 'Renamed after the summary';
+    projSetData(id, dd);
+    projOnRender(id);
+}, toolId);
+await page.waitForTimeout(400);
+ok('and it is a copy rather than a view \u2014 the plan moves on, the summary says what it said',
+    await page.evaluate((id) => (toolCustomizations[id] || {}).customContent, noteFacts.id) === wanted);
+
+// Put the board back as it was, so what follows is testing the plan and not the
+// wreckage of this.
+await page.evaluate((id) => {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(id) + '"]');
+    if (tool) tool.remove();
+    customTools = customTools.filter(t => t !== id);
+    saveCustomTools(customTools);
+    delete toolCustomizations[id];
+    saveToolCustomizations(toolCustomizations);
+}, noteFacts.id);
+await page.evaluate((id) => {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(id) + '"]');
+    if (tool) enterToolFullscreen(tool);
+}, toolId);
+await page.waitForTimeout(500);
+
 // 14m. Team and System: two columns in front of the task, folded away, and part of
 //      what the Title says. A row that leaves one blank takes the one above it,
 //      because nobody fills these in on every line.

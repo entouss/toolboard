@@ -4094,6 +4094,9 @@ function projOpenMarkdown(btn) {
         'Markdown \u2014 ' + projPlanTitle(toolId),
         '<div class="proj-md-bar">' +
             '<span class="proj-md-label">Include</span>' + switches +
+            '<button class="proj-btn proj-md-note" onclick="projMarkdownToNote(this)" ' +
+                'title="Put this on the board as a note, where it can be edited, ' +
+                    'moved and shared like anything else here">New note</button>' +
             '<button class="proj-btn proj-md-copy" onclick="projCopyMarkdown(this)">Copy</button>' +
         '</div>' +
         '<textarea class="proj-modal-text proj-md-text" spellcheck="false" readonly ' +
@@ -4131,6 +4134,27 @@ function projOnMarkdownPart(input) {
     data.mdShow = show;
     projSetData(toolId, data);
     projFillMarkdown(overlay);
+}
+
+/**
+ * The summary, as a note on this board.
+ *
+ * The plan is the table's; a summary of it is a thing somebody wrote on a day, and
+ * what they do with it next is edit the wording, send it, keep it beside the plan it
+ * came from. A note is all of those. It is a copy rather than a view: the plan will
+ * move on, and a summary that quietly rewrote itself afterwards would be a record of
+ * nothing.
+ */
+function projMarkdownToNote(btn) {
+    const overlay = btn.closest('.proj-modal');
+    const text = overlay ? overlay.querySelector('.proj-md-text') : null;
+    if (!text) return;
+    const toolId = overlay.getAttribute('data-tool');
+    if (typeof createNoteWithText !== 'function') return;
+    const title = projPlanTitle(toolId);
+    const made = createNoteWithText(text.value, title + ' \u2014 summary');
+    projCloseModal();
+    if (made && typeof showToolToast === 'function') showToolToast('Note added to the board');
 }
 
 function projCopyMarkdown(btn) {
@@ -4289,7 +4313,7 @@ function projRowDrop(tr, event) {
         projMdQuote, projMdIndent, projMdFacts, projMdDates,
         projRowMarkdown, projToMarkdown, projPlanTitle,
         projMdOptions, projOpenMarkdown, projFillMarkdown, projOnMarkdownPart,
-        projCopyMarkdown,
+        projCopyMarkdown, projMarkdownToNote,
         projSafeUrl, projLinkHost, projOpenLinks, projRenderLinkRows, projOnModalLink,
         projAddLinkRow, projRemoveLinkRow,
         projEditColumnTitle, projAddColumn, projDeleteColumn, projAddRow, projDeleteRow,
