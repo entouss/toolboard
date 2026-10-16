@@ -30,7 +30,13 @@
     --shadow-medium: rgba(0,0,0,0.15);
     --shadow-heavy: rgba(0,0,0,0.25);
     --overlay-bg: rgba(0,0,0,0.5);
-    --code-bg: #f4f4f4;
+    /* Inline code, the way Slack marks it: its own colour of text, on a chip with an
+       edge. #f4f4f4 alone was 1.1:1 against a white note — there, but not to be seen. */
+    --code-bg: #eef0f3;
+    --code-border: #b8bec7;
+    --code-text: #b3124a;
+    /* Links in rendered Markdown: #3498db was 2.9:1 on code and 3.2:1 on white. */
+    --link-color: #1f6fb2;
     --table-stripe: #f8f9fa;
     --table-hover: #e8f4fd;
     --input-bg: white;
@@ -56,7 +62,10 @@ body.dark-mode {
     --shadow-medium: rgba(0,0,0,0.4);
     --shadow-heavy: rgba(0,0,0,0.5);
     --overlay-bg: rgba(0,0,0,0.7);
-    --code-bg: #27272a;
+    --code-bg: #2a3456;
+    --code-border: #5d6a99;
+    --code-text: #ffb070;
+    --link-color: #6cb6ff;
     --table-stripe: #1f2940;
     --table-hover: #2d3a52;
     --input-bg: #1f2940;
@@ -1856,7 +1865,7 @@ main#toolboard {
 .note-source {
     flex: 1; resize: none; padding: 0; border: none; background: transparent;
     color: var(--text-primary); font-family: inherit; font-size: inherit;
-    line-height: 1.5; min-height: 60px;
+    line-height: var(--tool-line-height, 1.55); min-height: 60px;
 }
 .note-source:focus { outline: none; }
 .note-widget .authoring-result { flex: 1 1 50%; min-width: 0; overflow: auto; }
@@ -1868,6 +1877,115 @@ main#toolboard {
     color: var(--text-secondary); cursor: pointer; font-size: 10px; border-radius: 3px; white-space: nowrap;
 }
 .note-btn:hover { background: var(--table-hover); }
+
+/* The rich editor: the same note, written the way a chat composer writes it. Its
+   bar sits on top, like Slack's, and is the only chrome it has — the surface itself
+   reads as the note, not as a form. */
+.note-widget.note-rich-on .note-source { display: none; }
+.note-widget:not(.note-rich-on) .note-rich-wrap { display: none; }
+/* One bar for both editors. The formatting is rich text's; emoji, find and the
+   transforms are the note's, and stay in Markdown. */
+.note-rich-formats { display: contents; }
+.note-widget:not(.note-rich-on) .note-rich-formats { display: none; }
+.note-rich-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
+.note-rich-bar {
+    display: flex; align-items: center; gap: 2px; flex-wrap: wrap; flex: 0 0 auto;
+    padding: 2px 0 6px; margin-bottom: 6px; border-bottom: 1px solid var(--border-light);
+}
+.note-rich-btn {
+    min-width: 24px; height: 22px; padding: 0 5px; border: 1px solid transparent; border-radius: 4px;
+    background: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; line-height: 1;
+    font-family: inherit;
+}
+.note-rich-btn:hover { background: var(--table-hover); color: var(--text-primary); }
+/* Pressed where the caret already is, so the bar says what typing will do. */
+.note-rich-btn.active { background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary); }
+.note-rich-sep { width: 1px; align-self: stretch; margin: 3px 4px; background: var(--border-light); }
+/* The surface wears .markdown-content, the same rules the rendered note wears, so
+   what is written here looks exactly like what it will be read as. These are only
+   what makes it a place to type: its size, its caret, and its placeholder. */
+.note-rich {
+    flex: 1; min-height: 60px; overflow: auto; outline: none; line-height: var(--tool-line-height, 1.55);
+    color: var(--text-primary); cursor: text; overflow-wrap: anywhere; position: relative;
+}
+.note-rich > :first-child { margin-top: 0; }
+.note-rich pre { white-space: pre-wrap; }
+/* Empty means no words, not no elements: the surface always holds a paragraph to type
+   into, so :empty would never match. */
+.note-rich.note-rich-blank::before {
+    content: attr(data-placeholder); position: absolute; top: 0; left: 0;
+    color: var(--text-muted); pointer-events: none;
+}
+/* Why a note opened as Markdown when the note says Rich. One line, over the text. */
+.note-rich-why {
+    font-size: 11px; color: var(--text-muted); padding: 2px 0 6px; margin-bottom: 6px;
+    border-bottom: 1px solid var(--border-light);
+}
+.note-rich-why[hidden] { display: none; }
+/* The Rich / Markdown switch, in the note's own bar. */
+.note-mode { display: inline-flex; border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden; }
+.note-mode .note-btn { border: none; border-radius: 0; }
+.note-mode .note-btn + .note-btn { border-left: 1px solid var(--border-color); }
+.note-mode .note-btn.active { background: var(--accent-color, #3498db); color: #fff; }
+.note-mode .note-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* The copy beside each way of writing: an icon, joined to its button, with a firmer
+   line between the two pairs so Rich ⧉ and Markdown ⧉ read as two things. */
+.note-mode .note-copy { display: inline-flex; align-items: center; padding: 2px 5px; }
+.note-mode .note-copy svg { display: block; }
+.note-mode .note-copy-rich + .note-btn { border-left-width: 2px; }
+/* Link: a small form under the bar, the way Slack asks for one, rather than a prompt
+   that takes the whole window and loses the selection. */
+.note-rich-link {
+    position: absolute; top: 0; left: 0; z-index: 5; display: flex; gap: 4px; align-items: center;
+    padding: 6px; border: 1px solid var(--border-color); border-radius: 6px;
+    background: var(--bg-secondary); box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+.note-rich-link[hidden] { display: none; }
+.note-rich-link input {
+    font-size: 12px; padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 4px;
+    background: var(--input-bg); color: var(--text-primary); width: 200px;
+}
+.note-rich-link input.note-rich-link-text { width: 130px; }
+/* Emoji and Transform sit at the bar's far end: they are about the note, not about the
+   word under the caret. The menu is Edit Content's own, with the same classes. */
+.note-rich-gap { flex: 1 1 auto; }
+.note-rich-tf { position: relative; display: inline-flex; }
+.note-rich-tf-btn { font-size: 11px; }
+.note-rich-tf-panel { max-height: 340px; overflow: auto; }
+/* Plain text and Reset, at the foot of the Transform menu. */
+.note-rich-tf-panel .note-rich-tf-reset {
+    display: block; width: 100%; margin-top: 2px; padding: 4px 7px; text-align: left;
+    border: none; border-radius: 4px; background: none; color: var(--text-primary);
+    font: inherit; font-size: 12px; cursor: pointer;
+}
+.note-rich-tf-panel .note-rich-tf-reset:hover { background: var(--bg-tertiary); }
+.note-rich-tf-panel .note-rich-tf-reset[hidden] { display: none; }
+/* Find and replace, under the bar: Edit Content's, sized for a note. */
+.note-find {
+    flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px;
+    padding: 0 0 6px; margin-bottom: 6px; border-bottom: 1px solid var(--border-light);
+}
+.note-find[hidden], .note-find-row[hidden] { display: none; }
+.note-find-row { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.note-find-row input[type="text"] {
+    flex: 1 1 90px; min-width: 60px; font-size: 12px; padding: 2px 6px;
+    border: 1px solid var(--border-color); border-radius: 4px;
+    background: var(--input-bg); color: var(--text-primary);
+}
+.note-find-row .note-rich-btn { min-width: 22px; }
+.note-find-info { font-size: 11px; color: var(--text-muted); min-width: 56px; text-align: center; }
+.note-find-case { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+.note-find-spacer { width: 25px; flex: 0 0 auto; }
+/* Solid, with dark text, in either theme — the browser's own find colours. See-through,
+   they took the theme's text colour: light text on a muddy yellow in dark mode, and a
+   yellow too pale to find in light. 13:1 and 8:1. */
+::highlight(note-find) { background-color: #ffe066; color: #1a1a1a; }
+::highlight(note-find-current) { background-color: #ff9632; color: #1a1a1a; }
+/* How long it is, the way Edit Content says it — quiet, under the text. */
+.note-rich-stats {
+    flex: 0 0 auto; display: flex; gap: 10px; font-size: 10px; color: var(--text-muted);
+    padding-top: 4px; margin-top: 4px; border-top: 1px solid var(--border-light);
+}
 
 /* The dynamic tool. Same two panes as the note, but the source is three of them —
    the markup, the script that wires it up, and the data the script reads — shown
@@ -2753,9 +2871,26 @@ body.view-only .tool.fullscreen .tool-header {
     filter: brightness(0.7);
 }
 
+/* Darkening dark text sets a heading off; darkening light text, in dark mode, only
+   made it dimmer than what it heads. */
+body.dark-mode .markdown-content h1, body.dark-mode .markdown-content h2, body.dark-mode .markdown-content h3,
+body.dark-mode .markdown-content h4, body.dark-mode .markdown-content h5, body.dark-mode .markdown-content h6 {
+    filter: none;
+}
 .markdown-content h1 { font-size: 1.4em; }
 .markdown-content h2 { font-size: 1.2em; }
 .markdown-content h3 { font-size: 1.1em; }
+
+/* Rendered Markdown set no line height, so it had the browser's ~1.15 — 12px text on
+   14px lines, tighter than the 1.5 it was written at. 1.55 is close to Slack's, and
+   the editors use the same, so what is written is spaced as what is read. */
+.markdown-content {
+    line-height: var(--tool-line-height, 1.55);
+}
+
+.markdown-content li + li {
+    margin-top: 0.15em;
+}
 
 .markdown-content p {
     margin: 0.5em 0;
@@ -2768,7 +2903,9 @@ body.view-only .tool.fullscreen .tool-header {
 
 .markdown-content code {
     background: var(--code-bg);
-    padding: 2px 5px;
+    border: 1px solid var(--code-border);
+    color: var(--code-text);
+    padding: 1px 4px;
     border-radius: 3px;
     font-family: monospace;
     font-size: 0.9em;
@@ -2783,6 +2920,8 @@ body.view-only .tool.fullscreen .tool-header {
 
 .markdown-content pre code {
     background: none;
+    border: none;
+    color: inherit;
     padding: 0;
 }
 
@@ -2804,7 +2943,7 @@ body.view-only .tool.fullscreen .tool-header {
 }
 
 .markdown-content a {
-    color: #3498db;
+    color: var(--link-color);
 }
 
 .markdown-content img {
@@ -4034,6 +4173,12 @@ tr:hover {
                 <input type="range" id="toolSettingsPadding" min="0" max="60" value="15" style="flex:1;cursor:pointer;">
                 <span id="toolSettingsPaddingLabel" style="font-size:11px;min-width:38px;text-align:right;">15px</span>
                 <button id="toolSettingsPaddingReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
+            </div>
+            <label>Line Spacing</label>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <input type="range" id="toolSettingsLineHeight" min="1" max="2.5" step="0.05" value="1.55" style="flex:1;cursor:pointer;">
+                <span id="toolSettingsLineHeightLabel" style="font-size:11px;min-width:38px;text-align:right;">default</span>
+                <button id="toolSettingsLineHeightReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
             </div>
             <label>Zoom</label>
             <div style="display:flex;align-items:center;gap:6px;">
@@ -5870,6 +6015,9 @@ function setupToolControls() {
     const settingsPadding = document.getElementById('toolSettingsPadding');
     const settingsPaddingLabel = document.getElementById('toolSettingsPaddingLabel');
     const settingsPaddingReset = document.getElementById('toolSettingsPaddingReset');
+    const settingsLineHeight = document.getElementById('toolSettingsLineHeight');
+    const settingsLineHeightLabel = document.getElementById('toolSettingsLineHeightLabel');
+    const settingsLineHeightReset = document.getElementById('toolSettingsLineHeightReset');
     const settingsZoom = document.getElementById('toolSettingsZoom');
     const settingsZoomLabel = document.getElementById('toolSettingsZoomLabel');
     const settingsZoomIn = document.getElementById('toolSettingsZoomIn');
@@ -6052,6 +6200,10 @@ function setupToolControls() {
         settingsPadding.value = (padding && padding !== mixed) ? parseInt(padding) : 15;
         settingsPaddingLabel.textContent = padding === mixed ? 'Mixed' : (padding || 'default');
 
+        const lineHeight = commonSettingValue('lineHeight', '');
+        settingsLineHeight.value = (lineHeight && lineHeight !== mixed) ? parseFloat(lineHeight) : 1.55;
+        settingsLineHeightLabel.textContent = lineHeight === mixed ? 'Mixed' : (lineHeight || 'default');
+
         syncToolZoomUI();
 
         const align = commonSettingValue('textAlign', '');
@@ -6116,6 +6268,10 @@ function setupToolControls() {
             settingsDeleteBtn.textContent = customTools.includes(singleId) ? 'Delete Tool' : 'Hide Tool';
             settingsHeading.textContent = 'Tool Settings';
             settingsScope.innerHTML = '';
+            // A note is written where it sits — find, transforms, emoji and length are
+            // all in its own bar — so the big editor is not offered for one.
+            settingsEditBtn.style.display =
+                document.querySelector(`.tool[data-tool="${singleId}"] .note-widget`) ? 'none' : '';
         } else {
             settingsBulkSnapshot = JSON.parse(JSON.stringify(toolCustomizations));
             settingsUndoBtn.disabled = true;
@@ -6339,6 +6495,19 @@ function setupToolControls() {
         eachSettingsTarget((id, c) => { delete c.padding; applyToolPadding(id); });
         settingsPadding.value = 15;
         settingsPaddingLabel.textContent = 'default';
+    });
+
+    // Line spacing: a multiple of the font size, so it keeps its proportion when the
+    // font size changes.
+    settingsLineHeight.addEventListener('input', (e) => {
+        const value = String(Math.round(parseFloat(e.target.value) * 100) / 100);
+        settingsLineHeightLabel.textContent = value;
+        eachSettingsTarget((id, c) => { c.lineHeight = value; applyToolLineHeight(id); });
+    });
+    settingsLineHeightReset.addEventListener('click', () => {
+        eachSettingsTarget((id, c) => { delete c.lineHeight; applyToolLineHeight(id); });
+        settingsLineHeight.value = 1.55;
+        settingsLineHeightLabel.textContent = 'default';
     });
 
     // Zoom controls in modal. Unlike Font Size, this scales the whole content —
@@ -6701,10 +6870,7 @@ function setupContentEditor() {
     }
 
     function updateEditorStats() {
-        const text = textarea.value;
-        const chars = text.length;
-        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-        const readMin = Math.max(1, Math.ceil(words / 200));
+        const { chars, words, readMin } = textStats(textarea.value);
         document.getElementById('editorCharCount').textContent = chars.toLocaleString() + ' char' + (chars !== 1 ? 's' : '');
         document.getElementById('editorWordCount').textContent = words.toLocaleString() + ' word' + (words !== 1 ? 's' : '');
         document.getElementById('editorReadTime').textContent = readMin + ' min read';
@@ -7052,6 +7218,7 @@ function setupContentEditor() {
                 if (source) {
                     source.value = textarea.value;
                     noteRender(toolId);
+                    noteApplyEditor(toolId);
                 } else {
                     const contentDiv = tool.querySelector('.tool-content');
                     contentDiv.innerHTML = renderToolContent(textarea.value, plainTextCheckbox.checked, getEditorTransforms());
@@ -7648,6 +7815,28 @@ function applyToolPadding(toolId) {
     }
 }
 
+/**
+ * A tool's line spacing. Set as the content's own line height, for whatever a tool
+ * draws as plain text, and as --tool-line-height, which rendered Markdown and the
+ * note's two editors read: each of those sets a line height of its own, so one
+ * inherited from the content would never have reached them.
+ */
+function applyToolLineHeight(toolId) {
+    const tool = document.querySelector(`.tool[data-tool="${toolId}"]`);
+    if (!tool) return;
+    const custom = toolCustomizations[toolId] || {};
+    const content = tool.querySelector('.tool-content');
+    if (!content) return;
+    const value = parseFloat(custom.lineHeight);
+    if (value > 0) {
+        content.style.lineHeight = String(value);
+        content.style.setProperty('--tool-line-height', String(value));
+    } else {
+        content.style.lineHeight = '';
+        content.style.removeProperty('--tool-line-height');
+    }
+}
+
 // Per-tool content zoom. Scales everything inside .tool-content — text, tables,
 // diagrams, images — where Font Size only scales text. CSS `zoom` is used rather
 // than a transform because it participates in layout: the content box still fills
@@ -8208,6 +8397,10 @@ function createTool(toolId) {
         if (custom.padding) {
             toolContent.style.padding = custom.padding;
         }
+        if (parseFloat(custom.lineHeight) > 0) {
+            toolContent.style.lineHeight = String(parseFloat(custom.lineHeight));
+            toolContent.style.setProperty('--tool-line-height', String(parseFloat(custom.lineHeight)));
+        }
         if (custom.textAlign) {
             toolContent.style.textAlign = custom.textAlign;
         }
@@ -8219,8 +8412,26 @@ function createTool(toolId) {
     return tool;
 }
 
+/**
+ * Lines spaced a blank line apart are paragraphs, and a paragraph is the line being
+ * sorted or numbered. It is how the rich editor writes every line — Enter makes a
+ * paragraph — and how a lot of Markdown is written; taken a line at a time, the blank
+ * lines were sorted to the top, numbered as empty items and dropped as duplicates, and
+ * the paragraphs ran together into one. So they are taken out, the paragraphs
+ * transformed as lines, and put back a blank line apart. Asked to drop blank lines,
+ * the text is taken as it is: that is a request to run them together.
+ */
 function applyTextTransforms(text, transforms) {
     if (!transforms) return text;
+    const lines = String(text).split('\n');
+    const filled = lines.filter(l => l.trim());
+    const spaced = !transforms.stripEmpty && filled.length > 1 &&
+        lines.every((l, i) => !l.trim() || i === lines.length - 1 || !lines[i + 1].trim());
+    if (spaced) return applyLineTransforms(filled.join('\n'), transforms).split('\n').join('\n\n');
+    return applyLineTransforms(text, transforms);
+}
+
+function applyLineTransforms(text, transforms) {
     // Line-level transforms: trim, strip empty, unique first (before reordering)
     if (transforms.trim) {
         text = text.split('\n').map(l => l.trim()).join('\n');
@@ -8284,23 +8495,63 @@ function noteBodyHtml(text, custom) {
     return renderToolContent(text, custom.plainText, getTextTransforms(custom));
 }
 
+const NOTE_COPY_ICON = '<svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+    '<rect x="5" y="5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+    '<path d="M11 3V2.5A1.5 1.5 0 0 0 9.5 1h-7A1.5 1.5 0 0 0 1 2.5v7A1.5 1.5 0 0 0 2.5 11H3" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.6"/></svg>';
+
 function noteShellHtml(toolId, custom) {
     const text = custom.customContent != null ? custom.customContent : '';
-    return '<div class="note-widget">' +
+    const blocker = noteRichBlocker(custom);
+    const rich = noteEditorMode(custom) === 'rich' && !blocker;
+    return '<div class="note-widget' + (rich ? ' note-rich-on' : '') + '">' +
         '<div class="note-actions">' +
-            '<button class="note-btn" onclick="openContentEditor(toolIdOf(this))" ' +
-                'title="The big editor: find and replace, line sorting, word count">Editor</button>' +
-            '<button class="note-btn" onclick="noteCopyMarkdown(this)" ' +
-                'title="The Markdown itself, for somewhere that reads Markdown">' +
-                'Copy Markdown</button>' +
-            '<button class="note-btn" onclick="noteCopyRendered(this)" ' +
-                'title="The note as it looks, so headings and lists survive a paste ' +
-                    'into a document, an email or a chat">Copy formatted</button>' +
+            '<span class="note-mode" role="group" aria-label="How to write this note">' +
+                '<button class="note-btn note-mode-rich' + (rich ? ' active' : '') + '" ' +
+                    'onclick="noteSetEditor(this, \'rich\')"' + (blocker ? ' disabled' : '') + ' ' +
+                    'title="' + escapeHtml(blocker ||
+                        'Write it the way a chat message is written: a formatting bar, ' +
+                        'shortcuts, and *bold* or - lists turning into what they mean as you type') +
+                    '">Rich</button>' +
+                // Each way of writing carries its own copy: the note as it looks beside
+                // Rich, the Markdown beside Markdown.
+                '<button class="note-btn note-copy note-copy-rich" onclick="noteCopyRendered(this)" ' +
+                    'aria-label="Copy formatted" title="Copy formatted — the note as it looks, so headings ' +
+                    'and lists survive a paste into a document, an email or a chat">' + NOTE_COPY_ICON + '</button>' +
+                '<button class="note-btn note-mode-md' + (rich ? '' : ' active') + '" ' +
+                    'onclick="noteSetEditor(this, \'markdown\')" ' +
+                    'title="Write the Markdown itself">Markdown</button>' +
+                '<button class="note-btn note-copy note-copy-md" onclick="noteCopyMarkdown(this)" ' +
+                    'aria-label="Copy Markdown" title="Copy Markdown — the Markdown itself, for somewhere ' +
+                    'that reads Markdown">' + NOTE_COPY_ICON + '</button>' +
+            '</span>' +
         '</div>' +
         '<div class="authoring-split">' +
             '<div class="authoring-source">' +
+                '<div class="note-rich-why"' + (noteEditorMode(custom) === 'rich' && blocker ? '' : ' hidden') + '>' +
+                    escapeHtml(blocker ? 'Opened as Markdown: ' + blocker.charAt(0).toLowerCase() +
+                        blocker.slice(1) + '.' : '') + '</div>' +
+                noteRichBarHtml(custom) +
+                noteFindHtml() +
+                '<div class="note-rich-wrap">' +
+                    '<div class="note-rich-link" hidden>' +
+                        '<input class="note-rich-link-text" placeholder="Text" ' +
+                            'onkeydown="noteRichLinkKey(event, this)">' +
+                        '<input class="note-rich-link-url" placeholder="https://" spellcheck="false" ' +
+                            'onkeydown="noteRichLinkKey(event, this)">' +
+                        '<button class="note-btn" onclick="noteRichLinkSave(this)">Save</button>' +
+                        '<button class="note-btn" onclick="noteRichLinkClose(this)">Cancel</button>' +
+                    '</div>' +
+                    '<div class="note-rich markdown-content" contenteditable="true" spellcheck="true" ' +
+                        'data-placeholder="Write something…" role="textbox" aria-multiline="true" ' +
+                        'oninput="noteRichInput(event, this)" onkeydown="noteRichKeydown(event, this)" ' +
+                        'onpaste="noteRichPaste(event, this)">' +
+                        (rich ? noteRichSeed(text) : '') + '</div>' +
+                '</div>' +
                 '<textarea class="note-source" spellcheck="false" oninput="noteOnInput(this)" ' +
+                    'onkeydown="noteSourceKeydown(event, this)" ' +
                     'placeholder="Write in Markdown…">' + escapeHtml(text) + '</textarea>' +
+                '<div class="note-rich-stats">' + noteStatsHtml(text) + '</div>' +
             '</div>' +
             '<div class="authoring-resizer"></div>' +
             '<div class="authoring-result">' + noteBodyHtml(text, custom) + '</div>' +
@@ -8390,13 +8641,1893 @@ function copyRichTextToClipboard(html, plain, message) {
     fallback();
 }
 
+// ---- the rich editor ---------------------------------------------------------
+//
+// The note written the way a chat message is written: a formatting bar on top, the
+// shortcuts Slack uses, and Slack's habit of turning *this* into bold as you type it.
+// It is a second way of editing the same thing, not a second thing: the note is
+// still Markdown, saved on every keystroke, so the result pane, Copy Markdown, the
+// share links and the big editor never learn it exists.
+//
+// That bargain has one honest cost, and it is guarded rather than hidden. Rich text
+// keeps what a note *means*, not how its Markdown was spelled — `__this__` comes back
+// as `**this**` — and some Markdown means things rich text cannot hold at all: a
+// table, raw HTML, a checklist. A note like that is never opened here, because
+// editing it would change it; it opens as Markdown and says why.
+
+/** The bar, in Slack's order. `keys` is what the tooltip shows; the handler below is
+ *  what makes them true. */
+const NOTE_RICH_FORMATS = [
+    // Headings first: they are what a line is, and the rest is what is in it. ⌥ and
+    // a digit, as Google Docs has them; ⌥0 is back to normal text.
+    { id: 'h1', label: 'H1', title: 'Heading 1', keys: '⌥1' },
+    { id: 'h2', label: 'H2', title: 'Heading 2', keys: '⌥2' },
+    { id: 'h3', label: 'H3', title: 'Heading 3', keys: '⌥3' },
+    null,
+    { id: 'bold', label: '<b>B</b>', title: 'Bold', keys: 'B' },
+    { id: 'italic', label: '<i>I</i>', title: 'Italic', keys: 'I' },
+    { id: 'underline', label: '<u>U</u>', title: 'Underline', keys: 'U' },
+    { id: 'strike', label: '<s>S</s>', title: 'Strikethrough', keys: '⇧X' },
+    null,
+    { id: 'link', label: '🔗', title: 'Link', keys: '⇧U' },
+    null,
+    { id: 'ol', label: '1.', title: 'Numbered list', keys: '⇧7' },
+    { id: 'ul', label: '•', title: 'Bulleted list', keys: '⇧8' },
+    null,
+    { id: 'quote', label: '❝', title: 'Quote', keys: '⇧9' },
+    { id: 'code', label: '&lt;/&gt;', title: 'Code', keys: '⇧C' },
+    { id: 'codeblock', label: '{ }', title: 'Code block', keys: '⌥⇧C' },
+    null,
+    // No shortcut of its own, here or in Slack or Docs: --- and a space, typed, is one.
+    { id: 'hr', label: '―', title: 'Horizontal line', keys: '' }
+];
+
+function noteIsMac() {
+    return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+}
+
+/**
+ * Edit Content's render-time transforms, in the order its menu lists them. They change
+ * how the note is shown, never what was written, so the rich surface keeps the lines
+ * as typed and only the rendered note is sorted or recased. Each writes the setting
+ * Edit Content writes, so the two menus are one setting seen from two places.
+ */
+const NOTE_TRANSFORMS = [
+    { id: 'sortAsc', label: 'Sort A–Z' },
+    { id: 'sortDesc', label: 'Sort Z–A' },
+    { id: 'reverse', label: 'Flip the order', field: 'textReverse' },
+    { id: 'shuffle', label: 'Shuffle', field: 'textShuffle' },
+    null,
+    { id: 'unique', label: 'Drop duplicates', field: 'textUnique' },
+    { id: 'stripEmpty', label: 'Drop blank lines', field: 'textStripEmpty' },
+    { id: 'trim', label: 'Trim spaces', field: 'textTrim' },
+    { id: 'number', label: 'Number them', field: 'textNumber' }
+];
+const NOTE_CASINGS = [['', 'As typed'], ['upper', 'UPPER'], ['lower', 'lower'],
+    ['title', 'Title Case'], ['sentence', 'Sentence case']];
+
+/** Whether one transform is on for this note. Sorting is one setting with two answers. */
+function noteTransformOn(custom, id) {
+    const c = custom || {};
+    if (id === 'sortAsc') return c.textSort === 'asc';
+    if (id === 'sortDesc') return c.textSort === 'desc';
+    const t = NOTE_TRANSFORMS.find(x => x && x.id === id);
+    return !!(t && c[t.field]);
+}
+
+function noteTransformCount(custom) {
+    return NOTE_TRANSFORMS.filter(t => t && noteTransformOn(custom, t.id)).length +
+        ((custom || {}).textCasing ? 1 : 0) + ((custom || {}).plainText ? 1 : 0);
+}
+
+function noteTransformMenuHtml(custom) {
+    const on = noteTransformCount(custom);
+    return '<span class="note-rich-tf">' +
+        '<button class="note-rich-btn note-rich-tf-btn' + (on ? ' active' : '') + '" ' +
+            'onmousedown="event.preventDefault()" onclick="noteTransformToggle(event, this)" ' +
+            'title="Change how the note is shown — sorted, numbered, recased — without changing what you wrote. ' +
+                'The note opens beside the text so you can see it">' +
+            (on ? 'Transform · ' + on : 'Transform') + '</button>' +
+        '<div class="editor-tf-panel note-rich-tf-panel" onclick="event.stopPropagation()" ' +
+            'onchange="noteTransformChange(event, this)">' +
+            NOTE_TRANSFORMS.map(t => t
+                ? '<label><input type="checkbox" data-tf="' + t.id + '"' +
+                    (noteTransformOn(custom, t.id) ? ' checked' : '') + '> ' + escapeHtml(t.label) + '</label>'
+                : '<div class="editor-tf-sep"></div>').join('') +
+            '<div class="editor-tf-sep"></div>' +
+            '<label class="editor-tf-casing">Casing <select data-tf-casing>' +
+                NOTE_CASINGS.map(([v, l]) => '<option value="' + v + '"' +
+                    (((custom || {}).textCasing || '') === v ? ' selected' : '') + '>' + escapeHtml(l) + '</option>').join('') +
+            '</select></label>' +
+            '<div class="editor-tf-sep"></div>' +
+            '<label title="Show the note as it was typed, with no Markdown formatting — and write it in Markdown">' +
+                '<input type="checkbox" data-tf-plain' + ((custom || {}).plainText ? ' checked' : '') +
+                '> Show as plain text</label>' +
+            '<button class="note-rich-tf-reset" onclick="noteResetToDefault(this)"' +
+                (noteDefaultContent(custom) ? '' : ' hidden') + '>Reset to default</button>' +
+        '</div>' +
+    '</span>';
+}
+
+/** What a note made from a template started with, or '' — a blank note's default is
+ *  nothing, and there is nothing to go back to. */
+function noteDefaultContent(custom) {
+    const c = custom || {};
+    const template = c.templateId
+        ? (NOTE_TEMPLATES[c.templateId] || (typeof PluginRegistry !== 'undefined' && PluginRegistry.getTool(c.templateId)))
+        : null;
+    const content = template && typeof template.content === 'string' ? template.content : '';
+    return content.trim() && !content.trim().startsWith('<') ? content : '';
+}
+
+const NOTE_TRANSFORM_KEYS = ['textSort', 'textUnique', 'textReverse', 'textShuffle', 'textTrim',
+    'textStripEmpty', 'textNumber', 'textCasing'];
+
+/** Edit Content's Reset, in the note: the template's content back, and its transforms
+ *  off. Asked first — it is the one thing in the note that throws writing away. */
+function noteResetToDefault(btn) {
+    const toolId = toolIdOf(btn);
+    if (!toolId) return;
+    const custom = toolCustomizations[toolId] || (toolCustomizations[toolId] = {});
+    const content = noteDefaultContent(custom);
+    if (!content) return;
+    if (!confirm('Reset to default content? This will remove your custom content.')) return;
+    custom.customContent = content;
+    NOTE_TRANSFORM_KEYS.forEach(k => { delete custom[k]; });
+    saveToolCustomizations(toolCustomizations);
+    noteTransformCloseAll();
+    // The surface is not rewritten while it has the caret; this is a rewrite on purpose.
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    noteApplyEditor(toolId);
+    noteRender(toolId);
+}
+
+function noteRichBarHtml(custom) {
+    const mod = noteIsMac() ? '⌘' : 'Ctrl+';
+    return '<div class="note-rich-bar" role="toolbar" aria-label="Formatting">' +
+        '<span class="note-rich-formats">' +
+        NOTE_RICH_FORMATS.map(f => f
+            // mousedown is swallowed so the click does not take the selection away from
+            // the text it is meant to format.
+            ? '<button class="note-rich-btn" data-fmt="' + f.id + '" onmousedown="event.preventDefault()" ' +
+                'onclick="noteRichButton(this)" title="' + escapeHtml(f.title + (f.keys ? ' (' +
+                (noteIsMac() ? mod + f.keys : mod + f.keys.replace('⇧', 'Shift+').replace('⌥', 'Alt+')) + ')' : '')) +
+                '" aria-label="' + escapeHtml(f.title) + '">' + f.label + '</button>'
+            : '<span class="note-rich-sep"></span>').join('') +
+        '</span>' +
+        '<span class="note-rich-gap"></span>' +
+        '<button class="note-rich-btn note-rich-emoji" onmousedown="event.preventDefault()" ' +
+            'onclick="noteRichEmoji(event, this)" title="Emoji" aria-label="Emoji">🙂</button>' +
+        '<button class="note-rich-btn note-find-btn" onmousedown="event.preventDefault()" ' +
+            'onclick="noteFindOpen(this, false)" title="Find and replace (' + mod + 'F)" ' +
+            'aria-label="Find and replace">🔍</button>' +
+        noteTransformMenuHtml(custom) +
+    '</div>';
+}
+
+/**
+ * Rich text back to Markdown, by the rules this note keeps.
+ *
+ * Built once. Turndown's own defaults are close but not safe, and each override is
+ * a thing it got wrong when tried:
+ * - text that *looks* like HTML is escaped, or a note that says `<img onerror=…>`
+ *   in words would be stored as an image that runs script when it is shown;
+ * - `<script>`, `<style>` and the like are dropped whole — by default their contents
+ *   came through as text;
+ * - strikethrough, which the editor makes as `<strike>`, was dropped to plain text;
+ * - a `<pre>` without a `<code>` inside — which is what making a code block from the
+ *   bar produces — lost its block and became a paragraph;
+ * - list items are written `- item` rather than `-   item`, so Copy Markdown reads
+ *   the way somebody would have typed it.
+ */
+let noteTurndownCache = null;
+function noteTurndown() {
+    if (noteTurndownCache) return noteTurndownCache;
+    if (typeof TurndownService === 'undefined') return null;
+    const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', bulletListMarker: '-',
+        emDelimiter: '*', strongDelimiter: '**', br: '', hr: '---' });
+    const escape = td.escape.bind(td);
+    td.escape = (text) => escape(text).replace(/</g, '\\<').replace(/&(?=#?\w+;)/g, '\\&');
+    td.remove(['script', 'style', 'iframe', 'object', 'embed', 'noscript', 'template', 'head', 'meta',
+        'link', 'title', 'form', 'input', 'button', 'select', 'textarea', 'svg', 'canvas', 'video', 'audio']);
+    // Markdown has no underline, so it is kept as the HTML for one, which `marked`
+    // shows as it is. ⌘U underlined in the editor all along — the browser's own — and
+    // the save dropped it, so an underline lasted until the note was next opened.
+    td.addRule('underline', {
+        filter: ['u', 'ins'],
+        replacement: (content) => content.trim() ? '<u>' + content + '</u>' : ''
+    });
+    td.addRule('strike', {
+        filter: ['del', 's', 'strike'],
+        replacement: (content) => content.trim() ? '~~' + content + '~~' : ''
+    });
+    td.addRule('bareCodeBlock', {
+        filter: (node) => node.nodeName === 'PRE' && !(node.firstChild && node.firstChild.nodeName === 'CODE'),
+        replacement: (content, node) => '\n\n```\n' + node.textContent.replace(/\n$/, '') + '\n```\n\n'
+    });
+    // A link inside code — how Slack copies an address it shows as code — is not
+    // something Markdown can say: written as it was, the code showed the link's own
+    // syntax, brackets and all. Code inside a link it can say, and it looks the same.
+    td.addRule('codeLink', {
+        filter: (node) => node.nodeName === 'CODE' && !(node.parentNode && node.parentNode.nodeName === 'PRE') &&
+            !!node.querySelector('a[href]'),
+        replacement: (content, node) => {
+            const text = node.textContent.replace(/\u200B/g, '');
+            if (!text.trim()) return '';
+            const tick = text.includes('`') ? '`` ' : '`';
+            const code = tick + text + tick.split('').reverse().join('');
+            const links = node.querySelectorAll('a[href]');
+            const url = links.length === 1 && links[0].textContent.trim() === text.trim()
+                ? noteSafeUrl(links[0].getAttribute('href')) : '';
+            return url ? '[' + code + '](' + url + ')' : code;
+        }
+    });
+    // Two line breaks in a row are a gap between paragraphs — how Slack, and a lot of
+    // chat, separates them — and were written as one line break, so the gap was lost.
+    td.addRule('lineBreaks', {
+        filter: 'br',
+        replacement: (content, node) => {
+            const near = (n, way) => {
+                let s = n[way];
+                while (s && s.nodeType === 3 && !s.data.replace(/\u200B/g, '').trim()) s = s[way];
+                return s;
+            };
+            const before = near(node, 'previousSibling');
+            if (before && before.nodeName === 'BR') return '';
+            const after = near(node, 'nextSibling');
+            return after && after.nodeName === 'BR' ? '\n\n' : '\n';
+        }
+    });
+    td.addRule('tightListItem', {
+        filter: 'li',
+        replacement: (content, node) => {
+            const parent = node.parentNode;
+            let prefix = '- ';
+            if (parent && parent.nodeName === 'OL') {
+                const start = Number(parent.getAttribute('start')) || 1;
+                prefix = (start + Array.prototype.indexOf.call(parent.children, node)) + '. ';
+            }
+            const body = content.replace(/^\n+/, '').replace(/\n+$/, '\n')
+                .replace(/\n/gm, '\n' + ' '.repeat(prefix.length));
+            return prefix + body + (node.nextSibling && !/\n$/.test(body) ? '\n' : '');
+        }
+    });
+    noteTurndownCache = td;
+    return td;
+}
+
+function noteHtmlToMarkdown(html) {
+    const td = noteTurndown();
+    if (!td) return '';
+    // The zero-width space is the editor's, not the writer's: it is what lets typing
+    // carry on plain after a word that was just made bold. And a browser writes a
+    // space typed beside formatting as a non-breaking one, so a note typed here was
+    // full of U+00A0 where somebody pressed the space bar — invisible, and carried out
+    // with every Copy Markdown. They were spaces when they were typed.
+    // A line of nothing but spaces — what a block inside a list item left between
+    // itself and the next — is a blank line.
+    return td.turndown(String(html || '').replace(/\u200B/g, ''))
+        .replace(/\u00A0/g, ' ').replace(/^[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/** Two renderings, compared as what they say rather than how they are spaced. */
+function noteSameHtml(a, b) {
+    // Space at the start or end of a paragraph, an item, a heading or a cell is not
+    // shown — and is not kept by the way back — so it is not a difference. A line that
+    // began with a space had the note refused rich text from then on. Code keeps its.
+    // And a character is the same however it was spelled: `&copy;` written by hand
+    // comes back as ©, and a note that had one was refused rich text. Read through
+    // the browser's own parser, every spelling is written out the one way.
+    const parsed = (h) => {
+        const t = document.createElement('template');
+        t.innerHTML = String(h || '');
+        return t.innerHTML.replace(/&nbsp;|\u00A0/g, ' ');
+    };
+    const norm = (h) => parsed(h).replace(/>\s+</g, '><')
+        .replace(/(<(?:p|li|h[1-6]|td|th|blockquote)(?:\s[^>]*)?>)\s+/g, '$1')
+        .replace(/\s+(<\/(?:p|li|h[1-6]|td|th|blockquote)>)/g, '$1')
+        .replace(/\s+/g, ' ').trim();
+    return norm(a) === norm(b);
+}
+
+/**
+ * Whether a note would survive a trip through rich text and come back meaning the
+ * same thing. Asked of the *rendering*, not the text: `__x__` coming back as `**x**`
+ * is the same note; a table coming back as a run of words is not.
+ */
+function noteRoundTrips(markdown) {
+    const text = String(markdown || '');
+    if (!text.trim()) return true;
+    const shown = parseMarkdown(text);
+    return noteSameHtml(shown, parseMarkdown(noteHtmlToMarkdown(shown)));
+}
+
+/** Why this note cannot be written in rich text, in a sentence, or '' when it can. */
+function noteRichBlocker(custom) {
+    const c = custom || {};
+    if (!noteTurndown()) return 'The rich editor needs a library that did not load';
+    if (c.plainText) return 'This note is shown as plain text, not Markdown';
+    if (!noteRoundTrips(c.customContent)) {
+        return 'This note has formatting the rich editor cannot keep — a table, raw HTML or a checklist, say';
+    }
+    return '';
+}
+
+/**
+ * What the surface is filled with: the note, rendered — or, for an empty note, one
+ * empty paragraph. Typed into the bare surface, the first line was no paragraph at
+ * all, and every Enter after it nested one paragraph inside the last; the Markdown
+ * still came out right, but a document shaped like that goes wrong eventually.
+ */
+function noteRichSeed(markdown) {
+    const html = parseMarkdown(String(markdown || ''));
+    return html.trim() ? html : '<p><br></p>';
+}
+
+/** An emptied surface gets its paragraph back, with the caret in it — select-all and
+ *  delete can leave nothing at all to type into. */
+function noteRichEnsureBlock(surface) {
+    if (surface.querySelector('p, ul, ol, blockquote, pre, h1, h2, h3, h4, h5, h6, div, table, hr')) return;
+    if ((surface.textContent || '').replace(/\u200B/g, '').trim()) return;
+    surface.innerHTML = '<p><br></p>';
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.setStart(surface.firstChild, 0);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+/** Show the placeholder exactly when there are no words. */
+function noteRichMarkBlank(surface) {
+    surface.classList.toggle('note-rich-blank', !(surface.textContent || '').replace(/\u200B/g, '').trim());
+}
+
+/** Which editor this note asked for. Notes that never asked are Markdown, which is
+ *  what they were written in; new ones ask for rich. */
+function noteEditorMode(custom) {
+    return (custom || {}).noteEditor === 'rich' ? 'rich' : 'markdown';
+}
+
+/** Bring the note's two editors, its switch and its explanation into step with what
+ *  it holds now. The surface being typed into is never rewritten under the caret. */
+function noteApplyEditor(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.note-widget');
+    if (!widget) return;
+    const custom = toolCustomizations[toolId] || {};
+    const text = custom.customContent != null ? custom.customContent : '';
+    const blocker = noteRichBlocker(custom);
+    const wanted = noteEditorMode(custom);
+    const rich = wanted === 'rich' && !blocker;
+    widget.classList.toggle('note-rich-on', rich);
+    const surface = widget.querySelector('.note-rich');
+    if (surface && rich && !surface.contains(document.activeElement)) surface.innerHTML = noteRichSeed(text);
+    if (surface) noteRichMarkBlank(surface);
+    noteTransformSync(widget, custom);
+    const stats = widget.querySelector('.note-rich-stats');
+    if (stats) stats.innerHTML = noteStatsHtml(text);
+    noteFindRefresh(widget);
+    const source = widget.querySelector('.note-source');
+    if (source && document.activeElement !== source) source.value = text;
+    const why = widget.querySelector('.note-rich-why');
+    if (why) {
+        why.hidden = !(wanted === 'rich' && blocker);
+        why.textContent = blocker ? 'Opened as Markdown: ' + blocker.charAt(0).toLowerCase() +
+            blocker.slice(1) + '.' : '';
+    }
+    const richBtn = tool.querySelector('.note-mode-rich');
+    const mdBtn = tool.querySelector('.note-mode-md');
+    if (richBtn) {
+        richBtn.classList.toggle('active', rich);
+        richBtn.disabled = !!blocker;
+        richBtn.title = blocker || 'Write it the way a chat message is written: a formatting bar, ' +
+            'shortcuts, and *bold* or - lists turning into what they mean as you type';
+    }
+    if (mdBtn) mdBtn.classList.toggle('active', !rich);
+}
+
+/** Put the caret in whichever editor is showing. False when neither is there. */
+function noteFocusEditor(tool) {
+    const widget = tool && tool.querySelector('.note-widget');
+    if (!widget) return false;
+    const target = widget.classList.contains('note-rich-on')
+        ? widget.querySelector('.note-rich') : widget.querySelector('.note-source');
+    if (!target) return false;
+    target.focus();
+    return true;
+}
+
+function noteSetEditor(btn, mode) {
+    const toolId = toolIdOf(btn);
+    if (!toolId) return;
+    const custom = toolCustomizations[toolId] || (toolCustomizations[toolId] = {});
+    if (mode === 'rich' && noteRichBlocker(custom)) return;
+    custom.noteEditor = mode === 'rich' ? 'rich' : 'markdown';
+    saveToolCustomizations(toolCustomizations);
+    noteApplyEditor(toolId);
+    // Choosing how to write is asking to write, so a note in View opens its source.
+    if (getToolMode(toolId) === 'render') setToolMode(toolId, 'edit');
+    noteFocusEditor(btn.closest('.tool'));
+}
+
+/**
+ * Lift any block that has ended up inside a paragraph back out to be its sibling.
+ *
+ * Chrome's list command puts the list *inside* the paragraph the caret was in —
+ * `<p><ul>…</ul></p>`, which is not a document, and every Enter after it nests one
+ * level deeper. Quotes and code blocks it replaces properly; lists it does not, for
+ * paragraphs and divs alike, so this runs after every change rather than after the
+ * one command. The caret is held by its node, not its position: moving a node keeps
+ * the node, and that is what lets the caret survive the move.
+ */
+function noteRichUnnest(surface) {
+    const BLOCK = /^(UL|OL|BLOCKQUOTE|PRE|P|DIV|H[1-6]|TABLE|HR)$/;
+    const sel = window.getSelection();
+    const caret = sel && sel.rangeCount ? { node: sel.anchorNode, offset: sel.anchorOffset } : null;
+    const holds = (el) => [...el.children].some(c => BLOCK.test(c.nodeName));
+    const worth = (el) => (el.textContent || '').replace(/\u200B/g, '').trim() ||
+        el.querySelector('img') || (caret && el.contains(caret.node));
+    let guard = 0, changed = false, holder;
+    while (guard++ < 50 && (holder = [...surface.querySelectorAll('p, div')].find(holds))) {
+        const parts = [];
+        let run = document.createElement('p');
+        [...holder.childNodes].forEach(node => {
+            if (node.nodeType === 1 && BLOCK.test(node.nodeName)) {
+                parts.push(run, node);
+                run = document.createElement('p');
+            } else {
+                run.appendChild(node);
+            }
+        });
+        parts.push(run);
+        const out = document.createDocumentFragment();
+        parts.forEach(part => {
+            if (part.nodeName === 'P' && !part.parentNode && !worth(part)) return;
+            out.appendChild(part);
+        });
+        holder.replaceWith(out);
+        changed = true;
+    }
+    if (changed && caret && caret.node && surface.contains(caret.node)) {
+        const len = caret.node.nodeType === 3 ? caret.node.length : caret.node.childNodes.length;
+        const range = document.createRange();
+        range.setStart(caret.node, Math.min(caret.offset, len));
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+/**
+ * Chrome's insertHTML pins the computed font on what it puts in — a link made as it
+ * is typed came wrapped in `<span style="font-family: …">`. Markdown has no styles,
+ * so none of it was ever saved, but the surface kept collecting it. Taken off, and the
+ * spans that were only there to carry it unwrapped — by moving their text, which is
+ * what keeps the caret where it was.
+ */
+function noteRichUnstyle(surface) {
+    surface.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'));
+    const bare = [...surface.querySelectorAll('span')].filter(span => !span.attributes.length);
+    if (!bare.length) return;
+    // A node taken out of the document takes the caret out with it, to the gap it left
+    // — which, between a bold and what follows, is inside the bold for the next key.
+    // So the caret is noted by node and put back, as the unnesting does.
+    const sel = window.getSelection();
+    const caret = sel && sel.rangeCount ? { node: sel.anchorNode, offset: sel.anchorOffset } : null;
+    bare.forEach(span => span.replaceWith(...span.childNodes));
+    if (caret && caret.node && surface.contains(caret.node) && !bare.includes(caret.node)) {
+        const range = document.createRange();
+        range.setStart(caret.node, caret.offset);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+/** What the rich surface holds, saved as Markdown — and the Markdown pane, which is
+ *  hidden but is what the big editor and the switch back will read, kept in step. */
+function noteRichSave(surface) {
+    const toolId = toolIdOf(surface);
+    if (!toolId) return;
+    if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
+    noteRichUnstyle(surface);
+    noteRichUnnest(surface);
+    const markdown = noteHtmlToMarkdown(surface.innerHTML);
+    toolCustomizations[toolId].customContent = markdown;
+    noteRichMarkBlank(surface);
+    saveToolCustomizations(toolCustomizations);
+    const widget = surface.closest('.note-widget');
+    const source = widget.querySelector('.note-source');
+    if (source) source.value = markdown;
+    const stats = widget.querySelector('.note-rich-stats');
+    if (stats) stats.innerHTML = noteStatsHtml(markdown);
+    noteFindRefresh(widget);
+    noteRender(toolId);
+}
+
+/** Words, characters and reading time, counted the way Edit Content counts them — of
+ *  the Markdown that is kept — so the same note never has two lengths. */
+function noteStatsHtml(markdown) {
+    const s = textStats(markdown);
+    return '<span>' + s.words.toLocaleString() + ' word' + (s.words !== 1 ? 's' : '') + '</span>' +
+        '<span>' + s.chars.toLocaleString() + ' char' + (s.chars !== 1 ? 's' : '') + '</span>' +
+        '<span>' + s.readMin + ' min read</span>';
+}
+
+/**
+ * An emoji from the board's picker, where the caret was. Picking one moves the focus
+ * into the picker, which would take the caret with it — so where it was is taken now,
+ * before the picker opens, and put back for the emoji to land in.
+ */
+function noteRichEmoji(event, btn) {
+    event.stopPropagation();
+    const widget = btn.closest('.note-widget');
+    const surface = widget.querySelector('.note-rich');
+    const source = widget.querySelector('.note-source');
+    const rich = widget.classList.contains('note-rich-on');
+    const sel = window.getSelection();
+    // A textarea keeps its own selection when it loses the focus; the rich surface
+    // does not, so its range is copied.
+    const held = rich
+        ? (sel.rangeCount && surface.contains(sel.getRangeAt(0).startContainer) ? sel.getRangeAt(0).cloneRange() : null)
+        : { start: source.selectionStart, end: source.selectionEnd };
+    window._toolLink = {
+        type: 'emoji',
+        label: 'Note',
+        apply: (emoji) => {
+            window._toolLink = null;
+            closeToolPickerPopup();
+            if (rich) noteRichInsertAt(surface, held, emoji);
+            else noteSourceInsert(source, held, emoji);
+        }
+    };
+    openToolPickerPopup(btn, 'emoji');
+}
+
+/** The same, in the Markdown: at the selection it had, with the caret after it. */
+function noteSourceInsert(source, held, text) {
+    source.focus();
+    source.setSelectionRange(held.start, held.end);
+    if (!document.execCommand('insertText', false, text)) {
+        source.setRangeText(text, held.start, held.end, 'end');
+        noteOnInput(source);
+    }
+}
+
+/** Text typed in at a range held from before — or at the end, when there was none. */
+function noteRichInsertAt(surface, range, text) {
+    surface.focus();
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    if (range && surface.contains(range.startContainer)) {
+        sel.addRange(range);
+    } else {
+        const end = document.createRange();
+        end.selectNodeContents(surface.lastElementChild || surface);
+        end.collapse(false);
+        sel.addRange(end);
+    }
+    document.execCommand('insertText', false, text);
+    noteRichSave(surface);
+}
+
+function noteTransformToggle(event, btn) {
+    event.stopPropagation();
+    const panel = btn.parentNode.querySelector('.note-rich-tf-panel');
+    const opening = !panel.classList.contains('open');
+    noteTransformCloseAll();
+    panel.classList.toggle('open', opening);
+    if (opening) noteTransformPlace(panel);
+}
+
+/**
+ * The menu opens inside the note, which scrolls and so cuts off whatever leaves it.
+ * Hung from the button's right edge, as in Edit Content, it fits when the button is at
+ * the bar's far end; in a narrow note the bar wraps, the button lands on the left, and
+ * the menu would open off the note's left edge. So it opens whichever way fits, no
+ * taller than the room below. Measured on screen and set in the note's own pixels:
+ * a zoomed note's are not the screen's.
+ */
+function noteTransformPlace(panel) {
+    const menu = panel.parentNode;
+    const clip = (panel.closest('.tool-content') || document.body).getBoundingClientRect();
+    const at = menu.getBoundingClientRect();
+    const zoom = (menu.offsetWidth && at.width / menu.offsetWidth) || 1;
+    panel.style.left = '';
+    panel.style.right = '';
+    const width = panel.getBoundingClientRect().width;
+    if (at.right - width < clip.left) {
+        const left = Math.max(clip.left + 4, Math.min(at.left, clip.right - width - 4));
+        panel.style.right = 'auto';
+        panel.style.left = ((left - at.left) / zoom) + 'px';
+    }
+    const room = (clip.bottom - at.bottom) / zoom - 12;
+    // Tall enough for the whole menu where there is room (Plain text and Reset made it
+    // 272px; at 260 it scrolled, and the casing at its foot scrolled the sorts away).
+    panel.style.maxHeight = Math.max(120, Math.min(340, room)) + 'px';
+}
+
+function noteTransformCloseAll(except) {
+    document.querySelectorAll('.note-rich-tf-panel.open').forEach(p => {
+        if (!except || !except.contains(p)) p.classList.remove('open');
+    });
+}
+
+/** One box ticked, or the casing chosen: kept with the note, and the note shown again. */
+function noteTransformChange(event, panel) {
+    const toolId = toolIdOf(panel);
+    if (!toolId) return;
+    const custom = toolCustomizations[toolId] || (toolCustomizations[toolId] = {});
+    const box = event.target.closest('input[data-tf]');
+    if (box) {
+        const id = box.dataset.tf;
+        if (id === 'sortAsc' || id === 'sortDesc') {
+            custom.textSort = box.checked ? (id === 'sortAsc' ? 'asc' : 'desc') : '';
+        } else {
+            const t = NOTE_TRANSFORMS.find(x => x && x.id === id);
+            if (t) custom[t.field] = box.checked;
+        }
+    } else if (event.target.matches('select[data-tf-casing]')) {
+        custom.textCasing = event.target.value;
+    } else if (event.target.matches('input[data-tf-plain]')) {
+        // Plain text is not something rich text can show, so this can move the note
+        // between its editors — which is what applying the editor works out.
+        custom.plainText = event.target.checked;
+        saveToolCustomizations(toolCustomizations);
+        noteApplyEditor(toolId);
+    } else {
+        return;
+    }
+    saveToolCustomizations(toolCustomizations);
+    noteTransformSync(panel.closest('.note-widget'), custom);
+    noteRender(toolId);
+    // "Transform" became "Transform · 2": a longer button can wrap the bar and move,
+    // and the menu, hung from where it was, went with it — off the note's left edge.
+    if (panel.classList.contains('open')) noteTransformPlace(panel);
+    // A transform changes the note as shown, not as written — so in Edit, where only
+    // the writing is on screen, ticking one changed nothing anyone could see. The
+    // note opens beside it instead, the way Edit Content shows its preview.
+    if (getToolMode(toolId) === 'edit') {
+        setToolMode(toolId, 'split');
+        noteTransformPlace(panel);
+    }
+}
+
+/** The menu showing what is on — after a change here, or one made in Edit Content. */
+function noteTransformSync(widget, custom) {
+    const menu = widget && widget.querySelector('.note-rich-tf');
+    if (!menu) return;
+    menu.querySelectorAll('input[data-tf]').forEach(b => { b.checked = noteTransformOn(custom, b.dataset.tf); });
+    const casing = menu.querySelector('select[data-tf-casing]');
+    if (casing) casing.value = (custom || {}).textCasing || '';
+    const plain = menu.querySelector('input[data-tf-plain]');
+    if (plain) plain.checked = !!(custom || {}).plainText;
+    const reset = menu.querySelector('.note-rich-tf-reset');
+    if (reset) reset.hidden = !noteDefaultContent(custom);
+    const on = noteTransformCount(custom);
+    const btn = menu.querySelector('.note-rich-tf-btn');
+    btn.textContent = on ? 'Transform · ' + on : 'Transform';
+    btn.classList.toggle('active', !!on);
+}
+
+/**
+ * Find and replace, in whichever editor is showing — Edit Content's, moved into the
+ * note. In Markdown it searches the Markdown; in rich text it searches the words as
+ * they read, so `**bold**` is found by "bold", and a replacement takes the formatting
+ * of the text it replaces. The matches are painted with the CSS highlight API rather
+ * than by wrapping them in elements: wrapping would be a change to the note, and the
+ * rich surface saves every change it sees.
+ */
+function noteFindHtml() {
+    const mod = noteIsMac() ? '⌘' : 'Ctrl+';
+    return '<div class="note-find" hidden>' +
+        '<div class="note-find-row">' +
+            '<button class="note-rich-btn note-find-toggle" onclick="noteFindToggleReplace(this)" ' +
+                'title="Replace (' + mod + 'H)" aria-label="Show replace">▸</button>' +
+            '<input type="text" class="note-find-input" placeholder="Find" spellcheck="false" ' +
+                'oninput="noteFindRun(this)" onkeydown="noteFindKey(event, this)">' +
+            '<span class="note-find-info">No results</span>' +
+            '<button class="note-rich-btn" onclick="noteFindStep(this, -1)" title="Previous (Shift+Enter)" aria-label="Previous">▲</button>' +
+            '<button class="note-rich-btn" onclick="noteFindStep(this, 1)" title="Next (Enter)" aria-label="Next">▼</button>' +
+            '<label class="note-find-case" title="Match case"><input type="checkbox" onchange="noteFindRun(this)">Aa</label>' +
+            '<button class="note-rich-btn" onclick="noteFindClose(this)" title="Close (Esc)" aria-label="Close">×</button>' +
+        '</div>' +
+        '<div class="note-find-row note-replace-row" hidden>' +
+            '<span class="note-find-spacer"></span>' +
+            '<input type="text" class="note-replace-input" placeholder="Replace" spellcheck="false" ' +
+                'onkeydown="noteFindKey(event, this)">' +
+            '<button class="note-btn" onclick="noteReplaceOne(this)">Replace</button>' +
+            '<button class="note-btn" onclick="noteReplaceAll(this)">All</button>' +
+        '</div>' +
+    '</div>';
+}
+
+/** ⌘F and ⌘H from either editor. True when it was one of them. */
+function noteFindShortcut(event, el) {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return false;
+    const key = (event.key || '').toLowerCase();
+    if (key !== 'f' && key !== 'h') return false;
+    event.preventDefault();
+    event.stopPropagation();
+    noteFindOpen(el, key === 'h');
+    return true;
+}
+
+function noteFindOpen(el, withReplace) {
+    const widget = el.closest('.note-widget');
+    if (!widget) return;
+    const bar = widget.querySelector('.note-find');
+    const input = bar.querySelector('.note-find-input');
+    // What is selected is what is looked for, as long as it is one line of it.
+    const rich = widget.classList.contains('note-rich-on');
+    let picked = '';
+    if (rich) {
+        const sel = window.getSelection();
+        if (sel.rangeCount && widget.querySelector('.note-rich').contains(sel.anchorNode)) picked = sel.toString();
+    } else {
+        const source = widget.querySelector('.note-source');
+        picked = source.value.substring(source.selectionStart, source.selectionEnd);
+    }
+    if (picked && !/\n/.test(picked)) input.value = picked;
+    bar.hidden = false;
+    if (withReplace) noteFindShowReplace(widget, true);
+    widget.__noteFindIndex = 0;
+    input.focus();
+    input.select();
+    noteFindRun(input);
+}
+
+function noteFindShowReplace(widget, show) {
+    const row = widget.querySelector('.note-replace-row');
+    row.hidden = !show;
+    const toggle = widget.querySelector('.note-find-toggle');
+    toggle.textContent = show ? '▾' : '▸';
+    toggle.setAttribute('aria-label', show ? 'Hide replace' : 'Show replace');
+}
+
+function noteFindToggleReplace(btn) {
+    const widget = btn.closest('.note-widget');
+    const show = widget.querySelector('.note-replace-row').hidden;
+    noteFindShowReplace(widget, show);
+    if (show) widget.querySelector('.note-replace-input').focus();
+}
+
+function noteFindClose(el) {
+    const widget = el.closest('.note-widget');
+    widget.querySelector('.note-find').hidden = true;
+    widget.__noteFind = null;
+    noteFindPaint(widget);
+    noteFocusEditor(widget.closest('.tool'));
+}
+
+function noteFindKey(event, input) {
+    if (event.key === 'Escape') {
+        // The find bar's, not the board's: Escape would otherwise leave the editor too.
+        event.preventDefault();
+        event.stopPropagation();
+        noteFindClose(input);
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (input.classList.contains('note-replace-input')) noteReplaceOne(input);
+        else noteFindStep(input, event.shiftKey ? -1 : 1);
+    } else {
+        noteFindShortcut(event, input);
+    }
+}
+
+/**
+ * Every match, in order. In Markdown, offsets into the text. In rich text, ranges —
+ * found in the words laid end to end, with a line break between blocks so that a
+ * search never matches across the end of one paragraph and the start of the next.
+ */
+function noteFindMatches(widget) {
+    const bar = widget.querySelector('.note-find');
+    const query = bar.querySelector('.note-find-input').value;
+    if (!query) return [];
+    const re = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        bar.querySelector('.note-find-case input').checked ? 'g' : 'gi');
+    const found = [];
+    if (!widget.classList.contains('note-rich-on')) {
+        const text = widget.querySelector('.note-source').value;
+        let m;
+        while ((m = re.exec(text))) found.push({ start: m.index, end: m.index + m[0].length });
+        return found;
+    }
+    const surface = widget.querySelector('.note-rich');
+    const pieces = [];
+    let text = '';
+    let block = null;
+    const walker = document.createTreeWalker(surface, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const at = node.parentElement.closest('p, li, blockquote, pre, h1, h2, h3, h4, h5, h6, td, th, div');
+        if (text && at !== block) text += '\n';
+        block = at;
+        pieces.push({ node, start: text.length });
+        text += node.data;
+    }
+    const locate = (offset, end) => {
+        for (const piece of pieces) {
+            const len = piece.node.data.length;
+            if (end ? offset > piece.start && offset <= piece.start + len
+                    : offset >= piece.start && offset < piece.start + len) {
+                return { node: piece.node, offset: offset - piece.start };
+            }
+        }
+        return null;
+    };
+    let m;
+    while ((m = re.exec(text))) {
+        const a = locate(m.index, false);
+        const b = locate(m.index + m[0].length, true);
+        if (!a || !b) continue;
+        const range = document.createRange();
+        range.setStart(a.node, a.offset);
+        range.setEnd(b.node, b.offset);
+        found.push({ start: m.index, end: m.index + m[0].length, range });
+    }
+    return found;
+}
+
+/** Look again: after the query changes, the text changes, or the editor does. */
+function noteFindRun(el) {
+    const widget = el.closest('.note-widget');
+    if (!widget) return;
+    if (el.matches && el.matches('input')) widget.__noteFindIndex = 0;
+    noteFindRefresh(widget, true);
+}
+
+/**
+ * Count and paint the matches again. `reveal` — asked for by the find bar itself —
+ * also brings the current one into view. Typing in the note only repaints: in the
+ * Markdown, revealing selects the match, and the next key typed would replace it.
+ */
+function noteFindRefresh(widget, reveal) {
+    if (!widget || widget.__noteReplacing) return;
+    const bar = widget.querySelector('.note-find');
+    if (!bar || bar.hidden) return;
+    const matches = noteFindMatches(widget);
+    const index = Math.min(widget.__noteFindIndex || 0, Math.max(0, matches.length - 1));
+    widget.__noteFind = { matches, index };
+    widget.__noteFindIndex = index;
+    bar.querySelector('.note-find-info').textContent = matches.length
+        ? (index + 1) + ' of ' + matches.length
+        : (bar.querySelector('.note-find-input').value ? 'No results' : '');
+    noteFindPaint(widget, reveal);
+}
+
+/**
+ * Show the matches, and bring the current one into view. Rich text paints them all,
+ * the current one stronger. A textarea cannot paint parts of itself, so there the
+ * current match is selected — which takes the focus a moment to scroll to it, and
+ * gives it back to the find bar.
+ */
+function noteFindPaint(widget, reveal) {
+    const state = widget.__noteFind;
+    const rich = widget.classList.contains('note-rich-on');
+    if (window.CSS && CSS.highlights) {
+        CSS.highlights.delete('note-find');
+        CSS.highlights.delete('note-find-current');
+    }
+    if (!state || !state.matches.length) return;
+    const current = state.matches[state.index];
+    if (rich) {
+        if (window.CSS && CSS.highlights && typeof Highlight === 'function') {
+            CSS.highlights.set('note-find', new Highlight(...state.matches.map(m => m.range)));
+            CSS.highlights.set('note-find-current', new Highlight(current.range));
+        }
+        if (!reveal) return;
+        const surface = widget.querySelector('.note-rich');
+        const r = current.range.getBoundingClientRect();
+        const s = surface.getBoundingClientRect();
+        if (r.top < s.top || r.bottom > s.bottom) surface.scrollTop += r.top - s.top - s.height / 3;
+        return;
+    }
+    if (!reveal) return;
+    const source = widget.querySelector('.note-source');
+    const back = document.activeElement;
+    source.focus();
+    source.setSelectionRange(current.start, current.start);
+    source.blur();
+    source.focus();
+    source.setSelectionRange(current.start, current.end);
+    if (back && back !== source && widget.contains(back)) back.focus();
+}
+
+function noteFindStep(el, by) {
+    const widget = el.closest('.note-widget');
+    const state = widget.__noteFind;
+    if (!state || !state.matches.length) return;
+    widget.__noteFindIndex = (state.index + by + state.matches.length) % state.matches.length;
+    noteFindRefresh(widget, true);
+}
+
+/** Put one match's replacement in, the way typing would — so undo takes it back. */
+function noteReplaceAt(widget, match, replacement) {
+    const sel = window.getSelection();
+    if (widget.classList.contains('note-rich-on')) {
+        const surface = widget.querySelector('.note-rich');
+        surface.focus();
+        sel.removeAllRanges();
+        sel.addRange(match.range);
+        if (replacement) document.execCommand('insertText', false, replacement);
+        else document.execCommand('delete');
+    } else {
+        const source = widget.querySelector('.note-source');
+        source.focus();
+        source.setSelectionRange(match.start, match.end);
+        const done = replacement ? document.execCommand('insertText', false, replacement)
+            : document.execCommand('delete');
+        if (!done) source.setRangeText(replacement, match.start, match.end, 'end');
+    }
+}
+
+/** Save what the replacing did, once, and look again from just after it. */
+function noteReplaceFinish(widget, after) {
+    widget.__noteReplacing = false;
+    if (widget.classList.contains('note-rich-on')) noteRichSave(widget.querySelector('.note-rich'));
+    else noteOnInput(widget.querySelector('.note-source'));
+    const matches = noteFindMatches(widget);
+    const next = matches.findIndex(m => m.start >= after);
+    widget.__noteFindIndex = next < 0 ? 0 : next;
+    noteFindRefresh(widget, true);
+}
+
+function noteReplaceOne(el) {
+    const widget = el.closest('.note-widget');
+    const state = widget.__noteFind;
+    if (!state || !state.matches.length) return;
+    const match = state.matches[state.index];
+    const replacement = widget.querySelector('.note-replace-input').value;
+    widget.__noteReplacing = true;
+    noteReplaceAt(widget, match, replacement);
+    noteReplaceFinish(widget, match.start + replacement.length);
+    widget.querySelector('.note-replace-input').focus();
+}
+
+function noteReplaceAll(el) {
+    const widget = el.closest('.note-widget');
+    const state = widget.__noteFind;
+    if (!state || !state.matches.length) return;
+    const replacement = widget.querySelector('.note-replace-input').value;
+    widget.__noteReplacing = true;
+    // Last first, so the matches before each one are where they were found.
+    for (let i = state.matches.length - 1; i >= 0; i--) noteReplaceAt(widget, state.matches[i], replacement);
+    const count = state.matches.length;
+    noteReplaceFinish(widget, 0);
+    widget.querySelector('.note-replace-input').focus();
+    showToolToast('Replaced ' + count + (count === 1 ? ' match' : ' matches'));
+}
+
+// Like Edit Content's menu, it stays open while several things are ticked, and closes
+// on a click anywhere else or on Escape — which then goes no further than the menu.
+document.addEventListener('click', (e) => {
+    noteTransformCloseAll(e.target.closest && e.target.closest('.note-rich-tf'));
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.querySelector('.note-rich-tf-panel.open')) {
+        e.stopPropagation();
+        noteTransformCloseAll();
+    }
+}, true);
+
+function noteRichInput(event, surface) {
+    // Slack's inline marks close on the character that closes them: typing the second
+    // * of *word* is what makes it bold.
+    if (event && event.inputType === 'insertText' && /^[*_~`]$/.test(event.data || '') &&
+        !surface.closest('.note-widget').__noteReplacing) {
+        noteRichInline(surface, event.data);
+    }
+    if (event && event.inputType === 'insertText' && event.data === ')' &&
+        !surface.closest('.note-widget').__noteReplacing) {
+        noteRichLinkMark(surface);
+    }
+    noteRichSave(surface);
+}
+
+/** The element the caret is in, inside this surface, or null. */
+function noteRichAt(surface) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    let node = sel.getRangeAt(0).startContainer;
+    if (node.nodeType !== 1) node = node.parentElement;
+    return node && surface.contains(node) ? node : null;
+}
+
+/**
+ * `*bold*`, `_italic_`, `~struck~` and `` `code` `` — Slack's marks, not Markdown's:
+ * one asterisk is bold here, because that is what a person who writes in Slack means
+ * by it. What is stored is ordinary Markdown either way.
+ *
+ * Only when the mark opens after a space or the start of a line and the word inside
+ * has no space at either end, which is the rule that keeps 2*3*4 a sum. Never inside
+ * code, where an asterisk is an asterisk.
+ */
+function noteRichInline(surface, mark) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== 3 || !surface.contains(node)) return;
+    if (node.parentElement && node.parentElement.closest('code, pre')) return;
+    // The line so far, not just the text node the caret is in: a mark can open before
+    // a link and close after it, and the link is an element of its own between them.
+    const block = noteRichBlockOf(surface, node);
+    const before = noteRichTextBefore(block, range);
+    const m = '\\' + mark;
+    const found = before.match(new RegExp('(^|[\\s(\\[\\u200B])' + m + '([^\\s' + m + '](?:[^' + m + ']*[^\\s' + m + '])?)' + m + '$'));
+    if (!found) return;
+    const word = found[2];
+    const whole = document.createRange();
+    const start = noteRichPointAt(block, before.length - word.length - 2);
+    if (!start) return;
+    whole.setStart(start.node, start.offset);
+    whole.setEnd(range.startContainer, range.startOffset);
+    const tag = { '*': 'b', '_': 'i', '~': 's', '`': 'code' }[mark];
+    let inner;
+    if (tag === 'code') {
+        // Code is literal: what was typed, as text, links and all.
+        inner = escapeHtml(word);
+    } else {
+        // What is inside keeps what it is — a link made as it was typed stays a link —
+        // and Markdown link syntax inside becomes one now, before the mark goes round it.
+        const words = document.createRange();
+        const from = noteRichPointAt(block, before.length - word.length - 1);
+        words.setStart(from.node, from.offset);
+        words.setEnd(range.startContainer, range.startOffset - 1);
+        const holder = document.createElement('div');
+        holder.appendChild(words.cloneContents());
+        noteLinkifyTextIn(holder);
+        inner = holder.innerHTML;
+    }
+    sel.removeAllRanges();
+    sel.addRange(whole);
+    // The zero-width space after it is where typing carries on, outside the mark.
+    document.execCommand('insertHTML', false, '<' + tag + '>' + inner + '</' + tag + '>​');
+}
+
+/** The block a caret is in — its paragraph, item, quote or heading — or the surface. */
+function noteRichBlockOf(surface, node) {
+    const el = node.nodeType === 1 ? node : node.parentElement;
+    const block = el && el.closest('p, li, blockquote, h1, h2, h3, h4, h5, h6, td, th, div');
+    return block && surface.contains(block) ? block : surface;
+}
+
+/** The words of a block up to the caret, as they read. */
+function noteRichTextBefore(block, caret) {
+    const r = document.createRange();
+    r.setStart(block, 0);
+    r.setEnd(caret.startContainer, caret.startOffset);
+    return r.toString();
+}
+
+/** The place in a block that is `offset` characters into its words. */
+function noteRichPointAt(block, offset) {
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    let seen = 0;
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        if (offset <= seen + n.data.length) return { node: n, offset: offset - seen };
+        seen += n.data.length;
+    }
+    return null;
+}
+
+/**
+ * `[text](address)` — Markdown's link — as HTML: a link when the address is one the
+ * link form would take (web or mail; a bare domain is a web one), and left as the
+ * words it is otherwise, so `[x](javascript:…)` stays text that does nothing.
+ */
+const NOTE_MD_LINK = /\[([^\[\]\n]+)\]\(([^()\s]+)\)/g;
+
+function noteLinkifyHtml(text) {
+    let out = '';
+    let last = 0;
+    let m;
+    NOTE_MD_LINK.lastIndex = 0;
+    while ((m = NOTE_MD_LINK.exec(text))) {
+        const url = noteSafeUrl(m[2]);
+        if (!url) continue;
+        out += escapeHtml(text.slice(last, m.index)) +
+            '<a href="' + escapeHtml(url) + '">' + escapeHtml(m[1]) + '</a>';
+        last = m.index + m[0].length;
+    }
+    return out + escapeHtml(text.slice(last));
+}
+
+function noteHasMdLink(text) {
+    NOTE_MD_LINK.lastIndex = 0;
+    let m;
+    while ((m = NOTE_MD_LINK.exec(text))) if (noteSafeUrl(m[2])) return true;
+    return false;
+}
+
+/**
+ * Emoji that arrive as pictures become emoji again. Slack copies every one as an image
+ * (`<img alt=":apple:" src="…/1f34e@2x.png">`), and GitHub and Discord do much the
+ * same; kept as images they were pasted as full-size pictures, each on a line of its
+ * own. What the emoji is comes from the file's name, which is its code points; or the
+ * alt text, when that is the emoji itself; or the board's emoji list by name — and
+ * failing all of those, the `:name:` stays as words rather than a picture.
+ */
+function noteEmojiImagesToText(root) {
+    root.querySelectorAll('img').forEach(img => {
+        const alt = (img.getAttribute('data-stringify-emoji') || img.getAttribute('alt') || '').trim();
+        const named = /^:[\w+-]+:$/.test(alt);
+        if (!named && !/\bemoji\b/i.test(img.className || '') && !img.hasAttribute('data-stringify-emoji')) return;
+        let emoji = '';
+        const file = (img.getAttribute('src') || '').match(/\/([0-9a-f]{4,6}(?:-[0-9a-f]{4,6})*)(?:@\dx)?\.(?:png|svg|gif|webp)(?:[?#].*)?$/i);
+        if (file) {
+            try { emoji = String.fromCodePoint(...file[1].split('-').map(h => parseInt(h, 16))); } catch (e) { emoji = ''; }
+        }
+        if (!emoji && alt && !/[\x00-\x7F]/.test(alt)) emoji = alt;
+        if (!emoji && named) emoji = noteEmojiByName(alt.slice(1, -1)) || alt;
+        if (!emoji) return;
+        img.replaceWith(document.createTextNode(emoji));
+    });
+}
+
+function noteEmojiByName(name) {
+    const groups = window._emoteUnicodeData;
+    if (!Array.isArray(groups)) return '';
+    const slug = name.toLowerCase().replace(/-/g, '_');
+    for (const group of groups) {
+        const hit = (group.emojis || []).find(e => e.slug === slug);
+        if (hit) return hit.emoji;
+    }
+    return '';
+}
+
+/**
+ * Lines that start with a bullet character — how Slack, and chat in general, writes a
+ * list it has no list for — as a Markdown list. Typed, `• ` already makes a list; pasted,
+ * the same line stayed text, so the bullets pasted in and the ones added after them
+ * were two different things. A blank line goes round each run: without one, the line
+ * after the last bullet is read as more of that bullet. Code blocks are left alone.
+ */
+const NOTE_BULLET_LINE = /^[ \t]*[•◦▪‣][ \t]+\S/m;
+
+function noteBulletsToList(markdown) {
+    const lines = String(markdown).split('\n');
+    const out = [];
+    let fenced = false;
+    let inList = false;
+    lines.forEach(line => {
+        if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+        const bullet = !fenced && line.match(/^([ \t]*)[•◦▪‣][ \t]+(\S.*)$/);
+        if (bullet) {
+            if (!inList && out.length && out[out.length - 1].trim()) out.push('');
+            out.push(bullet[1] + '- ' + bullet[2]);
+            inList = true;
+            return;
+        }
+        if (inList && line.trim()) out.push('');
+        inList = false;
+        out.push(line);
+    });
+    return out.join('\n');
+}
+
+/** Plain text with bullet lines in it, as HTML: the bullets a list, the other lines
+ *  paragraphs, and Markdown links in either made links. */
+function notePlainLinesHtml(text) {
+    let html = '';
+    let items = [];
+    const flush = () => {
+        if (items.length) html += '<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+        items = [];
+    };
+    text.replace(/\r\n?/g, '\n').split('\n').forEach(line => {
+        const bullet = line.match(/^[ \t]*[•◦▪‣][ \t]+(\S.*)$/);
+        if (bullet) { items.push(noteLinkifyHtml(bullet[1])); return; }
+        flush();
+        if (line.trim()) html += '<p>' + noteLinkifyHtml(line) + '</p>';
+    });
+    flush();
+    return html;
+}
+
+/** The same, for the text of an element — leaving links and code as they are. */
+function noteLinkifyTextIn(el) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const texts = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) texts.push(n);
+    texts.forEach(n => {
+        if (n.parentElement && n.parentElement.closest('a, code, pre')) return;
+        if (!noteHasMdLink(n.data)) return;
+        const t = document.createElement('template');
+        t.innerHTML = noteLinkifyHtml(n.data);
+        n.replaceWith(t.content);
+    });
+}
+
+/**
+ * The `)` that closes `[text](address)` makes it a link, the way the `*` that closes
+ * `*word*` makes it bold. Without it, the brackets were kept as words — escaped, so
+ * the note showed them — and a mark closed round them afterwards bolded the brackets.
+ */
+function noteRichLinkMark(surface) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== 3 || !surface.contains(node)) return;
+    if (node.parentElement && node.parentElement.closest('a, code, pre')) return;
+    const block = noteRichBlockOf(surface, node);
+    const before = noteRichTextBefore(block, range);
+    const found = before.match(/\[([^\[\]\n]+)\]\(([^()\s]+)\)$/);
+    if (!found) return;
+    // Inside a backtick that has not closed yet, this is on its way to being code,
+    // which is literal: made a link now, the code mark would keep only its words.
+    if ((before.slice(0, before.length - found[0].length).match(/`/g) || []).length % 2) return;
+    const url = noteSafeUrl(found[2]);
+    if (!url) return;
+    const start = noteRichPointAt(block, before.length - found[0].length);
+    if (!start) return;
+    const whole = document.createRange();
+    whole.setStart(start.node, start.offset);
+    whole.setEnd(range.startContainer, range.startOffset);
+    sel.removeAllRanges();
+    sel.addRange(whole);
+    document.execCommand('insertHTML', false,
+        '<a href="' + escapeHtml(url) + '">' + escapeHtml(found[1]) + '</a>​');
+}
+
+/**
+ * Lines that start with a list marker, a quote or a fence become those things when
+ * the space after the marker is typed — what Slack does, and what Markdown means.
+ * Returns true when it took the keystroke.
+ */
+function noteRichBlock(surface) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return false;
+    const range = sel.getRangeAt(0);
+    let block = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    while (block && block !== surface && !/^(P|DIV|LI|BLOCKQUOTE|H[1-6]|PRE)$/.test(block.nodeName)) {
+        block = block.parentElement;
+    }
+    if (!block || !surface.contains(range.startContainer)) return false;
+    if (block.closest('pre, li')) return false;
+    const lead = document.createRange();
+    lead.setStart(block, 0);
+    lead.setEnd(range.startContainer, range.startOffset);
+    const typed = lead.toString();
+    const rules = [
+        { re: /^[-*•]$/, run: () => document.execCommand('insertUnorderedList') },
+        { re: /^1[.)]$/, run: () => document.execCommand('insertOrderedList') },
+        { re: /^>$/, run: () => document.execCommand('formatBlock', false, 'blockquote') },
+        { re: /^```$/, run: () => document.execCommand('formatBlock', false, 'pre') },
+        { re: /^#{1,3}$/, run: () => document.execCommand('formatBlock', false, 'h' + typed.length) },
+        { re: /^(-{3,}|\*{3,}|_{3,})$/, run: () => noteRichInsertRule(surface) }
+    ];
+    const rule = rules.find(r => r.re.test(typed));
+    if (!rule) return false;
+    for (let i = 0; i < typed.length; i++) document.execCommand('delete');
+    rule.run();
+    noteRichSave(surface);
+    return true;
+}
+
+/** Slack's shortcuts, on either platform's modifier. Letters by the character typed,
+ *  so ⌘B is B on any keyboard layout; digits and Option chords by the key, because
+ *  Shift and Option change the character. */
+function noteRichKeydown(event, surface) {
+    if (noteFindShortcut(event, surface)) return;
+    // Tab belongs to the note where it means something here: a list item goes in or
+    // out a level, code takes two spaces. Anywhere else it still moves the focus on,
+    // so the keyboard can always leave the note.
+    if (event.key === 'Tab' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        const at = noteRichAt(surface);
+        if (at && at.closest('pre')) {
+            event.preventDefault();
+            if (!event.shiftKey) document.execCommand('insertText', false, '  ');
+            return;
+        }
+        if (at && at.closest('li') && noteRichIndent(surface, event.shiftKey)) {
+            event.preventDefault();
+            noteRichSave(surface);
+            noteRichSyncBar();
+            return;
+        }
+    }
+    noteRichEnsureBlock(surface);
+    if (event.key === ' ' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (noteRichBlock(surface)) event.preventDefault();
+        return;
+    }
+    if (event.key === 'Enter' && !event.shiftKey) {
+        // Enter on an empty line in a quote leaves the quote, the way it leaves a list.
+        const at = noteRichAt(surface);
+        const quote = at && at.closest('blockquote');
+        if (quote && !(at.textContent || '').trim()) {
+            event.preventDefault();
+            document.execCommand('formatBlock', false, 'p');
+            noteRichSave(surface);
+        }
+        return;
+    }
+    if (!(event.metaKey || event.ctrlKey)) return;
+    const key = (event.key || '').toLowerCase();
+    let fmt = null;
+    if (event.shiftKey && event.altKey && event.code === 'KeyC') fmt = 'codeblock';
+    else if (event.altKey && !event.shiftKey && /^Digit[0-3]$/.test(event.code)) fmt = 'h' + event.code.slice(-1);
+    else if (event.altKey) return;
+    else if (!event.shiftKey && key === 'b') fmt = 'bold';
+    else if (!event.shiftKey && key === 'i') fmt = 'italic';
+    else if (!event.shiftKey && key === 'u') fmt = 'underline';
+    else if (event.shiftKey && key === 'x') fmt = 'strike';
+    else if (event.shiftKey && key === 'u') fmt = 'link';
+    else if (event.shiftKey && event.code === 'Digit7') fmt = 'ol';
+    else if (event.shiftKey && event.code === 'Digit8') fmt = 'ul';
+    else if (event.shiftKey && event.code === 'Digit9') fmt = 'quote';
+    else if (event.shiftKey && key === 'c') fmt = 'code';
+    if (!fmt) return;
+    event.preventDefault();
+    noteRichFormat(surface, fmt);
+}
+
+function noteRichButton(btn) {
+    const surface = btn.closest('.note-widget').querySelector('.note-rich');
+    if (surface) noteRichFormat(surface, btn.getAttribute('data-fmt'));
+}
+
+/** One format, on or off, wherever the caret or the selection is. */
+function noteRichFormat(surface, fmt) {
+    if (document.activeElement !== surface) surface.focus();
+    const at = noteRichAt(surface);
+    switch (fmt) {
+        case 'h1': case 'h2': case 'h3':
+            // The same heading again is back to normal text, as the other blocks toggle.
+            document.execCommand('formatBlock', false, at && at.closest(fmt) ? 'p' : fmt);
+            break;
+        case 'h0': document.execCommand('formatBlock', false, 'p'); break;
+        case 'bold': document.execCommand('bold'); break;
+        case 'italic': document.execCommand('italic'); break;
+        case 'underline': document.execCommand('underline'); break;
+        case 'strike': document.execCommand('strikeThrough'); break;
+        case 'ol': document.execCommand('insertOrderedList'); break;
+        case 'ul': document.execCommand('insertUnorderedList'); break;
+        case 'quote':
+            document.execCommand('formatBlock', false, at && at.closest('blockquote') ? 'p' : 'blockquote');
+            break;
+        case 'codeblock':
+            noteRichToggleCodeBlock(surface, at);
+            break;
+        case 'code': noteRichToggleCode(surface, at); break;
+        case 'link': noteRichOpenLink(surface); return;
+        case 'hr': noteRichInsertRule(surface); break;
+    }
+    noteRichSave(surface);
+    noteRichSyncBar();
+}
+
+/**
+ * A horizontal line, with a paragraph after it to go on writing in. The browser's
+ * command puts the line in and the caret after it — where, when the line ends the
+ * note, there is nothing to type into — and the paragraph the caret was in is left
+ * empty above it when the line came from `---` typed into an empty one.
+ */
+function noteRichInsertRule(surface) {
+    document.execCommand('insertHorizontalRule');
+    noteRichUnnest(surface);
+    surface.querySelectorAll('hr').forEach(hr => {
+        const next = hr.nextElementSibling;
+        if (!next || next.nodeName === 'HR') {
+            const p = document.createElement('p');
+            p.appendChild(document.createElement('br'));
+            hr.after(p);
+        }
+        const before = hr.previousElementSibling;
+        if (before && before.nodeName === 'P' && !(before.textContent || '').replace(/\u200B/g, '').trim() &&
+            !before.querySelector('img')) before.remove();
+    });
+    const sel = window.getSelection();
+    const at = sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    const el = at && (at.nodeType === 1 ? at : at.parentElement);
+    const rule = el && (el.nodeName === 'HR' ? el : (el === surface ? surface.childNodes[sel.getRangeAt(0).startOffset - 1] : null));
+    const after = rule && rule.nodeName === 'HR' ? rule.nextElementSibling : null;
+    if (after) {
+        const range = document.createRange();
+        range.setStart(after, 0);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+/**
+ * Code block on or off, for what the selection covers rather than only where it
+ * starts: select-all starts outside every block, and was taken for "not in a code
+ * block", so a block was made round the block. All code selected comes off; anything
+ * else selected goes into one block.
+ */
+function noteRichToggleCodeBlock(surface, at) {
+    const sel = window.getSelection();
+    const range = sel.rangeCount ? sel.getRangeAt(0) : null;
+    // A selection that starts and ends in the same list — however deep — is about
+    // that list's items, not the top-level item it sits under: selecting two indented
+    // items took their parent, and everything else under it.
+    const list = range && noteRichCommonList(surface, range);
+    const blocks = list ? [list]
+        : range ? [...surface.children].filter(el => range.intersectsNode(el)) : [];
+    const own = at && at.closest('pre');
+    if (own && surface.contains(own)) { noteRichUnfenceCode(surface, [own]); return; }
+    if (blocks.length && blocks.every(el => el.nodeName === 'PRE')) { noteRichUnfenceCode(surface, blocks); return; }
+    noteRichFenceCode(surface, blocks);
+}
+
+/**
+ * Whether a selection takes in some of an item's own words. A selection made with
+ * Shift+↓ ends at the very start of the next item, which it touches but does not
+ * take; that item is not part of it.
+ */
+function noteRichTakesItem(range, li) {
+    if (!range.intersectsNode(li)) return false;
+    if (range.collapsed) return li.contains(range.startContainer);
+    const words = (r) => r.toString().replace(/\u200B/g, '').length > 0;
+    if (li.contains(range.endContainer) && !li.contains(range.startContainer)) {
+        const r = document.createRange();
+        r.setStart(li, 0);
+        r.setEnd(range.endContainer, range.endOffset);
+        if (!words(r)) return false;
+    }
+    if (li.contains(range.startContainer) && !li.contains(range.endContainer)) {
+        const r = document.createRange();
+        r.setStart(range.startContainer, range.startOffset);
+        r.setEnd(li, li.childNodes.length);
+        if (!words(r)) return false;
+    }
+    return true;
+}
+
+/** The innermost list that holds both ends of a selection, or null. */
+function noteRichCommonList(surface, range) {
+    const liOf = (node) => {
+        const el = node && (node.nodeType === 1 ? node : node.parentElement);
+        const li = el && el.closest('li');
+        return li && surface.contains(li) ? li : null;
+    };
+    const a = liOf(range.startContainer);
+    let b = liOf(range.endContainer);
+    // Ending at the very start of an item is ending in the one before it.
+    if (b && b !== a && !noteRichTakesItem(range, b)) b = a;
+    if (!a || !b) return null;
+    for (let list = a.parentElement; list && list !== surface; list = list.parentElement) {
+        if (/^(UL|OL)$/.test(list.nodeName) && list.contains(b)) return list;
+    }
+    return null;
+}
+
+/**
+ * Tab and Shift+Tab in a list: the item, or the items selected, one level in or out.
+ * In: under the item above, in its list of sub-items (made if it has none). Out: after
+ * the item it was under, taking the items that followed it along as its own. The first
+ * item of a list has nothing to go under, and an item at the top has nowhere further
+ * out to go; those stay. Moved by hand, so the caret is held by node and put back.
+ * True when a list item was where the caret was, whether or not it could move.
+ */
+function noteRichIndent(surface, out) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return false;
+    const range = sel.getRangeAt(0);
+    const startEl = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    const li = startEl && startEl.closest('li');
+    if (!li || !surface.contains(li)) return false;
+    const list = li.parentElement;
+    const items = [...list.children].filter(x => x.nodeName === 'LI' && (x === li || noteRichTakesItem(range, x)));
+    const keep = { a: sel.anchorNode, ao: sel.anchorOffset, f: sel.focusNode, fo: sel.focusOffset };
+    const subOf = (item) => {
+        const last = item.lastElementChild;
+        if (last && /^(UL|OL)$/.test(last.nodeName)) return last;
+        const made = document.createElement(list.nodeName);
+        item.appendChild(made);
+        return made;
+    };
+    if (!out) {
+        const above = items[0].previousElementSibling;
+        if (!above || above.nodeName !== 'LI') return true;
+        const into = subOf(above);
+        items.forEach(x => into.appendChild(x));
+    } else {
+        const parentLi = list.parentElement;
+        if (!parentLi || parentLi.nodeName !== 'LI') return true;
+        const lastMoved = items[items.length - 1];
+        const following = [];
+        for (let n = lastMoved.nextElementSibling; n; n = n.nextElementSibling) following.push(n);
+        let at = parentLi;
+        items.forEach(x => { at.after(x); at = x; });
+        if (following.length) {
+            const into = subOf(lastMoved);
+            following.forEach(x => into.appendChild(x));
+        }
+        if (!list.querySelector(':scope > li')) list.remove();
+    }
+    if (keep.a && surface.contains(keep.a) && keep.f && surface.contains(keep.f)) {
+        const r = document.createRange();
+        r.setStart(keep.a, keep.ao);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        sel.extend(keep.f, keep.fo);
+    }
+    return true;
+}
+
+/** A list's items as lines of text, each with the marker it was shown with, nested
+ *  ones indented — so a list made code says what it was, and can be a list again. */
+function noteListLines(list, depth) {
+    const lines = [];
+    let n = Number(list.getAttribute('start')) || 1;
+    [...list.children].forEach(li => {
+        if (li.nodeName !== 'LI') return;
+        const own = li.cloneNode(true);
+        own.querySelectorAll('ul, ol').forEach(x => x.remove());
+        const marker = list.nodeName === 'OL' ? (n++) + '. ' : '- ';
+        lines.push('  '.repeat(depth) + marker + (own.textContent || '').replace(/​/g, '').trim());
+        li.querySelectorAll(':scope > ul, :scope > ol').forEach(sub => lines.push(...noteListLines(sub, depth + 1)));
+    });
+    return lines;
+}
+
+/**
+ * Lines made a code block. One plain line is the browser's command, which undo can
+ * take back. Anything more is done here, a line of code to each: the command ran
+ * several paragraphs together into one line, and put a list *inside* the block with
+ * its items run together. From a list, only the items selected go — the list is
+ * split round them, the part after it numbered on from where it was — rather than
+ * the whole list, which is what the selection touching it had meant.
+ */
+function noteRichFenceCode(surface, blocks) {
+    const sel = window.getSelection();
+    const range = sel.rangeCount ? sel.getRangeAt(0) : null;
+    const isList = (el) => /^(UL|OL)$/.test(el.nodeName);
+    if (!range || (blocks.length < 2 && !(blocks[0] && isList(blocks[0])))) {
+        document.execCommand('formatBlock', false, 'pre');
+        return;
+    }
+    const first = blocks[0];
+    const lines = [];
+    const gone = [];
+    let rest = null;
+    let keepsHead = false;
+    blocks.forEach((el, i) => {
+        if (!isList(el)) {
+            lines.push(...(el.nodeName === 'PRE' ? el.textContent.replace(/\n$/, '') : (el.textContent || '').replace(/​/g, '')).split('\n'));
+            gone.push(el);
+            return;
+        }
+        const items = [...el.children].filter(li => li.nodeName === 'LI');
+        const chosen = items.filter(li => noteRichTakesItem(range, li));
+        if (!chosen.length) return;
+        const from = items.indexOf(chosen[0]);
+        const to = items.indexOf(chosen[chosen.length - 1]);
+        const start = Number(el.getAttribute('start')) || 1;
+        const taken = document.createElement(el.nodeName);
+        if (el.nodeName === 'OL') taken.setAttribute('start', String(start + from));
+        items.slice(from, to + 1).forEach(li => taken.appendChild(li.cloneNode(true)));
+        lines.push(...noteListLines(taken, 0));
+        const after = items.slice(to + 1);
+        if (after.length) {
+            rest = document.createElement(el.nodeName);
+            if (el.nodeName === 'OL') rest.setAttribute('start', String(start + to + 1));
+            after.forEach(li => rest.appendChild(li));
+        }
+        items.slice(from, to + 1).forEach(li => li.remove());
+        if (i === 0 && from > 0) keepsHead = true;
+        if (!el.querySelector(':scope > li')) gone.push(el);
+    });
+    const pre = document.createElement('pre');
+    pre.textContent = lines.join('\n');
+    if (keepsHead) first.after(pre);
+    else first.before(pre);
+    if (rest) pre.after(rest);
+    gone.forEach(el => el.remove());
+    const r = document.createRange();
+    r.selectNodeContents(pre);
+    sel.removeAllRanges();
+    sel.addRange(r);
+}
+
+/**
+ * Code blocks back to normal text. The browser's command could not: a block from
+ * Markdown is `<pre><code>`, and turning the `<pre>` into a paragraph left the
+ * `<code>` inside it — inline code, not text — and a block of two lines had them run
+ * together. So it is done here: lines that read as list items (`- `, `* `, `• `,
+ * `1. `) are a list again — what a list made code comes back as — and the rest a
+ * paragraph each; blank lines are the gaps between them. The words are selected
+ * afterwards, as taking inline code off leaves them.
+ */
+function noteRichUnfenceCode(surface, pres) {
+    const made = [];
+    pres.forEach(pre => {
+        const out = [];
+        const stack = [];
+        const close = (depth) => { while (stack.length > depth) stack.pop(); };
+        (pre.textContent || '').replace(/\n$/, '').split('\n').forEach(line => {
+            const item = line.match(/^(\s*)(?:([-*•])|(\d+)[.)])\s+(.*)$/);
+            if (!item) {
+                close(0);
+                if (!line.trim()) return;
+                const para = document.createElement('p');
+                para.textContent = line;
+                out.push(para);
+                return;
+            }
+            const depth = Math.floor(item[1].replace(/\t/g, '  ').length / 2);
+            const tag = item[3] ? 'OL' : 'UL';
+            close(depth + 1);
+            while (stack.length <= depth) {
+                const list = document.createElement(tag);
+                if (tag === 'OL' && Number(item[3]) !== 1 && !stack.length) list.setAttribute('start', item[3]);
+                if (stack.length) {
+                    const host = stack[stack.length - 1].lastElementChild || stack[stack.length - 1].appendChild(document.createElement('li'));
+                    host.appendChild(list);
+                } else {
+                    out.push(list);
+                }
+                stack.push(list);
+            }
+            if (stack[depth].nodeName !== tag) {
+                const list = document.createElement(tag);
+                stack[depth].after(list);
+                if (!depth) out.push(list);
+                stack[depth] = list;
+                close(depth + 1);
+            }
+            const li = document.createElement('li');
+            li.textContent = item[4];
+            stack[depth].appendChild(li);
+        });
+        if (!out.length) {
+            const para = document.createElement('p');
+            para.appendChild(document.createElement('br'));
+            out.push(para);
+        }
+        pre.replaceWith(...out);
+        // A list that comes back between the two halves of the list it was taken from
+        // joins them again: three lists side by side read, in Markdown, as one loose
+        // list, spaced apart, not as the list it was.
+        const head = out[0];
+        const tail = out[out.length - 1];
+        if (/^(UL|OL)$/.test(head.nodeName) && head.previousElementSibling &&
+            head.previousElementSibling.nodeName === head.nodeName) {
+            const before = head.previousElementSibling;
+            before.append(...head.childNodes);
+            if (tail === head) out[out.length - 1] = before;
+            out[0] = before;
+            head.remove();
+        }
+        const last = out[out.length - 1];
+        if (/^(UL|OL)$/.test(last.nodeName) && last.nextElementSibling &&
+            last.nextElementSibling.nodeName === last.nodeName) {
+            const after = last.nextElementSibling;
+            last.append(...after.childNodes);
+            after.remove();
+        }
+        made.push(...out);
+    });
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.setStart(made[0], 0);
+    range.setEnd(made[made.length - 1], made[made.length - 1].childNodes.length);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+/** Inline code has no command of its own: it is wrapped, or unwrapped, by hand. */
+function noteRichToggleCode(surface, at) {
+    const sel = window.getSelection();
+    const code = at && at.closest('code');
+    if (code && !code.closest('pre')) {
+        // Unwrapped by moving its own words out of it. Typing over it would not do:
+        // a browser types over a whole styled run *in* that style, and the code came
+        // straight back.
+        const words = [...code.childNodes];
+        code.replaceWith(...words);
+        if (words.length) {
+            const range = document.createRange();
+            range.setStartBefore(words[0]);
+            range.setEndAfter(words[words.length - 1]);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+        return;
+    }
+    if (!sel.isCollapsed) {
+        document.execCommand('insertHTML', false,
+            '<code data-new="1">' + escapeHtml(sel.toString()) + '</code>\u200B');
+        // Selected again, the way bold leaves its words selected — so pressing it a
+        // second time takes it off rather than starting a new code span after it.
+        const made = surface.querySelector('code[data-new]');
+        if (made) {
+            made.removeAttribute('data-new');
+            const range = document.createRange();
+            range.selectNodeContents(made);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+        return;
+    }
+    // Nothing selected: start a code span and put the caret inside it, so what is
+    // typed next is code.
+    document.execCommand('insertHTML', false, '<code data-new="1">\u200B</code>\u200B');
+    const fresh = surface.querySelector('code[data-new]');
+    if (!fresh) return;
+    fresh.removeAttribute('data-new');
+    const inside = document.createRange();
+    inside.setStart(fresh.firstChild || fresh, (fresh.firstChild || fresh).length || 0);
+    inside.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(inside);
+}
+
+/** A web address or a mail one, or ''. A link can be pasted from anywhere, and
+ *  `javascript:` reaching an href is how a note starts running somebody's script. */
+function noteSafeUrl(text) {
+    const url = String(text || '').trim();
+    if (/^(https?:\/\/|mailto:)\S+$/i.test(url)) return url;
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(url)) return 'https://' + url;
+    return '';
+}
+
+/** The link form, under the bar. The selection is held while it is open — focusing a
+ *  field would otherwise take it — and put back when the link is made. */
+function noteRichOpenLink(surface) {
+    const wrap = surface.closest('.note-rich-wrap');
+    const form = wrap.querySelector('.note-rich-link');
+    const sel = window.getSelection();
+    wrap.__noteRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+    const at = noteRichAt(surface);
+    const existing = at && at.closest('a');
+    const textField = form.querySelector('.note-rich-link-text');
+    const urlField = form.querySelector('.note-rich-link-url');
+    textField.hidden = !(sel.isCollapsed && !existing);
+    textField.value = '';
+    urlField.value = existing ? existing.getAttribute('href') || '' : '';
+    form.hidden = false;
+    (textField.hidden ? urlField : textField).focus();
+}
+
+function noteRichLinkClose(el) {
+    const wrap = el.closest('.note-rich-wrap');
+    wrap.querySelector('.note-rich-link').hidden = true;
+    const surface = wrap.querySelector('.note-rich');
+    const sel = window.getSelection();
+    surface.focus();
+    if (wrap.__noteRange) { sel.removeAllRanges(); sel.addRange(wrap.__noteRange); }
+}
+
+function noteRichLinkSave(el) {
+    const wrap = el.closest('.note-rich-wrap');
+    const form = wrap.querySelector('.note-rich-link');
+    const url = noteSafeUrl(form.querySelector('.note-rich-link-url').value);
+    const textField = form.querySelector('.note-rich-link-text');
+    const text = textField.hidden ? '' : textField.value.trim();
+    noteRichLinkClose(el);
+    if (!url) return;
+    const surface = wrap.querySelector('.note-rich');
+    if (text || window.getSelection().isCollapsed) {
+        document.execCommand('insertHTML', false,
+            '<a href="' + escapeHtml(url) + '">' + escapeHtml(text || url) + '</a>\u200B');
+    } else {
+        document.execCommand('createLink', false, url);
+    }
+    noteRichSave(surface);
+}
+
+function noteRichLinkKey(event, field) {
+    if (event.key === 'Enter') { event.preventDefault(); noteRichLinkSave(field); }
+    if (event.key === 'Escape') {
+        // Escape belongs to the form that is open, not to the board behind it.
+        event.preventDefault();
+        event.stopPropagation();
+        noteRichLinkClose(field);
+    }
+}
+
+/**
+ * Paste, cleaned by going through Markdown: whatever was copied keeps what Markdown
+ * can say — headings, lists, bold, links — and loses everything else, styles and
+ * scripts included, so a paste can only ever leave behind something a person could
+ * have typed. A web address pasted over a selection makes it a link, as in Slack.
+ */
+function noteRichPaste(event, surface) {
+    const data = event.clipboardData;
+    if (!data) return;
+    const html = data.getData('text/html');
+    const text = data.getData('text/plain');
+    const sel = window.getSelection();
+    event.preventDefault();
+    const url = noteSafeUrl(text);
+    if (sel && !sel.isCollapsed && url && /^\S+$/.test(text.trim())) {
+        document.execCommand('createLink', false, url);
+        noteRichSave(surface);
+        return;
+    }
+    if (html) {
+        // Markdown links in the copied words become links before the cleaning: left
+        // as words, their brackets were escaped and the addresses in them made links
+        // of their own, one inside the other.
+        const copied = document.createElement('template');
+        copied.innerHTML = html;
+        noteEmojiImagesToText(copied.content);
+        noteLinkifyTextIn(copied.content);
+        const holder = document.createElement('div');
+        holder.appendChild(copied.content);
+        let clean = parseMarkdown(noteBulletsToList(noteHtmlToMarkdown(holder.innerHTML)));
+        // A single paragraph goes into the line, not as a paragraph of its own.
+        const one = clean.trim().match(/^<p>([\s\S]*)<\/p>$/);
+        if (one && !/<\/?p>/.test(one[1])) clean = one[1];
+        document.execCommand('insertHTML', false, clean);
+    } else if (NOTE_BULLET_LINE.test(text)) {
+        // Lines that start with a bullet arrive as a list — what typing one makes.
+        document.execCommand('insertHTML', false, notePlainLinesHtml(text));
+    } else if (noteHasMdLink(text)) {
+        // Markdown links in plain text arrive as links; the rest as it was. A line at a
+        // time, so the lines stay lines.
+        text.replace(/\r\n?/g, '\n').split('\n').forEach((line, i) => {
+            if (i) document.execCommand('insertParagraph');
+            if (line) document.execCommand('insertHTML', false, noteLinkifyHtml(line));
+        });
+    } else {
+        document.execCommand('insertText', false, text);
+    }
+    noteRichSave(surface);
+}
+
+/** Which buttons are pressed where the caret is. Once for the whole page: the caret
+ *  is only ever in one place. */
+function noteRichSyncBar() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    let node = sel.anchorNode;
+    if (node && node.nodeType !== 1) node = node.parentElement;
+    const surface = node && node.closest && node.closest('.note-rich');
+    if (!surface) return;
+    const bar = surface.closest('.note-widget').querySelector('.note-rich-bar');
+    const on = {
+        h1: !!node.closest('h1'),
+        h2: !!node.closest('h2'),
+        h3: !!node.closest('h3'),
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        strike: document.queryCommandState('strikeThrough'),
+        ol: !!node.closest('ol'),
+        ul: !!node.closest('ul'),
+        quote: !!node.closest('blockquote'),
+        code: !!node.closest('code') && !node.closest('pre'),
+        codeblock: !!node.closest('pre'),
+        link: !!node.closest('a')
+    };
+    bar.querySelectorAll('[data-fmt]').forEach(b => b.classList.toggle('active', !!on[b.dataset.fmt]));
+}
+document.addEventListener('selectionchange', noteRichSyncBar);
+// Enter makes a paragraph, the same thing a blank line makes in Markdown, rather than
+// the bare <div> a browser would otherwise invent.
+document.addEventListener('focusin', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('note-rich')) {
+        document.execCommand('defaultParagraphSeparator', false, 'p');
+        noteRichEnsureBlock(e.target);
+        noteRichMarkBlank(e.target);
+    }
+});
+
 function noteOnInput(textarea) {
     const toolId = toolIdOf(textarea);
     if (!toolId) return;
     if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
     toolCustomizations[toolId].customContent = textarea.value;
     saveToolCustomizations(toolCustomizations);
+    const widget = textarea.closest('.note-widget');
+    const stats = widget && widget.querySelector('.note-rich-stats');
+    if (stats) stats.innerHTML = noteStatsHtml(textarea.value);
+    noteFindRefresh(widget);
     noteRender(toolId);
+}
+
+/** The Markdown's keys of its own: find, and find and replace. */
+function noteSourceKeydown(event, source) {
+    noteFindShortcut(event, source);
 }
 
 // ---- the dynamic tool ---------------------------------------------------------
@@ -8959,6 +11090,14 @@ function renderToolContent(text, plainText, transforms) {
         return `<pre style="white-space:pre-wrap;word-wrap:break-word;margin:0;font-family:inherit;font-size:inherit;">${escapeHtml(text)}</pre>`;
     }
     return `<div class="markdown-content">${parseMarkdown(text)}</div>`;
+}
+
+/** How long a text is: words, characters, and minutes to read at 200 words a minute.
+ *  Edit Content and the note's rich editor both say it, and must say the same. */
+function textStats(text) {
+    const t = String(text || '');
+    const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+    return { words, chars: t.length, readMin: Math.max(1, Math.ceil(words / 200)) };
 }
 
 function getTextTransforms(custom) {
@@ -11374,6 +13513,10 @@ function createNoteWithTemplate(templateId, options = {}) {
         templateId: templateId, // Store template ID for HTML templates
         customContent: isHtml ? '' : template.content // Only store markdown in customContent
     };
+    // A note made from now on is written in rich text unless somebody switches it.
+    // Notes made before keep the Markdown they were written in: nobody's note should
+    // change editor under them.
+    if (templateId === 'blank') toolCustomizations[toolId].noteEditor = 'rich';
     // A template that ships starting state — the dynamic tool's markup, script and
     // data — hands it over here. Copied verbatim, like a board template's `state`,
     // and last so a template that means to fill in the content can.
@@ -11448,9 +13591,7 @@ function createNoteWithTemplate(templateId, options = {}) {
         // wanted for what it is good at.
         if (templateId === 'blank' && !options.skipEditor) {
             setToolMode(toolId, getAuthoring(toolId) ? 'edit' : 'render');
-            const source = tool.querySelector('.note-source');
-            if (source) source.focus();
-            else openContentEditor(toolId);
+            noteFocusEditor(tool);
         }
 
         // A dynamic tool opens on both panes: the source is the point of it, and
@@ -11493,6 +13634,7 @@ function createNoteWithText(text, title) {
         const heading = tool.querySelector('.tool-title');
         if (heading && title) heading.textContent = title;
         noteRender(toolId);
+        noteApplyEditor(toolId);
         // Notes are laid out a step down and to the right of each other, so on a
         // board with a few of them the newest one can be past the bottom of the
         // window. It is the thing that was just asked for; it should be on screen.

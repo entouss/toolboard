@@ -60,14 +60,19 @@ const sel = (s) => '.tool[data-tool="' + noteId + '"] ' + s;
 const reach = async (label) => {
     await page.hover(sel('.tool-header'));
     await page.waitForTimeout(250);
-    await page.click(sel('.note-btn:has-text("' + label + '")'));
+    await page.click(sel('.note-btn[aria-label="' + label + '"]'));
 };
 const buttons = () => page.evaluate((id) => {
     const tool = document.querySelector('.tool[data-tool="' + CSS.escape(id) + '"]');
-    return [...tool.querySelectorAll('.note-btn')].map(b => b.textContent.trim());
+    // The note's own bar, not every button styled like one: the rich editor's link
+    // form has Save and Cancel in the same style.
+    return [...tool.querySelectorAll('.note-actions .note-btn')].map(b => b.getAttribute('aria-label') || b.textContent.trim());
 }, noteId);
-ok('a note offers both copies, beside the editor it already had',
-    (await buttons()).join('|') === 'Editor|Copy Markdown|Copy formatted', (await buttons()).join('|'));
+ok('a note offers both copies, each beside its way of writing: formatted by Rich, Markdown by Markdown',
+    (await buttons()).join('|') === 'Rich|Copy formatted|Markdown|Copy Markdown', (await buttons()).join('|'));
+ok('as icons with their own names, rather than two more words in the bar',
+    await page.evaluate((id) => [...document.querySelectorAll('.tool[data-tool="' + CSS.escape(id) + '"] .note-copy')]
+        .every(b => !b.textContent.trim() && b.querySelector('svg') && /^Copy/.test(b.title)), noteId));
 
 await page.evaluate(() => navigator.clipboard.writeText('nothing yet'));
 await reach('Copy Markdown');
