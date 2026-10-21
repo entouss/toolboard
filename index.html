@@ -1858,6 +1858,25 @@ main#toolboard {
 /* The note. Its result is markdown, which brings its own spacing, so the pane only
    has to give it room and get out of the way. */
 .note-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; }
+/* A note's emoji a little larger than its letters. Emoji are letters as far as CSS
+   knows, so they are sized through a font of their own: the system's emoji font, for
+   emoji code points only, scaled up with size-adjust — the words, the Markdown and
+   the editing are untouched. The note then falls back to its tool's font, the board's,
+   or the board's default, which is why those are passed down as variables: a font
+   set on the note would otherwise have hidden them. */
+@font-face {
+    font-family: 'Note Emoji';
+    src: local('Apple Color Emoji'), local('AppleColorEmoji'), local('Segoe UI Emoji'), local('SegoeUIEmoji'),
+        local('Noto Color Emoji'), local('NotoColorEmoji');
+    unicode-range: U+231A-231B, U+23E9-23F3, U+23F8-23FA, U+25FD-25FE, U+2600-27BF, U+2B05-2B55,
+        U+1F000-1FAFF, U+FE0F, U+200D, U+20E3, U+E0020-E007F;
+    size-adjust: 125%;
+}
+/* The words only: the bar's 🔗 🙂 🔍 are buttons, and stay their size. */
+.note-widget .markdown-content, .note-widget .note-source {
+    font-family: 'Note Emoji', var(--tool-font, var(--board-font, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, Oxygen, Ubuntu, sans-serif));
+}
 .note-widget .authoring-source { display: flex; flex-direction: column; min-width: 0; flex: 1 1 50%; }
 /* A writing surface, not a form field. The recipe's box makes sense around syntax
    you are being asked to get right; a note is prose, and the border only draws a
@@ -1949,7 +1968,16 @@ main#toolboard {
 /* Emoji and Transform sit at the bar's far end: they are about the note, not about the
    word under the caret. The menu is Edit Content's own, with the same classes. */
 .note-rich-gap { flex: 1 1 auto; }
-.note-rich-tf { position: relative; display: inline-flex; }
+.note-rich-tf, .note-table-menu { position: relative; display: inline-flex; }
+.note-table-panel { max-height: 340px; overflow: auto; }
+.note-table-panel [hidden] { display: none; }
+.note-table-panel .note-table-item {
+    display: block; width: 100%; padding: 4px 7px; text-align: left; white-space: nowrap;
+    border: none; border-radius: 4px; background: none; color: var(--text-primary);
+    font: inherit; font-size: 12px; cursor: pointer;
+}
+.note-table-panel .note-table-item:hover { background: var(--bg-tertiary); }
+.note-table-panel .note-table-item:disabled { opacity: 0.4; cursor: default; background: none; }
 .note-rich-tf-btn { font-size: 11px; }
 .note-rich-tf-panel { max-height: 340px; overflow: auto; }
 /* Plain text and Reset, at the foot of the Transform menu. */
@@ -2994,6 +3022,13 @@ th {
     background: var(--bg-tertiary);
     font-weight: 600;
 }
+
+/* A Markdown table's column alignment arrives as align="…", which the rule above —
+   text-align on every cell — overrode, so an aligned column never showed as one. */
+.markdown-content th[align="center"], .markdown-content td[align="center"] { text-align: center; }
+.markdown-content th[align="right"], .markdown-content td[align="right"] { text-align: right; }
+/* In the editor, an empty cell is still somewhere to click. */
+.note-rich th, .note-rich td { min-width: 3em; height: 1.6em; }
 
 tr:nth-child(even) {
     background: var(--table-stripe);
@@ -7737,8 +7772,10 @@ function applyToolboardSettings() {
     // Apply board-level fonts to toolboard
     if (toolboardSettings.fontFamily) {
         toolboard.style.fontFamily = toolboardSettings.fontFamily;
+        toolboard.style.setProperty('--board-font', toolboardSettings.fontFamily);
     } else {
         toolboard.style.fontFamily = '';
+        toolboard.style.removeProperty('--board-font');
     }
     if (toolboardSettings.fontSize) {
         toolboard.style.fontSize = toolboardSettings.fontSize;
@@ -7773,8 +7810,10 @@ function applyAllToolFonts() {
             if (custom.customFontName) loadGoogleFont(custom.customFontName);
             if (custom.fontFamily) {
                 content.style.fontFamily = custom.fontFamily;
+                content.style.setProperty('--tool-font', custom.fontFamily);
             } else {
                 content.style.fontFamily = '';
+                content.style.removeProperty('--tool-font');
             }
             if (custom.fontSize) {
                 content.style.fontSize = custom.fontSize;
@@ -7794,8 +7833,10 @@ function applyToolFont(toolId) {
     if (content) {
         if (custom.fontFamily) {
             content.style.fontFamily = custom.fontFamily;
+            content.style.setProperty('--tool-font', custom.fontFamily);
         } else {
             content.style.fontFamily = '';
+            content.style.removeProperty('--tool-font');
         }
         if (custom.fontSize) {
             content.style.fontSize = custom.fontSize;
@@ -8390,6 +8431,7 @@ function createTool(toolId) {
     if (toolContent) {
         if (custom.fontFamily) {
             toolContent.style.fontFamily = custom.fontFamily;
+            toolContent.style.setProperty('--tool-font', custom.fontFamily);
         }
         if (custom.fontSize) {
             toolContent.style.fontSize = custom.fontSize;
@@ -8794,6 +8836,8 @@ function noteRichBarHtml(custom) {
                 (noteIsMac() ? mod + f.keys : mod + f.keys.replace('⇧', 'Shift+').replace('⌥', 'Alt+')) + ')' : '')) +
                 '" aria-label="' + escapeHtml(f.title) + '">' + f.label + '</button>'
             : '<span class="note-rich-sep"></span>').join('') +
+        '<span class="note-rich-sep"></span>' +
+        noteTableMenuHtml() +
         '</span>' +
         '<span class="note-rich-gap"></span>' +
         '<button class="note-rich-btn note-rich-emoji" onmousedown="event.preventDefault()" ' +
@@ -8878,6 +8922,15 @@ function noteTurndown() {
             return after && after.nodeName === 'BR' ? '\n\n' : '\n';
         }
     });
+    // Tables, as Markdown writes them: a header row, a row saying how each column is
+    // aligned, and the rest. Each cell is its words — Markdown has no more room than
+    // that in a cell — with a | in them escaped, so it cannot split the cell. Built
+    // whole from the table rather than cell by cell: the default made each cell a
+    // block of its own.
+    td.addRule('table', {
+        filter: 'table',
+        replacement: (content, node) => noteTableToMarkdown(node, td)
+    });
     td.addRule('tightListItem', {
         filter: 'li',
         replacement: (content, node) => {
@@ -8933,7 +8986,7 @@ function noteSameHtml(a, b) {
 /**
  * Whether a note would survive a trip through rich text and come back meaning the
  * same thing. Asked of the *rendering*, not the text: `__x__` coming back as `**x**`
- * is the same note; a table coming back as a run of words is not.
+ * is the same note; a checklist coming back as a list of plain items is not.
  */
 function noteRoundTrips(markdown) {
     const text = String(markdown || '');
@@ -8948,7 +9001,7 @@ function noteRichBlocker(custom) {
     if (!noteTurndown()) return 'The rich editor needs a library that did not load';
     if (c.plainText) return 'This note is shown as plain text, not Markdown';
     if (!noteRoundTrips(c.customContent)) {
-        return 'This note has formatting the rich editor cannot keep — a table, raw HTML or a checklist, say';
+        return 'This note has formatting the rich editor cannot keep — raw HTML, a checklist or a comment, say';
     }
     return '';
 }
@@ -9249,7 +9302,7 @@ function noteTransformPlace(panel) {
 }
 
 function noteTransformCloseAll(except) {
-    document.querySelectorAll('.note-rich-tf-panel.open').forEach(p => {
+    document.querySelectorAll('.note-rich-tf-panel.open, .note-table-panel.open').forEach(p => {
         if (!except || !except.contains(p)) p.classList.remove('open');
     });
 }
@@ -9602,10 +9655,10 @@ function noteReplaceAll(el) {
 // Like Edit Content's menu, it stays open while several things are ticked, and closes
 // on a click anywhere else or on Escape — which then goes no further than the menu.
 document.addEventListener('click', (e) => {
-    noteTransformCloseAll(e.target.closest && e.target.closest('.note-rich-tf'));
+    noteTransformCloseAll(e.target.closest && e.target.closest('.note-rich-tf, .note-table-menu'));
 });
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && document.querySelector('.note-rich-tf-panel.open')) {
+    if (e.key === 'Escape' && document.querySelector('.note-rich-tf-panel.open, .note-table-panel.open')) {
         e.stopPropagation();
         noteTransformCloseAll();
     }
@@ -9915,6 +9968,16 @@ function noteRichKeydown(event, surface) {
     // Tab belongs to the note where it means something here: a list item goes in or
     // out a level, code takes two spaces. Anywhere else it still moves the focus on,
     // so the keyboard can always leave the note.
+    if (!event.metaKey && !event.ctrlKey && !event.altKey && (event.key === 'Tab' || event.key === 'Enter')) {
+        const cell = noteRichCell(surface);
+        if (cell) {
+            event.preventDefault();
+            // Tab across, Enter down; a cell holds one line, as Markdown's do.
+            if (event.key === 'Tab') noteTableStep(surface, cell, event.shiftKey ? -1 : 1);
+            else if (!event.shiftKey) noteTableDown(surface, cell);
+            return;
+        }
+    }
     if (event.key === 'Tab' && !event.metaKey && !event.ctrlKey && !event.altKey) {
         const at = noteRichAt(surface);
         if (at && at.closest('pre')) {
@@ -10313,6 +10376,265 @@ function noteRichUnfenceCode(surface, pres) {
     sel.addRange(range);
 }
 
+/**
+ * Tables. Markdown's: a header row and rows of cells holding a line of words each.
+ * The ⊞ Table menu inserts one, and with the caret in one, adds and deletes rows and
+ * columns and aligns a column. All of it is done on the table itself, by hand — the
+ * browser has no commands for tables — and the caret is put in a cell afterwards.
+ */
+const NOTE_TABLE_ACTIONS = [
+    { id: 'rowAbove', label: 'Row above' },
+    { id: 'rowBelow', label: 'Row below' },
+    { id: 'colLeft', label: 'Column left' },
+    { id: 'colRight', label: 'Column right' },
+    null,
+    { id: 'alignLeft', label: 'Align column left' },
+    { id: 'alignCenter', label: 'Align column center' },
+    { id: 'alignRight', label: 'Align column right' },
+    null,
+    { id: 'delRow', label: 'Delete row' },
+    { id: 'delCol', label: 'Delete column' },
+    { id: 'delTable', label: 'Delete table' }
+];
+
+function noteTableMenuHtml() {
+    return '<span class="note-table-menu">' +
+        '<button class="note-rich-btn note-table-btn" onmousedown="event.preventDefault()" ' +
+            'onclick="noteTableToggle(event, this)" title="Table" aria-label="Table">⊞</button>' +
+        // mousedown is swallowed in the menu too, so choosing from it leaves the caret
+        // in the cell it is about.
+        '<div class="editor-tf-panel note-table-panel" onmousedown="event.preventDefault()" ' +
+            'onclick="event.stopPropagation()">' +
+            '<div class="note-table-out">' +
+                '<button class="note-table-item" onclick="noteTableAction(this, \'insert\')">Insert table</button>' +
+            '</div>' +
+            '<div class="note-table-in">' +
+                NOTE_TABLE_ACTIONS.map(a => a
+                    ? '<button class="note-table-item" data-table="' + a.id + '" ' +
+                        'onclick="noteTableAction(this, \'' + a.id + '\')">' + escapeHtml(a.label) + '</button>'
+                    : '<div class="editor-tf-sep"></div>').join('') +
+            '</div>' +
+        '</div>' +
+    '</span>';
+}
+
+/** The cell the caret is in, in this surface, or null. */
+function noteRichCell(surface) {
+    const at = noteRichAt(surface);
+    const cell = at && at.closest('td, th');
+    return cell && surface.contains(cell) ? cell : null;
+}
+
+function noteTableToggle(event, btn) {
+    event.stopPropagation();
+    const menu = btn.parentNode;
+    const panel = menu.querySelector('.note-table-panel');
+    const opening = !panel.classList.contains('open');
+    noteTransformCloseAll();
+    if (opening) {
+        // Insert, outside a table; what can be done to it, inside one.
+        const surface = btn.closest('.note-widget').querySelector('.note-rich');
+        const cell = noteRichCell(surface);
+        menu.querySelector('.note-table-out').hidden = !!cell;
+        menu.querySelector('.note-table-in').hidden = !cell;
+        if (cell) {
+            const header = cell.parentElement.parentElement.nodeName === 'THEAD';
+            menu.querySelector('[data-table="rowAbove"]').disabled = header;
+            menu.querySelector('[data-table="delRow"]').disabled = header;
+        }
+    }
+    panel.classList.toggle('open', opening);
+    if (opening) noteTransformPlace(panel);
+}
+
+function noteTableRow(count, tag) {
+    const tr = document.createElement('tr');
+    for (let i = 0; i < count; i++) {
+        const cell = document.createElement(tag);
+        cell.appendChild(document.createElement('br'));
+        tr.appendChild(cell);
+    }
+    return tr;
+}
+
+/** The caret at the end of a cell's words. */
+function noteTableCaret(cell) {
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(cell);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+function noteTableAction(btn, action) {
+    const widget = btn.closest('.note-widget');
+    const surface = widget.querySelector('.note-rich');
+    noteTransformCloseAll();
+    if (document.activeElement !== surface) surface.focus();
+    if (action === 'insert') {
+        noteTableInsert(surface);
+    } else {
+        const cell = noteRichCell(surface);
+        if (!cell) return;
+        noteTableEdit(surface, cell, action);
+    }
+    noteRichSave(surface);
+    noteRichSyncBar();
+}
+
+/** A 3 × 3 table — a header and two rows — where the caret is, with a paragraph after
+ *  it to go on writing in, and the caret in its first cell. */
+function noteTableInsert(surface) {
+    const table = document.createElement('table');
+    const head = document.createElement('thead');
+    head.appendChild(noteTableRow(3, 'th'));
+    const body = document.createElement('tbody');
+    body.appendChild(noteTableRow(3, 'td'));
+    body.appendChild(noteTableRow(3, 'td'));
+    table.append(head, body);
+    const at = noteRichAt(surface);
+    let block = at;
+    while (block && block.parentElement !== surface) block = block.parentElement;
+    if (block && block !== surface) {
+        const empty = /^(P|DIV)$/.test(block.nodeName) && !(block.textContent || '').replace(/​/g, '').trim() &&
+            !block.querySelector('img');
+        if (empty) block.replaceWith(table);
+        else block.after(table);
+    } else {
+        surface.appendChild(table);
+    }
+    const next = table.nextElementSibling;
+    if (!next || next.nodeName === 'TABLE') {
+        const para = document.createElement('p');
+        para.appendChild(document.createElement('br'));
+        table.after(para);
+    }
+    noteTableCaret(head.querySelector('th'));
+}
+
+function noteTableEdit(surface, cell, action) {
+    const row = cell.parentElement;
+    const table = row.closest('table');
+    const index = cell.cellIndex;
+    const rows = [...table.rows];
+    const width = Math.max(...rows.map(r => r.cells.length));
+    const header = row.parentElement.nodeName === 'THEAD';
+    let body = table.tBodies[0];
+    if (!body) { body = document.createElement('tbody'); table.appendChild(body); }
+    switch (action) {
+        case 'rowAbove': {
+            if (header) return;
+            const tr = noteTableRow(width, 'td');
+            row.before(tr);
+            noteTableCaret(tr.cells[Math.min(index, tr.cells.length - 1)]);
+            return;
+        }
+        case 'rowBelow': {
+            const tr = noteTableRow(width, 'td');
+            if (header) body.prepend(tr); else row.after(tr);
+            noteTableCaret(tr.cells[Math.min(index, tr.cells.length - 1)]);
+            return;
+        }
+        case 'colLeft':
+        case 'colRight': {
+            const at = action === 'colLeft' ? index : index + 1;
+            rows.forEach(r => {
+                const made = document.createElement(r.parentElement.nodeName === 'THEAD' ? 'th' : 'td');
+                made.appendChild(document.createElement('br'));
+                const ref = r.cells[at];
+                if (ref) ref.before(made); else r.appendChild(made);
+            });
+            noteTableCaret(row.cells[at]);
+            return;
+        }
+        case 'alignLeft':
+        case 'alignCenter':
+        case 'alignRight': {
+            const value = action.slice(5).toLowerCase();
+            rows.forEach(r => { if (r.cells[index]) r.cells[index].setAttribute('align', value); });
+            noteTableCaret(cell);
+            return;
+        }
+        case 'delRow': {
+            if (header) return;
+            const next = row.nextElementSibling || row.previousElementSibling ||
+                (table.tHead && table.tHead.rows[0]);
+            row.remove();
+            if (next && next.cells) noteTableCaret(next.cells[Math.min(index, next.cells.length - 1)]);
+            return;
+        }
+        case 'delCol': {
+            if (width <= 1) { noteTableEdit(surface, cell, 'delTable'); return; }
+            rows.forEach(r => { if (r.cells[index]) r.cells[index].remove(); });
+            noteTableCaret(row.cells[Math.min(index, row.cells.length - 1)]);
+            return;
+        }
+        case 'delTable': {
+            const para = document.createElement('p');
+            para.appendChild(document.createElement('br'));
+            table.replaceWith(para);
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.setStart(para, 0);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+        }
+    }
+}
+
+/** Tab to the next cell, Shift+Tab to the one before; Tab in the last makes a row. */
+function noteTableStep(surface, cell, by) {
+    const table = cell.closest('table');
+    const cells = [...table.querySelectorAll('th, td')];
+    const at = cells.indexOf(cell) + by;
+    if (at < 0) return;
+    if (at >= cells.length) {
+        const width = cell.parentElement.cells.length;
+        const tr = noteTableRow(width, 'td');
+        (table.tBodies[0] || table).appendChild(tr);
+        noteTableCaret(tr.cells[0]);
+        noteRichSave(surface);
+        return;
+    }
+    noteTableCaret(cells[at]);
+}
+
+/** Enter: the same column, a row down — a new row, from the last. */
+function noteTableDown(surface, cell) {
+    const row = cell.parentElement;
+    const table = row.closest('table');
+    const rows = [...table.rows];
+    let next = rows[rows.indexOf(row) + 1];
+    if (!next) {
+        next = noteTableRow(row.cells.length, 'td');
+        (table.tBodies[0] || table).appendChild(next);
+        noteRichSave(surface);
+    }
+    noteTableCaret(next.cells[Math.min(cell.cellIndex, next.cells.length - 1)]);
+}
+
+/** A table as Markdown. */
+function noteTableToMarkdown(table, td) {
+    const rows = [...table.rows];
+    if (!rows.length) return '';
+    const width = Math.max(...rows.map(r => r.cells.length));
+    if (!width) return '';
+    const cellText = (cell) => cell
+        ? td.turndown(cell.innerHTML.replace(/​/g, '')).replace(/\s*\n+\s*/g, ' ').replace(/\|/g, '\\|').trim()
+        : '';
+    const line = (r) => '| ' + Array.from({ length: width }, (_, i) => cellText(r.cells[i])).join(' | ') + ' |';
+    const head = rows[0];
+    const align = Array.from({ length: width }, (_, i) => {
+        const cell = head.cells[i];
+        const a = cell && ((cell.getAttribute('align') || cell.style.textAlign || '').toLowerCase());
+        return a === 'center' ? ':---:' : a === 'right' ? '---:' : a === 'left' ? ':---' : '---';
+    });
+    return '\n\n' + [line(head), '| ' + align.join(' | ') + ' |', ...rows.slice(1).map(line)].join('\n') + '\n\n';
+}
+
 /** Inline code has no command of its own: it is wrapped, or unwrapped, by hand. */
 function noteRichToggleCode(surface, at) {
     const sel = window.getSelection();
@@ -10443,6 +10765,12 @@ function noteRichPaste(event, surface) {
         noteRichSave(surface);
         return;
     }
+    if (noteRichCell(surface)) {
+        // A cell holds a line of words, so that is what goes into one.
+        document.execCommand('insertText', false, String(text || '').replace(/\s*\n\s*/g, ' ').trim());
+        noteRichSave(surface);
+        return;
+    }
     if (html) {
         // Markdown links in the copied words become links before the cleaning: left
         // as words, their brackets were escaped and the addresses in them made links
@@ -10500,6 +10828,8 @@ function noteRichSyncBar() {
         link: !!node.closest('a')
     };
     bar.querySelectorAll('[data-fmt]').forEach(b => b.classList.toggle('active', !!on[b.dataset.fmt]));
+    const tableBtn = bar.querySelector('.note-table-btn');
+    if (tableBtn) tableBtn.classList.toggle('active', !!node.closest('table'));
 }
 document.addEventListener('selectionchange', noteRichSyncBar);
 // Enter makes a paragraph, the same thing a blank line makes in Markdown, rather than

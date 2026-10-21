@@ -266,13 +266,14 @@ const blocked = async (markdown) => {
             md: toolCustomizations[i].customContent };
     }, id);
 };
-const table = await blocked('| a | b |\n|---|---|\n| 1 | 2 |\n');
-ok('a note with a table opens as Markdown, even though new notes ask for rich',
-    !table.rich, JSON.stringify(table));
-ok('and says why, in a sentence', /cannot keep/.test(table.why) && /table/.test(table.why), table.why);
-ok('with Rich switched off rather than left to be pressed', table.disabled);
-ok('and not a character of it changed by being opened', table.md === '| a | b |\n|---|---|\n| 1 | 2 |\n',
-    JSON.stringify(table.md));
+// An HTML comment is the plainest case: it would be lost on the way through.
+const comment = await blocked('<!-- note to self -->\n\nText\n');
+ok('a note with something rich text would lose opens as Markdown, even though new notes ask for rich',
+    !comment.rich, JSON.stringify(comment));
+ok('and says why, in a sentence', /cannot keep/.test(comment.why) && /comment/.test(comment.why), comment.why);
+ok('with Rich switched off rather than left to be pressed', comment.disabled);
+ok('and not a character of it changed by being opened', comment.md === '<!-- note to self -->\n\nText\n',
+    JSON.stringify(comment.md));
 const raw = await blocked('Before <span style="color:red">red</span> after\n');
 ok('raw HTML is guarded the same way', !raw.rich && /cannot keep/.test(raw.why), JSON.stringify(raw));
 const tasks = await blocked('- [ ] buy milk\n- [x] done\n');
@@ -287,7 +288,7 @@ ok('nor is a character spelled as an entity — &copy; and © are one note — w
     await page.evaluate(() => noteRoundTrips('&copy; 2026 &amp; &nbsp;x') && !noteRoundTrips('<!-- note to self -->\ntext')));
 ok('the test is what a note means, not how it was spelled: __this__ and **this** are one note',
     await page.evaluate(() => noteRoundTrips('__this__ and * star list') && noteRoundTrips('+ a\n+ b') &&
-        !noteRoundTrips('| a |\n|---|\n| 1 |')));
+        !noteRoundTrips('- [ ] a checklist')));
 ok('a note shown as plain text is not offered rich text at all',
     await page.evaluate(() => /plain text/.test(noteRichBlocker({ plainText: true, customContent: 'x' }))));
 ok('but one whose lines are sorted or changed when shown is: that happens to the showing, not the writing',
@@ -1307,7 +1308,169 @@ ok('↺ puts it back to the default spacing', JSON.stringify(await spacing()) ==
     !('lineHeight' in await page.evaluate((i) => toolCustomizations[i], spaced)), JSON.stringify(await spacing()));
 await page.evaluate(() => document.querySelector('#toolSettingsOverlay .tool-settings-close').click());
 
+// 18. Tables.
+const tbl = await page.evaluate(() => createNoteWithTemplate('blank', {}));
+await page.waitForTimeout(700);
+await front(tbl);
+await page.click(sel(tbl, '.note-rich'));
+await page.keyboard.type('Intro');
+await page.keyboard.press('Enter');
+const tableMenu = async (pick) => {
+    await page.hover(sel(tbl, '.tool-header'));
+    await page.click(sel(tbl, '.note-table-btn'));
+    await page.waitForTimeout(100);
+    if (pick) await page.click(sel(tbl, '.note-table-panel ' + pick));
+    await page.waitForTimeout(150);
+};
+await tableMenu();
+ok('outside a table, the ⊞ menu offers to insert one, and nothing else',
+    await page.evaluate((s) => !document.querySelector(s + ' .note-table-out').hidden &&
+        document.querySelector(s + ' .note-table-in').hidden, sel(tbl, '').trim()));
+await page.click(sel(tbl, '.note-table-panel button:has-text("Insert table")'));
+await page.waitForTimeout(150);
+ok('Insert table puts a header and two rows of three where the caret was, the caret in its first cell',
+    await md(tbl) === 'Intro\n\n|  |  |  |\n| --- | --- | --- |\n|  |  |  |\n|  |  |  |' &&
+    await page.evaluate((s) => !!getSelection().anchorNode && !!(getSelection().anchorNode.nodeType === 1 ? getSelection().anchorNode : getSelection().anchorNode.parentElement).closest(s + ' thead th'),
+        sel(tbl, '').trim()), JSON.stringify(await md(tbl)));
+for (const w of ['Name', 'Role', 'Mail']) { await page.keyboard.type(w); await page.keyboard.press('Tab'); }
+await page.keyboard.type('Ann');
+await page.keyboard.press('Tab');
+await page.keyboard.type('Lead | chief');
+await page.keyboard.press('Tab');
+await page.keyboard.type('`ann@example.org`');
+await page.keyboard.press('Enter');
+await page.keyboard.type('down');
+await page.waitForTimeout(150);
+ok('Tab goes cell to cell, Enter a row down; a | typed in a cell is kept as words, and marks still work',
+    await md(tbl) === 'Intro\n\n| Name | Role | Mail |\n| --- | --- | --- |\n| Ann | Lead \\| chief | `ann@example.org` |\n|  |  | down |',
+    JSON.stringify(await md(tbl)));
+await page.keyboard.press('Tab');
+await page.keyboard.type('new row');
+await page.waitForTimeout(150);
+ok('Tab in the last cell makes a row', /\n\|  \|  \| down \|\n\| new row \|  \|  \|$/.test(await md(tbl)), JSON.stringify(await md(tbl)));
+ok('and the ⊞ button shows the caret is in a table',
+    await page.evaluate((s) => document.querySelector(s).classList.contains('active'), sel(tbl, '.note-table-btn')));
+await page.keyboard.press('Shift+Tab');
+await page.keyboard.press('Shift+Tab');
+await tableMenu('[data-table="alignCenter"]');
+// Two cells back from the first of the last row is the Role column.
+ok('a column can be centred, kept as :---: and shown centred',
+    /\| --- \| :---: \| --- \|/.test(await md(tbl)) &&
+    await page.evaluate((s) => getComputedStyle(document.querySelector(s + ' .note-rich td:nth-child(2)')).textAlign === 'center',
+        sel(tbl, '').trim()),
+    JSON.stringify(await md(tbl)));
+await tableMenu('[data-table="colRight"]');
+ok('a column added to its right', /^\| Name \| Role \|  \| Mail \|$/m.test(await md(tbl)), JSON.stringify(await md(tbl)));
+await tableMenu('[data-table="delCol"]');
+ok('and deleted again', /^\| Name \| Role \| Mail \|$/m.test(await md(tbl)), JSON.stringify(await md(tbl)));
+await tableMenu('[data-table="rowAbove"]');
+ok('a row added above', /\| Ann \| Lead \\\| chief \| `ann@example.org` \|\n\|  \|  \|  \|\n\|  \|  \| down \|/.test(await md(tbl)),
+    JSON.stringify(await md(tbl)));
+await tableMenu('[data-table="delRow"]');
+ok('and that row deleted', /\| Ann \| Lead \\\| chief \| `ann@example.org` \|\n\|  \|  \| down \|/.test(await md(tbl)),
+    JSON.stringify(await md(tbl)));
+await page.click(sel(tbl, '.note-rich th'));
+await tableMenu();
+ok('in a table the menu is about the table — no Insert — and in the header row, Row above and Delete row are not offered, since a Markdown table must have its header',
+    await page.evaluate((s) => document.querySelector(s + ' .note-table-out').hidden &&
+        !document.querySelector(s + ' .note-table-in').hidden &&
+        document.querySelector(s + ' [data-table="rowAbove"]').disabled &&
+        document.querySelector(s + ' [data-table="delRow"]').disabled &&
+        !document.querySelector(s + ' [data-table="rowBelow"]').disabled, sel(tbl, '.note-table-panel')));
+await page.keyboard.press('Escape');
+ok('the note with its table stays in rich text, and would come back the same', await isRich(tbl) &&
+    await page.evaluate((i) => noteRoundTrips(toolCustomizations[i].customContent), tbl));
+await page.click(sel(tbl, '.note-rich td'));
+await page.evaluate((s) => {
+    const surface = document.querySelector(s);
+    const dt = new DataTransfer();
+    dt.setData('text/plain', 'two\nlines');
+    surface.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+}, sel(tbl, '.note-rich'));
+await page.waitForTimeout(150);
+// The saved table would join the lines anyway; it is the cell in front of the writer
+// that must not have a break in it.
+ok('pasting lines into a cell makes them one line — a cell holds no more',
+    /\| Name \| Role \| Mail \|[\s\S]*two lines/.test(await md(tbl)) &&
+    await page.evaluate((s) => [...document.querySelectorAll(s + ' td')].every(td => !td.querySelector('div, p') &&
+        !/\n/.test(td.innerText.trim()) && td.querySelectorAll('br').length <= 1), sel(tbl, '.note-rich')),
+    JSON.stringify(await md(tbl)));
+await page.click(sel(tbl, '.note-rich td'));
+await tableMenu('[data-table="delTable"]');
+ok('Delete table takes it away, leaving somewhere to write', await md(tbl) === 'Intro' &&
+    !(await page.evaluate((s) => !!document.querySelector(s), sel(tbl, '.note-rich table'))), JSON.stringify(await md(tbl)));
+const mdTable = '| Item | Qty | Price |\n|:-----|:---:|------:|\n| Pear | 2 | 1.50 |\n| Fig `x\\|y` | 10 | 0.25 |';
+const tblNote = await page.evaluate((m) => {
+    const id = createNoteWithText(m, 'Table note');
+    toolCustomizations[id].noteEditor = 'rich';
+    noteApplyEditor(id);
+    setToolMode(id, 'edit');
+    return id;
+}, mdTable);
+await page.waitForTimeout(500);
+ok('a note with a table — aligned, with a pipe in code — opens in rich text now, rather than being refused',
+    await isRich(tblNote) && await page.evaluate((s) => document.querySelectorAll(s + ' .note-rich td').length, sel(tblNote, '').trim()) === 6);
+ok('and opening it changes nothing; written back, it is the same table',
+    await md(tblNote) === mdTable &&
+    await page.evaluate(() => noteHtmlToMarkdown(parseMarkdown('| Item | Qty | Price |\n|:-----|:---:|------:|\n| Pear | 2 | 1.50 |')))
+        === '| Item | Qty | Price |\n| :--- | :---: | ---: |\n| Pear | 2 | 1.50 |');
+const pastedTable = await page.evaluate(() => createNoteWithTemplate('blank', {}));
+await page.waitForTimeout(700);
+await page.evaluate((i) => {
+    const surface = document.querySelector('.tool[data-tool="' + i + '"] .note-rich');
+    const dt = new DataTransfer();
+    dt.setData('text/html', '<table style="border:1px solid"><tr><td><b>Name</b></td><td>Score</td></tr>' +
+        '<tr><td>Ann</td><td><p>9</p><p>out of 10</p></td></tr></table>');
+    dt.setData('text/plain', 'Name Score');
+    surface.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+}, pastedTable);
+await page.waitForTimeout(300);
+ok('a table pasted from a page arrives as a table — its first row the header, a cell of two paragraphs one line',
+    await md(pastedTable) === '| **Name** | Score |\n| --- | --- |\n| Ann | 9 out of 10 |', JSON.stringify(await md(pastedTable)));
+
+// 19. A note's emoji, a little larger than its letters — through a font of their own,
+// so the words and the tool's own font are left as they were.
+const emo = await page.evaluate(() => {
+    const id = createNoteWithText('Plan 🍎 here', 'Emoji size');
+    toolCustomizations[id].noteEditor = 'rich';
+    noteApplyEditor(id);
+    setToolMode(id, 'split');
+    return id;
+});
+await page.waitForTimeout(500);
+const glyph = (rootSel, ch) => page.evaluate(([rootSel, ch]) => {
+    const root = document.querySelector(rootSel);
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+        const k = n.data.indexOf(ch);
+        if (k >= 0) { const r = document.createRange(); r.setStart(n, k); r.setEnd(n, k + ch.length); return r.getBoundingClientRect().width; }
+    }
+    return 0;
+}, [rootSel, ch]);
+await page.evaluate(() => {
+    const out = document.createElement('div');
+    out.id = 'emojiOutside';
+    out.className = 'markdown-content';
+    out.style.cssText = 'position:fixed;left:0;top:0;font-size:12px';
+    out.textContent = 'Plan 🍎 here';
+    document.body.appendChild(out);
+});
+const inNote = await glyph(sel(emo, '.authoring-result'), '🍎');
+const inEditor = await glyph(sel(emo, '.note-rich'), '🍎');
+const outside = await glyph('#emojiOutside', '🍎');
+const letterIn = await glyph(sel(emo, '.authoring-result'), 'P');
+const letterOut = await glyph('#emojiOutside', 'P');
+await page.evaluate(() => document.getElementById('emojiOutside').remove());
+ok('a note’s emoji are larger than the same emoji outside a note, shown and being written alike',
+    inNote > outside * 1.15 && Math.abs(inNote - inEditor) < 0.5, JSON.stringify({ inNote, inEditor, outside }));
+ok('while its letters are the size they were', Math.abs(letterIn - letterOut) < 0.5, JSON.stringify({ letterIn, letterOut }));
+await page.evaluate((i) => { toolCustomizations[i].fontFamily = 'Georgia, serif'; applyToolFont(i); }, emo);
+ok('and a font chosen for the tool still is the note’s font, behind the emoji',
+    await page.evaluate((s) => /^"Note Emoji", Georgia/.test(getComputedStyle(document.querySelector(s)).fontFamily),
+        sel(emo, '.authoring-result .markdown-content')),
+    await page.evaluate((s) => getComputedStyle(document.querySelector(s)).fontFamily, sel(emo, '.authoring-result .markdown-content')));
+
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
-console.log('  (all ' + 204 + ' assertions reached)');
+console.log('  (all ' + 224 + ' assertions reached)');
 await page.screenshot({ path: OUT + '/note-editor.png' });
 await browser.close();

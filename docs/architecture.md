@@ -59,6 +59,27 @@ hand (one plain line still uses the command, for undo), for what the selection c
   each, and a list that comes back between the two halves it was taken from joins
   them — so list → code → list is the list it was.
 
+**Tables.** The ⊞ menu inserts a 3 × 3 table — a header row and two — and, with the
+caret in one, adds rows and columns, aligns a column and deletes rows, columns or the
+table, all done on the table by hand since the browser has no commands for them. Tab
+and Shift+Tab go cell to cell (Tab in the last cell makes a row), Enter goes a row
+down. A Markdown cell holds one line of words, so there is no line break in one and a
+paste into one is joined into a line. Saved by a rule of our own, not a second library
+from a CDN: the header row, a row of alignments (`:---:`), the rest, every `|` in a
+cell escaped. The header row cannot be deleted or have a row put above it — a Markdown
+table must have one. A table pasted from a page arrives as one, its first row the
+header. Tables no longer keep a note out of rich text. Column alignment also shows now:
+the board's table rule set `text-align` on every cell, over the `align` that `marked`
+writes.
+
+**Emoji are a little larger than letters** (125%). Emoji are letters as far as CSS
+knows, so they are sized through a font of their own — `Note Emoji`, the system's emoji
+font for emoji code points only, with `size-adjust` — set on the note's text (not its
+bar's icons). The words, the Markdown and the editing are untouched. Behind it the note
+falls back to `--tool-font`, `--board-font` and the board's default stack: a font set on
+the note would otherwise have hidden the one chosen for the tool or the board, so those
+are passed down as variables where they are applied.
+
 **Tab indents.** In a list item Tab and Shift+Tab move the item — or the items selected
 — a level in or out (under the item above; after the item it was under, taking what
 followed it along), by hand with the caret held by node. In code Tab is two spaces.
@@ -76,7 +97,7 @@ cell, which is not shown and not kept: a line begun with a space had the note re
 rich text from then on. Code keeps its spaces. And both renderings are read through
 the browser's parser first, so a character is the same however it was spelled —
 `&copy;` written by hand comes back as ©, which had refused such a note too. What
-still refuses one: a table, raw HTML other than `<u>`, a checklist, an HTML comment
+still refuses one: raw HTML other than `<u>`, a checklist, an HTML comment
 (which would be lost), plain text, or the conversion library not having loaded (it
 comes from a CDN).
 
@@ -95,7 +116,7 @@ editor under them.
 *means*, not how its Markdown was spelled — `__this__` comes back as `**this**` — and
 some Markdown means things rich text cannot hold at all. `noteRoundTrips()` renders the
 note, turns that back into Markdown, renders *that*, and compares the two renderings; a
-note whose renderings differ (a table, raw HTML, a checklist) opens as Markdown with a
+note whose renderings differ (raw HTML, a checklist, a comment) opens as Markdown with a
 line saying why, and Rich is switched off for it. So are notes shown as plain text.
 Being opened never changes a note: only typing in the rich editor saves.
 
