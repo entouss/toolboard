@@ -86,6 +86,16 @@ followed it along), by hand with the caret held by node. In code Tab is two spac
 Anywhere else it still moves the focus on, so the keyboard can always leave the note;
 before, it always did, and an indent could not be made at all.
 
+**Lines in a code block.** Enter in a block makes a `<br>`, not a newline, and the
+block's text alone has none for one — saved, the lines ran together. Every block is
+now written from `noteCodeText()`, its words with each `<br>` a line, by one rule for
+`<pre>` with or without `<code>`, which keeps a block's language (```` ```js ````) and makes
+its fence longer than any backticks inside. Enter on an empty last line leaves the block
+for a paragraph after it, as an empty line leaves a list; Shift+Enter is always a line. And
+↓ on the last line of a code block, or in the last row of a table, that ends the note
+makes a line under it (`noteRichLineBelow()`): there was nowhere below to put the caret
+— a click there landed back in the block. Anywhere else ↓ is the browser's.
+
 **Spacing.** Rendered Markdown set no line height and had the browser's ~1.15 — tighter
 than the 1.5 it was written at. It is 1.55 now, in the rendered note and both editors
 alike, and a tool's **Line Spacing** setting — beside Font Size and Padding — changes

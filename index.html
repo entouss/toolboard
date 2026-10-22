@@ -8885,9 +8885,20 @@ function noteTurndown() {
         filter: ['del', 's', 'strike'],
         replacement: (content) => content.trim() ? '~~' + content + '~~' : ''
     });
-    td.addRule('bareCodeBlock', {
-        filter: (node) => node.nodeName === 'PRE' && !(node.firstChild && node.firstChild.nodeName === 'CODE'),
-        replacement: (content, node) => '\n\n```\n' + node.textContent.replace(/\n$/, '') + '\n```\n\n'
+    // Every code block, with or without the <code> inside, written from its lines as
+    // they show: Enter in the editor makes a <br> in the block, not a newline, and the
+    // block's text alone ran the lines together. A language a block came with (```js)
+    // stays with it, and a fence is made longer than any run of backticks inside.
+    td.addRule('codeBlock', {
+        filter: 'pre',
+        replacement: (content, node) => {
+            const code = node.querySelector(':scope > code');
+            const lang = code && ((code.className || '').match(/language-(\S+)/) || [])[1] || '';
+            const text = noteCodeText(node).replace(/\n$/, '');
+            const longest = Math.max(2, ...(text.match(/`+/g) || []).map(s => s.length));
+            const fence = '`'.repeat(longest + 1);
+            return '\n\n' + fence + lang + '\n' + text + '\n' + fence + '\n\n';
+        }
     });
     // A link inside code — how Slack copies an address it shows as code — is not
     // something Markdown can say: written as it was, the code showed the link's own
@@ -9997,6 +10008,19 @@ function noteRichKeydown(event, surface) {
         if (noteRichBlock(surface)) event.preventDefault();
         return;
     }
+    if (event.key === 'ArrowDown' && !event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey &&
+        noteRichLineBelow(surface)) {
+        event.preventDefault();
+        return;
+    }
+    if (event.key === 'Enter') {
+        const pre = noteRichAt(surface) && noteRichAt(surface).closest('pre');
+        if (pre && surface.contains(pre)) {
+            event.preventDefault();
+            noteRichCodeEnter(surface, pre, event.shiftKey);
+            return;
+        }
+    }
     if (event.key === 'Enter' && !event.shiftKey) {
         // Enter on an empty line in a quote leaves the quote, the way it leaves a list.
         const at = noteRichAt(surface);
@@ -10254,7 +10278,7 @@ function noteRichFenceCode(surface, blocks) {
     let keepsHead = false;
     blocks.forEach((el, i) => {
         if (!isList(el)) {
-            lines.push(...(el.nodeName === 'PRE' ? el.textContent.replace(/\n$/, '') : (el.textContent || '').replace(/​/g, '')).split('\n'));
+            lines.push(...(el.nodeName === 'PRE' ? noteCodeText(el).replace(/\n$/, '') : (el.textContent || '').replace(/​/g, '')).split('\n'));
             gone.push(el);
             return;
         }
@@ -10305,7 +10329,7 @@ function noteRichUnfenceCode(surface, pres) {
         const out = [];
         const stack = [];
         const close = (depth) => { while (stack.length > depth) stack.pop(); };
-        (pre.textContent || '').replace(/\n$/, '').split('\n').forEach(line => {
+        noteCodeText(pre).replace(/\n$/, '').split('\n').forEach(line => {
             const item = line.match(/^(\s*)(?:([-*•])|(\d+)[.)])\s+(.*)$/);
             if (!item) {
                 close(0);
@@ -10633,6 +10657,95 @@ function noteTableToMarkdown(table, td) {
         return a === 'center' ? ':---:' : a === 'right' ? '---:' : a === 'left' ? ':---' : '---';
     });
     return '\n\n' + [line(head), '| ' + align.join(' | ') + ' |', ...rows.slice(1).map(line)].join('\n') + '\n\n';
+}
+
+/**
+ * ↓ on the last line of a code block, or in the last row of a table, that ends the
+ * note: a new line under it to write in. There was nowhere below to put the caret —
+ * a click there landed back in the block — so a note that ended in code could not go
+ * on in anything else. Anywhere else ↓ is the browser's. True when it made the line.
+ */
+function noteRichLineBelow(surface) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount || !sel.isCollapsed) return false;
+    const range = sel.getRangeAt(0);
+    const at = noteRichAt(surface);
+    const last = surface.lastElementChild;
+    if (!at || !last || !last.contains(at) && last !== at) return false;
+    if (last.nodeName === 'PRE') {
+        const r = document.createRange();
+        r.setStart(range.startContainer, range.startOffset);
+        r.setEnd(last, last.childNodes.length);
+        const holder = document.createElement('div');
+        holder.appendChild(r.cloneContents());
+        if (/\n/.test(noteCodeText(holder).replace(/\n$/, ''))) return false;
+    } else if (last.nodeName === 'TABLE') {
+        const row = at.closest('tr');
+        const rows = last.rows;
+        if (!row || row !== rows[rows.length - 1]) return false;
+    } else {
+        return false;
+    }
+    const para = document.createElement('p');
+    para.appendChild(document.createElement('br'));
+    last.after(para);
+    const r = document.createRange();
+    r.setStart(para, 0);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    noteRichMarkBlank(surface);
+    return true;
+}
+
+/**
+ * A code block's text as it shows: its words, with each <br> a line break. The editor
+ * makes a <br> for Enter in a block, and textContent has no newline for one.
+ */
+function noteCodeText(el) {
+    const copy = el.cloneNode(true);
+    copy.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+    return (copy.textContent || '').replace(/​/g, '');
+}
+
+/**
+ * Enter in a code block is a new line in it. On an empty last line it leaves the block
+ * instead — the empty line taken off, a paragraph after — as an empty line leaves a
+ * list or a quote; before, nothing could, short of the button. Shift+Enter is always
+ * a new line.
+ */
+function noteRichCodeEnter(surface, pre, stay) {
+    const sel = window.getSelection();
+    const range = sel.getRangeAt(0);
+    const piece = (from, to) => {
+        const r = document.createRange();
+        if (from) r.setStart(from.node, from.offset); else r.setStart(pre, 0);
+        if (to) r.setEnd(to.node, to.offset); else r.setEnd(pre, pre.childNodes.length);
+        const holder = document.createElement('div');
+        holder.appendChild(r.cloneContents());
+        return noteCodeText(holder);
+    };
+    const caret = { node: range.startContainer, offset: range.startOffset };
+    const before = piece(null, caret);
+    const after = piece(caret, null);
+    if (!stay && range.collapsed && /\n$/.test(before) && !after.replace(/\n$/, '')) {
+        // The empty last line comes off — the browser's <br>s at the end, or a newline —
+        // and writing carries on in a paragraph after the block.
+        const code = pre.querySelector(':scope > code') || pre;
+        const kept = noteCodeText(code).replace(/\n+$/, '');
+        code.textContent = kept;
+        const para = document.createElement('p');
+        para.appendChild(document.createElement('br'));
+        pre.after(para);
+        const r = document.createRange();
+        r.setStart(para, 0);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+    } else {
+        document.execCommand('insertLineBreak');
+    }
+    noteRichSave(surface);
 }
 
 /** Inline code has no command of its own: it is wrapped, or unwrapped, by hand. */

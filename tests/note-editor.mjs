@@ -1257,6 +1257,86 @@ ok('and in plain text it still moves on, so the keyboard can always leave the no
     await page.evaluate((s) => document.activeElement !== document.querySelector(s), sel(plainTab, '.note-rich')) &&
     await md(plainTab) === 'just words');
 
+// New lines in a code block. Enter there makes a <br>, and the block's text alone has
+// no newline for one — the lines ran together on saving.
+const codeLines = await page.evaluate(() => createNoteWithTemplate('blank', {}));
+await page.waitForTimeout(700);
+await front(codeLines);
+await page.click(sel(codeLines, '.note-rich'));
+await page.keyboard.type('line one');
+await page.click(sel(codeLines, '.note-rich-btn[data-fmt="codeblock"]'));
+await page.keyboard.press('ArrowRight');
+await page.keyboard.press('Enter');
+await page.keyboard.type('line two');
+await page.keyboard.press('Shift+Enter');
+await page.keyboard.type('line three');
+await page.waitForTimeout(150);
+ok('Enter and Shift+Enter in a code block are new lines in it, kept as lines',
+    await md(codeLines) === '```\nline one\nline two\nline three\n```', JSON.stringify(await md(codeLines)));
+await page.keyboard.press('Enter');
+await page.keyboard.press('Enter');
+await page.keyboard.type('after the code');
+await page.waitForTimeout(150);
+ok('Enter on an empty last line leaves the block, as it leaves a list — the empty line not kept',
+    await md(codeLines) === '```\nline one\nline two\nline three\n```\n\nafter the code', JSON.stringify(await md(codeLines)));
+await page.click(sel(codeLines, '.note-rich pre'));
+await page.click(sel(codeLines, '.note-rich-btn[data-fmt="codeblock"]'));
+await page.waitForTimeout(150);
+ok('and a block of typed lines taken off is a paragraph to each, not one run-together line',
+    await md(codeLines) === 'line one\n\nline two\n\nline three\n\nafter the code', JSON.stringify(await md(codeLines)));
+ok('a block keeps its language, and a fence is made longer than any backticks inside it',
+    await page.evaluate(() => noteHtmlToMarkdown(parseMarkdown('```js\nconst a = 1;\n```')) === '```js\nconst a = 1;\n```' &&
+        noteHtmlToMarkdown('<pre>has ``` inside</pre>') === '````\nhas ``` inside\n````'));
+
+// ↓ out of a code block or table that ends the note — there was nowhere below it.
+const endsInCode = await page.evaluate(() => {
+    const id = createNoteWithText('Top\n\n```\nfirst\nsecond\n```', 'Ends in code');
+    toolCustomizations[id].noteEditor = 'rich';
+    noteApplyEditor(id);
+    setToolMode(id, 'edit');
+    return id;
+});
+await page.waitForTimeout(500);
+await front(endsInCode);
+await page.hover(sel(endsInCode, '.tool-header'));
+await page.evaluate((s) => {
+    const code = document.querySelector(s + ' pre code') || document.querySelector(s + ' pre');
+    const r = document.createRange();
+    r.setStart(code.firstChild, 2);
+    r.collapse(true);
+    document.querySelector(s).focus();
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+}, sel(endsInCode, '.note-rich'));
+await page.keyboard.press('ArrowDown');
+ok('↓ on a line of a code block with more below it moves within the block, as ever',
+    await page.evaluate((s) => !document.querySelector(s + ' pre + p'), sel(endsInCode, '.note-rich')));
+await page.keyboard.press('ArrowDown');
+await page.keyboard.type('more words');
+await page.waitForTimeout(150);
+ok('↓ on its last line, when the block ends the note, makes a line under it to go on in',
+    await md(endsInCode) === 'Top\n\n```\nfirst\nsecond\n```\n\nmore words', JSON.stringify(await md(endsInCode)));
+const endsInTable = await page.evaluate(() => {
+    const id = createNoteWithText('| a | b |\n| --- | --- |\n| 1 | 2 |\n| 3 | 4 |', 'Ends in table');
+    toolCustomizations[id].noteEditor = 'rich';
+    noteApplyEditor(id);
+    setToolMode(id, 'edit');
+    return id;
+});
+await page.waitForTimeout(500);
+await front(endsInTable);
+await page.hover(sel(endsInTable, '.tool-header'));
+await page.click(sel(endsInTable, '.note-rich tbody tr:first-child td'));
+await page.keyboard.press('ArrowDown');
+ok('↓ in a row with more below it stays in the table',
+    await page.evaluate((s) => !document.querySelector(s + ' table + p'), sel(endsInTable, '.note-rich')));
+await page.click(sel(endsInTable, '.note-rich tbody tr:last-child td'));
+await page.keyboard.press('ArrowDown');
+await page.keyboard.type('below the table');
+await page.waitForTimeout(150);
+ok('and the same from the last row of a table that ends the note',
+    await md(endsInTable) === '| a | b |\n| --- | --- |\n| 1 | 2 |\n| 3 | 4 |\n\nbelow the table', JSON.stringify(await md(endsInTable)));
+
 // 17. Line spacing, in the tool's settings beside font size and padding.
 const spaced = await page.evaluate(() => {
     const id = createNoteWithText('First line\nsecond line\n\n- a\n- b', 'Spacing');
@@ -1471,6 +1551,6 @@ ok('and a font chosen for the tool still is the note’s font, behind the emoji'
     await page.evaluate((s) => getComputedStyle(document.querySelector(s)).fontFamily, sel(emo, '.authoring-result .markdown-content')));
 
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
-console.log('  (all ' + 224 + ' assertions reached)');
+console.log('  (all ' + 232 + ' assertions reached)');
 await page.screenshot({ path: OUT + '/note-editor.png' });
 await browser.close();
