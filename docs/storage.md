@@ -767,6 +767,7 @@ labels.
 
 - `toolboard_pluginUrls` — installed external plugin URLs
 - `toolboard_toolPluginIndex` — tool id → plugin URL, built as plugins load (see [URL Hashes](urls.md))
+- `toolboard_boardManagerView` — `grid` or `list`: whether the Boards popup shows cards or one row a board. Cards when unset or unreadable; the same choice for every board
 
 ## Helpers
 

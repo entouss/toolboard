@@ -631,9 +631,43 @@ header h1 {
 }
 
 .board-manager-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 16px;
     border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
+}
+
+/* Cards or rows: with a lot of boards, a list shows more of them at once. */
+.board-manager-view {
+    display: flex;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.board-manager-view button {
+    background: var(--bg-primary);
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 6px 9px;
+    font-family: inherit;
+}
+
+.board-manager-view button + button { border-left: 1px solid var(--border-color); }
+.board-manager-view button:hover { color: var(--text-primary); }
+.board-manager-view button[aria-pressed="true"] {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+.board-manager-view button:focus-visible {
+    outline: 2px solid var(--accent, #3498db);
+    outline-offset: -2px;
 }
 
 .board-manager-search {
@@ -676,6 +710,8 @@ header h1 {
 .board-card.dragging { opacity: 0.4; }
 .board-card.drop-before { box-shadow: -3px 0 0 #3498db; }
 .board-card.drop-after { box-shadow: 3px 0 0 #3498db; }
+.board-manager-list.as-list .board-card.drop-before { box-shadow: 0 -3px 0 #3498db; }
+.board-manager-list.as-list .board-card.drop-after { box-shadow: 0 3px 0 #3498db; }
 
 .board-card {
     position: relative;
@@ -785,6 +821,81 @@ header h1 {
 
 .board-card-actions button.board-card-settings-btn.active {
     background: #3498db;
+}
+
+/* The list: one board a row — its colour down the side, then its emoji and name. */
+.board-manager-list.as-list {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 10px 16px;
+}
+
+.board-manager-list.as-list .board-card {
+    flex-direction: row;
+    min-height: 30px;
+    border-width: 1px;
+    border-radius: 8px;
+    padding-right: 84px;
+}
+
+.board-manager-list.as-list .board-card-color-strip {
+    width: 5px;
+    height: auto;
+    align-self: stretch;
+}
+
+.board-manager-list.as-list .board-card-emoji {
+    font-size: 1.05rem;
+    margin: 0 8px 0 10px;
+    min-height: 0;
+    width: 22px;
+}
+
+.board-manager-list.as-list .board-card-emoji-placeholder {
+    width: 14px;
+    height: 14px;
+}
+
+.board-manager-list.as-list .board-card-name {
+    padding: 0;
+    text-align: left;
+    font-size: 0.88rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.board-manager-list.as-list .board-card-actions {
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+}
+
+.board-manager-list.as-list .board-card-actions button {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.board-manager-list.as-list .board-card-actions button:hover {
+    background: var(--bg-secondary, var(--bg-primary));
+}
+
+.board-manager-list.as-list .board-card-actions button.board-manager-delete-btn:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.board-manager-list.as-list .board-card-actions button.board-card-settings-btn.active {
+    background: #3498db;
+    color: white;
+}
+
+.board-manager-list.as-list .board-card-rename-wrap {
+    padding: 4px 0;
+}
+
+.board-manager-list.as-list .board-card-rename-wrap input {
+    text-align: left;
 }
 
 /* Current board, pinned above the list */
@@ -3868,6 +3979,10 @@ tr:hover {
             <div id="boardManagerCurrent" class="board-manager-current"></div>
             <div class="board-manager-search-wrap">
                 <input id="boardManagerSearch" class="board-manager-search" type="search" placeholder="Search boards…" autocomplete="off" spellcheck="false">
+                <div class="board-manager-view" role="group" aria-label="Show boards as">
+                    <button type="button" data-view="grid" aria-label="Show boards as cards" title="Cards">&#9638;</button>
+                    <button type="button" data-view="list" aria-label="Show boards as a list" title="List">&#9776;</button>
+                </div>
             </div>
             <div id="boardManagerList" class="board-manager-list"></div>
             <div class="board-manager-footer">
@@ -16052,7 +16167,10 @@ function moveBoardBy(boardId, by) {
 
 function boardDropIndicator(card, e) {
     const box = card.getBoundingClientRect();
-    const after = e.clientX > box.left + box.width / 2;
+    // Cards sit side by side, rows one above another.
+    const after = card.parentNode && card.parentNode.classList.contains('as-list')
+        ? e.clientY > box.top + box.height / 2
+        : e.clientX > box.left + box.width / 2;
     card.classList.toggle('drop-after', after);
     card.classList.toggle('drop-before', !after);
     return after;
@@ -16063,9 +16181,32 @@ function clearBoardDropMarks() {
         .forEach(el => el.classList.remove('drop-before', 'drop-after'));
 }
 
+/**
+ * Cards or a list, for the Boards popup — one choice for every board, kept like the
+ * theme is. Cards unless a list was asked for; and cards when storage cannot be read.
+ */
+const BOARD_VIEW_KEY = 'toolboard_boardManagerView';
+
+function getBoardManagerView() {
+    try { return localStorage.getItem(BOARD_VIEW_KEY) === 'list' ? 'list' : 'grid'; } catch (e) { return 'grid'; }
+}
+
+function setBoardManagerView(view) {
+    try { localStorage.setItem(BOARD_VIEW_KEY, view === 'list' ? 'list' : 'grid'); } catch (e) { /* still shown, just not kept */ }
+    applyBoardManagerView(view === 'list' ? 'list' : 'grid');
+}
+
+function applyBoardManagerView(view) {
+    const list = document.getElementById('boardManagerList');
+    if (list) list.classList.toggle('as-list', view === 'list');
+    document.querySelectorAll('.board-manager-view button').forEach(b =>
+        b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+}
+
 function renderBoardList(filter) {
     const list = document.getElementById('boardManagerList');
     list.innerHTML = '';
+    applyBoardManagerView(getBoardManagerView());
 
     const q = (filter || '').toLowerCase().trim();
     const filtered = q ? boards.filter(b => b.name.toLowerCase().includes(q)) : boards;
@@ -16177,6 +16318,9 @@ function renderBoardList(filter) {
         };
 
         card.onkeydown = (e) => {
+            // Keys typed into the name being edited are the name's: a space there opened
+            // the board, and the rename kept only the first word.
+            if (e.target !== card) return;
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
             // Alt and an arrow walks a board along, without a mouse to drag with.
             if (e.altKey && ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
@@ -16812,6 +16956,10 @@ function setupBoardManager() {
     trigger.onclick = openBoardManager;
     closeBtn.onclick = closeBoardManager;
     newBtn.onclick = createNewBoardInline;
+    overlay.querySelectorAll('.board-manager-view button').forEach(btn => {
+        btn.onclick = () => setBoardManagerView(btn.dataset.view);
+    });
+    applyBoardManagerView(getBoardManagerView());
 
     if (searchInput) {
         searchInput.addEventListener('input', () => renderBoardList(searchInput.value));
