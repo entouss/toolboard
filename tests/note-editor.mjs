@@ -1550,7 +1550,57 @@ ok('and a font chosen for the tool still is the note’s font, behind the emoji'
         sel(emo, '.authoring-result .markdown-content')),
     await page.evaluate((s) => getComputedStyle(document.querySelector(s)).fontFamily, sel(emo, '.authoring-result .markdown-content')));
 
+// 20. A web address written out, typed or pasted, is a link where it is written — the
+//     way the note shows it, and the way Slack makes one. It stayed words in the editor
+//     and became a link only once the note was shown.
+const URL1 = 'https://example.org/a_b/page';
+const typedUrl = await linkCase('see ' + URL1 + ' more');
+ok('a typed address becomes a link at the space after it', typedUrl.href === URL1, JSON.stringify(typedUrl));
+ok('and is saved as the address it is, its _ not escaped', typedUrl.md === 'see ' + URL1 + ' more', JSON.stringify(typedUrl));
+const endUrl = await linkCase('go to https://example.org/x. Then');
+ok('a full stop after it is the sentence’s, not the address’s',
+    endUrl.href === 'https://example.org/x' && endUrl.md === 'go to https://example.org/x. Then', JSON.stringify(endUrl));
+const parenUrl = await linkCase('(https://example.org/p) and');
+ok('and so is a ) it did not open', parenUrl.href === 'https://example.org/p' && parenUrl.md === '(https://example.org/p) and',
+    JSON.stringify(parenUrl));
+const wwwUrl = await linkCase('www.example.org then');
+ok('an address that starts www. is a web one', wwwUrl.href === 'https://www.example.org' &&
+    wwwUrl.md === '[www.example.org](https://www.example.org) then', JSON.stringify(wwwUrl));
+const glued = await linkCase('xhttps://example.org then');
+ok('an address run into a word is not one', !glued.href && /^xhttps/.test(glued.md), JSON.stringify(glued));
+const codeUrl = await linkCase('`https://example.org/c more`');
+ok('in code an address stays literal', !codeUrl.href && codeUrl.md === '`https://example.org/c more`', JSON.stringify(codeUrl));
+const enterId = await page.evaluate(() => createNoteWithTemplate('blank', {}));
+await page.waitForTimeout(700);
+await page.keyboard.type('https://example.org/e');
+await page.keyboard.press('Enter');
+await page.keyboard.type('next');
+await page.waitForTimeout(200);
+ok('Enter after an address makes it a link too, and the next line is not part of it',
+    await md(enterId) === 'https://example.org/e\n\nnext' &&
+    await page.evaluate((s) => [...document.querySelectorAll(s)].map(a => a.textContent).join('|'), sel(enterId, '.note-rich a')) ===
+        'https://example.org/e', JSON.stringify(await md(enterId)));
+const urlPasteId = await page.evaluate(() => createNoteWithTemplate('blank', {}));
+await page.waitForTimeout(700);
+await page.evaluate(([i, t]) => {
+    const surface = document.querySelector('.tool[data-tool="' + i + '"] .note-rich');
+    const dt = new DataTransfer();
+    dt.setData('text/plain', t);
+    surface.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+}, [urlPasteId, URL1]);
+await page.keyboard.type(' after');
+await page.waitForTimeout(200);
+ok('a pasted address arrives as a link, as it shows once the note is shown',
+    await page.evaluate((s) => (document.querySelector(s) || {}).href, sel(urlPasteId, '.note-rich a')) === URL1 &&
+    await md(urlPasteId) === URL1 + ' after', JSON.stringify(await md(urlPasteId)));
+ok('a link inside bold, or run into words, keeps its brackets, so nothing beside it changes what it is',
+    await page.evaluate(() => [
+        '<p><strong><a href="https://example.org">https://example.org</a></strong></p>',
+        '<p>x<a href="https://example.org">https://example.org</a>y</p>',
+        '<p><a href="https://example.org">elsewhere</a></p>'].map(noteHtmlToMarkdown).join('|')) ===
+    '**[https://example.org](https://example.org)**|x[https://example.org](https://example.org)y|[elsewhere](https://example.org)');
+
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
-console.log('  (all ' + 232 + ' assertions reached)');
+console.log('  (all ' + 242 + ' assertions reached)');
 await page.screenshot({ path: OUT + '/note-editor.png' });
 await browser.close();

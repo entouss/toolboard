@@ -8881,6 +8881,14 @@ function noteTurndown() {
         filter: ['u', 'ins'],
         replacement: (content) => content.trim() ? '<u>' + content + '</u>' : ''
     });
+    // A link that says its own address is written as that address, the way it was
+    // typed: Markdown makes it a link again on its own. Written as [address](address)
+    // it was the same link, but the _ in an address was escaped in its words, and a
+    // pasted address was saved as one no longer quite itself.
+    td.addRule('bareLink', {
+        filter: (node) => node.nodeName === 'A' && noteBareLinkOk(node),
+        replacement: (content, node) => node.getAttribute('href')
+    });
     td.addRule('strike', {
         filter: ['del', 's', 'strike'],
         replacement: (content) => content.trim() ? '~~' + content + '~~' : ''
@@ -9791,11 +9799,11 @@ function noteLinkifyHtml(text) {
     while ((m = NOTE_MD_LINK.exec(text))) {
         const url = noteSafeUrl(m[2]);
         if (!url) continue;
-        out += escapeHtml(text.slice(last, m.index)) +
+        out += noteBareLinksHtml(text.slice(last, m.index)) +
             '<a href="' + escapeHtml(url) + '">' + escapeHtml(m[1]) + '</a>';
         last = m.index + m[0].length;
     }
-    return out + escapeHtml(text.slice(last));
+    return out + noteBareLinksHtml(text.slice(last));
 }
 
 function noteHasMdLink(text) {
@@ -9803,6 +9811,87 @@ function noteHasMdLink(text) {
     let m;
     while ((m = NOTE_MD_LINK.exec(text))) if (noteSafeUrl(m[2])) return true;
     return false;
+}
+
+/**
+ * A web address written out on its own — `https://…` or `www.…` — the way Markdown
+ * reads one when it shows a note: a link. In the editor it stayed words, so an
+ * address pasted or typed was a link in the note and not where it was written.
+ * Punctuation after it is the sentence's, not the address's, and so is a `)` it
+ * did not open — the rule Markdown's own uses.
+ */
+const NOTE_BARE_URL = /(^|[\s(\u200B])((?:https?:\/\/|www\.)[^\s<>\u200B]+)/gi;
+
+function noteTrimUrl(text) {
+    let url = String(text || '');
+    for (;;) {
+        const before = url;
+        url = url.replace(/[.,;:!?'"*_~]+$/, '');
+        if (/\)$/.test(url) && (url.match(/\(/g) || []).length < (url.match(/\)/g) || []).length) url = url.slice(0, -1);
+        if (url === before) return url;
+    }
+}
+
+/** The address a bare one links to, or '' when it is not one. */
+function noteBareUrl(text) {
+    if (!/^(https?:\/\/[\w-]|www\.[\w-]+\.)/i.test(text)) return '';
+    return noteSafeUrl(text);
+}
+
+/** Plain text as HTML, with the web addresses in it made links. */
+function noteBareLinksHtml(text) {
+    let out = '';
+    let last = 0;
+    let m;
+    NOTE_BARE_URL.lastIndex = 0;
+    while ((m = NOTE_BARE_URL.exec(text))) {
+        const start = m.index + m[1].length;
+        const words = noteTrimUrl(m[2]);
+        const url = noteBareUrl(words);
+        if (!url) continue;
+        out += escapeHtml(text.slice(last, start)) +
+            '<a href="' + escapeHtml(url) + '">' + escapeHtml(words) + '</a>';
+        last = start + words.length;
+    }
+    return out + escapeHtml(text.slice(last));
+}
+
+function noteHasLink(text) {
+    if (noteHasMdLink(text)) return true;
+    NOTE_BARE_URL.lastIndex = 0;
+    let m;
+    while ((m = NOTE_BARE_URL.exec(text))) if (noteBareUrl(noteTrimUrl(m[2]))) return true;
+    return false;
+}
+
+/**
+ * Whether a link can be written as its bare address and read back the same: it
+ * says its own web address, nothing beside it would run into the address or keep
+ * Markdown from seeing it, and Markdown makes exactly that link of it. Inside other
+ * formatting it keeps its brackets — the marks round it are too near to be sure of.
+ */
+function noteBareLinkOk(a) {
+    const href = a.getAttribute('href') || '';
+    const words = (a.textContent || '').replace(/\u200B/g, '');
+    if (words !== href || !/^https?:\/\/[\w-]/i.test(href) || noteTrimUrl(href) !== href ||
+        /[\s<>\\`\[\]]/.test(href) || a.children.length) return false;
+    if (/^(B|STRONG|I|EM|U|INS|S|DEL|STRIKE|CODE|SPAN|SUB|SUP|MARK|SMALL|FONT|A)$/.test(a.parentNode && a.parentNode.nodeName)) return false;
+    const beside = (way) => {
+        for (let s = a[way]; s; s = s[way]) {
+            if (s.nodeName === 'BR') return '\n';
+            const t = (s.textContent || '').replace(/\u200B/g, '');
+            if (t) return t;
+        }
+        return '';
+    };
+    const before = beside('previousSibling');
+    if (before && !/[\s(]$/.test(before)) return false;
+    if (!/^[.,;:!?)'"]*(\s|$)/.test(beside('nextSibling'))) return false;
+    const t = document.createElement('template');
+    t.innerHTML = parseMarkdown(href);
+    const made = t.content.querySelectorAll('a');
+    return made.length === 1 && made[0].getAttribute('href') === href && made[0].textContent === href &&
+        t.content.textContent.trim() === href;
 }
 
 /**
@@ -9897,7 +9986,7 @@ function noteLinkifyTextIn(el) {
     for (let n = walker.nextNode(); n; n = walker.nextNode()) texts.push(n);
     texts.forEach(n => {
         if (n.parentElement && n.parentElement.closest('a, code, pre')) return;
-        if (!noteHasMdLink(n.data)) return;
+        if (!noteHasLink(n.data)) return;
         const t = document.createElement('template');
         t.innerHTML = noteLinkifyHtml(n.data);
         n.replaceWith(t.content);
@@ -9909,6 +9998,40 @@ function noteLinkifyTextIn(el) {
  * `*word*` makes it bold. Without it, the brackets were kept as words — escaped, so
  * the note showed them — and a mark closed round them afterwards bolded the brackets.
  */
+/**
+ * The space, Enter or Tab after a web address makes it a link, the way Slack does and
+ * the way Markdown shows it. Not in code, not in a link already, not inside a
+ * backtick that has not closed, and not where `[words](` is being written.
+ */
+function noteRichAutoLink(surface) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if (node.nodeType !== 3 || !surface.contains(node)) return;
+    if (node.parentElement && node.parentElement.closest('a, code, pre')) return;
+    const block = noteRichBlockOf(surface, node);
+    const before = noteRichTextBefore(block, range);
+    const found = before.match(/(^|[\s(\u200B])((?:https?:\/\/|www\.)[^\s<>\u200B]+)$/i);
+    if (!found) return;
+    const lead = before.slice(0, before.length - found[2].length);
+    if (/\]\($/.test(lead) || (lead.match(/`/g) || []).length % 2) return;
+    const words = noteTrimUrl(found[2]);
+    const url = noteBareUrl(words);
+    if (!url) return;
+    const start = noteRichPointAt(block, lead.length);
+    if (!start || (start.node.parentElement && start.node.parentElement.closest('a, code, pre'))) return;
+    const whole = document.createRange();
+    whole.setStart(start.node, start.offset);
+    whole.setEnd(range.startContainer, range.startOffset);
+    sel.removeAllRanges();
+    sel.addRange(whole);
+    const tail = found[2].slice(words.length);
+    // The zero-width space after it is where typing carries on, outside the link.
+    document.execCommand('insertHTML', false, '<a href="' + escapeHtml(url) + '">' + escapeHtml(words) + '</a>' +
+        (tail ? escapeHtml(tail) : '\u200B'));
+}
+
 function noteRichLinkMark(surface) {
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount || !sel.isCollapsed) return;
@@ -9976,6 +10099,10 @@ function noteRichBlock(surface) {
  *  Shift and Option change the character. */
 function noteRichKeydown(event, surface) {
     if (noteFindShortcut(event, surface)) return;
+    if (!event.metaKey && !event.ctrlKey && !event.altKey && !event.isComposing &&
+        (event.key === ' ' || event.key === 'Enter' || event.key === 'Tab')) {
+        noteRichAutoLink(surface);
+    }
     // Tab belongs to the note where it means something here: a list item goes in or
     // out a level, code takes two spaces. Anywhere else it still moves the focus on,
     // so the keyboard can always leave the note.
@@ -10902,9 +11029,9 @@ function noteRichPaste(event, surface) {
     } else if (NOTE_BULLET_LINE.test(text)) {
         // Lines that start with a bullet arrive as a list — what typing one makes.
         document.execCommand('insertHTML', false, notePlainLinesHtml(text));
-    } else if (noteHasMdLink(text)) {
-        // Markdown links in plain text arrive as links; the rest as it was. A line at a
-        // time, so the lines stay lines.
+    } else if (noteHasLink(text)) {
+        // Markdown links and web addresses in plain text arrive as links; the rest as
+        // it was. A line at a time, so the lines stay lines.
         text.replace(/\r\n?/g, '\n').split('\n').forEach((line, i) => {
             if (i) document.execCommand('insertParagraph');
             if (line) document.execCommand('insertHTML', false, noteLinkifyHtml(line));

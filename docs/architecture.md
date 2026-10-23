@@ -146,6 +146,17 @@ typed beside formatting is written as a non-breaking one (turned back into a spa
 save), and the list command puts the list *inside* the paragraph the caret was in
 (`noteRichUnnest()` lifts it back out after every change, keeping the caret by node).
 
+**A web address written out — `https://…` or `www.…` — becomes a link in rich text**
+when the space, Enter or Tab after it is typed (`noteRichAutoLink()`), and when it is
+pasted as plain text; `marked` already made it one when the note was shown, so before
+this it was a link in the note and words where it was written. Punctuation after it,
+and a `)` it did not open, are the sentence's (`noteTrimUrl()`, Markdown's own rule).
+It needs a space or `(` before it, and code, an existing link, an unclosed backtick or
+a `[words](` being written leave it alone. A link that says its own web address is
+saved as the bare address (the `bareLink` Turndown rule) — not `[address](address)`,
+which escaped the `_` in it — but only where `noteBareLinkOk()` finds nothing beside it
+or round it that would change how Markdown reads it; otherwise it keeps its brackets.
+
 **Markdown's own link, `[text](address)`, becomes a link in rich text** — when its
 `)` is typed, the way the closing `*` makes bold; when a `*`, `_` or `~` closes round
 words that hold one; and when text that holds one is pasted — plain, or HTML from a
