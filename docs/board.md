@@ -23,6 +23,12 @@
 `grid` and `pageGuide` are the placement guides — see [Storage](storage.md). A board
 exported before they existed simply arrives without them, and reads as both off.
 
+A board kept in a workshop also carries `"workshop": ["Home", "Garage"]` — the
+workshops it is in, by name from the top. Ids would mean nothing in another browser;
+names are what a person filed it under. An import puts the board back in a workshop
+of that path, reusing one already there with that name and making the rest. A board
+without the field — every export from before workshops — lands at the top.
+
 ## Board Template Plugins
 
 A board template is a plugin that registers a ready-made workspace. Users install it

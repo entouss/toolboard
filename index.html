@@ -784,6 +784,40 @@ header h1 {
     font-weight: 700;
 }
 
+/* A workshop's or a found board's second line: what it holds, or where it is. */
+.board-card-path {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin: -8px 0 0;
+    padding: 0 10px 10px;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workshop-card .board-card-color-strip {
+    background: repeating-linear-gradient(90deg, var(--text-muted) 0 6px, transparent 6px 10px);
+    opacity: 0.6;
+}
+
+.board-manager-list.as-list .workshop-card .board-card-color-strip {
+    background: repeating-linear-gradient(180deg, var(--text-muted) 0 6px, transparent 6px 10px);
+}
+
+.board-manager-move-row select {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
 .board-card-actions {
     position: absolute;
     top: 10px;
@@ -835,7 +869,14 @@ header h1 {
     min-height: 30px;
     border-width: 1px;
     border-radius: 8px;
-    padding-right: 84px;
+    padding-right: 112px;
+}
+
+.board-manager-list.as-list .board-card-path {
+    margin: 0;
+    padding: 0 0 0 10px;
+    max-width: 45%;
+    flex-shrink: 0;
 }
 
 .board-manager-list.as-list .board-card-color-strip {
@@ -1128,11 +1169,72 @@ header h1 {
 .board-manager-confirm-cancel:hover {
     background: var(--border-color);
 }
+.board-manager-confirm-row.board-manager-move-row {
+    background: rgba(52, 152, 219, 0.08);
+    border-color: #3498db;
+}
+.board-manager-confirm-row span.board-manager-move-label { flex: 0 1 auto; }
+.board-manager-confirm-move {
+    background: #2878c8;
+    color: white;
+}
+.board-manager-confirm-move:hover {
+    background: #1f5f9e;
+}
 
 .board-manager-footer {
+    display: flex;
+    gap: 8px;
     padding: 12px 20px;
     border-top: 1px solid var(--border-color);
     flex-shrink: 0;
+}
+
+/* Where in the workshops the list is: each step back up is a button, and a place to
+   drop a board to move it there. */
+.board-manager-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 12px 0;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.board-manager-path:empty { display: none; }
+
+.board-manager-crumb {
+    background: none;
+    border: none;
+    color: var(--link-color, #1f6fb2);
+    cursor: pointer;
+    font: inherit;
+    padding: 3px 6px;
+    border-radius: 6px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.board-manager-crumb:hover { background: var(--bg-tertiary); }
+.board-manager-crumb[aria-current="page"] {
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: default;
+}
+.board-manager-crumb:focus-visible {
+    outline: 2px solid var(--accent, #3498db);
+    outline-offset: -2px;
+}
+.board-manager-path-sep { color: var(--text-muted); }
+
+.board-manager-crumb.drop-into,
+.board-card.drop-into {
+    outline: 2px dashed #3498db;
+    outline-offset: -2px;
+    background: rgba(52, 152, 219, 0.14);
 }
 
 .board-manager-new-btn {
@@ -3984,9 +4086,11 @@ tr:hover {
                     <button type="button" data-view="list" aria-label="Show boards as a list" title="List">&#9776;</button>
                 </div>
             </div>
+            <nav id="boardManagerPath" class="board-manager-path" aria-label="Workshop"></nav>
             <div id="boardManagerList" class="board-manager-list"></div>
             <div class="board-manager-footer">
                 <button id="boardManagerNewBtn" class="board-manager-new-btn">+ New Board</button>
+                <button id="boardManagerNewWorkshopBtn" class="board-manager-new-btn">+ New Workshop</button>
             </div>
         </div>
     </div>
@@ -5190,6 +5294,188 @@ function setCurrentBoardId(boardId) {
 let boards = loadBoards();
 let currentBoardId = getCurrentBoardId();
 
+/**
+ * Workshops: where boards are kept, the way folders keep files. A workshop holds
+ * boards and other workshops, and nothing of its own — it is not a board, so it has
+ * no tools, no settings and nothing to lose when it goes. They are kept apart from
+ * the boards (`toolboard_workshops`, `[{ id, name, parentId }]`), and a board says
+ * which one it is in with `workshopId`; a board without one is at the top, which is
+ * every board there was before workshops. Shown by name, so their order is the
+ * alphabet's; boards keep the order they were put in.
+ */
+const WORKSHOPS_KEY = 'toolboard_workshops';
+
+function loadWorkshops() {
+    try {
+        const list = JSON.parse(localStorage.getItem(WORKSHOPS_KEY) || '[]');
+        return Array.isArray(list)
+            ? list.filter(w => w && typeof w.id === 'string' && w.id && typeof w.name === 'string')
+                .map(w => ({ id: w.id, name: w.name, parentId: typeof w.parentId === 'string' ? w.parentId : null }))
+            : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveWorkshops() {
+    localStorage.setItem(WORKSHOPS_KEY, JSON.stringify(workshops));
+    if (typeof updateStorageIndicator === 'function') updateStorageIndicator();
+}
+
+let workshops = loadWorkshops();
+
+/**
+ * What another copy of the page, an old export or a half-finished edit can leave
+ * behind, put right: a second workshop with the same id, a parent that is gone, a
+ * workshop inside itself, a board in a workshop that is gone. Each goes to the top
+ * rather than away — nothing is lost, only unfiled. Written back only when it changed.
+ */
+function tidyWorkshops() {
+    let changed = false;
+    const seen = new Set();
+    workshops = workshops.filter(w => {
+        if (seen.has(w.id)) { changed = true; return false; }
+        seen.add(w.id);
+        return true;
+    });
+    workshops.forEach(w => {
+        if (w.parentId && !seen.has(w.parentId)) { w.parentId = null; changed = true; }
+    });
+    workshops.forEach(w => {
+        const visited = new Set([w.id]);
+        for (let up = getWorkshop(w.parentId); up; up = getWorkshop(up.parentId)) {
+            if (visited.has(up.id)) { w.parentId = null; changed = true; break; }
+            visited.add(up.id);
+        }
+    });
+    let boardsChanged = false;
+    boards.forEach(b => {
+        if ('workshopId' in b && !(b.workshopId && seen.has(b.workshopId))) { delete b.workshopId; boardsChanged = true; }
+    });
+    if (changed) localStorage.setItem(WORKSHOPS_KEY, JSON.stringify(workshops));
+    if (boardsChanged) localStorage.setItem('financeBoards', JSON.stringify(boards));
+    return changed || boardsChanged;
+}
+tidyWorkshops();
+
+function getWorkshop(id) {
+    return id ? workshops.find(w => w.id === id) || null : null;
+}
+
+function byWorkshopName(a, b) {
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+}
+
+/** The workshops directly inside one (or at the top, for null), by name. */
+function workshopsIn(parentId) {
+    return workshops.filter(w => (w.parentId || null) === (parentId || null)).sort(byWorkshopName);
+}
+
+/** The boards directly inside one (or at the top), in their order. */
+function boardsIn(workshopId) {
+    return boards.filter(b => (b.workshopId || null) === (workshopId || null));
+}
+
+/** The workshops from the top down to this one, this one last. */
+function workshopPath(id) {
+    const path = [];
+    for (let w = getWorkshop(id); w && path.length <= workshops.length; w = getWorkshop(w.parentId)) path.unshift(w);
+    return path;
+}
+
+function workshopPathText(id) {
+    return workshopPath(id).map(w => w.name).join(' \u203A ');
+}
+
+/** Whether `id` is `ancestorId` or somewhere inside it. */
+function isWithinWorkshop(id, ancestorId) {
+    return !!ancestorId && workshopPath(id).some(w => w.id === ancestorId);
+}
+
+function newWorkshopId() {
+    return 'workshop-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+}
+
+function createWorkshop(name, parentId) {
+    const clean = String(name || '').trim();
+    if (!clean) return null;
+    const w = { id: newWorkshopId(), name: clean, parentId: getWorkshop(parentId) ? parentId : null };
+    workshops.push(w);
+    saveWorkshops();
+    return w.id;
+}
+
+function renameWorkshop(id, name) {
+    const clean = String(name || '').trim();
+    const w = getWorkshop(id);
+    if (!w || !clean || w.name === clean) return false;
+    w.name = clean;
+    saveWorkshops();
+    return true;
+}
+
+/** A workshop goes; what was in it goes up a level, into the one it was in. */
+function deleteWorkshop(id) {
+    const w = getWorkshop(id);
+    if (!w) return false;
+    const up = w.parentId || null;
+    workshops.forEach(x => { if (x.parentId === id) x.parentId = up; });
+    let moved = false;
+    boards.forEach(b => {
+        if (b.workshopId === id) {
+            if (up) b.workshopId = up; else delete b.workshopId;
+            moved = true;
+        }
+    });
+    workshops = workshops.filter(x => x.id !== id);
+    saveWorkshops();
+    if (moved) saveBoards(boards);
+    return true;
+}
+
+function moveBoardToWorkshop(boardId, workshopId) {
+    const board = boards.find(b => b.id === boardId);
+    const to = getWorkshop(workshopId) ? workshopId : null;
+    if (!board || (board.workshopId || null) === to) return false;
+    if (to) board.workshopId = to; else delete board.workshopId;
+    // In after what is there already, as a file dropped into a folder is.
+    boards.push(boards.splice(boards.indexOf(board), 1)[0]);
+    saveBoards(boards);
+    return true;
+}
+
+/** Into another workshop, or to the top — never into itself or anything inside it. */
+function moveWorkshopTo(id, parentId) {
+    const w = getWorkshop(id);
+    const to = getWorkshop(parentId) ? parentId : null;
+    if (!w || (w.parentId || null) === to || isWithinWorkshop(to, id)) return false;
+    w.parentId = to;
+    saveWorkshops();
+    return true;
+}
+
+/** A workshop by its path of names, made where it is not there yet — for an import. */
+function ensureWorkshopPath(names) {
+    let parent = null;
+    (Array.isArray(names) ? names : []).forEach(raw => {
+        const name = typeof raw === 'string' ? raw.trim() : '';
+        if (!name) return;
+        const there = workshopsIn(parent).find(w => w.name === name);
+        parent = there ? there.id : createWorkshop(name, parent);
+    });
+    return parent;
+}
+
+/** "3 boards · 1 workshop", for what a workshop holds directly. */
+function workshopCountText(id) {
+    const nb = boardsIn(id).length;
+    const nw = workshopsIn(id).length;
+    const parts = [];
+    if (nb || !nw) parts.push(nb + (nb === 1 ? ' board' : ' boards'));
+    if (nw) parts.push(nw + (nw === 1 ? ' workshop' : ' workshops'));
+    return parts.join(' \u00B7 ');
+}
+
 // Migrate old data to new board-specific format (one-time migration)
 function migrateOldData() {
     // Check if migration already done
@@ -5907,7 +6193,9 @@ function parseStorageKey(key) {
         'financeCurrentBoard': { desc: 'Active board ID' },
         'financeMigrationDone': { desc: 'Migration flag' },
         'toolboard_pluginUrls': { desc: 'Plugin URLs' },
-        'toolboard_darkMode': { desc: 'Dark mode preference' }
+        'toolboard_darkMode': { desc: 'Dark mode preference' },
+        'toolboard_workshops': { desc: 'Workshops boards are kept in' },
+        'toolboard_boardManagerView': { desc: 'Boards shown as cards or a list' }
     };
     if (globalKeys[key]) return globalKeys[key];
 
@@ -8171,6 +8459,8 @@ function renderBoardSettingsDrawer(boardId) {
             '<button class="bs-mini bs-favicon-pick" title="Pick from Emoji Tool">🎭</button>' +
             '<button class="bs-mini bs-favicon-reset" title="Reset">↺</button>' +
         '</div>' +
+        '<label>Workshop</label>' +
+        '<select class="bs-workshop" aria-label="Workshop this board is in"></select>' +
         '<label>Order</label>' +
         '<div class="bs-row">' +
             '<button class="bs-mini bs-move-up" title="Move this board earlier">↑ Earlier</button>' +
@@ -8239,13 +8529,36 @@ function renderBoardSettingsDrawer(boardId) {
         updateBoardSetting(boardId, { color: color });
     });
 
-    // Order — the same move the drag does, for a finger rather than a mouse.
-    const at = boards.findIndex(b => b.id === boardId);
-    drawer.querySelector('.bs-order-at').textContent = (at + 1) + ' of ' + boards.length;
+    // Workshop — where it is kept.
+    const shopSelect = drawer.querySelector('.bs-workshop');
+    const thisBoard = boards.find(b => b.id === boardId);
+    [{ id: '', text: 'All boards (top level)' }].concat(workshops
+        .map(w => ({ id: w.id, text: workshopPathText(w.id) }))
+        .sort((a, b) => a.text.localeCompare(b.text, undefined, { numeric: true, sensitivity: 'base' })))
+        .forEach(place => {
+            const opt = document.createElement('option');
+            opt.value = place.id;
+            opt.textContent = place.text;
+            if ((place.id || null) === ((thisBoard && thisBoard.workshopId) || null)) opt.selected = true;
+            shopSelect.appendChild(opt);
+        });
+    shopSelect.addEventListener('change', () => {
+        if (!moveBoardToWorkshop(boardId, shopSelect.value || null)) return;
+        renderBoardList(document.getElementById('boardManagerSearch').value);
+        renderCurrentBoardRow();
+        updateBoardSelectorLabel();
+        renderBoardSettingsDrawer(boardId);
+    });
+
+    // Order — the same move the drag does, for a finger rather than a mouse. Among
+    // the boards in the same workshop, since those are the ones it is shown beside.
+    const siblings = boardsIn(thisBoard && thisBoard.workshopId);
+    const at = siblings.findIndex(b => b.id === boardId);
+    drawer.querySelector('.bs-order-at').textContent = (at + 1) + ' of ' + siblings.length;
     const upBtn = drawer.querySelector('.bs-move-up');
     const downBtn = drawer.querySelector('.bs-move-down');
     upBtn.disabled = at <= 0;
-    downBtn.disabled = at === boards.length - 1;
+    downBtn.disabled = at === siblings.length - 1;
     const moveAndRedraw = (by) => {
         if (!moveBoardBy(boardId, by)) return;
         renderBoardList(document.getElementById('boardManagerSearch').value);
@@ -14427,6 +14740,9 @@ function exportBoards() {
             toolboardSettings: JSON.parse(localStorage.getItem(`finance_${boardId}_toolboardSettings`) || 'null'),
             linkedSources: JSON.parse(localStorage.getItem(`finance_${boardId}_linkedSources`) || '[]')
         };
+        // The workshop it was in, by name from the top: ids mean nothing in another browser.
+        const path = workshopPath(board.workshopId).map(w => w.name);
+        if (path.length) boardData.workshop = path;
 
         exportData.boards.push(boardData);
     });
@@ -15031,11 +15347,11 @@ function importBoards(data) {
             boardId = 'board-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
         }
 
-        // Add board to list
-        boards.push({
-            id: boardId,
-            name: boardData.name || 'Imported Board'
-        });
+        // Add board to list, in the workshop it came from — made here if there is none.
+        const entry = { id: boardId, name: boardData.name || 'Imported Board' };
+        const workshopId = ensureWorkshopPath(boardData.workshop);
+        if (workshopId) entry.workshopId = workshopId;
+        boards.push(entry);
 
         // Save board-specific data
         if (boardData.variables) {
@@ -16074,6 +16390,8 @@ function updateBoardSelectorLabel() {
     const board = boards.find(b => b.id === currentBoardId);
     const favicon = getBoardFavicon(currentBoardId);
     trigger.textContent = (favicon ? favicon + ' ' : '') + (board ? board.name : 'Board');
+    const where = board && board.workshopId ? workshopPathText(board.workshopId) : '';
+    trigger.title = where ? where + ' \u203A ' + board.name : '';
 }
 
 function populateBoardSelector() {
@@ -16089,6 +16407,8 @@ function openBoardManager() {
     const search = document.getElementById('boardManagerSearch');
     if (search) search.value = '';
     closeBoardSettingsDrawer();
+    const current = boards.find(b => b.id === currentBoardId);
+    boardManagerAt = current && getWorkshop(current.workshopId) ? current.workshopId : null;
     renderCurrentBoardRow();
     renderBoardList();
     overlay.classList.add('open');
@@ -16122,7 +16442,9 @@ function renderCurrentBoardRow() {
 
     const hint = document.createElement('span');
     hint.className = 'board-manager-current-hint';
-    hint.textContent = 'current board';
+    const current = boards.find(b => b.id === currentBoardId);
+    const where = current && current.workshopId ? workshopPathText(current.workshopId) : '';
+    hint.textContent = 'current board' + (where ? ' \u00B7 in ' + where : '');
 
     const gear = document.createElement('button');
     gear.className = 'board-card-settings-btn' + (boardSettingsOpenFor === currentBoardId ? ' active' : '');
@@ -16158,7 +16480,10 @@ function moveBoardTo(boardId, targetIndex) {
 function moveBoardBy(boardId, by) {
     const from = boards.findIndex(b => b.id === boardId);
     if (from === -1) return false;
-    const to = from + by;
+    // Along the boards beside it — the ones in its workshop — not past them.
+    const here = boards[from].workshopId || null;
+    let to = from;
+    do { to += by; } while (to >= 0 && to < boards.length && (boards[to].workshopId || null) !== here);
     if (to < 0 || to >= boards.length) return false;
     boards.splice(to, 0, boards.splice(from, 1)[0]);
     saveBoards(boards);
@@ -16203,21 +16528,182 @@ function applyBoardManagerView(view) {
         b.setAttribute('aria-pressed', String(b.dataset.view === view)));
 }
 
+// The workshop the Boards popup is showing; null for the top.
+let boardManagerAt = null;
+
+function openWorkshopInManager(id) {
+    boardManagerAt = getWorkshop(id) ? id : null;
+    const search = document.getElementById('boardManagerSearch');
+    if (search) search.value = '';
+    renderBoardList('');
+}
+
+/** One step up, to the workshop this one is in. Returns false at the top. */
+function workshopUpInManager() {
+    const here = getWorkshop(boardManagerAt);
+    if (!here) return false;
+    const was = here.id;
+    openWorkshopInManager(here.parentId);
+    const card = document.querySelector(`.workshop-card[data-workshop-id="${CSS.escape(was)}"]`);
+    if (card) card.focus();
+    return true;
+}
+
+// Dropped on a workshop — its card or its step in the path — a board or a workshop
+// being dragged goes in. Shared by both, so the two kinds of target cannot disagree.
+let workshopDragId = null;
+
+function workshopDropTarget(el, workshopId) {
+    el.ondragover = (e) => {
+        if (!boardDragId && !workshopDragId) return;
+        if (workshopDragId && (workshopDragId === workshopId || isWithinWorkshop(workshopId, workshopDragId))) return;
+        e.preventDefault();
+        el.classList.add('drop-into');
+    };
+    el.ondragleave = () => el.classList.remove('drop-into');
+    el.ondrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.remove('drop-into');
+        const board = boardDragId, shop = workshopDragId;
+        boardDragId = null;
+        workshopDragId = null;
+        const moved = board ? moveBoardToWorkshop(board, workshopId) : shop ? moveWorkshopTo(shop, workshopId) : false;
+        if (moved) {
+            renderBoardList(document.getElementById('boardManagerSearch').value);
+            renderCurrentBoardRow();
+        }
+    };
+}
+
+function renderBoardManagerPath(searching) {
+    const nav = document.getElementById('boardManagerPath');
+    if (!nav) return;
+    nav.innerHTML = '';
+    // With no workshops at all there is nowhere to be, so nothing to show.
+    if (!workshops.length) return;
+    const steps = [{ id: null, name: 'All boards' }].concat(workshopPath(boardManagerAt));
+    if (searching) {
+        const label = document.createElement('span');
+        label.className = 'board-manager-path-sep';
+        label.textContent = 'Searching every workshop';
+        nav.appendChild(label);
+        return;
+    }
+    steps.forEach((step, i) => {
+        if (i) {
+            const sep = document.createElement('span');
+            sep.className = 'board-manager-path-sep';
+            sep.textContent = '\u203A';
+            sep.setAttribute('aria-hidden', 'true');
+            nav.appendChild(sep);
+        }
+        const crumb = document.createElement('button');
+        crumb.type = 'button';
+        crumb.className = 'board-manager-crumb';
+        crumb.dataset.workshopId = step.id || '';
+        crumb.textContent = step.name;
+        crumb.title = step.name;
+        if (i === steps.length - 1) crumb.setAttribute('aria-current', 'page');
+        else crumb.onclick = () => openWorkshopInManager(step.id);
+        workshopDropTarget(crumb, step.id);
+        nav.appendChild(crumb);
+    });
+}
+
+function makeWorkshopCard(w, searching) {
+    const card = document.createElement('div');
+    card.className = 'board-card workshop-card';
+    card.dataset.workshopId = w.id;
+    card.setAttribute('tabindex', '0');
+    card.title = 'Open \u2014 drop a board here to move it in';
+
+    const strip = document.createElement('div');
+    strip.className = 'board-card-color-strip';
+    const emojiEl = document.createElement('div');
+    emojiEl.className = 'board-card-emoji';
+    emojiEl.textContent = '\u{1F6E0}\uFE0F';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'board-card-name';
+    nameEl.textContent = w.name;
+    nameEl.title = w.name;
+    const meta = document.createElement('div');
+    meta.className = 'board-card-path';
+    meta.textContent = searching && w.parentId ? 'in ' + workshopPathText(w.parentId) : workshopCountText(w.id);
+
+    const actions = document.createElement('div');
+    actions.className = 'board-card-actions';
+    const button = (title, text, onclick, cls) => {
+        const b = document.createElement('button');
+        b.title = title;
+        b.setAttribute('aria-label', title);
+        b.textContent = text;
+        if (cls) b.className = cls;
+        b.onclick = (e) => { e.stopPropagation(); onclick(); };
+        actions.appendChild(b);
+        return b;
+    };
+    button('Rename', '\u270E', () => startInlineRename(card, w, (name) => renameWorkshop(w.id, name)));
+    button('Move to\u2026', '\u21E2', () => showMoveToPicker(card, 'workshop', w));
+    button('Delete', '\u00D7', () => showWorkshopDeleteConfirmation(card, w), 'board-manager-delete-btn');
+
+    card.appendChild(strip);
+    card.appendChild(emojiEl);
+    card.appendChild(nameEl);
+    card.appendChild(meta);
+    card.appendChild(actions);
+
+    card.onclick = () => {
+        openWorkshopInManager(w.id);
+        // Into what is there; an empty one has nothing, so the search, where
+        // Backspace still goes back up.
+        const first = document.querySelector('#boardManagerList .board-card') || document.getElementById('boardManagerSearch');
+        if (first) first.focus();
+    };
+    card.onkeydown = (e) => {
+        if (e.target !== card) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    };
+    card.draggable = true;
+    card.ondragstart = (e) => {
+        workshopDragId = w.id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', w.id);
+        card.classList.add('dragging');
+    };
+    card.ondragend = () => {
+        workshopDragId = null;
+        card.classList.remove('dragging');
+        document.querySelectorAll('.drop-into').forEach(el => el.classList.remove('drop-into'));
+    };
+    workshopDropTarget(card, w.id);
+    nameEl.ondblclick = (e) => { e.stopPropagation(); startInlineRename(card, w, (name) => renameWorkshop(w.id, name)); };
+    return card;
+}
+
 function renderBoardList(filter) {
     const list = document.getElementById('boardManagerList');
     list.innerHTML = '';
     applyBoardManagerView(getBoardManagerView());
+    if (!getWorkshop(boardManagerAt)) boardManagerAt = null;
 
     const q = (filter || '').toLowerCase().trim();
-    const filtered = q ? boards.filter(b => b.name.toLowerCase().includes(q)) : boards;
+    renderBoardManagerPath(!!q);
+    // Searching looks in every workshop, and says where each one found is; otherwise
+    // the list is what is in the workshop being shown, workshops first.
+    const shops = q ? workshops.filter(w => w.name.toLowerCase().includes(q)).sort(byWorkshopName) : workshopsIn(boardManagerAt);
+    const filtered = q ? boards.filter(b => b.name.toLowerCase().includes(q)) : boardsIn(boardManagerAt);
 
-    if (filtered.length === 0) {
+    if (filtered.length === 0 && shops.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'board-manager-empty';
-        empty.textContent = 'No boards match your search.';
+        empty.textContent = q ? 'No boards match your search.'
+            : 'Nothing in this workshop yet. Drag a board onto it, or make a new one here.';
         list.appendChild(empty);
         return;
     }
+
+    shops.forEach(w => list.appendChild(makeWorkshopCard(w, !!q)));
 
     filtered.forEach(board => {
         const card = document.createElement('div');
@@ -16270,13 +16756,26 @@ function renderBoardList(filter) {
         if (boards.length <= 1) deleteBtn.style.opacity = '0.3';
         deleteBtn.onclick = (e) => { e.stopPropagation(); showDeleteConfirmation(card, board); };
 
+        const moveBtn = document.createElement('button');
+        moveBtn.title = 'Move to\u2026';
+        moveBtn.setAttribute('aria-label', 'Move to\u2026');
+        moveBtn.textContent = '\u21E2';
+        moveBtn.onclick = (e) => { e.stopPropagation(); showMoveToPicker(card, 'board', board); };
+
         actions.appendChild(renameBtn);
+        actions.appendChild(moveBtn);
         actions.appendChild(settingsBtn);
         actions.appendChild(deleteBtn);
 
         card.appendChild(colorStrip);
         card.appendChild(emojiEl);
         card.appendChild(nameEl);
+        if (q && board.workshopId) {
+            const where = document.createElement('div');
+            where.className = 'board-card-path';
+            where.textContent = 'in ' + workshopPathText(board.workshopId);
+            card.appendChild(where);
+        }
         card.appendChild(actions);
 
         card.onclick = () => {
@@ -16294,7 +16793,12 @@ function renderBoardList(filter) {
             e.dataTransfer.setData('text/plain', board.id);
             card.classList.add('dragging');
         };
-        card.ondragend = () => { boardDragId = null; card.classList.remove('dragging'); clearBoardDropMarks(); };
+        card.ondragend = () => {
+            boardDragId = null;
+            card.classList.remove('dragging');
+            clearBoardDropMarks();
+            document.querySelectorAll('.drop-into').forEach(el => el.classList.remove('drop-into'));
+        };
         card.ondragover = (e) => {
             if (!boardDragId || boardDragId === board.id) return;
             e.preventDefault();
@@ -16308,9 +16812,13 @@ function renderBoardList(filter) {
             clearBoardDropMarks();
             const moved = boardDragId || e.dataTransfer.getData('text/plain');
             boardDragId = null;
-            if (!moved || moved === board.id) return;
+            if (!moved || moved === board.id || !boards.some(b => b.id === moved)) return;
+            // Put beside a board, it is in that board's workshop — which, found by a
+            // search, need not be the one it came from.
+            const rehomed = moveBoardToWorkshop(moved, board.workshopId || null);
             const target = boards.findIndex(b => b.id === board.id);
-            if (moveBoardTo(moved, target + (after ? 1 : 0))) {
+            if (moveBoardTo(moved, target + (after ? 1 : 0)) || rehomed) {
+                renderCurrentBoardRow();
                 renderBoardList(document.getElementById('boardManagerSearch').value);
                 const el = document.querySelector(`.board-card[data-board-id="${CSS.escape(moved)}"]`);
                 if (el) el.focus();
@@ -16340,7 +16848,7 @@ function renderBoardList(filter) {
     });
 }
 
-function startInlineRename(card, board) {
+function startInlineRename(card, board, save) {
     const nameEl = card.querySelector('.board-card-name');
     const emojiEl = card.querySelector('.board-card-emoji');
     const actionsEl = card.querySelector('.board-card-actions');
@@ -16367,7 +16875,7 @@ function startInlineRename(card, board) {
 
     const commit = () => {
         if (finished) return;
-        setBoardName(board.id, input.value);
+        if (save) save(input.value); else setBoardName(board.id, input.value);
         cleanup();
     };
 
@@ -16418,6 +16926,127 @@ function showDeleteConfirmation(row, board) {
     confirmRow.appendChild(cancelBtn);
 
     parent.replaceChild(confirmRow, row);
+}
+
+/** Where to move a board or a workshop to, chosen from a list — the keyboard's drag. */
+function showMoveToPicker(row, kind, item) {
+    const parent = row.parentNode;
+    const pickRow = document.createElement('div');
+    pickRow.className = 'board-manager-confirm-row board-manager-move-row';
+
+    const label = document.createElement('span');
+    label.className = 'board-manager-move-label';
+    label.textContent = 'Move \u201C' + item.name + '\u201D to';
+
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', 'Workshop to move it to');
+    const here = kind === 'board' ? (item.workshopId || null) : (item.parentId || null);
+    const places = [{ id: '', text: 'All boards (top level)' }].concat(workshops
+        .filter(w => kind === 'board' || !isWithinWorkshop(w.id, item.id))
+        .map(w => ({ id: w.id, text: workshopPathText(w.id) }))
+        .sort((a, b) => a.text.localeCompare(b.text, undefined, { numeric: true, sensitivity: 'base' })));
+    places.forEach(place => {
+        const opt = document.createElement('option');
+        opt.value = place.id;
+        opt.textContent = place.text;
+        if ((place.id || null) === here) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    const close = () => { if (pickRow.parentNode) parent.replaceChild(row, pickRow); row.focus(); };
+    const moveBtn = document.createElement('button');
+    moveBtn.className = 'board-manager-confirm-move';
+    moveBtn.textContent = 'Move';
+    moveBtn.onclick = () => {
+        const to = select.value || null;
+        const moved = kind === 'board' ? moveBoardToWorkshop(item.id, to) : moveWorkshopTo(item.id, to);
+        if (!moved) { close(); return; }
+        renderBoardList(document.getElementById('boardManagerSearch').value);
+        renderCurrentBoardRow();
+    };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'board-manager-confirm-cancel';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = close;
+    pickRow.onkeydown = (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+        if (e.key === 'Enter' && e.target === select) { e.preventDefault(); moveBtn.click(); }
+    };
+
+    pickRow.appendChild(label);
+    pickRow.appendChild(select);
+    pickRow.appendChild(moveBtn);
+    pickRow.appendChild(cancelBtn);
+    parent.replaceChild(pickRow, row);
+    select.focus();
+}
+
+/** A workshop goes, and says first where what is in it will go: up a level, never away. */
+function showWorkshopDeleteConfirmation(row, w) {
+    const parent = row.parentNode;
+    const confirmRow = document.createElement('div');
+    confirmRow.className = 'board-manager-confirm-row';
+
+    const msg = document.createElement('span');
+    const holds = boardsIn(w.id).length + workshopsIn(w.id).length;
+    const up = getWorkshop(w.parentId);
+    msg.textContent = 'Delete workshop \u201C' + w.name + '\u201D?' + (holds
+        ? ' What is in it moves to ' + (up ? '\u201C' + up.name + '\u201D' : 'All boards') + '; no board is deleted.'
+        : '');
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'board-manager-confirm-delete';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = () => {
+        deleteWorkshop(w.id);
+        renderBoardList(document.getElementById('boardManagerSearch').value);
+        renderCurrentBoardRow();
+    };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'board-manager-confirm-cancel';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = () => parent.replaceChild(row, confirmRow);
+
+    confirmRow.appendChild(msg);
+    confirmRow.appendChild(deleteBtn);
+    confirmRow.appendChild(cancelBtn);
+    parent.replaceChild(confirmRow, row);
+    deleteBtn.focus();
+}
+
+function createNewWorkshopInline() {
+    const list = document.getElementById('boardManagerList');
+    const existing = list.querySelector('.board-manager-new-input-row');
+    if (existing) existing.remove();
+
+    const inputRow = document.createElement('div');
+    inputRow.className = 'board-manager-new-input-row';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Workshop name...';
+    inputRow.appendChild(input);
+    // Workshops come first in the list, so the new one is asked for where it will be.
+    list.insertBefore(inputRow, list.firstChild);
+    input.focus();
+    list.scrollTop = 0;
+
+    let committed = false;
+    const commit = () => {
+        if (committed) return;
+        committed = true;
+        const id = createWorkshop(input.value, boardManagerAt);
+        if (!id) { inputRow.remove(); return; }
+        renderBoardList(document.getElementById('boardManagerSearch').value);
+        const card = document.querySelector(`.workshop-card[data-workshop-id="${CSS.escape(id)}"]`);
+        if (card) card.focus();
+    };
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); committed = true; inputRow.remove(); }
+    };
+    input.onblur = () => {
+        setTimeout(() => { if (inputRow.parentNode) commit(); }, 100);
+    };
 }
 
 function deleteBoard(boardId) {
@@ -16471,7 +17100,9 @@ function createNewBoardInline() {
         const name = input.value.trim();
         if (name) {
             const newBoardId = 'board-' + Date.now();
-            boards.push({ id: newBoardId, name: name });
+            const entry = { id: newBoardId, name: name };
+            if (getWorkshop(boardManagerAt)) entry.workshopId = boardManagerAt;
+            boards.push(entry);
             saveBoards(boards);
             localStorage.setItem(`finance_${newBoardId}_toolboardSettings`, JSON.stringify({ title: name, color: '#2c3e50' }));
             switchToBoard(newBoardId);
@@ -16956,6 +17587,7 @@ function setupBoardManager() {
     trigger.onclick = openBoardManager;
     closeBtn.onclick = closeBoardManager;
     newBtn.onclick = createNewBoardInline;
+    document.getElementById('boardManagerNewWorkshopBtn').onclick = createNewWorkshopInline;
     overlay.querySelectorAll('.board-manager-view button').forEach(btn => {
         btn.onclick = () => setBoardManagerView(btn.dataset.view);
     });
@@ -16974,9 +17606,16 @@ function setupBoardManager() {
                 e.stopPropagation();
                 searchInput.value = '';
                 renderBoardList('');
+            } else if (e.key === 'Backspace' && !searchInput.value && workshopUpInManager()) {
+                e.preventDefault();
             }
         });
     }
+
+    // Backspace on a card goes up a workshop, as it does in a file browser.
+    list.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.classList.contains('board-card') && workshopUpInManager()) e.preventDefault();
+    });
 
     // Arrow key navigation between cards
     list.addEventListener('keydown', (e) => {

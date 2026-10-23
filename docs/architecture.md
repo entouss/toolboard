@@ -275,6 +275,38 @@ works everywhere. If even that fails the words go on their own: something on the
 clipboard beats a button that did nothing. The reader's own selection is put back
 afterwards.
 
+### Workshops — where boards are kept
+
+Boards are filed in **workshops**, the way files are in folders: a workshop holds
+boards and other workshops, to any depth, and nothing of its own. It is deliberately
+not a board — a board that could hold boards would be a workspace and a folder at
+once, with a canvas nobody uses, a click that could mean either, and a delete that
+takes tools with it. ("Toolbox" and "drawer" were taken: one is a plugin of tools,
+the other a slide-out panel.)
+
+- **Kept apart.** `toolboard_workshops` holds `{ id, name, parentId }`; a board names
+  its workshop with `workshopId` in `financeBoards`. Nothing about a board's own keys
+  changes, so exports, links and templates go on as they were. `tidyWorkshops()` runs
+  on load and puts right what another copy of the page or a hand edit can leave —
+  a duplicate id, a parent that is gone, two workshops inside each other, a board in
+  a workshop that is gone — by moving it to the top, never by removing it.
+- **Order.** Workshops are listed by name, before boards; boards keep the order of
+  `boards`. A board moved into a workshop goes in after what is there, and Alt+arrow
+  and the settings drawer's Earlier/Later step past only the boards in its own
+  workshop.
+- **The popup.** It opens in the current board's workshop, with a path above the list
+  (All boards › Home › Garage) whose steps go back up; Backspace goes up a level. A
+  board or workshop dropped on a workshop or on a step of the path goes in; dropped
+  beside a board it goes where that board is, workshop and all. **Move to…** on each
+  card, and the drawer's Workshop list, do the same from the keyboard, and never offer
+  a workshop a place inside itself. Search looks in every workshop and says where each
+  one found is. Deleting a workshop moves what was in it up a level; no board is ever
+  deleted with one.
+- **Cards or a list.** The ▦ / ☰ switch beside search (`toolboard_boardManagerView`)
+  shows boards as cards or one row each — the same elements either way, so everything
+  above works in both; only where a drop lands before or after is read across a card
+  and down a row.
+
 ## Plugin System
 
 Three plugin types registered via global `PluginRegistry`:
