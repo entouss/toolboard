@@ -767,6 +767,7 @@ labels.
 
 - `toolboard_pluginUrls` — installed external plugin URLs
 - `toolboard_toolPluginIndex` — tool id → plugin URL, built as plugins load (see [URL Hashes](urls.md))
+- `toolboard_sideNav` — `{ open, expanded: [workshopIds], revealed }`: whether the side navigation is open, which of its workshops are, and the board it last opened the way to (so a reload does not reopen what was closed by hand). Closed when unset or unreadable; on a phone it always starts closed
 - `toolboard_boardManagerView` — `grid` or `list`: whether the Boards popup shows cards or one row a board. Cards when unset or unreadable; the same choice for every board
 - `toolboard_workshops` — the workshops boards are kept in, `[{ id, name, parentId }]`; `parentId: null` is the top. A board in one has `workshopId` on its entry in `financeBoards`, and a board without one is at the top — which is every board from before workshops, so there is nothing to migrate. See [Workshops](architecture.md#workshops--where-boards-are-kept)
 

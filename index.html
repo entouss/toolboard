@@ -151,6 +151,182 @@ body {
     transition: padding-top 0.3s;
 }
 
+/* The side navigation: every workshop and board, down the left. Pushes the board over
+   where there is room for both, and slides over it where there is not. */
+:root { --side-nav-width: 240px; }
+
+.side-nav {
+    position: fixed;
+    top: var(--header-height, 36px);
+    left: 0;
+    bottom: 0;
+    width: var(--side-nav-width);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 10001;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.2s, visibility 0.2s, top 0.3s;
+}
+
+body.side-nav-open .side-nav {
+    transform: none;
+    visibility: visible;
+}
+
+@media (min-width: 769px) {
+    body.side-nav-open main#toolboard { margin-left: var(--side-nav-width); }
+}
+
+.side-nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 10000;
+}
+
+@media (max-width: 768px) {
+    body.side-nav-open .side-nav-backdrop { display: block; }
+    .side-nav { box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25); }
+}
+
+.side-nav-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 8px 6px 12px;
+}
+
+.side-nav-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-heading, var(--text-primary));
+}
+
+.side-nav-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.side-nav-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.side-nav-filter {
+    margin: 0 8px 6px;
+    padding: 5px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 12px;
+    outline: none;
+}
+
+.side-nav-filter:focus { border-color: var(--accent, #3498db); }
+
+.side-nav-tree {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 2px 6px 8px;
+}
+
+.side-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 4px calc(4px + (var(--level, 1) - 1) * 14px);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    user-select: none;
+    outline: none;
+}
+
+.side-nav-item:hover { background: var(--bg-tertiary); }
+.side-nav-item:focus-visible { box-shadow: inset 0 0 0 2px var(--accent, #3498db); }
+.side-nav-item.current {
+    background: rgba(52, 152, 219, 0.16);
+    font-weight: 600;
+}
+
+.side-nav-twisty {
+    width: 12px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: 10px;
+    text-align: center;
+}
+
+.side-nav-icon {
+    width: 18px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.side-nav-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.side-nav-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.side-nav-empty {
+    padding: 10px 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.side-nav-foot {
+    border-top: 1px solid var(--border-color);
+    padding: 8px;
+}
+
+.side-nav-manage {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--link-color, #1f6fb2);
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.side-nav-manage:hover { background: var(--bg-tertiary); }
+
+#sideNavToggle { flex-shrink: 0; }
+#sideNavToggle[aria-expanded="true"] { background: rgba(255, 255, 255, 0.35); }
+
+@media print {
+    .side-nav, .side-nav-backdrop, #sideNavToggle { display: none !important; }
+    body.side-nav-open main#toolboard { margin-left: 0; }
+}
+
 #headerCollapseBtn {
     position: fixed;
     top: 0;
@@ -3892,6 +4068,12 @@ tr:hover {
         max-width: 110px;
     }
 
+    /* The ☰ stands where the logo was: a phone's header has no room for both and
+       the board's name. */
+    #toolboardLogo {
+        display: none;
+    }
+
     .header-settings-btn {
         width: 32px;
         height: 32px;
@@ -4051,6 +4233,7 @@ tr:hover {
 <body>
     <header id="mainHeader">
         <div class="header-section header-section-board">
+            <button id="sideNavToggle" class="header-settings-btn" type="button" aria-controls="sideNav" aria-expanded="false" aria-label="Show boards and workshops" title="Boards and workshops">&#9776;</button>
             <a id="toolboardLogo" href="https://toolboard.me" title="Visit Toolboard.me"><img alt="Toolboard Logo" style="width: 24px; height: 24px;" src="data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%20300%20300%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22board%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%22300%22%20y2%3D%22300%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%233d4555%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%231e2230%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22vignette%22%20cx%3D%220.45%22%20cy%3D%220.4%22%20r%3D%220.65%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220.03%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%220.2%22%2F%3E%3C%2FradialGradient%3E%3Cpattern%20id%3D%22holes%22%20x%3D%2215%22%20y%3D%2215%22%20width%3D%2230%22%20height%3D%2230%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%228%22%20fill%3D%22%2314171e%22%2F%3E%3C%2Fpattern%3E%3CclipPath%20id%3D%22hole-clip%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22274%22%20height%3D%22274%22%20rx%3D%2220%22%2F%3E%3C%2FclipPath%3E%3ClinearGradient%20id%3D%22amber%22%20x1%3D%22145%22%20y1%3D%2215%22%20x2%3D%22165%22%20y2%3D%22280%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fef3c7%22%2F%3E%3Cstop%20offset%3D%2225%25%22%20stop-color%3D%22%23fcd34d%22%2F%3E%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23f59e0b%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23d97706%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22bloom%22%20x%3D%22-50%25%22%20y%3D%22-50%25%22%20width%3D%22200%25%22%20height%3D%22200%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2218%22%2F%3E%3C%2Ffilter%3E%3Cfilter%20id%3D%22glow%22%20x%3D%22-15%25%22%20y%3D%22-15%25%22%20width%3D%22130%25%22%20height%3D%22130%25%22%3E%3CfeGaussianBlur%20in%3D%22SourceGraphic%22%20stdDeviation%3D%222%22%20result%3D%22blur%22%2F%3E%3CfeMerge%3E%3CfeMergeNode%20in%3D%22blur%22%2F%3E%3CfeMergeNode%20in%3D%22SourceGraphic%22%2F%3E%3C%2FfeMerge%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23board%29%22%2F%3E%3Crect%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2226%22%20fill%3D%22url%28%23vignette%29%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%22298%22%20height%3D%22298%22%20rx%3D%2225%22%20fill%3D%22none%22%20stroke%3D%22%234c566a%22%20stroke-width%3D%221.2%22%20opacity%3D%220.35%22%2F%3E%3Cg%20clip-path%3D%22url%28%23hole-clip%29%22%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22290%22%20height%3D%22290%22%20fill%3D%22url%28%23holes%29%22%2F%3E%3C%2Fg%3E%3Cg%20filter%3D%22url%28%23bloom%29%22%20opacity%3D%220.18%22%3E%3Crect%20x%3D%2215%22%20y%3D%2212%22%20width%3D%22260%22%20height%3D%2282%22%20rx%3D%2210%22%20fill%3D%22%23fbbf24%22%2F%3E%3Crect%20x%3D%22105%22%20y%3D%2282%22%20width%3D%2280%22%20height%3D%22195%22%20rx%3D%2210%22%20fill%3D%22%23f59e0b%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22url%28%23amber%29%22%20filter%3D%22url%28%23glow%29%22%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2225%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2255%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2225%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2255%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22205%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22265%22%20cy%3D%2285%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22115%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22145%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22175%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22205%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22235%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22115%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22145%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22175%22%20cy%3D%22265%22%20r%3D%2210%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.3%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2222%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2252%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%2282%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22202%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22232%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22262%22%20cy%3D%2282%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22112%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22142%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22172%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22202%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22232%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22112%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22172%22%20cy%3D%22262%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"></a>
             <button id="boardSelectorTrigger" class="board-selector-trigger" title="Manage Boards"></button>
         </div>
@@ -4221,6 +4404,18 @@ tr:hover {
     </div>
 
     <button id="headerCollapseBtn" title="Hide header">&#9650;</button>
+    <aside id="sideNav" class="side-nav" aria-label="Boards and workshops">
+        <div class="side-nav-head">
+            <span class="side-nav-title">Boards</span>
+            <button class="side-nav-close" type="button" aria-label="Hide boards and workshops" title="Hide">&times;</button>
+        </div>
+        <input id="sideNavFilter" class="side-nav-filter" type="search" placeholder="Filter boards…" aria-label="Filter boards" autocomplete="off" spellcheck="false">
+        <ul id="sideNavTree" class="side-nav-tree" role="tree" aria-label="Boards and workshops"></ul>
+        <div class="side-nav-foot">
+            <button class="side-nav-manage" type="button">Manage boards…</button>
+        </div>
+    </aside>
+    <div id="sideNavBackdrop" class="side-nav-backdrop"></div>
     <main id="toolboard">
         <!-- Tools will be dynamically generated -->
     </main>
@@ -5252,6 +5447,7 @@ function loadBoards() {
 function saveBoards(boards) {
     localStorage.setItem('financeBoards', JSON.stringify(boards));
     updateStorageIndicator();
+    scheduleSideNav();
 }
 
 function getCurrentBoardId() {
@@ -5320,6 +5516,7 @@ function loadWorkshops() {
 function saveWorkshops() {
     localStorage.setItem(WORKSHOPS_KEY, JSON.stringify(workshops));
     if (typeof updateStorageIndicator === 'function') updateStorageIndicator();
+    scheduleSideNav();
 }
 
 let workshops = loadWorkshops();
@@ -5872,6 +6069,7 @@ async function init() {
     displayVersion();
     updateStorageIndicator();
     setupHeaderCollapse();
+    setupSideNav();
 
     // URL hash routing: #BoardName, #tool/<toolId>, #BoardName/tool/<toolId>
     if (initialHash) {
@@ -5947,6 +6145,292 @@ function updateStorageIndicator() {
 
     // Add click handler to show details
     indicator.onclick = showStorageDetails;
+}
+
+/**
+ * The side navigation: every workshop and every board, as a tree down the left, to
+ * find and open a board without the popup. Changing them stays in the popup — this
+ * is for getting somewhere. Whether it is open, and which workshops are, is kept in
+ * `toolboard_sideNav` for every board alike. Held on the function rather than in a
+ * `let`, since boards are saved before this part of the script has run.
+ */
+const SIDE_NAV_KEY = 'toolboard_sideNav';
+
+function sideNavData() {
+    if (!sideNavData.state) {
+        let s = {};
+        try { s = JSON.parse(localStorage.getItem(SIDE_NAV_KEY) || '{}') || {}; } catch (e) { s = {}; }
+        sideNavData.state = {
+            open: s.open === true,
+            expanded: new Set(Array.isArray(s.expanded) ? s.expanded.filter(x => typeof x === 'string') : []),
+            // The board last shown by opening its workshops — kept, so a reload does
+            // not open again what was closed by hand.
+            revealed: typeof s.revealed === 'string' ? s.revealed : null
+        };
+    }
+    return sideNavData.state;
+}
+
+function saveSideNav() {
+    const s = sideNavData();
+    try {
+        localStorage.setItem(SIDE_NAV_KEY, JSON.stringify({ open: s.open, revealed: s.revealed,
+            expanded: [...s.expanded].filter(id => getWorkshop(id)) }));
+    } catch (e) { /* still works, just not kept */ }
+}
+
+function sideNavIsOverlay() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function setSideNavOpen(open, keep = true) {
+    const s = sideNavData();
+    s.open = !!open;
+    if (keep) saveSideNav();
+    document.body.classList.toggle('side-nav-open', s.open);
+    const btn = document.getElementById('sideNavToggle');
+    if (btn) {
+        btn.setAttribute('aria-expanded', String(s.open));
+        btn.setAttribute('aria-label', s.open ? 'Hide boards and workshops' : 'Show boards and workshops');
+    }
+    const nav = document.getElementById('sideNav');
+    if (nav) nav.inert = !s.open;
+    if (s.open) renderSideNav();
+}
+
+// Several changes in one go — a board saved, then its label, then its row — redraw once.
+function scheduleSideNav() {
+    if (scheduleSideNav.pending) return;
+    scheduleSideNav.pending = true;
+    queueMicrotask(() => {
+        scheduleSideNav.pending = false;
+        renderSideNav();
+    });
+}
+
+function renderSideNav() {
+    const tree = document.getElementById('sideNavTree');
+    if (!tree || !document.body.classList.contains('side-nav-open')) return;
+    const s = sideNavData();
+
+    // The board that is open is shown, the first time it is open: the workshops it is
+    // in are expanded. Only then — a workshop closed by hand afterwards stays closed.
+    if (s.revealed !== currentBoardId) {
+        s.revealed = currentBoardId;
+        const board = boards.find(b => b.id === currentBoardId);
+        if (board) workshopPath(board.workshopId).forEach(w => s.expanded.add(w.id));
+        saveSideNav();
+    }
+
+    const filter = document.getElementById('sideNavFilter');
+    const q = (filter && filter.value || '').toLowerCase().trim();
+    const boardMatches = (b) => !q || b.name.toLowerCase().includes(q);
+    const holds = new Map();
+    const holdsMatch = (id) => {
+        if (!holds.has(id)) {
+            holds.set(id, false);
+            holds.set(id, boardsIn(id).some(boardMatches) ||
+                workshopsIn(id).some(w => w.name.toLowerCase().includes(q) || holdsMatch(w.id)));
+        }
+        return holds.get(id);
+    };
+
+    const rows = [];
+    const walk = (parentId, level) => {
+        workshopsIn(parentId).forEach(w => {
+            const hit = q && holdsMatch(w.id);
+            if (q && !hit && !w.name.toLowerCase().includes(q)) return;
+            // Filtering opens what holds a match; otherwise it is as it was left.
+            const open = q ? hit || s.expanded.has(w.id) : s.expanded.has(w.id);
+            rows.push({ kind: 'workshop', item: w, level, open });
+            if (open) walk(w.id, level + 1);
+        });
+        boardsIn(parentId).filter(boardMatches).forEach(b => rows.push({ kind: 'board', item: b, level }));
+    };
+    walk(null, 1);
+
+    const focused = tree.contains(document.activeElement) ? document.activeElement.dataset.key : null;
+    tree.innerHTML = '';
+    if (!rows.length) {
+        const empty = document.createElement('li');
+        empty.className = 'side-nav-empty';
+        empty.setAttribute('role', 'none');
+        empty.textContent = q ? 'No boards match.' : 'No boards.';
+        tree.appendChild(empty);
+        return;
+    }
+    rows.forEach(row => {
+        const li = document.createElement('li');
+        li.className = 'side-nav-item';
+        li.setAttribute('role', 'treeitem');
+        li.setAttribute('aria-level', String(row.level));
+        li.style.setProperty('--level', row.level);
+        li.tabIndex = -1;
+        const twisty = document.createElement('span');
+        twisty.className = 'side-nav-twisty';
+        twisty.setAttribute('aria-hidden', 'true');
+        const icon = document.createElement('span');
+        icon.className = 'side-nav-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        const name = document.createElement('span');
+        name.className = 'side-nav-name';
+        name.textContent = row.item.name;
+        li.title = row.item.name;
+        if (row.kind === 'workshop') {
+            li.dataset.workshopId = row.item.id;
+            li.dataset.key = 'w:' + row.item.id;
+            li.setAttribute('aria-expanded', String(row.open));
+            twisty.textContent = row.open ? '\u25BE' : '\u25B8';
+            icon.textContent = '\u{1F6E0}\uFE0F';
+        } else {
+            li.dataset.boardId = row.item.id;
+            li.dataset.key = 'b:' + row.item.id;
+            const favicon = getBoardFavicon(row.item.id);
+            if (favicon) icon.textContent = favicon;
+            else {
+                const dot = document.createElement('span');
+                dot.className = 'side-nav-dot';
+                dot.style.background = getBoardColor(row.item.id);
+                icon.appendChild(dot);
+            }
+            if (row.item.id === currentBoardId) {
+                li.classList.add('current');
+                li.setAttribute('aria-current', 'page');
+                li.setAttribute('aria-selected', 'true');
+            }
+        }
+        li.appendChild(twisty);
+        li.appendChild(icon);
+        li.appendChild(name);
+        tree.appendChild(li);
+    });
+    // One stop for Tab: where the focus was, else the open board, else the first.
+    const items = [...tree.querySelectorAll('.side-nav-item')];
+    const stop = items.find(li => li.dataset.key === focused) || tree.querySelector('.side-nav-item.current') || items[0];
+    stop.tabIndex = 0;
+    if (focused && stop.dataset.key === focused) stop.focus();
+}
+
+function toggleSideNavWorkshop(id, open) {
+    const s = sideNavData();
+    const now = open === undefined ? !s.expanded.has(id) : open;
+    if (now === s.expanded.has(id)) return false;
+    if (now) s.expanded.add(id); else s.expanded.delete(id);
+    saveSideNav();
+    renderSideNav();
+    return true;
+}
+
+function activateSideNavItem(li) {
+    if (li.dataset.workshopId) {
+        toggleSideNavWorkshop(li.dataset.workshopId);
+        const again = document.querySelector(`#sideNavTree [data-key="${CSS.escape(li.dataset.key)}"]`);
+        if (again) again.focus();
+        return;
+    }
+    const id = li.dataset.boardId;
+    if (id && id !== currentBoardId) switchToBoard(id);
+    // Over the board, the menu is in the way once a board is chosen.
+    if (sideNavIsOverlay()) setSideNavOpen(false, false);
+}
+
+function setupSideNav() {
+    const nav = document.getElementById('sideNav');
+    const tree = document.getElementById('sideNavTree');
+    const toggle = document.getElementById('sideNavToggle');
+    if (!nav || !tree || !toggle) return;
+
+    toggle.onclick = () => {
+        setSideNavOpen(!sideNavData().open);
+        if (sideNavData().open) {
+            const stop = tree.querySelector('.side-nav-item[tabindex="0"]');
+            if (stop) stop.focus();
+        }
+    };
+    nav.querySelector('.side-nav-close').onclick = () => { setSideNavOpen(false); toggle.focus(); };
+    document.getElementById('sideNavBackdrop').onclick = () => setSideNavOpen(false, false);
+    nav.querySelector('.side-nav-manage').onclick = () => {
+        if (sideNavIsOverlay()) setSideNavOpen(false, false);
+        openBoardManager();
+    };
+    const filter = document.getElementById('sideNavFilter');
+    filter.addEventListener('input', renderSideNav);
+    filter.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const first = tree.querySelector('.side-nav-item');
+            if (first) first.focus();
+        } else if (e.key === 'Escape' && filter.value) {
+            e.stopPropagation();
+            filter.value = '';
+            renderSideNav();
+        }
+    });
+    nav.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !e.defaultPrevented && e.target !== filter && sideNavIsOverlay()) {
+            setSideNavOpen(false, false);
+            toggle.focus();
+        }
+    });
+
+    tree.addEventListener('click', (e) => {
+        const li = e.target.closest('.side-nav-item');
+        if (li) activateSideNavItem(li);
+    });
+    tree.addEventListener('focusin', (e) => {
+        const li = e.target.closest('.side-nav-item');
+        if (!li) return;
+        tree.querySelectorAll('.side-nav-item[tabindex="0"]').forEach(x => { if (x !== li) x.tabIndex = -1; });
+        li.tabIndex = 0;
+    });
+    // The keys a tree takes: up and down, in and out, and Enter to open.
+    tree.addEventListener('keydown', (e) => {
+        const li = e.target.closest('.side-nav-item');
+        if (!li || e.altKey || e.ctrlKey || e.metaKey) return;
+        const items = [...tree.querySelectorAll('.side-nav-item')];
+        const at = items.indexOf(li);
+        const level = Number(li.getAttribute('aria-level'));
+        const go = (el) => { if (el) { e.preventDefault(); el.focus(); } };
+        switch (e.key) {
+            case 'ArrowDown': go(items[at + 1]); break;
+            case 'ArrowUp': go(items[at - 1]); break;
+            case 'Home': go(items[0]); break;
+            case 'End': go(items[items.length - 1]); break;
+            case 'ArrowRight':
+                if (li.dataset.workshopId) {
+                    e.preventDefault();
+                    if (li.getAttribute('aria-expanded') !== 'true') {
+                        toggleSideNavWorkshop(li.dataset.workshopId, true);
+                        const again = tree.querySelector(`[data-key="${CSS.escape(li.dataset.key)}"]`);
+                        if (again) again.focus();
+                    } else if (items[at + 1] && Number(items[at + 1].getAttribute('aria-level')) > level) {
+                        items[at + 1].focus();
+                    }
+                }
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                if (li.dataset.workshopId && li.getAttribute('aria-expanded') === 'true') {
+                    toggleSideNavWorkshop(li.dataset.workshopId, false);
+                    const again = tree.querySelector(`[data-key="${CSS.escape(li.dataset.key)}"]`);
+                    if (again) again.focus();
+                } else {
+                    for (let i = at - 1; i >= 0; i--) {
+                        if (Number(items[i].getAttribute('aria-level')) < level) { items[i].focus(); break; }
+                    }
+                }
+                break;
+            case 'Enter':
+            case ' ':
+                e.preventDefault();
+                activateSideNavItem(li);
+                break;
+        }
+    });
+
+    // Kept open where the board has room beside it; over a phone's board it would
+    // be the first thing in the way, so there it starts closed.
+    setSideNavOpen(sideNavData().open && !sideNavIsOverlay(), false);
 }
 
 function setupHeaderCollapse() {
@@ -6195,6 +6679,7 @@ function parseStorageKey(key) {
         'toolboard_pluginUrls': { desc: 'Plugin URLs' },
         'toolboard_darkMode': { desc: 'Dark mode preference' },
         'toolboard_workshops': { desc: 'Workshops boards are kept in' },
+        'toolboard_sideNav': { desc: 'Side navigation open, and its expanded workshops' },
         'toolboard_boardManagerView': { desc: 'Boards shown as cards or a list' }
     };
     if (globalKeys[key]) return globalKeys[key];
@@ -8395,6 +8880,7 @@ function updateBoardSetting(boardId, patch) {
 // Repaint just the colour strip and emoji of one row, so editing settings doesn't
 // tear down the list (and any open rename input) underneath the user.
 function refreshBoardRow(boardId) {
+    scheduleSideNav();
     if (boardId === currentBoardId) renderCurrentBoardRow();
     const card = document.querySelector(`.board-card[data-board-id="${boardId}"]`);
     if (!card) return;
@@ -16392,6 +16878,7 @@ function updateBoardSelectorLabel() {
     trigger.textContent = (favicon ? favicon + ' ' : '') + (board ? board.name : 'Board');
     const where = board && board.workshopId ? workshopPathText(board.workshopId) : '';
     trigger.title = where ? where + ' \u203A ' + board.name : '';
+    scheduleSideNav();
 }
 
 function populateBoardSelector() {

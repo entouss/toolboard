@@ -307,6 +307,29 @@ the other a slide-out panel.)
   above works in both; only where a drop lands before or after is read across a card
   and down a row.
 
+### The side navigation
+
+The ☰ at the left of the header opens a tree of every workshop and board down the
+left of the page (`#sideNav`) — for getting to a board without the popup. Changing
+boards stays in the popup ("Manage boards…" at its foot opens it).
+
+- **Beside the board, or over it.** Wider than 768px it pushes `main#toolboard` over
+  by its width (`body.side-nav-open`), so nothing is covered; a tool's kept position
+  never changes, since every drag works in movement, not screen position. Narrower,
+  it slides over the board with a backdrop, closes once a board is chosen, and starts
+  closed whatever was kept. It sits under the header and follows `--header-height`
+  when the header is hidden. Closed, it is `inert`, out of the Tab order.
+- **The tree.** Workshops first by name, then boards in their order — what the popup
+  shows. The open board is marked `aria-current`; the first time a board is open the
+  workshops it is in are opened, and after that they stay as they were left. The
+  filter keeps matching boards inside the workshops they are in.
+- **Keyboard.** An ARIA tree, flat, with `aria-level`: ↑/↓, Home/End, → opens a
+  workshop and then steps in, ← closes it and then steps out, Enter opens. One item
+  is in the Tab order at a time.
+- **In step.** `saveBoards`, `saveWorkshops`, `updateBoardSelectorLabel` and
+  `refreshBoardRow` each schedule a redraw, coalesced into one per change; state is
+  kept in `toolboard_sideNav`.
+
 ## Plugin System
 
 Three plugin types registered via global `PluginRegistry`:
