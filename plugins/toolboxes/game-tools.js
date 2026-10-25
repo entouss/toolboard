@@ -418,7 +418,9 @@ function chessGetState(widget) {
             gameOver: false,
             inCheck: false,
             undoStack: [],
-            aiMode: 'off'
+            aiMode: 'off',
+            castling: chessInitialCastling(),
+            ep: null
         });
     }
     return _chessState.get(widget);
@@ -443,13 +445,32 @@ function chessSaveData(toolId, st) {
         gameOver: st.gameOver,
         inCheck: st.inCheck,
         undoStack: st.undoStack,
-        aiMode: st.aiMode || 'off'
+        aiMode: st.aiMode || 'off',
+        castling: st.castling,
+        ep: st.ep
     };
     saveToolCustomizations(custs);
 }
 
 function chessDeepCopyBoard(board) {
     return board.map(function(row) { return row.slice(); });
+}
+
+// Castling rights: K is the king's side (towards h), Q the queen's (towards a).
+function chessInitialCastling() {
+    return { wK: true, wQ: true, bK: true, bQ: true };
+}
+
+// A game saved before castling was kept has no record of what moved. A king and rook
+// still on their first squares are taken to have stayed there — the best there is.
+function chessGuessCastling(board) {
+    var home = function(r, c, p) { return board[r] && board[r][c] === p; };
+    return {
+        wK: home(7, 4, 'wK') && home(7, 7, 'wR'),
+        wQ: home(7, 4, 'wK') && home(7, 0, 'wR'),
+        bK: home(0, 4, 'bK') && home(0, 7, 'bR'),
+        bQ: home(0, 4, 'bK') && home(0, 0, 'bR')
+    };
 }
 
 // =============================================
@@ -474,6 +495,8 @@ function chessInit() {
             st.inCheck = saved.inCheck || false;
             st.undoStack = saved.undoStack || [];
             st.aiMode = saved.aiMode || 'off';
+            st.castling = saved.castling || chessGuessCastling(st.board);
+            st.ep = saved.ep || null;
         }
 
         // Sync mode dropdown
@@ -646,7 +669,7 @@ function chessUpdateUI(widget) {
     if (statusEl) {
         statusEl.className = 'chess-status';
         if (st.gameOver) {
-            if (chessIsCheckmate(st.board, st.turn)) {
+            if (chessIsCheckmate(st.board, st.turn, st.ep)) {
                 statusEl.textContent = 'Checkmate! ' + (st.turn === 'w' ? 'Black' : 'White') + ' wins!';
                 statusEl.classList.add('checkmate');
             } else {
@@ -743,7 +766,7 @@ function chessCanvasClick(widget, e) {
         // Clicking own piece: re-select
         if (clicked && clicked[0] === st.turn) {
             st.selected = { row: pos.row, col: pos.col };
-            st.validMoves = chessGetValidMoves(st.board, pos.row, pos.col, st.turn);
+            st.validMoves = chessGetValidMoves(st.board, pos.row, pos.col, st.turn, st.castling, st.ep);
             chessRender(widget);
             return;
         }
@@ -758,7 +781,7 @@ function chessCanvasClick(widget, e) {
     // No piece selected: select own piece
     if (clicked && clicked[0] === st.turn) {
         st.selected = { row: pos.row, col: pos.col };
-        st.validMoves = chessGetValidMoves(st.board, pos.row, pos.col, st.turn);
+        st.validMoves = chessGetValidMoves(st.board, pos.row, pos.col, st.turn, st.castling, st.ep);
         chessRender(widget);
     }
 }
@@ -774,15 +797,97 @@ function chessPixelToBoard(x, y, sqSize) {
 // MOVE VALIDATION
 // =============================================
 
-function chessGetValidMoves(board, row, col, turn) {
-    var raw = chessGetRawMoves(board, row, col);
+// The moves a piece may make: its own, plus castling and en passant, which depend on
+// the game so far (`castling` rights, the `ep` square a pawn just skipped) and not
+// only on where the pieces stand. Without those two, neither is offered.
+function chessGetValidMoves(board, row, col, turn, castling, ep) {
+    var raw = chessGetRawMoves(board, row, col).concat(chessSpecialMoves(board, row, col, castling, ep));
     var valid = [];
     for (var i = 0; i < raw.length; i++) {
-        if (!chessWouldBeInCheck(board, row, col, raw[i].row, raw[i].col, turn)) {
+        var after = chessApplyMove(board, castling, { fr: row, fc: col, tr: raw[i].row, tc: raw[i].col });
+        if (!chessIsInCheck(after.board, turn)) {
             valid.push(raw[i]);
         }
     }
     return valid;
+}
+
+// Castling and en passant. Kept apart from the raw moves, which are also what says
+// whether a square is attacked: castling is never an attack, and asking whether the
+// king passes through check from inside the attack test would go round forever.
+function chessSpecialMoves(board, r, c, castling, ep) {
+    var piece = board[r][c];
+    var moves = [];
+    if (!piece) return moves;
+    var color = piece[0];
+    var enemy = color === 'w' ? 'b' : 'w';
+    var home = color === 'w' ? 7 : 0;
+    if (piece[1] === 'K' && castling && r === home && c === 4 && !chessIsSquareAttacked(board, r, c, enemy)) {
+        // King's side: f and g empty, f not attacked (g is checked like any move).
+        if (castling[color + 'K'] && board[r][7] === color + 'R' && !board[r][5] && !board[r][6] &&
+            !chessIsSquareAttacked(board, r, 5, enemy)) {
+            moves.push({ row: r, col: 6, castle: 'K' });
+        }
+        // Queen's side: b, c and d empty, d not attacked; b may be, as the rook passes it.
+        if (castling[color + 'Q'] && board[r][0] === color + 'R' && !board[r][1] && !board[r][2] && !board[r][3] &&
+            !chessIsSquareAttacked(board, r, 3, enemy)) {
+            moves.push({ row: r, col: 2, castle: 'Q' });
+        }
+    }
+    if (piece[1] === 'P' && ep) {
+        var dir = color === 'w' ? -1 : 1;
+        if (ep.row === r + dir && Math.abs(ep.col - c) === 1 && board[r][ep.col] === enemy + 'P') {
+            moves.push({ row: ep.row, col: ep.col, enPassant: true });
+        }
+    }
+    return moves;
+}
+
+/**
+ * A move made on a copy of the board: the rook goes with a castling king, the pawn
+ * passed by en passant is taken, a pawn reaching the end becomes a queen, and the
+ * castling rights and en passant square that follow come back with the board. The one
+ * place a move is made — by a player, by the computer, and when asking whether a move
+ * would leave a king in check — so they cannot disagree.
+ */
+function chessApplyMove(board, castling, m) {
+    var b = chessDeepCopyBoard(board);
+    var piece = b[m.fr][m.fc];
+    var rights = castling ? { wK: castling.wK, wQ: castling.wQ, bK: castling.bK, bQ: castling.bQ } : null;
+    var result = { board: b, castling: rights, ep: null, captured: b[m.tr][m.tc], castle: null, enPassant: false, promoted: false };
+    if (!piece) return result;
+    var color = piece[0];
+    b[m.tr][m.tc] = piece;
+    b[m.fr][m.fc] = null;
+    if (piece[1] === 'K' && Math.abs(m.tc - m.fc) === 2) {
+        var kingSide = m.tc > m.fc;
+        b[m.fr][kingSide ? 5 : 3] = b[m.fr][kingSide ? 7 : 0];
+        b[m.fr][kingSide ? 7 : 0] = null;
+        result.castle = kingSide ? 'K' : 'Q';
+    }
+    if (piece[1] === 'P' && m.fc !== m.tc && !result.captured) {
+        result.captured = b[m.fr][m.tc];
+        b[m.fr][m.tc] = null;
+        result.enPassant = true;
+    }
+    if (piece[1] === 'P' && (m.tr === 0 || m.tr === 7)) {
+        b[m.tr][m.tc] = color + 'Q';
+        result.promoted = true;
+    }
+    if (piece[1] === 'P' && Math.abs(m.tr - m.fr) === 2) {
+        result.ep = { row: (m.fr + m.tr) / 2, col: m.fc };
+    }
+    if (rights) {
+        if (piece[1] === 'K') { rights[color + 'K'] = false; rights[color + 'Q'] = false; }
+        // A rook leaving its corner, or taken in it, takes that side's castling with it.
+        [[m.fr, m.fc], [m.tr, m.tc]].forEach(function(sq) {
+            if (sq[0] === 7 && sq[1] === 0) rights.wQ = false;
+            if (sq[0] === 7 && sq[1] === 7) rights.wK = false;
+            if (sq[0] === 0 && sq[1] === 0) rights.bQ = false;
+            if (sq[0] === 0 && sq[1] === 7) rights.bK = false;
+        });
+    }
+    return result;
 }
 
 function chessGetRawMoves(board, row, col) {
@@ -923,26 +1028,25 @@ function chessIsInCheck(board, color) {
 }
 
 function chessWouldBeInCheck(board, fr, fc, tr, tc, color) {
-    var copy = chessDeepCopyBoard(board);
-    copy[tr][tc] = copy[fr][fc];
-    copy[fr][fc] = null;
-    return chessIsInCheck(copy, color);
+    return chessIsInCheck(chessApplyMove(board, null, { fr: fr, fc: fc, tr: tr, tc: tc }).board, color);
 }
 
-function chessIsCheckmate(board, color) {
-    return chessIsInCheck(board, color) && !chessHasAnyLegalMove(board, color);
+// En passant can be the only move there is, so it counts here; castling never can be
+// (a king able to castle could also step to the square beside it).
+function chessIsCheckmate(board, color, ep) {
+    return chessIsInCheck(board, color) && !chessHasAnyLegalMove(board, color, ep);
 }
 
-function chessIsStalemate(board, color) {
-    return !chessIsInCheck(board, color) && !chessHasAnyLegalMove(board, color);
+function chessIsStalemate(board, color, ep) {
+    return !chessIsInCheck(board, color) && !chessHasAnyLegalMove(board, color, ep);
 }
 
-function chessHasAnyLegalMove(board, color) {
+function chessHasAnyLegalMove(board, color, ep) {
     for (var r = 0; r < 8; r++) {
         for (var c = 0; c < 8; c++) {
             var piece = board[r][c];
             if (piece && piece[0] === color) {
-                var moves = chessGetValidMoves(board, r, c, color);
+                var moves = chessGetValidMoves(board, r, c, color, null, ep);
                 if (moves.length > 0) return true;
             }
         }
@@ -959,6 +1063,8 @@ function chessExecuteMove(widget, fr, fc, tr, tc) {
     var piece = st.board[fr][fc];
     var captured = st.board[tr][tc];
 
+    if (!st.castling) st.castling = chessGuessCastling(st.board);
+
     // Save undo state
     st.undoStack.push({
         board: chessDeepCopyBoard(st.board),
@@ -966,21 +1072,19 @@ function chessExecuteMove(widget, fr, fc, tr, tc) {
         capturedWhite: st.capturedWhite.slice(),
         capturedBlack: st.capturedBlack.slice(),
         inCheck: st.inCheck,
-        gameOver: st.gameOver
+        gameOver: st.gameOver,
+        castling: Object.assign({}, st.castling),
+        ep: st.ep
     });
 
-    // Record notation before moving
-    var notation = chessMoveNotation(st.board, piece, fr, fc, tr, tc, captured);
-
-    // Execute move
-    st.board[tr][tc] = piece;
-    st.board[fr][fc] = null;
-
-    // Pawn promotion (auto-queen)
-    if (piece[1] === 'P' && (tr === 0 || tr === 7)) {
-        st.board[tr][tc] = piece[0] + 'Q';
-        notation += '=Q';
-    }
+    var moved = chessApplyMove(st.board, st.castling, { fr: fr, fc: fc, tr: tr, tc: tc });
+    captured = moved.captured;
+    var notation = moved.castle ? (moved.castle === 'K' ? 'O-O' : 'O-O-O')
+        : chessMoveNotation(st.board, piece, fr, fc, tr, tc, captured);
+    if (moved.promoted) notation += '=Q';
+    st.board = moved.board;
+    st.castling = moved.castling;
+    st.ep = moved.ep;
 
     // Track captures
     if (captured) {
@@ -996,10 +1100,10 @@ function chessExecuteMove(widget, fr, fc, tr, tc) {
 
     // Check for check/mate/stalemate
     st.inCheck = chessIsInCheck(st.board, st.turn);
-    if (chessIsCheckmate(st.board, st.turn)) {
+    if (chessIsCheckmate(st.board, st.turn, st.ep)) {
         notation += '#';
         st.gameOver = true;
-    } else if (chessIsStalemate(st.board, st.turn)) {
+    } else if (chessIsStalemate(st.board, st.turn, st.ep)) {
         st.gameOver = true;
     } else if (st.inCheck) {
         notation += '+';
@@ -1037,6 +1141,8 @@ function chessNewGame(btn) {
     st.inCheck = false;
     st.undoStack = [];
     st.aiMode = preserveMode;
+    st.castling = chessInitialCastling();
+    st.ep = null;
     chessRender(widget);
 }
 
@@ -1057,6 +1163,8 @@ function chessUndo(btn) {
         st.capturedBlack = prev.capturedBlack;
         st.inCheck = prev.inCheck;
         st.gameOver = prev.gameOver;
+        st.castling = prev.castling || chessGuessCastling(prev.board);
+        st.ep = prev.ep || null;
         st.moveHistory.pop();
     }
     st.selected = null;
@@ -1158,6 +1266,8 @@ function chessSetMode(sel) {
     st.gameOver = false;
     st.inCheck = false;
     st.undoStack = [];
+    st.castling = chessInitialCastling();
+    st.ep = null;
     chessRender(widget);
 }
 
@@ -1189,13 +1299,13 @@ function chessEvalBoard(board) {
     return score;
 }
 
-function chessAIGetAllMoves(board, color) {
+function chessAIGetAllMoves(board, color, castling, ep) {
     var moves = [];
     for (var r = 0; r < 8; r++) {
         for (var c = 0; c < 8; c++) {
             var piece = board[r][c];
             if (piece && piece[0] === color) {
-                var valid = chessGetValidMoves(board, r, c, color);
+                var valid = chessGetValidMoves(board, r, c, color, castling, ep);
                 for (var i = 0; i < valid.length; i++) {
                     moves.push({ fr: r, fc: c, tr: valid[i].row, tc: valid[i].col });
                 }
@@ -1213,11 +1323,11 @@ function chessAIGetAllMoves(board, color) {
     return moves;
 }
 
-function chessAISearch(board, depth, alpha, beta, isMaximizing) {
+function chessAISearch(board, depth, alpha, beta, isMaximizing, castling, ep) {
     var color = isMaximizing ? 'w' : 'b';
     if (depth === 0) return chessEvalBoard(board);
 
-    var moves = chessAIGetAllMoves(board, color);
+    var moves = chessAIGetAllMoves(board, color, castling, ep);
     if (moves.length === 0) {
         // No legal moves: checkmate or stalemate
         if (chessIsInCheck(board, color)) {
@@ -1231,12 +1341,8 @@ function chessAISearch(board, depth, alpha, beta, isMaximizing) {
         var maxEval = -Infinity;
         for (var i = 0; i < moves.length; i++) {
             var m = moves[i];
-            var copy = chessDeepCopyBoard(board);
-            copy[m.tr][m.tc] = copy[m.fr][m.fc];
-            copy[m.fr][m.fc] = null;
-            // Pawn promotion
-            if (copy[m.tr][m.tc][1] === 'P' && m.tr === 0) copy[m.tr][m.tc] = 'wQ';
-            var ev = chessAISearch(copy, depth - 1, alpha, beta, false);
+            var next = chessApplyMove(board, castling, m);
+            var ev = chessAISearch(next.board, depth - 1, alpha, beta, false, next.castling, next.ep);
             if (ev > maxEval) maxEval = ev;
             if (ev > alpha) alpha = ev;
             if (beta <= alpha) break;
@@ -1246,12 +1352,8 @@ function chessAISearch(board, depth, alpha, beta, isMaximizing) {
         var minEval = Infinity;
         for (var i = 0; i < moves.length; i++) {
             var m = moves[i];
-            var copy = chessDeepCopyBoard(board);
-            copy[m.tr][m.tc] = copy[m.fr][m.fc];
-            copy[m.fr][m.fc] = null;
-            // Pawn promotion
-            if (copy[m.tr][m.tc][1] === 'P' && m.tr === 7) copy[m.tr][m.tc] = 'bQ';
-            var ev = chessAISearch(copy, depth - 1, alpha, beta, true);
+            var next = chessApplyMove(board, castling, m);
+            var ev = chessAISearch(next.board, depth - 1, alpha, beta, true, next.castling, next.ep);
             if (ev < minEval) minEval = ev;
             if (ev < beta) beta = ev;
             if (beta <= alpha) break;
@@ -1264,18 +1366,16 @@ function chessAIMakeMove(widget) {
     var st = chessGetState(widget);
     if (st.gameOver || st.turn !== 'b' || st.aiMode !== 'black') return;
 
-    var moves = chessAIGetAllMoves(st.board, 'b');
+    if (!st.castling) st.castling = chessGuessCastling(st.board);
+    var moves = chessAIGetAllMoves(st.board, 'b', st.castling, st.ep);
     if (moves.length === 0) return;
 
     var bestMove = null;
     var bestScore = Infinity; // Minimizing for black
     for (var i = 0; i < moves.length; i++) {
         var m = moves[i];
-        var copy = chessDeepCopyBoard(st.board);
-        copy[m.tr][m.tc] = copy[m.fr][m.fc];
-        copy[m.fr][m.fc] = null;
-        if (copy[m.tr][m.tc][1] === 'P' && m.tr === 7) copy[m.tr][m.tc] = 'bQ';
-        var score = chessAISearch(copy, 2, -Infinity, Infinity, true); // depth 2 remaining after this move = depth 3 total
+        var next = chessApplyMove(st.board, st.castling, m);
+        var score = chessAISearch(next.board, 2, -Infinity, Infinity, true, next.castling, next.ep); // depth 2 remaining after this move = depth 3 total
         if (score < bestScore) {
             bestScore = score;
             bestMove = m;
@@ -7218,7 +7318,7 @@ function tetrisDrawIdle(toolId) {
 (function injectScriptsForExport() {
     if (document.getElementById('game-tools-scripts')) return;
 
-    var chessFunctions = [chessGetToolId, chessGetState, chessGetData, chessSaveData, chessDeepCopyBoard, chessInit, chessRender, chessDrawBoard, chessUpdateUI, chessResizeCanvas, chessCanvasClick, chessPixelToBoard, chessGetValidMoves, chessGetRawMoves, chessPawnMoves, chessSlidingMoves, chessKnightMoves, chessKingMoves, chessFindKing, chessIsSquareAttacked, chessIsInCheck, chessWouldBeInCheck, chessIsCheckmate, chessIsStalemate, chessHasAnyLegalMove, chessExecuteMove, chessMoveNotation, chessNewGame, chessUndo, chessColToFile, chessRowToRank, chessSetMode, chessEvalBoard, chessAISearch, chessAIGetAllMoves, chessAIMakeMove];
+    var chessFunctions = [chessGetToolId, chessGetState, chessGetData, chessSaveData, chessDeepCopyBoard, chessInitialCastling, chessGuessCastling, chessSpecialMoves, chessApplyMove, chessInit, chessRender, chessDrawBoard, chessUpdateUI, chessResizeCanvas, chessCanvasClick, chessPixelToBoard, chessGetValidMoves, chessGetRawMoves, chessPawnMoves, chessSlidingMoves, chessKnightMoves, chessKingMoves, chessFindKing, chessIsSquareAttacked, chessIsInCheck, chessWouldBeInCheck, chessIsCheckmate, chessIsStalemate, chessHasAnyLegalMove, chessExecuteMove, chessMoveNotation, chessNewGame, chessUndo, chessColToFile, chessRowToRank, chessSetMode, chessEvalBoard, chessAISearch, chessAIGetAllMoves, chessAIMakeMove];
     var sudokuFunctions = [sudokuGetWidget, sudokuGetToolId, sudokuEmptyNotes, sudokuGetState, sudokuSaveData, sudokuShuffleArray, sudokuIsValid, sudokuFillGrid, sudokuGenerateSolution, sudokuCreatePuzzle, sudokuNewGame, sudokuNewGameForToolId, sudokuSetDifficulty, sudokuCheckConflicts, sudokuCheckWin, sudokuNumInputInternal, sudokuClearCellInternal, sudokuCellClick, sudokuNumInput, sudokuClearCell, sudokuHint, sudokuUndo, sudokuTogglePencil, sudokuCheck, sudokuStartTimer, sudokuStopTimer, sudokuFormatTime, sudokuRender, sudokuKeyHandler, sudokuInit];
     var typingTestFunctions = [typingTestGetWidget, typingTestGetToolId, typingTestGetState, typingTestSaveData, typingTestLoadBest, typingTestGenerateWords, typingTestNewGame, typingTestSetDuration, typingTestStartTimer, typingTestStopTimer, typingTestFinish, typingTestCalcWPM, typingTestCalcAccuracy, typingTestHandleInput, typingTestRenderWords, typingTestEscape, typingTestRender, typingTestInit];
     var flappyFunctions = [flappyGetToolId, flappyGetBest, flappySaveBest, flappyNewState, flappyInit, flappyStart, flappyFlap, flappyLoop, flappyUpdate, flappyGameOver, flappyDrawIdle, flappyDraw, flappyDrawBg, flappyDrawGround, flappyDrawPipe, flappyDrawBird];
