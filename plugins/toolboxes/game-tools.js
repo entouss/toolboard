@@ -29,6 +29,22 @@
 .chess-history { flex: 1; overflow-y: auto; padding: 0 6px 6px; font-size: 11px; font-family: monospace; }
 .chess-history-move { padding: 1px 0; color: var(--text-secondary); }
 .chess-history-move.last { font-weight: 700; color: var(--text-primary); }
+.chess-widget.challenge-mode .chess-side-panel { width: 190px; }
+.chess-widget.challenge-mode .chess-captured,
+.chess-widget.challenge-mode .chess-undo-btn,
+.chess-widget.challenge-mode .chess-new-btn { display: none; }
+.chess-challenge-panel { display: none; flex-direction: column; gap: 6px; padding: 6px; flex-shrink: 0; }
+.chess-widget.challenge-mode .chess-challenge-panel { display: flex; }
+.chess-challenge-select { width: 100%; padding: 3px 4px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); }
+.chess-challenge-goal { font-size: 12px; line-height: 1.4; color: var(--text-primary); }
+.chess-challenge-message { font-size: 12px; font-weight: 700; min-height: 16px; }
+.chess-challenge-message.right { color: #27ae60; }
+.chess-challenge-message.wrong { color: #e67e22; }
+.chess-challenge-message.solved { color: #27ae60; }
+.chess-challenge-buttons { display: flex; gap: 4px; }
+.chess-challenge-buttons button { flex: 1; padding: 3px 4px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.chess-challenge-buttons button:hover { background: var(--bg-tertiary); }
+.chess-challenge-count { font-size: 10px; color: var(--text-muted); }
 .chess-mode-select { padding: 2px 6px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
 
 /* Sudoku Widget Styles */
@@ -392,6 +408,76 @@ var CHESS_INITIAL_BOARD = [
     ['wR','wN','wB','wQ','wK','wB','wN','wR']
 ];
 
+/**
+ * Challenges: a position, a goal, and the moves. Positions are FEN, which also says
+ * whose move it is, who may still castle and where en passant is open. `moves` are
+ * from-square + to-square, the player's and the scripted replies in turn. A `mate`
+ * challenge takes any move that forces mate in as many moves; the others want the
+ * move given. Adding one is adding an entry here — tests check every one is sound.
+ */
+var CHESS_CHALLENGES = [
+    { id: 'ep-take', group: 'Rules', title: 'En passant: take it',
+      goal: 'Black has just played d7\u2013d5, passing your pawn. Take it en passant.',
+      fen: '4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1', type: 'moves', moves: ['e5d6'] },
+    { id: 'ep-escape', group: 'Rules', title: 'En passant: the only way out of check',
+      goal: 'Black\u2019s pawn has just come to d5 with check. There is exactly one way out.',
+      fen: '3q1r1k/8/8/1n1pP3/4K3/r7/8/8 w - d6 0 1', type: 'moves', moves: ['e5d6'] },
+    { id: 'ep-check', group: 'Rules', title: 'En passant: with check',
+      goal: 'Black has just played d7\u2013d5. Take it en passant, and give check as you do.',
+      fen: '8/4k3/8/3pP3/8/8/8/4K3 w - d6 0 1', type: 'moves', moves: ['e5d6'] },
+    { id: 'castle-king', group: 'Rules', title: 'Castle king\u2019s side',
+      goal: 'Get your king to safety and your rook into play in one move.',
+      fen: 'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4', type: 'moves', moves: ['e1g1'] },
+    { id: 'castle-queen', group: 'Rules', title: 'Castle queen\u2019s side',
+      goal: 'b1, c1 and d1 are clear. Castle the long way.',
+      fen: 'r3kbnr/pppqpppp/2n5/3p1b2/3P1B2/2N5/PPPQPPPP/R3KBNR w KQkq - 6 5', type: 'moves', moves: ['e1c1'] },
+    { id: 'castle-where-you-can', group: 'Rules', title: 'Castle where you can',
+      goal: 'The bishop covers f1, so only one way of castling is allowed. Find it.',
+      fen: '4k3/8/b7/8/8/8/8/R3K2R w KQ - 0 1', type: 'moves', moves: ['e1c1'] },
+    { id: 'mate-back-rank', group: 'Checkmates', title: 'Back-rank mate',
+      goal: 'White to move and mate in 1.',
+      fen: '6k1/5ppp/8/8/8/8/8/3R2K1 w - - 0 1', type: 'mate', moves: ['d1d8'] },
+    { id: 'mate-queen-king', group: 'Checkmates', title: 'Queen and king',
+      goal: 'White to move and mate in 1.',
+      fen: '7k/8/6K1/8/8/8/8/1Q6 w - - 0 1', type: 'mate', moves: ['b1b8'] },
+    { id: 'mate-smothered', group: 'Checkmates', title: 'Smothered mate',
+      goal: 'White to move and mate in 1. The king\u2019s own pieces are in its way.',
+      fen: '6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1', type: 'mate', moves: ['g5f7'] },
+    { id: 'mate-in-two', group: 'Checkmates', title: 'Two rooks: mate in 2',
+      goal: 'White to move and mate in 2. Cut the king off first.',
+      fen: '7k/8/8/8/8/8/R7/1R4K1 w - - 0 1', type: 'mate', moves: ['a2a7', 'h8g8', 'b1b8'] },
+    { id: 'fork-queen', group: 'Tactics', title: 'Knight fork',
+      goal: 'Check the king and attack the queen at once, then take the queen.',
+      fen: '3q3k/6pp/8/4N3/8/8/8/6K1 w - - 0 1', type: 'moves', moves: ['e5f7', 'h8g8', 'f7d8'] },
+    { id: 'skewer-rook', group: 'Tactics', title: 'Skewer',
+      goal: 'Check the king so that it has to move out of the way of what is behind it.',
+      fen: '4r3/8/2k5/8/P7/8/8/5BK1 w - - 0 1', type: 'moves', moves: ['f1b5', 'c6c7', 'b5e8'] },
+    // Endgames. `stalemate` names a move that looks right and draws instead — the
+    // tests hold it to that.
+    { id: 'end-rook-1', group: 'Endgames', title: 'Rook and king',
+      goal: 'White to move and mate in 1. Your king already guards the escape squares.',
+      fen: '4k3/8/4K3/8/8/8/8/R7 w - - 0 1', type: 'mate', moves: ['a1a8'] },
+    { id: 'end-rook-2', group: 'Endgames', title: 'Rook and king: the box',
+      goal: 'White to move and mate in 2. Bring the king up first \u2014 and do not stalemate.',
+      fen: '7k/R7/5K2/8/8/8/8/8 w - - 0 1', type: 'mate', moves: ['f6g6', 'h8g8', 'a7a8'], stalemate: 'a7g7' },
+    { id: 'end-queen-2', group: 'Endgames', title: 'Queen and king: no stalemate',
+      goal: 'White to move and mate in 2. The obvious queen move leaves Black no move at all \u2014 a draw.',
+      fen: '7k/8/4K3/8/8/8/8/6Q1 w - - 0 1', type: 'mate', moves: ['e6f7', 'h8h7', 'g1h1'], stalemate: 'g1g6' },
+    { id: 'end-two-bishops', group: 'Endgames', title: 'Two bishops',
+      goal: 'White to move and mate in 1. One bishop guards g8; the other gives the check.',
+      fen: '7k/8/6K1/8/2B5/4B3/8/8 w - - 0 1', type: 'mate', moves: ['e3d4'] },
+    { id: 'end-bishop-knight', group: 'Endgames', title: 'Bishop and knight',
+      goal: 'White to move and mate in 1. The knight guards g8.',
+      fen: '7k/2B1N3/6K1/8/8/8/8/8 w - - 0 1', type: 'mate', moves: ['c7e5'] },
+    { id: 'end-promote-mate', group: 'Endgames', title: 'Promote with mate',
+      goal: 'White to move and mate in 1. The pawn has one square to go.',
+      fen: '7k/4P3/6K1/8/8/8/8/8 w - - 0 1', type: 'mate', moves: ['e7e8'] },
+    { id: 'end-breakthrough', group: 'Endgames', title: 'Pawn breakthrough',
+      goal: 'Three pawns against three, kings far away. Sacrifice two pawns so the third gets through, and make a queen.',
+      fen: '7k/ppp5/8/PPP5/8/8/8/7K w - - 0 1', type: 'moves',
+      moves: ['b5b6', 'a7b6', 'c5c6', 'b7c6', 'a5a6', 'h8g7', 'a6a7', 'g7f7', 'a7a8'] }
+];
+
 var _chessState = new WeakMap();
 
 // =============================================
@@ -447,7 +533,10 @@ function chessSaveData(toolId, st) {
         undoStack: st.undoStack,
         aiMode: st.aiMode || 'off',
         castling: st.castling,
-        ep: st.ep
+        ep: st.ep,
+        challenge: st.challenge ? { id: st.challenge.id, step: st.challenge.step, side: st.challenge.side,
+            status: st.challenge.status, message: st.challenge.message, tone: st.challenge.tone } : null,
+        solvedChallenges: st.solvedChallenges || []
     };
     saveToolCustomizations(custs);
 }
@@ -463,6 +552,209 @@ function chessInitialCastling() {
 
 // A game saved before castling was kept has no record of what moved. A king and rook
 // still on their first squares are taken to have stayed there — the best there is.
+// A position from FEN: the pieces, whose move, castling rights and en passant square.
+function chessFromFen(fen) {
+    var parts = String(fen).trim().split(/\s+/);
+    var board = parts[0].split('/').map(function(rank) {
+        var row = [];
+        rank.split('').forEach(function(ch) {
+            if (/[1-8]/.test(ch)) { for (var i = 0; i < Number(ch); i++) row.push(null); }
+            else row.push((ch === ch.toUpperCase() ? 'w' : 'b') + ch.toUpperCase());
+        });
+        return row;
+    });
+    var rights = parts[2] || '-';
+    var ep = parts[3] && parts[3] !== '-'
+        ? { row: 8 - Number(parts[3][1]), col: parts[3].charCodeAt(0) - 97 } : null;
+    return {
+        board: board,
+        turn: parts[1] === 'b' ? 'b' : 'w',
+        castling: { wK: rights.indexOf('K') >= 0, wQ: rights.indexOf('Q') >= 0, bK: rights.indexOf('k') >= 0, bQ: rights.indexOf('q') >= 0 },
+        ep: ep
+    };
+}
+
+function chessMoveName(fr, fc, tr, tc) {
+    return chessColToFile(fc) + chessRowToRank(fr) + chessColToFile(tc) + chessRowToRank(tr);
+}
+
+function chessParseMove(name) {
+    return { fc: name.charCodeAt(0) - 97, fr: 8 - Number(name[1]), tc: name.charCodeAt(2) - 97, tr: 8 - Number(name[3]) };
+}
+
+// Every legal move for one side, as { fr, fc, tr, tc }.
+function chessAllLegalMoves(board, color, castling, ep) {
+    var out = [];
+    for (var r = 0; r < 8; r++) {
+        for (var c = 0; c < 8; c++) {
+            var piece = board[r][c];
+            if (!piece || piece[0] !== color) continue;
+            chessGetValidMoves(board, r, c, color, castling, ep).forEach(function(m) {
+                out.push({ fr: r, fc: c, tr: m.row, tc: m.col });
+            });
+        }
+    }
+    return out;
+}
+
+/**
+ * Whether `move`, played by `color`, forces mate within `n` of its moves: mate at
+ * once, or every reply leaves a move that forces mate in one fewer. Small `n` only —
+ * it is what a mate challenge accepts, not an engine.
+ */
+function chessMoveForcesMate(board, castling, ep, color, move, n) {
+    var enemy = color === 'w' ? 'b' : 'w';
+    var after = chessApplyMove(board, castling, move);
+    var replies = chessAllLegalMoves(after.board, enemy, after.castling, after.ep);
+    if (!replies.length) return chessIsInCheck(after.board, enemy);
+    if (n <= 1) return false;
+    return replies.every(function(reply) {
+        var next = chessApplyMove(after.board, after.castling, reply);
+        return chessAllLegalMoves(next.board, color, next.castling, next.ep).some(function(m) {
+            return chessMoveForcesMate(next.board, next.castling, next.ep, color, m, n - 1);
+        });
+    });
+}
+
+function chessFindChallenge(id) {
+    for (var i = 0; i < CHESS_CHALLENGES.length; i++) if (CHESS_CHALLENGES[i].id === id) return CHESS_CHALLENGES[i];
+    return null;
+}
+
+// Set the board to a challenge's position, at its start.
+function chessStartChallenge(widget, id) {
+    var st = chessGetState(widget);
+    var ch = chessFindChallenge(id) || CHESS_CHALLENGES[0];
+    var pos = chessFromFen(ch.fen);
+    st.board = pos.board;
+    st.turn = pos.turn;
+    st.castling = pos.castling;
+    st.ep = pos.ep;
+    st.selected = null;
+    st.validMoves = [];
+    st.moveHistory = [];
+    st.capturedWhite = [];
+    st.capturedBlack = [];
+    st.gameOver = false;
+    st.inCheck = chessIsInCheck(st.board, st.turn);
+    st.undoStack = [];
+    st.hint = null;
+    st.challenge = { id: ch.id, step: 0, side: pos.turn, status: 'playing', message: '' };
+    chessRender(widget);
+}
+
+/**
+ * A move made in a challenge. The right one is played, and the reply after it; a
+ * wrong one is shown, then taken back. Returns true when the move was taken.
+ */
+function chessChallengeMove(widget, fr, fc, tr, tc) {
+    var st = chessGetState(widget);
+    var cur = st.challenge;
+    var ch = cur && chessFindChallenge(cur.id);
+    if (!ch || cur.status !== 'playing' || cur.busy) return false;
+    var name = chessMoveName(fr, fc, tr, tc);
+    var expected = ch.moves[cur.step];
+    var left = Math.ceil((ch.moves.length - cur.step) / 2);
+    var right = name === expected || (ch.type === 'mate' &&
+        chessMoveForcesMate(st.board, st.castling, st.ep, st.turn, { fr: fr, fc: fc, tr: tr, tc: tc }, left));
+    st.hint = null;
+    chessExecuteMove(widget, fr, fc, tr, tc);
+    if (!right) {
+        cur.message = chessIsStalemate(st.board, st.turn, st.ep) ? 'Stalemate: a draw, not a win. Try again.' : 'Not quite. Try again.';
+        cur.tone = 'wrong';
+        cur.busy = true;
+        chessRender(widget);
+        setTimeout(function() {
+            chessUndoOne(st);
+            cur.busy = false;
+            chessRender(widget);
+        }, 700);
+        return true;
+    }
+    cur.step++;
+    if (st.gameOver || cur.step >= ch.moves.length) {
+        chessChallengeSolved(widget);
+        return true;
+    }
+    // The reply: the one written down, when the move played was the one written down;
+    // otherwise the first there is — a mate found another way is still mate.
+    var reply = name === expected ? chessParseMove(ch.moves[cur.step]) : null;
+    var legal = chessAllLegalMoves(st.board, st.turn, st.castling, st.ep);
+    if (!reply || !legal.some(function(m) { return m.fr === reply.fr && m.fc === reply.fc && m.tr === reply.tr && m.tc === reply.tc; })) {
+        reply = legal[0];
+    }
+    cur.message = 'Right.';
+    cur.tone = 'right';
+    cur.busy = true;
+    chessRender(widget);
+    setTimeout(function() {
+        chessExecuteMove(widget, reply.fr, reply.fc, reply.tr, reply.tc);
+        cur.step++;
+        cur.busy = false;
+        cur.message = 'Your move.';
+        chessRender(widget);
+    }, 450);
+    return true;
+}
+
+function chessChallengeSolved(widget) {
+    var st = chessGetState(widget);
+    st.challenge.status = 'solved';
+    st.challenge.message = 'Solved \u2713';
+    st.challenge.tone = 'solved';
+    st.solvedChallenges = st.solvedChallenges || [];
+    if (st.solvedChallenges.indexOf(st.challenge.id) < 0) st.solvedChallenges.push(st.challenge.id);
+    chessRender(widget);
+}
+
+// One step back, without the two-step undo vs the computer.
+function chessUndoOne(st) {
+    var prev = st.undoStack.pop();
+    if (!prev) return;
+    st.board = prev.board;
+    st.turn = prev.turn;
+    st.capturedWhite = prev.capturedWhite;
+    st.capturedBlack = prev.capturedBlack;
+    st.inCheck = prev.inCheck;
+    st.gameOver = prev.gameOver;
+    st.castling = prev.castling || chessGuessCastling(prev.board);
+    st.ep = prev.ep || null;
+    st.moveHistory.pop();
+    st.selected = null;
+    st.validMoves = [];
+}
+
+function chessChallengeHint(btn) {
+    var widget = btn.closest('.chess-widget');
+    var st = chessGetState(widget);
+    var cur = st.challenge;
+    var ch = cur && chessFindChallenge(cur.id);
+    if (!ch || cur.status !== 'playing') return;
+    var m = chessParseMove(ch.moves[cur.step]);
+    st.hint = { row: m.fr, col: m.fc };
+    cur.message = 'Move the highlighted piece.';
+    cur.tone = '';
+    chessRender(widget);
+}
+
+function chessChallengeReset(btn) {
+    var widget = btn.closest('.chess-widget');
+    var st = chessGetState(widget);
+    if (st.challenge) chessStartChallenge(widget, st.challenge.id);
+}
+
+function chessChallengeNext(btn) {
+    var widget = btn.closest('.chess-widget');
+    var st = chessGetState(widget);
+    var at = 0;
+    for (var i = 0; i < CHESS_CHALLENGES.length; i++) if (st.challenge && CHESS_CHALLENGES[i].id === st.challenge.id) at = i;
+    chessStartChallenge(widget, CHESS_CHALLENGES[(at + 1) % CHESS_CHALLENGES.length].id);
+}
+
+function chessChallengePick(sel) {
+    chessStartChallenge(sel.closest('.chess-widget'), sel.value);
+}
+
 function chessGuessCastling(board) {
     var home = function(r, c, p) { return board[r] && board[r][c] === p; };
     return {
@@ -497,6 +789,8 @@ function chessInit() {
             st.aiMode = saved.aiMode || 'off';
             st.castling = saved.castling || chessGuessCastling(st.board);
             st.ep = saved.ep || null;
+            st.challenge = saved.challenge || null;
+            st.solvedChallenges = saved.solvedChallenges || [];
         }
 
         // Sync mode dropdown
@@ -533,6 +827,10 @@ function chessInit() {
         if (st.aiMode === 'black' && st.turn === 'b' && !st.gameOver) {
             setTimeout(function() { chessAIMakeMove(widget); }, 200);
         }
+        // A challenge left half-way, waiting on a reply that never came, starts again.
+        if (st.aiMode === 'challenge' && (!st.challenge || (st.challenge.status === 'playing' && st.turn !== st.challenge.side))) {
+            chessStartChallenge(widget, st.challenge ? st.challenge.id : CHESS_CHALLENGES[0].id);
+        }
     });
 }
 
@@ -563,6 +861,8 @@ function chessDrawBoard(widget) {
             // Highlight selected square
             if (st.selected && st.selected.row === r && st.selected.col === c) {
                 ctx.fillStyle = 'rgba(255, 255, 100, 0.7)';
+            } else if (st.hint && st.hint.row === r && st.hint.col === c) {
+                ctx.fillStyle = 'rgba(46, 204, 113, 0.75)';
             }
 
             // Highlight king in check
@@ -652,9 +952,14 @@ function chessUpdateUI(widget) {
     var modeSelect = widget.querySelector('.chess-mode-select');
     if (modeSelect) modeSelect.value = st.aiMode || 'off';
 
+    widget.classList.toggle('challenge-mode', st.aiMode === 'challenge');
+    if (st.aiMode === 'challenge') chessUpdateChallengePanel(widget);
+
     // Turn indicator
     var turnEl = widget.querySelector('.chess-turn');
-    if (turnEl) {
+    if (turnEl && st.aiMode === 'challenge' && st.challenge) {
+        turnEl.textContent = 'Challenge \u00B7 ' + (st.challenge.side === 'w' ? 'White' : 'Black') + ' to play';
+    } else if (turnEl) {
         if (st.gameOver) {
             turnEl.textContent = 'Game Over';
         } else if (st.aiMode === 'black' && st.turn === 'b') {
@@ -711,6 +1016,33 @@ function chessUpdateUI(widget) {
     }
 }
 
+function chessUpdateChallengePanel(widget) {
+    var st = chessGetState(widget);
+    var panel = widget.querySelector('.chess-challenge-panel');
+    if (!panel || !st.challenge) return;
+    var ch = chessFindChallenge(st.challenge.id);
+    var solved = st.solvedChallenges || [];
+    var select = panel.querySelector('.chess-challenge-select');
+    var html = '';
+    var group = null;
+    CHESS_CHALLENGES.forEach(function(c) {
+        if (c.group !== group) {
+            if (group) html += '</optgroup>';
+            group = c.group;
+            html += '<optgroup label="' + c.group + '">';
+        }
+        html += '<option value="' + c.id + '">' + (solved.indexOf(c.id) >= 0 ? '\u2713 ' : '') + c.title + '</option>';
+    });
+    select.innerHTML = html + '</optgroup>';
+    select.value = st.challenge.id;
+    panel.querySelector('.chess-challenge-goal').textContent = ch ? ch.goal : '';
+    var msg = panel.querySelector('.chess-challenge-message');
+    msg.textContent = st.challenge.message || '';
+    msg.className = 'chess-challenge-message' + (st.challenge.tone ? ' ' + st.challenge.tone : '');
+    panel.querySelector('.chess-challenge-count').textContent = solved.length + ' of ' + CHESS_CHALLENGES.length + ' solved';
+    panel.querySelector('.chess-challenge-hint-btn').disabled = st.challenge.status !== 'playing';
+}
+
 function chessResizeCanvas(widget) {
     var canvas = widget.querySelector('.chess-canvas');
     var wrap = widget.querySelector('.chess-canvas-wrap');
@@ -734,6 +1066,9 @@ function chessCanvasClick(widget, e) {
     if (st.gameOver) return;
     // Block clicks when it's AI's turn
     if (st.aiMode === 'black' && st.turn === 'b') return;
+    // In a challenge: only while it is the player's move, and not once it is solved.
+    if (st.aiMode === 'challenge' && (!st.challenge || st.challenge.status !== 'playing' ||
+        st.challenge.busy || st.turn !== st.challenge.side)) return;
 
     var canvas = widget.querySelector('.chess-canvas');
     var sq = canvas.width / 8;
@@ -750,6 +1085,13 @@ function chessCanvasClick(widget, e) {
                 isValid = true;
                 break;
             }
+        }
+        if (isValid && st.aiMode === 'challenge') {
+            var from = st.selected;
+            st.selected = null;
+            st.validMoves = [];
+            chessChallengeMove(widget, from.row, from.col, pos.row, pos.col);
+            return;
         }
         if (isValid) {
             chessExecuteMove(widget, st.selected.row, st.selected.col, pos.row, pos.col);
@@ -1255,6 +1597,14 @@ function chessSetMode(sel) {
     if (!widget) return;
     var st = chessGetState(widget);
     st.aiMode = sel.value;
+    st.hint = null;
+    if (st.aiMode === 'challenge') {
+        var solved = st.solvedChallenges || [];
+        var next = CHESS_CHALLENGES.filter(function(c) { return solved.indexOf(c.id) < 0; })[0] || CHESS_CHALLENGES[0];
+        chessStartChallenge(widget, st.challenge ? st.challenge.id : next.id);
+        return;
+    }
+    st.challenge = null;
     // Reset game when switching modes
     st.board = chessDeepCopyBoard(CHESS_INITIAL_BOARD);
     st.turn = 'w';
@@ -7318,7 +7668,7 @@ function tetrisDrawIdle(toolId) {
 (function injectScriptsForExport() {
     if (document.getElementById('game-tools-scripts')) return;
 
-    var chessFunctions = [chessGetToolId, chessGetState, chessGetData, chessSaveData, chessDeepCopyBoard, chessInitialCastling, chessGuessCastling, chessSpecialMoves, chessApplyMove, chessInit, chessRender, chessDrawBoard, chessUpdateUI, chessResizeCanvas, chessCanvasClick, chessPixelToBoard, chessGetValidMoves, chessGetRawMoves, chessPawnMoves, chessSlidingMoves, chessKnightMoves, chessKingMoves, chessFindKing, chessIsSquareAttacked, chessIsInCheck, chessWouldBeInCheck, chessIsCheckmate, chessIsStalemate, chessHasAnyLegalMove, chessExecuteMove, chessMoveNotation, chessNewGame, chessUndo, chessColToFile, chessRowToRank, chessSetMode, chessEvalBoard, chessAISearch, chessAIGetAllMoves, chessAIMakeMove];
+    var chessFunctions = [chessGetToolId, chessGetState, chessGetData, chessSaveData, chessDeepCopyBoard, chessInitialCastling, chessGuessCastling, chessSpecialMoves, chessApplyMove, chessFromFen, chessMoveName, chessParseMove, chessAllLegalMoves, chessMoveForcesMate, chessFindChallenge, chessStartChallenge, chessChallengeMove, chessChallengeSolved, chessUndoOne, chessChallengeHint, chessChallengeReset, chessChallengeNext, chessChallengePick, chessUpdateChallengePanel, chessInit, chessRender, chessDrawBoard, chessUpdateUI, chessResizeCanvas, chessCanvasClick, chessPixelToBoard, chessGetValidMoves, chessGetRawMoves, chessPawnMoves, chessSlidingMoves, chessKnightMoves, chessKingMoves, chessFindKing, chessIsSquareAttacked, chessIsInCheck, chessWouldBeInCheck, chessIsCheckmate, chessIsStalemate, chessHasAnyLegalMove, chessExecuteMove, chessMoveNotation, chessNewGame, chessUndo, chessColToFile, chessRowToRank, chessSetMode, chessEvalBoard, chessAISearch, chessAIGetAllMoves, chessAIMakeMove];
     var sudokuFunctions = [sudokuGetWidget, sudokuGetToolId, sudokuEmptyNotes, sudokuGetState, sudokuSaveData, sudokuShuffleArray, sudokuIsValid, sudokuFillGrid, sudokuGenerateSolution, sudokuCreatePuzzle, sudokuNewGame, sudokuNewGameForToolId, sudokuSetDifficulty, sudokuCheckConflicts, sudokuCheckWin, sudokuNumInputInternal, sudokuClearCellInternal, sudokuCellClick, sudokuNumInput, sudokuClearCell, sudokuHint, sudokuUndo, sudokuTogglePencil, sudokuCheck, sudokuStartTimer, sudokuStopTimer, sudokuFormatTime, sudokuRender, sudokuKeyHandler, sudokuInit];
     var typingTestFunctions = [typingTestGetWidget, typingTestGetToolId, typingTestGetState, typingTestSaveData, typingTestLoadBest, typingTestGenerateWords, typingTestNewGame, typingTestSetDuration, typingTestStartTimer, typingTestStopTimer, typingTestFinish, typingTestCalcWPM, typingTestCalcAccuracy, typingTestHandleInput, typingTestRenderWords, typingTestEscape, typingTestRender, typingTestInit];
     var flappyFunctions = [flappyGetToolId, flappyGetBest, flappySaveBest, flappyNewState, flappyInit, flappyStart, flappyFlap, flappyLoop, flappyUpdate, flappyGameOver, flappyDrawIdle, flappyDraw, flappyDrawBg, flappyDrawGround, flappyDrawPipe, flappyDrawBird];
@@ -7342,6 +7692,7 @@ function tetrisDrawIdle(toolId) {
         'window.CHESS_INITIAL_BOARD = ' + JSON.stringify(CHESS_INITIAL_BOARD) + ';\n' +
         'window.CHESS_PIECE_VALUES = ' + JSON.stringify(CHESS_PIECE_VALUES) + ';\n' +
         'window.CHESS_PST = ' + JSON.stringify(CHESS_PST) + ';\n' +
+        'window.CHESS_CHALLENGES = ' + JSON.stringify(CHESS_CHALLENGES) + ';\n' +
         'window._chessState = new WeakMap();\n' +
         'window.sudokuState = ' + JSON.stringify(sudokuState) + ';\n' +
         'window.sudokuKeyListenerAdded = false;\n' +
@@ -7428,11 +7779,11 @@ PluginRegistry.registerToolbox({
 PluginRegistry.registerTool({
     id: 'chess',
     name: 'Chess',
-    description: 'Chess with AI opponent or two-player mode, legal move validation and check/checkmate detection',
+    description: 'Chess with AI opponent or two-player mode, challenges to solve, legal move validation and check/checkmate detection',
     icon: '\u265A',
     version: '1.0.0',
     toolbox: 'game-tools',
-    tags: ['chess', 'game', 'board', 'strategy'],
+    tags: ['chess', 'game', 'board', 'strategy', 'puzzle'],
     title: 'Chess',
     content: '<div class="chess-widget">' +
         '<div class="chess-toolbar">' +
@@ -7441,15 +7792,27 @@ PluginRegistry.registerTool({
             '<select class="chess-mode-select" onchange="chessSetMode(this)">' +
                 '<option value="off">2 Player</option>' +
                 '<option value="black">vs AI</option>' +
+                '<option value="challenge">Challenges</option>' +
             '</select>' +
-            '<button onclick="chessUndo(this)">Undo</button>' +
-            '<button onclick="chessNewGame(this)">New Game</button>' +
+            '<button class="chess-undo-btn" onclick="chessUndo(this)">Undo</button>' +
+            '<button class="chess-new-btn" onclick="chessNewGame(this)">New Game</button>' +
         '</div>' +
         '<div class="chess-board-area">' +
             '<div class="chess-canvas-wrap">' +
                 '<canvas class="chess-canvas"></canvas>' +
             '</div>' +
             '<div class="chess-side-panel">' +
+                '<div class="chess-challenge-panel">' +
+                    '<select class="chess-challenge-select" aria-label="Challenge" onchange="chessChallengePick(this)"></select>' +
+                    '<div class="chess-challenge-goal"></div>' +
+                    '<div class="chess-challenge-message" role="status" aria-live="polite"></div>' +
+                    '<div class="chess-challenge-buttons">' +
+                        '<button class="chess-challenge-hint-btn" onclick="chessChallengeHint(this)">Hint</button>' +
+                        '<button onclick="chessChallengeReset(this)">Reset</button>' +
+                        '<button onclick="chessChallengeNext(this)">Next</button>' +
+                    '</div>' +
+                    '<div class="chess-challenge-count"></div>' +
+                '</div>' +
                 '<div class="chess-captured">' +
                     '<div class="chess-captured-label">Captured</div>' +
                     '<div class="chess-captured-pieces chess-captured-white"></div>' +
