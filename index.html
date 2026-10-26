@@ -3342,6 +3342,35 @@ body.dark-mode .markdown-content h4, body.dark-mode .markdown-content h5, body.d
     padding: 0;
 }
 
+/* A note's code block, with a bar to fold it away: its language, how long it is. */
+.note-code { margin: 0.6em 0; }
+.markdown-content .note-code > pre { margin: 0; border-radius: 0 0 4px 4px; }
+.note-code-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 3px 8px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 4px 4px 0 0;
+    background: var(--code-bg);
+    color: var(--text-secondary);
+    font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-align: left;
+    cursor: pointer;
+}
+.note-code-bar:hover { color: var(--text-primary); }
+.note-code-bar:focus-visible { outline: 2px solid var(--accent, #3498db); outline-offset: -2px; }
+.note-code-arrow { width: 10px; }
+.note-code-lines { margin-left: auto; }
+.note-code.folded > pre { display: none; }
+.note-code.folded > .note-code-bar { border-bottom: none; border-radius: 4px; }
+@media print {
+    .note-code-bar { display: none; }
+    .note-code.folded > pre { display: block; }
+}
+
 .markdown-content blockquote {
     border-left: 3px solid #3498db;
     margin: 0.5em 0;
@@ -4628,6 +4657,15 @@ tr:hover {
                 <input type="range" id="toolSettingsLineHeight" min="1" max="2.5" step="0.05" value="1.55" style="flex:1;cursor:pointer;">
                 <span id="toolSettingsLineHeightLabel" style="font-size:11px;min-width:38px;text-align:right;">default</span>
                 <button id="toolSettingsLineHeightReset" title="Reset to default" style="background:none;border:1px solid var(--border-color);border-radius:3px;cursor:pointer;font-size:10px;padding:1px 5px;color:var(--text-secondary);">↺</button>
+            </div>
+            <div id="toolSettingsCodeFoldRow" hidden>
+                <label for="toolSettingsCodeFold">Fold Long Code Blocks</label>
+                <select id="toolSettingsCodeFold" class="font-select">
+                    <option value="">Never</option>
+                    <option value="10">Over 10 lines</option>
+                    <option value="20">Over 20 lines</option>
+                    <option value="50">Over 50 lines</option>
+                </select>
             </div>
             <label>Zoom</label>
             <div style="display:flex;align-items:center;gap:6px;">
@@ -7127,6 +7165,14 @@ function setupToolControls() {
         settingsLineHeight.value = (lineHeight && lineHeight !== mixed) ? parseFloat(lineHeight) : 1.55;
         settingsLineHeightLabel.textContent = lineHeight === mixed ? 'Mixed' : (lineHeight || 'default');
 
+        // Only notes have code blocks to fold, so only notes are asked.
+        const allNotes = settingsTargetIds.length > 0 && settingsTargetIds.every(id =>
+            document.querySelector('.tool[data-tool="' + CSS.escape(id) + '"] .note-widget'));
+        document.getElementById('toolSettingsCodeFoldRow').hidden = !allNotes;
+        const codeFold = commonSettingValue('codeFoldLong', '');
+        const codeFoldSelect = document.getElementById('toolSettingsCodeFold');
+        codeFoldSelect.value = codeFold === mixed ? '' : String(codeFold || '');
+
         syncToolZoomUI();
 
         const align = commonSettingValue('textAlign', '');
@@ -7426,6 +7472,13 @@ function setupToolControls() {
         const value = String(Math.round(parseFloat(e.target.value) * 100) / 100);
         settingsLineHeightLabel.textContent = value;
         eachSettingsTarget((id, c) => { c.lineHeight = value; applyToolLineHeight(id); });
+    });
+    document.getElementById('toolSettingsCodeFold').addEventListener('change', (e) => {
+        const value = Number(e.target.value) || 0;
+        eachSettingsTarget((id, c) => {
+            if (value) c.codeFoldLong = value; else delete c.codeFoldLong;
+            noteRender(id);
+        });
     });
     settingsLineHeightReset.addEventListener('click', () => {
         eachSettingsTarget((id, c) => { delete c.lineHeight; applyToolLineHeight(id); });
@@ -9448,7 +9501,72 @@ function noteBodyHtml(text, custom) {
         return '<div class="note-empty">Nothing here yet. Double-click to write something, ' +
             'or press Edit above.</div>';
     }
-    return renderToolContent(text, custom.plainText, getTextTransforms(custom));
+    const html = renderToolContent(text, custom.plainText, getTextTransforms(custom));
+    return custom.plainText ? html : noteFoldCodeHtml(html, custom);
+}
+
+/**
+ * Code blocks in a note, each under a bar that folds it away. Which are folded is the
+ * note's to keep (`codeFold`, by the block's place in the note: its first, its
+ * second…) and not the Markdown's, so nothing that reads the note sees any of it.
+ * A block nobody has folded or opened follows `codeFoldLong`: longer than that many
+ * lines, it starts folded.
+ */
+function noteCodeFolded(custom, index, lines) {
+    const fold = custom.codeFold || {};
+    if (Object.prototype.hasOwnProperty.call(fold, index)) return !!fold[index];
+    const long = Number(custom.codeFoldLong) || 0;
+    return long > 0 && lines > long;
+}
+
+function noteFoldCodeHtml(html, custom) {
+    const t = document.createElement('template');
+    t.innerHTML = html;
+    t.content.querySelectorAll('pre').forEach((pre, i) => {
+        const code = pre.querySelector('code');
+        const lang = (code && ((code.className || '').match(/language-(\S+)/) || [])[1]) || '';
+        const text = pre.textContent.replace(/\n$/, '');
+        const lines = text ? text.split('\n').length : 0;
+        const folded = noteCodeFolded(custom, i, lines);
+        const wrap = document.createElement('div');
+        wrap.className = 'note-code' + (folded ? ' folded' : '');
+        wrap.dataset.codeIndex = String(i);
+        wrap.innerHTML = '<button type="button" class="note-code-bar" aria-expanded="' + !folded + '" ' +
+            'title="' + (folded ? 'Show' : 'Fold') + ' this code" onclick="noteCodeToggle(this, event)" ' +
+            // Two quick clicks are two toggles, not the double-click that opens the editor.
+            'ondblclick="event.stopPropagation()">' +
+            '<span class="note-code-arrow" aria-hidden="true">' + (folded ? '\u25B8' : '\u25BE') + '</span>' +
+            '<span class="note-code-lang">' + escapeHtml(lang || 'code') + '</span>' +
+            '<span class="note-code-lines">' + lines + (lines === 1 ? ' line' : ' lines') + '</span></button>';
+        pre.replaceWith(wrap);
+        wrap.appendChild(pre);
+    });
+    return t.innerHTML;
+}
+
+function noteCodeToggle(btn, event) {
+    if (event) event.stopPropagation();
+    const wrap = btn.closest('.note-code');
+    const toolId = toolIdOf(btn);
+    if (!wrap || !toolId) return;
+    const folded = !wrap.classList.contains('folded');
+    wrap.classList.toggle('folded', folded);
+    btn.setAttribute('aria-expanded', String(!folded));
+    btn.title = (folded ? 'Show' : 'Fold') + ' this code';
+    btn.querySelector('.note-code-arrow').textContent = folded ? '\u25B8' : '\u25BE';
+    const custom = toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    custom.codeFold = Object.assign({}, custom.codeFold, { [wrap.dataset.codeIndex]: folded });
+    saveToolCustomizations(toolCustomizations);
+}
+
+/** A note's result as it reads, for copying: every code block open, and no bars. */
+function noteResultForCopy(result) {
+    const copy = result.cloneNode(true);
+    copy.querySelectorAll('.note-code').forEach(wrap => {
+        const pre = wrap.querySelector(':scope > pre');
+        if (pre) wrap.replaceWith(pre); else wrap.remove();
+    });
+    return copy;
 }
 
 const NOTE_COPY_ICON = '<svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
@@ -9551,7 +9669,14 @@ function noteCopyRendered(btn) {
     const tool = btn.closest('.tool');
     const result = tool && tool.querySelector('.authoring-result');
     if (!result) return;
-    copyRichTextToClipboard(result.innerHTML, result.innerText, 'Copied with its formatting');
+    // Folded code is copied too, and the bars are not: what is copied is the note.
+    // Laid out off screen for a moment, so its words come out in lines as they read.
+    const copy = noteResultForCopy(result);
+    copy.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + (result.clientWidth || 600) + 'px;';
+    document.body.appendChild(copy);
+    const plain = copy.innerText;
+    copy.remove();
+    copyRichTextToClipboard(copy.innerHTML, plain, 'Copied with its formatting');
 }
 
 /**

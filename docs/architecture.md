@@ -255,6 +255,20 @@ replacement and supported everywhere, and it is what puts each change on the
 browser's own undo stack — which the board's undo already leaves alone inside
 anything `contenteditable`.
 
+### Folding a note's code
+
+In a note's result each code block sits under a bar — ▾/▸, its language, how many
+lines — that folds it away (`noteFoldCodeHtml()`, a button with `aria-expanded`;
+Enter and Space work, and a double-click on it is two folds, not the editor). Which
+blocks are folded is kept with the note as `codeFold`, by the block's place in the
+note, and never in the Markdown: everything that reads the note reads what it did.
+Kept by place, a block added above a folded one moves the fold; kept by content, any
+edit to a block would have opened it again. A note may also start long blocks folded
+(`codeFoldLong`, "Fold Long Code Blocks" in its settings, offered only when every tool
+being set is a note); a block folded or opened by hand keeps that. Copy formatted
+copies every block open and none of the bars, the rich editor shows every block whole,
+and printing shows them all.
+
 ### Copying a note
 
 A note is written in Markdown and read as a document, which are two different things
