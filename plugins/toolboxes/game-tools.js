@@ -24,6 +24,10 @@
 .chess-captured { padding: 6px; flex-shrink: 0; }
 .chess-captured-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 .chess-captured-pieces { font-size: 16px; line-height: 1.4; min-height: 20px; word-break: break-all; }
+/* On the board's light-square colour, so white and black pieces both show in either theme. */
+.chess-captured-pieces:not(:empty) { background: #f0d9b5; border-radius: 4px; padding: 0 4px; margin-top: 3px; }
+.chess-captured-white { color: #ffffff; -webkit-text-stroke: 1px #222222; paint-order: stroke fill; }
+.chess-captured-black { color: #000000; }
 .chess-history-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--border-color); }
 .chess-history-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 6px 2px; flex-shrink: 0; }
 .chess-history { flex: 1; overflow-y: auto; padding: 0 6px 6px; font-size: 11px; font-family: monospace; }
@@ -478,6 +482,18 @@ var CHESS_CHALLENGES = [
       moves: ['b5b6', 'a7b6', 'c5c6', 'b7c6', 'a5a6', 'h8g7', 'a6a7', 'g7f7', 'a7a8'] }
 ];
 
+/**
+ * The character a piece is drawn with. Both colours use the solid shapes (♚♛♜♝♞♟):
+ * the outlined ones (♔♕♖♗♘♙) are only an outline, so a "white" piece was its square's
+ * colour inside, whatever it was filled with. The colour comes from the fill. The
+ * U+FE0E after it asks for the text glyph — some systems draw ♟ as a coloured emoji,
+ * which no fill can turn white.
+ */
+function chessGlyph(piece) {
+    var solid = piece && CHESS_UNICODE['b' + piece[1]];
+    return solid ? solid + '\uFE0E' : '';
+}
+
 var _chessState = new WeakMap();
 
 // =============================================
@@ -907,7 +923,7 @@ function chessDrawBoard(widget) {
         for (var c = 0; c < 8; c++) {
             var piece = st.board[r][c];
             if (piece) {
-                var uc = CHESS_UNICODE[piece];
+                var uc = chessGlyph(piece);
                 if (uc) {
                     // Draw shadow for white pieces on light squares for readability
                     if (piece[0] === 'w') {
@@ -916,9 +932,11 @@ function chessDrawBoard(widget) {
                     }
                     ctx.fillStyle = piece[0] === 'w' ? '#ffffff' : '#000000';
                     ctx.fillText(uc, c * sq + sq / 2, r * sq + sq / 2);
-                    // Stroke for contrast
-                    ctx.lineWidth = 0.5;
-                    ctx.strokeStyle = piece[0] === 'w' ? '#333333' : '#333333';
+                    // An outline, heavier on white so a solid white piece keeps its
+                    // shape on a light square.
+                    ctx.lineJoin = 'round';
+                    ctx.lineWidth = piece[0] === 'w' ? Math.max(1, sq * 0.022) : 0.5;
+                    ctx.strokeStyle = piece[0] === 'w' ? '#222222' : '#333333';
                     ctx.strokeText(uc, c * sq + sq / 2, r * sq + sq / 2);
                 }
             }
@@ -993,10 +1011,10 @@ function chessUpdateUI(widget) {
     var capWhiteEl = widget.querySelector('.chess-captured-white');
     var capBlackEl = widget.querySelector('.chess-captured-black');
     if (capWhiteEl) {
-        capWhiteEl.textContent = st.capturedWhite.map(function(p) { return CHESS_UNICODE[p] || ''; }).join('');
+        capWhiteEl.textContent = st.capturedWhite.map(chessGlyph).join('');
     }
     if (capBlackEl) {
-        capBlackEl.textContent = st.capturedBlack.map(function(p) { return CHESS_UNICODE[p] || ''; }).join('');
+        capBlackEl.textContent = st.capturedBlack.map(chessGlyph).join('');
     }
 
     // Move history
@@ -7668,7 +7686,7 @@ function tetrisDrawIdle(toolId) {
 (function injectScriptsForExport() {
     if (document.getElementById('game-tools-scripts')) return;
 
-    var chessFunctions = [chessGetToolId, chessGetState, chessGetData, chessSaveData, chessDeepCopyBoard, chessInitialCastling, chessGuessCastling, chessSpecialMoves, chessApplyMove, chessFromFen, chessMoveName, chessParseMove, chessAllLegalMoves, chessMoveForcesMate, chessFindChallenge, chessStartChallenge, chessChallengeMove, chessChallengeSolved, chessUndoOne, chessChallengeHint, chessChallengeReset, chessChallengeNext, chessChallengePick, chessUpdateChallengePanel, chessInit, chessRender, chessDrawBoard, chessUpdateUI, chessResizeCanvas, chessCanvasClick, chessPixelToBoard, chessGetValidMoves, chessGetRawMoves, chessPawnMoves, chessSlidingMoves, chessKnightMoves, chessKingMoves, chessFindKing, chessIsSquareAttacked, chessIsInCheck, chessWouldBeInCheck, chessIsCheckmate, chessIsStalemate, chessHasAnyLegalMove, chessExecuteMove, chessMoveNotation, chessNewGame, chessUndo, chessColToFile, chessRowToRank, chessSetMode, chessEvalBoard, chessAISearch, chessAIGetAllMoves, chessAIMakeMove];
+    var chessFunctions = [chessGetToolId, chessGetState, chessGetData, chessSaveData, chessDeepCopyBoard, chessGlyph, chessInitialCastling, chessGuessCastling, chessSpecialMoves, chessApplyMove, chessFromFen, chessMoveName, chessParseMove, chessAllLegalMoves, chessMoveForcesMate, chessFindChallenge, chessStartChallenge, chessChallengeMove, chessChallengeSolved, chessUndoOne, chessChallengeHint, chessChallengeReset, chessChallengeNext, chessChallengePick, chessUpdateChallengePanel, chessInit, chessRender, chessDrawBoard, chessUpdateUI, chessResizeCanvas, chessCanvasClick, chessPixelToBoard, chessGetValidMoves, chessGetRawMoves, chessPawnMoves, chessSlidingMoves, chessKnightMoves, chessKingMoves, chessFindKing, chessIsSquareAttacked, chessIsInCheck, chessWouldBeInCheck, chessIsCheckmate, chessIsStalemate, chessHasAnyLegalMove, chessExecuteMove, chessMoveNotation, chessNewGame, chessUndo, chessColToFile, chessRowToRank, chessSetMode, chessEvalBoard, chessAISearch, chessAIGetAllMoves, chessAIMakeMove];
     var sudokuFunctions = [sudokuGetWidget, sudokuGetToolId, sudokuEmptyNotes, sudokuGetState, sudokuSaveData, sudokuShuffleArray, sudokuIsValid, sudokuFillGrid, sudokuGenerateSolution, sudokuCreatePuzzle, sudokuNewGame, sudokuNewGameForToolId, sudokuSetDifficulty, sudokuCheckConflicts, sudokuCheckWin, sudokuNumInputInternal, sudokuClearCellInternal, sudokuCellClick, sudokuNumInput, sudokuClearCell, sudokuHint, sudokuUndo, sudokuTogglePencil, sudokuCheck, sudokuStartTimer, sudokuStopTimer, sudokuFormatTime, sudokuRender, sudokuKeyHandler, sudokuInit];
     var typingTestFunctions = [typingTestGetWidget, typingTestGetToolId, typingTestGetState, typingTestSaveData, typingTestLoadBest, typingTestGenerateWords, typingTestNewGame, typingTestSetDuration, typingTestStartTimer, typingTestStopTimer, typingTestFinish, typingTestCalcWPM, typingTestCalcAccuracy, typingTestHandleInput, typingTestRenderWords, typingTestEscape, typingTestRender, typingTestInit];
     var flappyFunctions = [flappyGetToolId, flappyGetBest, flappySaveBest, flappyNewState, flappyInit, flappyStart, flappyFlap, flappyLoop, flappyUpdate, flappyGameOver, flappyDrawIdle, flappyDraw, flappyDrawBg, flappyDrawGround, flappyDrawPipe, flappyDrawBird];

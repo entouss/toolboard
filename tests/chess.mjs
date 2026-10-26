@@ -58,6 +58,21 @@ const movesIn = (rows, from, castling, ep) => page.evaluate(({ rows, from, castl
 const ALL = { wK: true, wQ: true, bK: true, bQ: true };
 const E = '. . . . . . . .';
 
+// 0. White pieces are solid white: drawn with the filled shapes, not the outlined
+//    ones, whose middle was the square's own colour.
+const pixel = (name, dy) => page.evaluate(({ s, name, dy }) => {
+    const canvas = document.querySelector(s);
+    const sq = canvas.width / 8;
+    const x = Math.round((name.charCodeAt(0) - 97) * sq + sq / 2), y = Math.round((8 - Number(name[1])) * sq + sq / 2 + sq * dy);
+    return Array.from(canvas.getContext('2d').getImageData(x, y, 1, 1).data.slice(0, 3));
+}, { s: W + ' .chess-canvas', name, dy });
+const whiteKing = await pixel('e1', 0.12), whitePawn = await pixel('d2', 0.15), emptyLight = await pixel('e4', 0.12);
+ok('a white piece is white in the middle, not the square showing through',
+    [whiteKing, whitePawn].every(px => px.every(v => v >= 235)) && !emptyLight.every(v => v >= 235),
+    JSON.stringify({ whiteKing, whitePawn, emptyLight }));
+ok('both colours are drawn with the filled shapes, as text rather than emoji', await page.evaluate(() =>
+    chessGlyph('wK') === '\u265A\uFE0E' && chessGlyph('bK') === '\u265A\uFE0E' && chessGlyph('wP') === '\u265F\uFE0E'));
+
 // 1. Castling on the king's side, both colours, by clicking.
 await play('e2e4 e7e5 g1f3 g8f6 f1c4 f8c5');
 await click('e1');
@@ -195,5 +210,5 @@ ok('and still answers a move, in play against it', (await state()).history.lengt
 
 await page.screenshot({ path: OUT + '/chess.png' });
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
-console.log('  (all ' + 36 + ' assertions reached)');
+console.log('  (all ' + 38 + ' assertions reached)');
 await browser.close();
