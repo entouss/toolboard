@@ -1718,6 +1718,101 @@ body.dark-mode .rcp-widget { --rcp-accent: #5cb860; --rcp-border: #8b9096; }
 .rcp-help-close { float: right; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; }
 .rcp-help-close:hover { color: var(--text-heading); }
 
+/* ---- Agenda Timer ---- */
+.agt-widget { display: flex; flex-direction: column; gap: 8px; height: 100%; font-size: 12px; color: var(--text-primary); }
+.agt-head, .agt-row { display: grid; grid-template-columns: 16px 1fr 64px 40px 22px 20px; gap: 6px; align-items: center; }
+.agt-notes-btn { font-size: 13px; opacity: .35; filter: grayscale(1); }
+.agt-notes-btn:hover, .agt-notes-btn[aria-expanded="true"] { opacity: .8; }
+.agt-notes-btn.agt-has-notes { opacity: 1; filter: none; }
+.agt-notes-box { grid-column: 2 / -1; }
+.agt-notes-box[hidden] { display: none; }
+.agt-notes {
+    width: 100%; min-height: 54px; resize: vertical; padding: 5px 7px; font-family: inherit; font-size: 12px;
+    line-height: 1.45; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg);
+    color: var(--text-primary);
+}
+.agt-widget.agt-running .agt-run { height: 100%; }
+.agt-run-notes {
+    flex: 1 1 auto; min-height: 60px; overflow: auto; padding: 8px 10px; border: 1px solid var(--border-light);
+    border-radius: 6px; background: var(--bg-secondary); font-size: 13px; line-height: 1.5;
+}
+.agt-run-notes > :first-child { margin-top: 0; }
+.agt-run-notes > :last-child { margin-bottom: 0; }
+.agt-run-notes li.agt-task { list-style: none; margin-left: -1.2em; }
+.agt-run-notes li.agt-task input { margin-right: 6px; cursor: pointer; }
+.agt-run-notes li.agt-task:has(input:checked) { color: var(--text-muted); text-decoration: line-through; }
+.agt-short-text { color: #b9770e; font-weight: 600; }
+.agt-head { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; padding: 0 2px; }
+.agt-head span:first-child { grid-column: 2; }
+.agt-head span:last-child { text-align: center; }
+.agt-rows { display: flex; flex-direction: column; gap: 4px; }
+.agt-row { padding: 2px; border-radius: 4px; }
+.agt-row.agt-dragging { opacity: .5; }
+.agt-row.agt-drop-before { box-shadow: inset 0 2px 0 var(--link-color); }
+.agt-row.agt-drop-after { box-shadow: inset 0 -2px 0 var(--link-color); }
+.agt-grip { cursor: grab; color: var(--text-muted); text-align: center; user-select: none; }
+.agt-name, .agt-mins, .agt-for, .agt-until {
+    width: 100%; min-width: 0; padding: 4px 6px; font-size: 12px; border: 1px solid var(--border-color);
+    border-radius: 4px; background: var(--input-bg); color: var(--text-primary);
+}
+.agt-mins { text-align: right; }
+.agt-for { width: 60px; }
+.agt-until { width: auto; }
+.agt-fixed { display: flex; align-items: center; justify-content: center; gap: 2px; cursor: pointer; font-size: 11px; }
+.agt-fixed input { margin: 0; }
+.agt-x { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 15px; line-height: 1; }
+.agt-x:hover { color: #e74c3c; }
+.agt-foot { display: flex; align-items: center; justify-content: space-between; }
+.agt-total { color: var(--text-secondary); }
+.agt-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.agt-actions[hidden], .agt-start[hidden] { display: none; }
+.agt-btn {
+    padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary);
+    color: var(--text-primary); cursor: pointer; font-size: 12px; white-space: nowrap;
+}
+.agt-btn:hover:not(:disabled) { background: var(--table-hover); }
+.agt-btn:disabled { opacity: .45; cursor: default; }
+.agt-btn.primary { background: var(--link-color); border-color: var(--link-color); color: #fff; }
+.agt-btn.primary:hover:not(:disabled) { filter: brightness(1.1); background: var(--link-color); }
+.agt-btn.agt-confirm { background: #e74c3c; border-color: #e74c3c; color: #fff; }
+.agt-start { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); }
+.agt-start-q { font-weight: 600; }
+.agt-start-opt { display: flex; align-items: center; gap: 6px; }
+.agt-note { color: var(--text-secondary); }
+.agt-note.agt-short { color: #b9770e; }
+.agt-note.agt-bad { color: #e74c3c; }
+.agt-preview-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.agt-preview-row { display: flex; justify-content: space-between; gap: 8px; }
+.agt-preview-len s { color: var(--text-muted); }
+/* Running. */
+.agt-run { display: flex; flex-direction: column; gap: 8px; }
+.agt-strip { display: flex; gap: 2px; height: 10px; }
+.agt-seg { position: relative; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; min-width: 4px; }
+.agt-seg-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--link-color); opacity: .45; }
+.agt-seg.done .agt-seg-fill { width: 100%; opacity: .3; }
+.agt-seg.current { outline: 1px solid var(--link-color); }
+.agt-seg.current .agt-seg-fill { opacity: .8; }
+.agt-now { text-align: center; padding: 6px 0; border-radius: 8px; }
+.agt-count { font-size: 11px; color: var(--text-muted); }
+.agt-title { font-size: 16px; font-weight: 600; margin-top: 2px; }
+.agt-clock { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.agt-of { color: var(--text-secondary); }
+.agt-was { color: var(--text-muted); }
+.agt-now.agt-warn .agt-clock { color: #e67e22; }
+.agt-now.agt-over { background: rgba(231, 76, 60, .12); }
+.agt-now.agt-over .agt-clock { color: #e74c3c; }
+.agt-now.agt-paused .agt-clock { opacity: .55; }
+.agt-next { text-align: center; color: var(--text-secondary); }
+.agt-status { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; color: var(--text-secondary); }
+.agt-delta.agt-behind { color: #e74c3c; font-weight: 600; }
+.agt-delta.agt-ahead { color: #27ae60; font-weight: 600; }
+.agt-controls { justify-content: center; }
+.agt-msg { text-align: center; color: var(--text-secondary); min-height: 1em; }
+.agt-summary { margin-top: 6px; }
+.agt-over-text { color: #e74c3c; font-weight: 600; }
+.agt-done .agt-title, .agt-done .agt-of { text-align: center; }
+.agt-done .agt-actions { justify-content: center; margin-top: 6px; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -5941,6 +6036,723 @@ bake 350&deg;F (170&deg;C) 30 to 40 min
 // SCRIPT INJECTION FOR HTML EXPORT
 // =============================================
 
+// =============================================
+// AGENDA TIMER
+// =============================================
+// A timer for something with parts — an interview, a meeting, a talk. Its sections
+// and their minutes are written ahead of time. Start asks how long there really is
+// and, when that is less than planned, shrinks every section that is not fixed by
+// the same proportion. Running, it counts each section down, says how far ahead or
+// behind the whole is, and never moves on by itself: a section that runs over counts
+// its overtime until Next.
+//
+// Time is kept as clock time — when the current section was entered, and how long
+// each section has had — not as ticks, so a reload, a sleeping laptop or a tab in the
+// background loses none of it.
+
+const AGT_DEFAULT_SECTIONS = [
+    { name: 'Introductions', minutes: 5 },
+    { name: 'Background', minutes: 10 },
+    { name: 'Technical', minutes: 20 },
+    { name: 'Their questions', minutes: 5 },
+    { name: 'Wrap-up', minutes: 5, fixed: true }
+];
+/** The last minute of a section is shown amber. */
+const AGT_WARN_SECS = 60;
+let agtTimer = null;
+/** The section each running timer has chimed for, so a section chimes once. */
+const agtChimed = new Map();
+let agtDrag = null;
+let agtAudio = null;
+
+function agtGetToolId(el) { return el.closest('.tool')?.dataset.tool || null; }
+function agtGetWidget(el) { return el.closest('.agt-widget'); }
+
+function agtGetData(toolId) {
+    const c = loadToolCustomizations()[toolId] || {};
+    return {
+        sections: Array.isArray(c.agtSections) ? c.agtSections : AGT_DEFAULT_SECTIONS.map(s => Object.assign({}, s)),
+        run: c.agtRun || null,
+        sound: c.agtSound !== false
+    };
+}
+
+function agtSaveData(toolId, data) {
+    const all = loadToolCustomizations();
+    const c = all[toolId] = all[toolId] || {};
+    c.agtSections = data.sections;
+    if (data.run) c.agtRun = data.run; else delete c.agtRun;
+    if (data.sound === false) c.agtSound = false; else delete c.agtSound;
+    saveToolCustomizations(all);
+}
+
+/** 4:05, or 1:02:05 past the hour. */
+function agtClock(secs) {
+    const s = Math.max(0, Math.round(secs));
+    const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(r).padStart(2, '0');
+}
+
+/** A length as a plan says it: "5 min", or 4:30 when it is not whole minutes. */
+function agtLength(secs) {
+    secs = Math.round(secs);
+    return secs % 60 === 0 ? (secs / 60) + ' min' : agtClock(secs);
+}
+
+function agtTimeOfDay(ms) {
+    return new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+/**
+ * Lengths fitted into `target` seconds. The ones not fixed shrink by one proportion,
+ * rounded to `unit` seconds with the total kept exact: units left over go to the
+ * largest remainders, and anything less than a unit to the longest. If the fixed ones
+ * alone do not fit, everything shrinks together. Never stretches.
+ */
+function agtScale(secs, fixed, target, unit) {
+    const total = secs.reduce((a, b) => a + b, 0);
+    if (target >= total) return secs.slice();
+    target = Math.max(0, Math.floor(target));
+    const fixedSum = secs.reduce((a, s, i) => a + (fixed[i] ? s : 0), 0);
+    let flex = secs.map((s, i) => !fixed[i] && s > 0);
+    if (fixedSum >= target || !flex.some(Boolean)) flex = secs.map(s => s > 0);
+    const keep = secs.reduce((a, s, i) => a + (flex[i] ? 0 : s), 0);
+    const room = Math.max(0, target - keep);
+    const flexSum = secs.reduce((a, s, i) => a + (flex[i] ? s : 0), 0);
+    const exact = secs.map((s, i) => flex[i] ? s * room / flexSum : s);
+    const out = exact.map((x, i) => flex[i] ? Math.floor(x / unit) * unit : x);
+    let left = room - out.reduce((a, x, i) => a + (flex[i] ? x : 0), 0);
+    const order = out.map((x, i) => i).filter(i => flex[i])
+        .sort((a, b) => (exact[b] - out[b]) - (exact[a] - out[a]) || a - b);
+    for (const i of order) {
+        if (left < unit) break;
+        out[i] += unit;
+        left -= unit;
+    }
+    if (left > 0 && order.length) {
+        const longest = order.slice().sort((a, b) => out[b] - out[a] || a - b)[0];
+        out[longest] += left;
+    }
+    return out;
+}
+
+/** Where a running timer is, now. All in seconds but the two times of day. */
+function agtLive(run, now) {
+    const going = run.since != null && !run.done ? (now - run.since) / 1000 : 0;
+    const cur = run.spent[run.index] / 1000 + going;
+    const elapsed = run.spent.reduce((a, b) => a + b, 0) / 1000 + going;
+    const dur = run.durs[run.index];
+    // Behind the plan: what the sections before took over theirs, and this one's overtime.
+    let behind = Math.max(0, cur - dur);
+    for (let j = 0; j < run.index; j++) behind += run.spent[j] / 1000 - run.durs[j];
+    let rest = Math.max(0, dur - cur);
+    for (let j = run.index + 1; j < run.durs.length; j++) rest += Math.max(0, run.durs[j] - run.spent[j] / 1000);
+    const left = run.endAt ? (run.endAt - now) / 1000 : run.budget - elapsed;
+    return { cur, dur, remaining: dur - cur, elapsed, behind, rest, left,
+        projectedEnd: now + rest * 1000, plannedEnd: now + left * 1000 };
+}
+
+// ---- the plan ----
+
+function agtPlanSecs(sections) {
+    return sections.map(s => Math.round((Number(s.minutes) || 0) * 60));
+}
+
+function agtEditHtml(toolId, data) {
+    const total = agtPlanSecs(data.sections).reduce((a, b) => a + b, 0);
+    const group = 'agt-mode-' + String(toolId).replace(/[^a-zA-Z0-9]/g, '');
+    return '<div class="agt-edit">' +
+        '<div class="agt-head"><span>Section</span><span>Minutes</span><span title="Fixed sections keep their length when time is short">Fixed</span><span></span></div>' +
+        '<div class="agt-rows">' + data.sections.map((s, i) =>
+            '<div class="agt-row" data-i="' + i + '" ondragover="agtDragOver(this, event)" ' +
+                'ondragleave="agtDragLeave(this)" ondrop="agtDrop(this, event)">' +
+                '<span class="agt-grip" draggable="true" title="Drag to reorder (or Alt+↑/↓ in its name)" ' +
+                    'ondragstart="agtDragStart(this, event)" ondragend="agtDragEnd(this)">☰</span>' +
+                '<input class="agt-name" value="' + escapeHtml(s.name || '') + '" placeholder="Section name" ' +
+                    'aria-label="Section name" oninput="agtEdit(this)" onkeydown="agtNameKey(this, event)">' +
+                '<input class="agt-mins" type="number" min="0" step="0.5" value="' + (Number(s.minutes) || 0) + '" ' +
+                    'aria-label="Minutes" oninput="agtEdit(this)">' +
+                '<label class="agt-fixed" title="Fixed: kept at its length when time is short">' +
+                    '<input type="checkbox"' + (s.fixed ? ' checked' : '') + ' onchange="agtEdit(this)" ' +
+                    'aria-label="Fixed length"><span aria-hidden="true">🔒</span></label>' +
+                '<button class="agt-x agt-notes-btn' + (s.notes ? ' agt-has-notes' : '') + '" onclick="agtNotesToggle(this)" ' +
+                    'title="Notes for this section" aria-label="Notes for this section" aria-expanded="false">📝</button>' +
+                '<button class="agt-x agt-remove" onclick="agtRemove(this)" title="Remove this section" ' +
+                    'aria-label="Remove this section">×</button>' +
+                '<div class="agt-notes-box" hidden><textarea class="agt-notes" rows="3" spellcheck="true" ' +
+                    'aria-label="Notes for this section" oninput="agtEdit(this)" ' +
+                    'placeholder="Notes for this section, in Markdown. A line “- [ ] question” is a tick-box while it runs.">' +
+                    escapeHtml(s.notes || '') + '</textarea></div>' +
+            '</div>').join('') + '</div>' +
+        '<div class="agt-foot">' +
+            '<button class="agt-btn" onclick="agtAdd(this)">+ Section</button>' +
+            '<span class="agt-total">Total <b>' + agtLength(total) + '</b></span>' +
+        '</div>' +
+        '<div class="agt-start" hidden>' +
+            '<div class="agt-start-q">How much time do you have?</div>' +
+            '<label class="agt-start-opt"><input type="radio" name="' + group + '" value="for" checked ' +
+                'onchange="agtPreview(this)"> For <input class="agt-for" type="number" min="1" step="1" ' +
+                'value="' + Math.round(total / 60) + '" oninput="agtPick(this, \'for\')"> min</label>' +
+            '<label class="agt-start-opt"><input type="radio" name="' + group + '" value="until" ' +
+                'onchange="agtPreview(this)"> Until <input class="agt-until" type="time" ' +
+                'oninput="agtPick(this, \'until\')"></label>' +
+            '<div class="agt-preview"></div>' +
+            '<div class="agt-actions">' +
+                '<button class="agt-btn primary agt-go" onclick="agtStartGo(this)">Start</button>' +
+                '<button class="agt-btn" onclick="agtStartCancel(this)">Cancel</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="agt-actions agt-plan-actions">' +
+            '<button class="agt-btn primary agt-start-btn" onclick="agtStartOpen(this)"' + (total ? '' : ' disabled') + '>Start…</button>' +
+            agtSoundHtml(data) +
+        '</div>' +
+    '</div>';
+}
+
+function agtSoundHtml(data) {
+    return '<button class="agt-btn agt-sound" onclick="agtSound(this)" aria-pressed="' + data.sound + '" ' +
+        'title="' + (data.sound ? 'A chime when a section’s time is up — click to mute' : 'Muted — click for a chime when a section’s time is up') + '">' +
+        (data.sound ? '🔔' : '🔕') + '</button>';
+}
+
+/** The plan as the rows now say it. */
+function agtReadRows(widget) {
+    return Array.from(widget.querySelectorAll('.agt-row')).map(r => {
+        const s = {
+            name: r.querySelector('.agt-name').value,
+            minutes: Math.max(0, Number(r.querySelector('.agt-mins').value) || 0)
+        };
+        if (r.querySelector('.agt-fixed input').checked) s.fixed = true;
+        const notes = r.querySelector('.agt-notes').value;
+        if (notes.trim()) s.notes = notes;
+        return s;
+    });
+}
+
+/** Typing keeps the caret: the rows are read and saved, and only the total redrawn. */
+function agtEdit(el) {
+    const widget = agtGetWidget(el), toolId = agtGetToolId(el);
+    if (!widget || !toolId) return;
+    const data = agtGetData(toolId);
+    data.sections = agtReadRows(widget);
+    agtSaveData(toolId, data);
+    const total = agtPlanSecs(data.sections).reduce((a, b) => a + b, 0);
+    widget.querySelector('.agt-total b').textContent = agtLength(total);
+    widget.querySelector('.agt-start-btn').disabled = !total;
+    if (!widget.querySelector('.agt-start').hidden) agtPreview(widget);
+    if (el.classList.contains('agt-notes')) {
+        agtGrow(el);
+        el.closest('.agt-row').querySelector('.agt-notes-btn').classList.toggle('agt-has-notes', !!el.value.trim());
+    }
+}
+
+/** A notes box as tall as what is in it, within reason. */
+function agtGrow(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(240, textarea.scrollHeight + 2) + 'px';
+}
+
+/** Which rows have their notes open, by place; kept on the widget across redraws. */
+function agtOpenNotes(widget) {
+    widget._agtOpen = widget._agtOpen || new Set();
+    return widget._agtOpen;
+}
+
+function agtNotesToggle(btn) {
+    const widget = agtGetWidget(btn);
+    const row = btn.closest('.agt-row');
+    const box = row.querySelector('.agt-notes-box');
+    box.hidden = !box.hidden;
+    btn.setAttribute('aria-expanded', String(!box.hidden));
+    const open = agtOpenNotes(widget), i = +row.dataset.i;
+    if (box.hidden) open.delete(i); else open.add(i);
+    if (!box.hidden) {
+        const ta = box.querySelector('textarea');
+        agtGrow(ta);
+        ta.focus();
+    }
+}
+
+function agtAdd(btn) {
+    const widget = agtGetWidget(btn), toolId = agtGetToolId(btn);
+    const data = agtGetData(toolId);
+    data.sections = agtReadRows(widget).concat([{ name: '', minutes: 5 }]);
+    agtSaveData(toolId, data);
+    agtRender(widget);
+    const names = widget.querySelectorAll('.agt-name');
+    names[names.length - 1].focus();
+}
+
+function agtRemove(btn) {
+    const widget = agtGetWidget(btn), toolId = agtGetToolId(btn);
+    const i = +btn.closest('.agt-row').dataset.i;
+    const data = agtGetData(toolId);
+    data.sections = agtReadRows(widget).filter((s, j) => j !== i);
+    agtSaveData(toolId, data);
+    widget._agtOpen = new Set(Array.from(agtOpenNotes(widget)).filter(j => j !== i).map(j => j > i ? j - 1 : j));
+    agtRender(widget);
+}
+
+function agtMove(widget, from, to) {
+    const toolId = agtGetToolId(widget);
+    const data = agtGetData(toolId);
+    const rows = agtReadRows(widget);
+    if (to < 0 || to >= rows.length || from === to) return false;
+    const [moved] = rows.splice(from, 1);
+    rows.splice(to, 0, moved);
+    data.sections = rows;
+    agtSaveData(toolId, data);
+    // An open notes box goes with its section.
+    const order = rows.map((r, k) => k);
+    const [m] = order.splice(from, 1);
+    order.splice(to, 0, m);
+    const open = agtOpenNotes(widget);
+    widget._agtOpen = new Set(order.map((old, k) => open.has(old) ? k : -1).filter(k => k >= 0));
+    agtRender(widget);
+    return true;
+}
+
+function agtNameKey(input, event) {
+    if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
+    event.preventDefault();
+    const widget = agtGetWidget(input);
+    const i = +input.closest('.agt-row').dataset.i;
+    const to = i + (event.key === 'ArrowUp' ? -1 : 1);
+    if (agtMove(widget, i, to)) widget.querySelectorAll('.agt-name')[to].focus();
+}
+
+function agtDragStart(grip, event) {
+    const row = grip.closest('.agt-row');
+    agtDrag = { toolId: agtGetToolId(grip), from: +row.dataset.i };
+    event.dataTransfer.effectAllowed = 'move';
+    try { event.dataTransfer.setData('text/plain', ''); } catch (e) { /* some browsers insist */ }
+    row.classList.add('agt-dragging');
+}
+
+function agtDragOver(row, event) {
+    if (!agtDrag || agtDrag.toolId !== agtGetToolId(row)) return;
+    event.preventDefault();
+    const r = row.getBoundingClientRect();
+    const after = event.clientY > r.top + r.height / 2;
+    row.classList.toggle('agt-drop-before', !after);
+    row.classList.toggle('agt-drop-after', after);
+}
+
+function agtDragLeave(row) {
+    row.classList.remove('agt-drop-before', 'agt-drop-after');
+}
+
+function agtDrop(row, event) {
+    if (!agtDrag || agtDrag.toolId !== agtGetToolId(row)) return;
+    event.preventDefault();
+    const after = row.classList.contains('agt-drop-after');
+    agtDragLeave(row);
+    const from = agtDrag.from;
+    let to = +row.dataset.i + (after ? 1 : 0);
+    if (from < to) to--;
+    agtDrag = null;
+    agtMove(agtGetWidget(row), from, to);
+}
+
+function agtDragEnd(grip) {
+    agtDrag = null;
+    const widget = agtGetWidget(grip);
+    if (widget) widget.querySelectorAll('.agt-row').forEach(r => r.classList.remove('agt-dragging', 'agt-drop-before', 'agt-drop-after'));
+}
+
+function agtSound(btn) {
+    const widget = agtGetWidget(btn), toolId = agtGetToolId(btn);
+    const data = agtGetData(toolId);
+    if (!data.run) data.sections = agtReadRows(widget);
+    data.sound = !data.sound;
+    agtSaveData(toolId, data);
+    btn.outerHTML = agtSoundHtml(data);
+}
+
+// ---- starting: how much time there really is ----
+
+function agtStartOpen(btn) {
+    const widget = agtGetWidget(btn);
+    const panel = widget.querySelector('.agt-start');
+    const total = agtPlanSecs(agtReadRows(widget)).reduce((a, b) => a + b, 0);
+    widget.querySelector('.agt-for').value = Math.max(1, Math.round(total / 60));
+    // Until: the plan's length from now, to the next minute.
+    const until = new Date(Math.ceil((Date.now() + total * 1000) / 60000) * 60000);
+    widget.querySelector('.agt-until').value = String(until.getHours()).padStart(2, '0') + ':' + String(until.getMinutes()).padStart(2, '0');
+    panel.hidden = false;
+    widget.querySelector('.agt-plan-actions').hidden = true;
+    agtPreview(widget);
+    widget.querySelector('.agt-for').select();
+}
+
+function agtStartCancel(btn) {
+    const widget = agtGetWidget(btn);
+    widget.querySelector('.agt-start').hidden = true;
+    widget.querySelector('.agt-plan-actions').hidden = false;
+}
+
+/** Typing a number or a time is choosing it. */
+function agtPick(input, mode) {
+    const widget = agtGetWidget(input);
+    widget.querySelector('.agt-start input[type="radio"][value="' + mode + '"]').checked = true;
+    agtPreview(widget);
+}
+
+/** The time there is, in seconds, from what the start panel says. */
+function agtTarget(widget, now) {
+    const mode = widget.querySelector('.agt-start input[type="radio"]:checked').value;
+    if (mode === 'for') {
+        const min = Number(widget.querySelector('.agt-for').value);
+        if (!(min > 0)) return { error: 'How many minutes?' };
+        return { secs: Math.round(min * 60), endAt: null };
+    }
+    const m = /^(\d{1,2}):(\d{2})/.exec(widget.querySelector('.agt-until').value || '');
+    if (!m) return { error: 'Until when?' };
+    const end = new Date(now);
+    end.setHours(+m[1], +m[2], 0, 0);
+    if (end.getTime() <= now) return { error: 'That time has already passed.' };
+    return { secs: Math.floor((end.getTime() - now) / 1000), endAt: end.getTime() };
+}
+
+/** The plan fitted to the time there is: what Start would run. */
+function agtFitted(sections, target) {
+    const planned = agtPlanSecs(sections);
+    const fixed = sections.map(s => !!s.fixed);
+    const durs = agtScale(planned, fixed, target, 60);
+    return { planned, fixed, durs };
+}
+
+function agtPreview(el) {
+    const widget = el.classList && el.classList.contains('agt-widget') ? el : agtGetWidget(el);
+    const box = widget.querySelector('.agt-preview');
+    const sections = agtReadRows(widget);
+    const t = agtTarget(widget, Date.now());
+    widget.querySelector('.agt-go').disabled = !!t.error;
+    if (t.error) { box.innerHTML = '<div class="agt-note agt-bad">' + escapeHtml(t.error) + '</div>'; return; }
+    const f = agtFitted(sections, t.secs);
+    const total = f.planned.reduce((a, b) => a + b, 0);
+    const fixedSum = f.planned.reduce((a, s, i) => a + (f.fixed[i] ? s : 0), 0);
+    let note;
+    if (t.secs >= total) {
+        note = agtLength(total) + ' planned, ' + agtLength(t.secs) + ' available' +
+            (t.secs > total ? ' — ' + agtLength(t.secs - total) + ' to spare.' : '.');
+    } else {
+        note = agtLength(t.secs) + ' available for ' + agtLength(total) + ' planned — ' +
+            (fixedSum >= t.secs ? 'not even enough for the fixed sections, so every section shrinks.'
+                : 'sections that are not fixed shrink by ' + Math.round((total - t.secs) * 100 / (total - fixedSum)) + '%.');
+    }
+    box.innerHTML = '<div class="agt-note' + (t.secs < total ? ' agt-short' : '') + '">' + escapeHtml(note) + '</div>' +
+        '<div class="agt-preview-rows">' + sections.map((s, i) => f.planned[i] ? '<div class="agt-preview-row">' +
+            '<span class="agt-preview-name">' + (s.fixed ? '🔒 ' : '') + escapeHtml(s.name || 'Section ' + (i + 1)) + '</span>' +
+            '<span class="agt-preview-len">' + (f.durs[i] !== f.planned[i]
+                ? '<s>' + agtLength(f.planned[i]) + '</s> → <b>' + agtLength(f.durs[i]) + '</b>'
+                : agtLength(f.planned[i])) + '</span></div>' : '').join('') + '</div>';
+}
+
+function agtStartGo(btn) {
+    const widget = agtGetWidget(btn), toolId = agtGetToolId(btn);
+    const now = Date.now();
+    const t = agtTarget(widget, now);
+    if (t.error) return agtPreview(widget);
+    const data = agtGetData(toolId);
+    data.sections = agtReadRows(widget);
+    const f = agtFitted(data.sections, t.secs);
+    // A section of no minutes is left out of the run, not shown as one to skip.
+    const keep = f.planned.map((s, i) => i).filter(i => f.planned[i] > 0);
+    data.run = {
+        names: keep.map(i => data.sections[i].name || 'Section ' + (i + 1)),
+        fixed: keep.map(i => f.fixed[i]),
+        planned: keep.map(i => f.planned[i]),
+        durs: keep.map(i => f.durs[i]),
+        spent: keep.map(() => 0),
+        notes: keep.map(i => data.sections[i].notes || ''),
+        // Ticks start as the notes have them ([x]), every Start: they are this run's.
+        ticks: keep.map(i => agtTickItems(data.sections[i].notes).map((c, k) => c ? k : -1).filter(k => k >= 0)),
+        index: 0,
+        since: now,
+        startedAt: now,
+        endAt: t.endAt,
+        budget: t.endAt ? null : t.secs,
+        done: false
+    };
+    agtSaveData(toolId, data);
+    agtChimed.delete(toolId);
+    agtRender(widget);
+}
+
+// ---- running ----
+
+/** The tick-box lines in a section's notes, as whether each starts ticked. */
+function agtTickItems(notes) {
+    return (String(notes || '').match(/^[ \t]*[-*+][ \t]+\[[ xX]\][ \t]/gm) || []).map(l => /\[[xX]\]/.test(l));
+}
+
+/** A section's notes as they read, its tick-boxes ticked as this run has them. */
+function agtNotesHtml(notes, ticks) {
+    if (!String(notes || '').trim()) return '';
+    const t = document.createElement('template');
+    t.innerHTML = parseMarkdown(notes);
+    t.content.querySelectorAll('input[type="checkbox"]').forEach((box, k) => {
+        box.removeAttribute('disabled');
+        box.dataset.k = String(k);
+        box.setAttribute('onchange', 'agtTickItem(this)');
+        if ((ticks || []).includes(k)) box.setAttribute('checked', ''); else box.removeAttribute('checked');
+        const li = box.closest('li');
+        if (li) li.classList.add('agt-task');
+    });
+    t.content.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+    return '<div class="agt-run-notes markdown-content">' + t.innerHTML + '</div>';
+}
+
+/** Ticking a box keeps it with the run, and leaves the notes where they are scrolled to. */
+function agtTickItem(box) {
+    const widget = agtGetWidget(box), toolId = agtGetToolId(box);
+    const data = agtGetData(toolId);
+    const run = data.run;
+    if (!run) return;
+    run.ticks = run.ticks || run.durs.map(() => []);
+    const k = +box.dataset.k;
+    const mine = (run.ticks[run.index] || []).filter(x => x !== k);
+    if (box.checked) mine.push(k);
+    run.ticks[run.index] = mine.sort((a, b) => a - b);
+    agtSaveData(toolId, data);
+    widget._agtRun = run;
+}
+
+/** "4 to cover" for a section with tick-boxes. */
+function agtCoverText(notes) {
+    const n = agtTickItems(notes).length;
+    return n ? n + ' to cover' : '';
+}
+
+function agtRunHtml(data) {
+    const run = data.run;
+    if (run.done) return agtDoneHtml(run);
+    const n = run.durs.length, i = run.index;
+    return '<div class="agt-run">' +
+        '<div class="agt-strip">' + run.durs.map((d, j) =>
+            '<div class="agt-seg' + (j < i ? ' done' : j === i ? ' current' : '') + '" style="flex:' + Math.max(d, 1) + '" ' +
+                'title="' + escapeHtml(run.names[j] + ' · ' + agtLength(d)) + '"><div class="agt-seg-fill"></div></div>').join('') +
+        '</div>' +
+        '<div class="agt-now">' +
+            '<div class="agt-count">Section ' + (i + 1) + ' of ' + n + (run.since == null ? ' · paused' : '') + '</div>' +
+            '<div class="agt-title">' + escapeHtml(run.names[i]) + '</div>' +
+            '<div class="agt-clock" role="timer" aria-live="off"></div>' +
+            '<div class="agt-of">of ' + agtLength(run.durs[i]) + (run.durs[i] !== run.planned[i] ? ' <span class="agt-was">(planned ' + agtLength(run.planned[i]) + ')</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="agt-status"><span class="agt-delta"></span><span class="agt-end"></span></div>' +
+        agtNotesHtml((run.notes || [])[i], (run.ticks || [])[i]) +
+        '<div class="agt-next">' + (i + 1 < n ? 'Next: <b>' + escapeHtml(run.names[i + 1]) + '</b> · ' + agtLength(run.durs[i + 1]) +
+            (agtCoverText((run.notes || [])[i + 1]) ? ' · ' + agtCoverText(run.notes[i + 1]) : '') : 'Last section') + '</div>' +
+        '<div class="agt-actions agt-controls">' +
+            '<button class="agt-btn" onclick="agtBack(this)"' + (i ? '' : ' disabled') + ' title="Back to the section before">‹ Back</button>' +
+            '<button class="agt-btn agt-pause" onclick="agtPause(this)">' + (run.since == null ? '▶ Resume' : '⏸ Pause') + '</button>' +
+            '<button class="agt-btn" onclick="agtAddMinute(this)" title="One more minute for this section">+1 min</button>' +
+            '<button class="agt-btn primary agt-next-btn" onclick="agtNext(this)">' + (i + 1 < n ? 'Next ›' : 'Finish') + '</button>' +
+        '</div>' +
+        '<div class="agt-actions agt-controls">' +
+            '<button class="agt-btn agt-fit" onclick="agtFit(this)" title="Shrink what is left of the plan to end on time">Fit the rest</button>' +
+            '<button class="agt-btn agt-stop" onclick="agtStop(this)" title="Stop, and go back to the plan">Stop</button>' +
+            agtSoundHtml(data) +
+        '</div>' +
+        '<div class="agt-msg" aria-live="polite"></div>' +
+    '</div>';
+}
+
+function agtDoneHtml(run) {
+    const took = run.spent.reduce((a, b) => a + b, 0) / 1000;
+    const planned = run.planned.reduce((a, b) => a + b, 0);
+    const items = run.names.map((n, j) => agtTickItems((run.notes || [])[j]).length);
+    const covered = items.some(Boolean);
+    return '<div class="agt-run agt-done">' +
+        '<div class="agt-title">Done</div>' +
+        '<div class="agt-of">Took <b>' + agtClock(took) + '</b> of ' + agtLength(planned) + ' planned' +
+            (run.durs.reduce((a, b) => a + b, 0) !== planned ? ' (' + agtLength(run.durs.reduce((a, b) => a + b, 0)) + ' fitted)' : '') + '</div>' +
+        '<table class="agt-summary"><thead><tr><th>Section</th><th>Planned</th><th>Took</th>' +
+            (covered ? '<th>Covered</th>' : '') + '</tr></thead><tbody>' +
+            // Against the plan as written: what it was fitted to, and what Fit the rest
+            // made of the parts already done, are not what anybody planned.
+            run.names.map((name, j) => {
+                const spent = run.spent[j] / 1000;
+                const over = spent - run.planned[j] > 30;
+                return '<tr><td>' + escapeHtml(name) + '</td><td>' + agtLength(run.planned[j]) + '</td>' +
+                    '<td class="' + (over ? 'agt-over-text' : '') + '">' + agtClock(spent) + '</td>' +
+                    (covered ? '<td' + (items[j] && ((run.ticks || [])[j] || []).length < items[j] ? ' class="agt-short-text"' : '') + '>' +
+                        (items[j] ? ((run.ticks || [])[j] || []).length + ' of ' + items[j] : '') + '</td>' : '') + '</tr>';
+            }).join('') +
+        '</tbody></table>' +
+        '<div class="agt-actions"><button class="agt-btn primary" onclick="agtStop(this, true)">Back to the plan</button></div>' +
+    '</div>';
+}
+
+function agtRender(widget) {
+    const toolId = agtGetToolId(widget);
+    if (!toolId) return;
+    const data = agtGetData(toolId);
+    const run = data.run;
+    widget._agtRun = run;
+    widget.classList.toggle('agt-running', !!run && !run.done);
+    widget.innerHTML = run ? agtRunHtml(data) : agtEditHtml(toolId, data);
+    if (!run) agtOpenNotes(widget).forEach(i => {
+        const row = widget.querySelector('.agt-row[data-i="' + i + '"]');
+        if (!row) return;
+        row.querySelector('.agt-notes-box').hidden = false;
+        row.querySelector('.agt-notes-btn').setAttribute('aria-expanded', 'true');
+        agtGrow(row.querySelector('.agt-notes'));
+    });
+    // A section already over when it is drawn — after a reload, say — has had its chime.
+    if (run && !run.done && agtLive(run, Date.now()).remaining <= 0) agtChimed.set(toolId, run.index);
+    if (run && !run.done) { agtTick(widget); agtEnsureTicker(); }
+}
+
+/** The parts of a running timer that change by the second, without redrawing its buttons. */
+function agtTick(widget) {
+    const run = widget._agtRun;
+    if (!run || run.done) return;
+    const now = Date.now();
+    const live = agtLive(run, now);
+    const over = live.remaining <= 0;
+    const clock = widget.querySelector('.agt-clock');
+    if (!clock) return;
+    clock.textContent = over ? '+' + agtClock(Math.floor(-live.remaining)) : agtClock(Math.ceil(live.remaining));
+    const now$ = widget.querySelector('.agt-now');
+    now$.classList.toggle('agt-warn', !over && live.remaining <= AGT_WARN_SECS);
+    now$.classList.toggle('agt-over', over);
+    now$.classList.toggle('agt-paused', run.since == null);
+    const fill = widget.querySelector('.agt-seg.current .agt-seg-fill');
+    if (fill) fill.style.width = Math.min(100, live.cur / Math.max(1, live.dur) * 100) + '%';
+    const delta = widget.querySelector('.agt-delta');
+    const b = Math.round(live.behind);
+    delta.textContent = Math.abs(b) < 5 ? 'On time' : agtClock(Math.abs(b)) + (b > 0 ? ' behind' : ' ahead');
+    delta.className = 'agt-delta' + (b >= 5 ? ' agt-behind' : b <= -5 ? ' agt-ahead' : '');
+    const late = live.rest - live.left;
+    widget.querySelector('.agt-end').textContent = 'Ends ~' + agtTimeOfDay(live.projectedEnd) +
+        (Math.abs(late) >= 60 ? ' · time is up ' + agtTimeOfDay(live.plannedEnd) : '');
+    const fit = widget.querySelector('.agt-fit');
+    fit.disabled = !(late >= 30 && live.left > 0);
+    const toolId = agtGetToolId(widget);
+    if (over && run.since != null && agtChimed.get(toolId) !== run.index) {
+        agtChimed.set(toolId, run.index);
+        if (agtGetData(toolId).sound) agtChime();
+    }
+}
+
+function agtEnsureTicker() {
+    if (agtTimer) return;
+    agtTimer = setInterval(() => {
+        const running = document.querySelectorAll('.agt-widget.agt-running');
+        if (!running.length) { clearInterval(agtTimer); agtTimer = null; return; }
+        running.forEach(agtTick);
+    }, 250);
+}
+
+/** Two soft notes: time is up for this section. */
+function agtChime() {
+    try {
+        agtAudio = agtAudio || new (window.AudioContext || window.webkitAudioContext)();
+        const t0 = agtAudio.currentTime;
+        [880, 660].forEach((f, k) => {
+            const o = agtAudio.createOscillator(), g = agtAudio.createGain();
+            o.type = 'sine';
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.0001, t0 + k * 0.25);
+            g.gain.exponentialRampToValueAtTime(0.2, t0 + k * 0.25 + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + k * 0.25 + 0.6);
+            o.connect(g).connect(agtAudio.destination);
+            o.start(t0 + k * 0.25);
+            o.stop(t0 + k * 0.25 + 0.65);
+        });
+    } catch (e) { /* no sound to be had */ }
+}
+
+/** Change a running timer: `change` gets the run and now, after the time so far is counted. */
+function agtChange(el, change) {
+    const widget = agtGetWidget(el), toolId = agtGetToolId(el);
+    const data = agtGetData(toolId);
+    const run = data.run;
+    if (!run) return;
+    const now = Date.now();
+    if (run.since != null && !run.done) {
+        run.spent[run.index] += now - run.since;
+        run.since = now;
+    }
+    const msg = change(run, now);
+    agtSaveData(toolId, data);
+    agtRender(widget);
+    if (msg) {
+        const box = widget.querySelector('.agt-msg');
+        if (box) box.textContent = msg;
+    }
+}
+
+function agtNext(btn) {
+    agtChange(btn, (run, now) => {
+        if (run.index + 1 >= run.durs.length) {
+            run.done = true;
+            run.finishedAt = now;
+            run.since = null;
+        } else {
+            run.index++;
+        }
+    });
+}
+
+function agtBack(btn) {
+    agtChange(btn, (run) => { if (run.index > 0) run.index--; });
+}
+
+function agtPause(btn) {
+    agtChange(btn, (run, now) => { run.since = run.since == null ? now : null; });
+}
+
+function agtAddMinute(btn) {
+    agtChange(btn, (run) => { run.durs[run.index] += 60; });
+}
+
+/**
+ * What is left of the plan, shrunk to the time that is left. The sections already
+ * done count as what they took, so the plan stops saying the timer is behind for
+ * time it can no longer get back.
+ */
+function agtFit(btn) {
+    agtChange(btn, (run, now) => {
+        const live = agtLive(run, now);
+        if (live.left <= 0 || live.rest <= live.left) return '';
+        const idx = [];
+        for (let j = run.index; j < run.durs.length; j++) idx.push(j);
+        const used = idx.map(j => Math.round(run.spent[j] / 1000));
+        const rest = idx.map((j, k) => Math.max(0, Math.round(run.durs[j] - run.spent[j] / 1000)));
+        const fitted = agtScale(rest, idx.map(j => run.fixed[j]), live.left, 15);
+        idx.forEach((j, k) => { run.durs[j] = used[k] + fitted[k]; });
+        for (let j = 0; j < run.index; j++) run.durs[j] = Math.round(run.spent[j] / 1000);
+        return 'The rest now fits, to end at ' + agtTimeOfDay(live.plannedEnd) + '.';
+    });
+}
+
+/** Stop asks once: the second press within a few seconds is the one that stops. */
+function agtStop(btn, now) {
+    if (!now && !btn.classList.contains('agt-confirm')) {
+        btn.classList.add('agt-confirm');
+        btn.textContent = 'Stop?';
+        setTimeout(() => { if (btn.isConnected) { btn.classList.remove('agt-confirm'); btn.textContent = 'Stop'; } }, 3000);
+        return;
+    }
+    const widget = agtGetWidget(btn), toolId = agtGetToolId(btn);
+    const data = agtGetData(toolId);
+    data.run = null;
+    agtSaveData(toolId, data);
+    agtChimed.delete(toolId);
+    agtRender(widget);
+}
+
+function agtInit() {
+    document.querySelectorAll('.agt-widget').forEach(widget => {
+        if (widget.dataset.inited || !agtGetToolId(widget)) return;
+        widget.dataset.inited = '1';
+        agtRender(widget);
+    });
+}
+
 (function injectScriptsForExport() {
     if (document.getElementById('productivity-tools-scripts')) return;
 
@@ -5957,7 +6769,8 @@ bake 350&deg;F (170&deg;C) 30 to 40 min
     var wcFunctions = [wcBuildSearchIndex, wcGetWidget, wcGetToolId, wcGetState, wcFormatTime, wcRender, wcTick, wcAddZone, wcRemoveZone, wcSaveState, wcInit];
     var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
     var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpGetWidget, rcpRender, rcpRenderTable, rcpActiveOutput, rcpInit, rcpOnInput, rcpOnKeyDown, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
-    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions);
+    var agtFunctions = [agtGetToolId, agtGetWidget, agtGetData, agtSaveData, agtClock, agtLength, agtTimeOfDay, agtScale, agtLive, agtPlanSecs, agtEditHtml, agtSoundHtml, agtReadRows, agtEdit, agtGrow, agtOpenNotes, agtNotesToggle, agtAdd, agtRemove, agtMove, agtNameKey, agtDragStart, agtDragOver, agtDragLeave, agtDrop, agtDragEnd, agtSound, agtStartOpen, agtStartCancel, agtPick, agtTarget, agtFitted, agtPreview, agtStartGo, agtTickItems, agtNotesHtml, agtTickItem, agtCoverText, agtRunHtml, agtDoneHtml, agtRender, agtTick, agtEnsureTicker, agtChime, agtChange, agtNext, agtBack, agtPause, agtAddMinute, agtFit, agtStop, agtInit];
+    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions).concat(agtFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initPomodoro !== "undefined") return;\n' +
@@ -5984,6 +6797,12 @@ bake 350&deg;F (170&deg;C) 30 to 40 min
         'window.bnoiseState = {};\n' +
         'window.BNOISE_LABELS = ' + JSON.stringify(BNOISE_LABELS) + ';\n' +
         'window.BNOISE_COLORS = ' + JSON.stringify(BNOISE_COLORS) + ';\n' +
+        'window.AGT_DEFAULT_SECTIONS = ' + JSON.stringify(AGT_DEFAULT_SECTIONS) + ';\n' +
+        'window.AGT_WARN_SECS = ' + AGT_WARN_SECS + ';\n' +
+        'window.agtTimer = null;\n' +
+        'window.agtChimed = new Map();\n' +
+        'window.agtDrag = null;\n' +
+        'window.agtAudio = null;\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -6006,7 +6825,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'recipe', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
+    tools: ['agenda-timer', 'breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'recipe', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
     source: 'external'
 });
 
@@ -6485,4 +7304,21 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Productivity Tools plugin loaded (13 tools)');
+// Agenda Timer
+PluginRegistry.registerTool({
+    id: 'agenda-timer',
+    name: 'Agenda Timer',
+    description: 'Keep an interview, a meeting or a talk on track: sections with their minutes, fitted to the time there really is',
+    icon: '\u23F1\uFE0F',
+    version: '1.0.0',
+    toolbox: 'productivity',
+    tags: ['timer', 'agenda', 'interview', 'meeting', 'sections', 'countdown', 'schedule', 'talk', 'time'],
+    title: 'Agenda Timer',
+    content: '<div class="agt-widget"></div>',
+    onInit: 'agtInit',
+    defaultWidth: 380,
+    defaultHeight: 480,
+    source: 'external'
+});
+
+console.log('Productivity Tools plugin loaded (14 tools)');
