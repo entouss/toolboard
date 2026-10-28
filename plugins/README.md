@@ -469,3 +469,53 @@ These plugins are maintained as part of Toolboard:
 | Developer Dashboard | `plugins/boards/developer-dashboard.js` | Pre-configured developer workspace |
 
 Load them via **Settings > Plugins > Official Plugins**.
+
+---
+
+## Plugins added by URL
+
+Some plugins live here but are not offered in the official list; they are added
+through **Settings > Plugins > Add External Plugin** with their path.
+
+### Class Grades — `plugins/tools/class-grades.js`
+
+A student's classes, grades, and missing, late and upcoming work from a school's
+learning platform (Canvas LMS), written out as a short report — one line per class
+with its overall grade, one per task, and a summary of what is missing, late and due
+this week and how the grade moved since the last check. Works with a student's
+personal access token, or a parent's, which shows the students it is linked to.
+
+- **The token stays in the browser.** It is never in the tool's settings, so it is not
+  in exports, share links, copies or undo history. It is held in memory unless
+  "Remember token" is ticked, which keeps it in a browser-only key; Forget removes it.
+  The grades fetched are kept the same way, so an exported board carries only the
+  school's address.
+- **Direct, else through the board's proxy.** The platform does not usually allow
+  another site to read its API, so a request blocked that way is made again through
+  the board's CORS proxy (`functions/ics-proxy`), with the token in the
+  `Authorization` header — never in an address. The proxy answers the published
+  board for any public host. A board opened from disk sends its origin as `null`,
+  which any sandboxed frame can also send, so for `null` the proxy reaches only
+  `*.instructure.com` over https: from disk, use the school's instructure.com address.
+- **Squares:** 🟩 from 90%, 🟧 from 70%, 🟥 below (adjustable); ⬜ for no grade yet.
+  **Status:** ✅ handed in, ⚠️ late, 🚫 missing, ⏳ not yet due.
+- **Classes fold**, closed to begin with, each saying how many tasks it has; Expand all
+  and Collapse all, and which are open is kept per student. Tasks are listed newest due
+  first (or oldest first, chosen with the filters), undated work last.
+- **Filters** — status, grade colour or a % range, due date (past or next 7/30 days, this
+  week, or a range), and name — narrow what each class lists, not what its summary
+  counts. Classes with nothing that matches are left out, and the rest open. Filters
+  are kept with the tool; Copy copies what they show.
+- **Saved filters:** the current filters and sort order can be saved under a name
+  (Save as…, Rename, Delete — replacing or deleting asks twice) and picked again from
+  the Saved menu, which says "Unsaved" while what is shown matches none of them.
+- **Class order** (Filters ▸ Classes): name, lowest grade first, most missing first, or
+  one's own — Arrange… moves classes up and down, ★ pins some to the top whatever the
+  order, and ⊘ hides some (a club, a department page) with a "Show them" to see them
+  for now. Per student, by class id; a class that arrives later goes to the end.
+- **↻ on a class** reads that class alone again — its grade and its tasks.
+- **Sections** (Show ▸ Sections): saved filters shown one after another in a chosen
+  order — say Missing, then Upcoming — each with its own filters and order, only the
+  classes that match, and "Nothing here" when nothing does. Class summaries are left
+  out unless asked for. Renaming or deleting a saved filter carries its section along;
+  Copy copies the sections in order.
