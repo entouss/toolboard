@@ -11920,6 +11920,11 @@ function noteRichKeydown(event, surface) {
         event.preventDefault();
         return;
     }
+    if ((event.key === 'ArrowUp' || event.key === 'ArrowLeft') && !event.shiftKey && !event.metaKey &&
+        !event.ctrlKey && !event.altKey && noteRichLineAbove(surface, event.key)) {
+        event.preventDefault();
+        return;
+    }
     if (event.key === 'Enter') {
         const pre = noteRichAt(surface) && noteRichAt(surface).closest('pre');
         if (pre && surface.contains(pre)) {
@@ -12596,6 +12601,52 @@ function noteRichLineBelow(surface) {
     const para = document.createElement('p');
     para.appendChild(document.createElement('br'));
     last.after(para);
+    const r = document.createRange();
+    r.setStart(para, 0);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    noteRichMarkBlank(surface);
+    return true;
+}
+
+/**
+ * The same at the top: a note that starts with a code block or a table has nowhere
+ * above it for the caret to go, so ← at its very start, or ↑ on its first line (its
+ * heading row), makes a line above it to write in. Left empty, the line is dropped
+ * when the note is saved, as the one below is.
+ */
+function noteRichLineAbove(surface, key) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount || !sel.isCollapsed) return false;
+    const range = sel.getRangeAt(0);
+    const at = noteRichAt(surface);
+    const first = surface.firstElementChild;
+    if (!at || !first || !first.contains(at) && first !== at) return false;
+    const before = (from) => {
+        const r = document.createRange();
+        r.setStart(from, 0);
+        r.setEnd(range.startContainer, range.startOffset);
+        const holder = document.createElement('div');
+        holder.appendChild(r.cloneContents());
+        return noteCodeText(holder);
+    };
+    if (first.nodeName === 'PRE') {
+        const text = before(first);
+        if (key === 'ArrowLeft' ? text !== '' : /\n/.test(text)) return false;
+    } else if (first.nodeName === 'TABLE') {
+        const row = at.closest('tr');
+        if (!row || row !== first.rows[0]) return false;
+        if (key === 'ArrowLeft') {
+            const cell = at.closest('td, th');
+            if (!cell || cell !== row.cells[0] || before(cell) !== '') return false;
+        }
+    } else {
+        return false;
+    }
+    const para = document.createElement('p');
+    para.appendChild(document.createElement('br'));
+    first.before(para);
     const r = document.createRange();
     r.setStart(para, 0);
     r.collapse(true);

@@ -1337,6 +1337,77 @@ await page.waitForTimeout(150);
 ok('and the same from the last row of a table that ends the note',
     await md(endsInTable) === '| a | b |\n| --- | --- |\n| 1 | 2 |\n| 3 | 4 |\n\nbelow the table', JSON.stringify(await md(endsInTable)));
 
+// ← or ↑ out of a code block or table that starts the note — there was nowhere above it.
+const richNote = async (text, title) => {
+    const id = await page.evaluate(([text, title]) => {
+        const id = createNoteWithText(text, title);
+        toolCustomizations[id].noteEditor = 'rich';
+        noteApplyEditor(id);
+        setToolMode(id, 'edit');
+        return id;
+    }, [text, title]);
+    await page.waitForTimeout(500);
+    await front(id);
+    await page.hover(sel(id, '.tool-header'));
+    return id;
+};
+const caretInCode = (id, offset) => page.evaluate(([s, offset]) => {
+    const code = document.querySelector(s + ' pre code') || document.querySelector(s + ' pre');
+    const r = document.createRange();
+    r.setStart(code.firstChild, offset);
+    r.collapse(true);
+    document.querySelector(s).focus();
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+}, [sel(id, '.note-rich'), offset]);
+const lineAbove = (id, what) => page.evaluate(([s, what]) => !!document.querySelector(s + ' > p:first-child + ' + what),
+    [sel(id, '.note-rich'), what]);
+const STARTS_CODE = '```\nfirst\nsecond\n```\n\nAfter';
+const startsInCode = await richNote(STARTS_CODE, 'Starts in code');
+await caretInCode(startsInCode, 1);
+await page.keyboard.press('ArrowLeft');
+ok('← inside a code block that starts the note moves within it, as ever', !(await lineAbove(startsInCode, 'pre')));
+await page.keyboard.press('ArrowLeft');
+await page.keyboard.type('Intro');
+await page.waitForTimeout(150);
+ok('← at its very start makes a line above it to write in',
+    await md(startsInCode) === 'Intro\n\n' + STARTS_CODE, JSON.stringify(await md(startsInCode)));
+const upFromCode = await richNote(STARTS_CODE, 'Up from code');
+await caretInCode(upFromCode, 'first\nsec'.length);
+await page.keyboard.press('ArrowUp');
+ok('↑ on a line with more above it moves within the block, as ever', !(await lineAbove(upFromCode, 'pre')));
+await caretInCode(upFromCode, 3);
+await page.keyboard.press('ArrowUp');
+await page.keyboard.type('Heading words');
+await page.waitForTimeout(150);
+ok('↑ on its first line makes the line above too',
+    await md(upFromCode) === 'Heading words\n\n' + STARTS_CODE, JSON.stringify(await md(upFromCode)));
+const leftEmpty = await richNote(STARTS_CODE, 'Left empty');
+await caretInCode(leftEmpty, 0);
+await page.keyboard.press('ArrowLeft');
+ok('the line is there to write in', await lineAbove(leftEmpty, 'pre'));
+await page.evaluate((s) => noteRichSave(document.querySelector(s)), sel(leftEmpty, '.note-rich'));
+ok('left empty, it is not kept', await md(leftEmpty) === STARTS_CODE, JSON.stringify(await md(leftEmpty)));
+const STARTS_TABLE = '| a | b |\n| --- | --- |\n| 1 | 2 |\n| 3 | 4 |';
+const startsInTable = await richNote(STARTS_TABLE, 'Starts in table');
+await page.click(sel(startsInTable, '.note-rich tbody tr:first-child td'));
+await page.keyboard.press('ArrowUp');
+ok('↑ in a row below the headings stays in the table', !(await lineAbove(startsInTable, 'table')));
+await page.evaluate((s) => {
+    const th = document.querySelector(s + ' thead th');
+    const r = document.createRange();
+    r.setStart(th.firstChild, 0);
+    r.collapse(true);
+    document.querySelector(s).focus();
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+}, sel(startsInTable, '.note-rich'));
+await page.keyboard.press('ArrowLeft');
+await page.keyboard.type('above the table');
+await page.waitForTimeout(150);
+ok('and ← at the start of its first heading makes a line above a table that starts the note',
+    await md(startsInTable) === 'above the table\n\n' + STARTS_TABLE, JSON.stringify(await md(startsInTable)));
+
 // 17. Line spacing, in the tool's settings beside font size and padding.
 const spaced = await page.evaluate(() => {
     const id = createNoteWithText('First line\nsecond line\n\n- a\n- b', 'Spacing');
