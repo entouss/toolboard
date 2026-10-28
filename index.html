@@ -10758,8 +10758,21 @@ function noteHtmlToMarkdown(html) {
     // with every Copy Markdown. They were spaces when they were typed.
     // A line of nothing but spaces — what a block inside a list item left between
     // itself and the next — is a blank line.
-    return td.turndown(String(html || '').replace(/\u200B/g, ''))
-        .replace(/\u00A0/g, ' ').replace(/^[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+    // Both tidyings, and the one that makes any run of blank lines one, stop at a code
+    // block's fences: inside, blank lines and lines of spaces are the code's own.
+    return noteTidyOutsideCode(td.turndown(String(html || '').replace(/\u200B/g, '')).replace(/\u00A0/g, ' '),
+        (text) => text.replace(/^[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n')).trim();
+}
+
+/** `tidy` applied to a note's Markdown everywhere but inside its fenced code blocks. */
+function noteTidyOutsideCode(markdown, tidy) {
+    const fence = /^([ \t]*)(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\1\2[ \t]*$/gm;
+    let out = '', last = 0, m;
+    while ((m = fence.exec(markdown))) {
+        out += tidy(markdown.slice(last, m.index)) + m[0];
+        last = m.index + m[0].length;
+    }
+    return out + tidy(markdown.slice(last));
 }
 
 /** Two renderings, compared as what they say rather than how they are spaced. */
@@ -12686,8 +12699,10 @@ function noteRichCodeEnter(surface, pre, stay) {
     const caret = { node: range.startContainer, offset: range.startOffset };
     const before = piece(null, caret);
     const after = piece(caret, null);
-    if (!stay && range.collapsed && /\n$/.test(before) && !after.replace(/\n$/, '')) {
-        // The empty last line comes off — the browser's <br>s at the end, or a newline —
+    // Enter on the second empty line in a row at the end leaves the block. One empty
+    // line is a blank line in the code, which code has: a gap before the next lines.
+    if (!stay && range.collapsed && /\n\n$/.test(before) && !after.replace(/\n$/, '')) {
+        // The empty last lines come off — the browser's <br>s at the end, or newlines —
         // and writing carries on in a paragraph after the block.
         const code = pre.querySelector(':scope > code') || pre;
         const kept = noteCodeText(code).replace(/\n+$/, '');

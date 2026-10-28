@@ -1275,18 +1275,57 @@ ok('Enter and Shift+Enter in a code block are new lines in it, kept as lines',
     await md(codeLines) === '```\nline one\nline two\nline three\n```', JSON.stringify(await md(codeLines)));
 await page.keyboard.press('Enter');
 await page.keyboard.press('Enter');
+await page.keyboard.type('line five');
+await page.waitForTimeout(150);
+ok('one empty line at the end of a code block is a blank line in it, with code to go on with below',
+    await md(codeLines) === '```\nline one\nline two\nline three\n\nline five\n```', JSON.stringify(await md(codeLines)));
+await page.keyboard.press('Enter');
+await page.keyboard.press('Enter');
+await page.keyboard.press('Enter');
 await page.keyboard.type('after the code');
 await page.waitForTimeout(150);
-ok('Enter on an empty last line leaves the block, as it leaves a list — the empty line not kept',
-    await md(codeLines) === '```\nline one\nline two\nline three\n```\n\nafter the code', JSON.stringify(await md(codeLines)));
+ok('Enter on a second empty line in a row leaves the block, as Enter leaves a list — the empty lines not kept',
+    await md(codeLines) === '```\nline one\nline two\nline three\n\nline five\n```\n\nafter the code', JSON.stringify(await md(codeLines)));
 await page.click(sel(codeLines, '.note-rich pre'));
 await page.click(sel(codeLines, '.note-rich-btn[data-fmt="codeblock"]'));
 await page.waitForTimeout(150);
 ok('and a block of typed lines taken off is a paragraph to each, not one run-together line',
-    await md(codeLines) === 'line one\n\nline two\n\nline three\n\nafter the code', JSON.stringify(await md(codeLines)));
+    await md(codeLines) === 'line one\n\nline two\n\nline three\n\nline five\n\nafter the code', JSON.stringify(await md(codeLines)));
+ok('blank lines in code are kept however many, and tidied to one everywhere else',
+    await page.evaluate(() => noteHtmlToMarkdown('<p>x</p><p><br></p><p><br></p><pre><code>a\n\n\n\nb\n    \nc</code></pre><p>y</p>')) ===
+        'x\n\n```\na\n\n\n\nb\n    \nc\n```\n\ny',
+    JSON.stringify(await page.evaluate(() => noteHtmlToMarkdown('<p>x</p><p><br></p><p><br></p><pre><code>a\n\n\n\nb\n    \nc</code></pre><p>y</p>'))));
 ok('a block keeps its language, and a fence is made longer than any backticks inside it',
     await page.evaluate(() => noteHtmlToMarkdown(parseMarkdown('```js\nconst a = 1;\n```')) === '```js\nconst a = 1;\n```' &&
         noteHtmlToMarkdown('<pre>has ``` inside</pre>') === '````\nhas ``` inside\n````'));
+
+// Empty lines inside a block are the code's own: Enter on one makes another, never an exit.
+const gaps = await page.evaluate(() => {
+    const id = createNoteWithText('```\na\n\nb\n\nc\n```', 'Gaps');
+    toolCustomizations[id].noteEditor = 'rich';
+    noteApplyEditor(id);
+    setToolMode(id, 'edit');
+    return id;
+});
+await page.waitForTimeout(500);
+await front(gaps);
+await page.hover(sel(gaps, '.tool-header'));
+await page.evaluate((s) => {
+    const code = document.querySelector(s + ' pre code') || document.querySelector(s + ' pre');
+    const r = document.createRange();
+    r.setStart(code.firstChild, 2);
+    r.collapse(true);
+    document.querySelector(s).focus();
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+}, sel(gaps, '.note-rich'));
+await page.keyboard.press('Enter');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(150);
+ok('Enter on an empty line inside a code block adds lines and stays in the block',
+    await md(gaps) === '```\na\n\n\n\nb\n\nc\n```' &&
+    await page.evaluate(() => !!getSelection().anchorNode.parentElement.closest('pre') || getSelection().anchorNode.nodeName === 'PRE'),
+    JSON.stringify(await md(gaps)));
 
 // ↓ out of a code block or table that ends the note — there was nowhere below it.
 const endsInCode = await page.evaluate(() => {
