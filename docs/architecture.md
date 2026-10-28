@@ -269,6 +269,45 @@ being set is a note); a block folded or opened by hand keeps that. Copy formatte
 copies every block open and none of the bars, the rich editor shows every block whole,
 and printing shows them all.
 
+### Sorting, filtering, paging, folding, sizing and moving a note's tables
+
+A table in a note's result whose headings are not all blank gets controls in its
+headings (`noteTablesHtml()`, after the code is folded): the heading sorts its column
+up, down, then back to the order written — as numbers when every value is one
+(`$1,200`, `45%`), as dates when every value is one, else as words, empty cells last
+either way; ▾ opens a filter for that column, words it contains and, when it has no
+more than 20 different values, a tick-box for each with how often it comes; ‹ folds it
+to a 16px strip with its heading on its side, as the project table does; and the
+heading's right edge drags to size it, a double-click there putting it back. A table
+long enough to be paged (below) also gets a box over it that keeps rows with all its
+words in any cell, with "n of m rows" and Clear while anything is filtered; a shorter
+one is read at a glance, and there the box would be clutter.
+
+A table of more than 25 rows comes 25 to a page, with a pager under it (the range,
+‹ the page numbers ›, far pages folded into …, and Rows per page: 10, 25, 50, 100 or
+All). It pages what the filters leave, and a new filter or sort goes back to page 1.
+Rows per page is kept with the note (`pageSize`); the page you are on is not. A
+paged-out row is hidden by a class rather than `hidden`, so printing shows them all.
+
+Columns move by a ⠿ grip that shows in a heading — dragged, it marks where the column
+will land — or by Move left / Move right in the column's ▾. The order is kept as
+`order`, the columns as written in the order they show. Every cell carries the place
+its column was written (`data-col`), and sort, filters, folds and widths are kept by
+that, so they go with a moved column. While the order is not as written, the bar
+over the table offers Reset columns. `noteTableApply()` only moves the cells of a row
+that is out of order: re-inserting a heading, even where it is, would drop the
+pointer a resize holds.
+
+`noteTableApply(wrap, view)` puts a table as its view says, on the table being built
+and on the live one alike, so typing in a filter changes the rows in place rather than
+redrawing the note. The views are kept with the note as `tableViews`, by the table's
+place in the note, the way `codeFold` is, and never in the Markdown. A column keeps its
+sized width (`overflow-wrap: anywhere` lets it go narrower than its words) while the
+table still spans the note; once every column has a size, the table is those sizes.
+Copy formatted copies each table as written — every row and every column, in the
+order written, no controls (`noteTablePristine()`); the rich editor shows it as written; printing shows
+folded columns whole and none of the controls.
+
 ### Copying a note
 
 A note is written in Markdown and read as a document, which are two different things

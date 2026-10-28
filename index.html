@@ -3371,6 +3371,118 @@ body.dark-mode .markdown-content h4, body.dark-mode .markdown-content h5, body.d
     .note-code.folded > pre { display: block; }
 }
 
+/* A note's table, as it reads: headings that sort, filter and fold, edges that size.
+   The controls are chrome — there to be used, faint until the heading is pointed at. */
+.note-table { position: relative; margin: 0.5em 0; }
+.markdown-content .note-table > table { margin: 0; }
+.note-table-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.note-table-bar[hidden], .note-table-clear[hidden], .note-table-reset-cols[hidden], .note-table-q[hidden],
+.note-table-pager[hidden] { display: none; }
+.note-table-q {
+    flex: 0 1 220px; min-width: 0; padding: 3px 6px; font-size: 11px;
+    border: 1px solid var(--border-color); border-radius: 4px;
+    background: var(--input-bg); color: var(--text-primary);
+}
+.note-table-count { font-size: 11px; color: var(--text-muted); }
+.note-table th { position: relative; padding: 0; vertical-align: bottom; }
+.note-th { display: flex; align-items: center; padding: 4px 4px 4px 8px; gap: 2px; }
+.note-table th[align="center"] .note-th { justify-content: center; }
+.note-table th[align="right"] .note-th { justify-content: flex-end; }
+.note-th-sort {
+    display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; flex: 0 1 auto;
+    border: none; background: transparent; color: inherit; font: inherit; font-weight: 600;
+    text-align: inherit; cursor: pointer; padding: 2px 0;
+}
+.note-th-label { min-width: 0; overflow-wrap: anywhere; }
+.note-th-arrow { font-size: 9px; color: var(--text-secondary); }
+.note-th-btn {
+    border: none; background: transparent; color: var(--text-muted); cursor: pointer;
+    font-size: 10px; line-height: 1; padding: 2px 3px; border-radius: 3px; opacity: 0;
+}
+.note-table th:hover .note-th-btn, .note-th-btn:focus-visible,
+.note-table th.note-col-filtered .note-th-filter { opacity: 1; }
+.note-th-btn:hover { color: var(--text-primary); background: var(--table-hover); }
+.note-th-grip {
+    color: var(--text-muted); cursor: grab; font-size: 11px; line-height: 1; padding: 2px 1px;
+    margin-left: -6px; opacity: 0; touch-action: none; user-select: none;
+}
+.note-table th:hover .note-th-grip { opacity: 1; }
+.note-table-moving, .note-table-moving * { cursor: grabbing !important; user-select: none; }
+.note-table th.note-col-moving { opacity: 0.5; }
+.note-table th.note-col-drop-before { box-shadow: inset 3px 0 0 var(--link-color); }
+.note-table th.note-col-drop-after { box-shadow: inset -3px 0 0 var(--link-color); }
+.note-table tr.note-row-paged { display: none; }
+.note-table-pager {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 4px;
+    font-size: 11px; color: var(--text-muted);
+}
+.note-table-pages { display: inline-flex; align-items: center; gap: 2px; }
+.note-table-page { min-width: 22px; }
+.note-table-page.active { background: var(--link-color); border-color: var(--link-color); color: #fff; }
+.note-table-page:disabled { opacity: 0.4; cursor: default; }
+.note-table-size { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+.note-table-size select {
+    font-size: 11px; padding: 1px 2px; border: 1px solid var(--border-color); border-radius: 4px;
+    background: var(--input-bg); color: var(--text-primary);
+}
+.note-table th.note-col-filtered .note-th-filter { color: var(--link-color); }
+.note-th-sort:focus-visible, .note-th-folded:focus-visible {
+    outline: 2px solid var(--accent, #3498db); outline-offset: -2px;
+}
+.note-th-resize {
+    position: absolute; top: 0; right: -4px; bottom: 0; width: 8px; z-index: 1;
+    cursor: col-resize; touch-action: none;
+}
+.note-th-resize:hover, .note-table-resizing .note-th-resize:active {
+    background: linear-gradient(var(--link-color), var(--link-color)) center / 2px 100% no-repeat;
+}
+.note-table-resizing { user-select: none; cursor: col-resize; }
+.note-table table.note-table-sized { width: auto; }
+.note-table td.note-col-sized { overflow-wrap: anywhere; }
+/* Folded, as in the project table: a 16px strip, its heading on its side, the whole of
+   it the way back. The cells keep their words, for Copy and a filter; only a dot shows. */
+.note-th-folded { display: none; }
+.note-table th.note-col-folded .note-th, .note-table th.note-col-folded .note-th-resize { display: none; }
+.note-table th.note-col-folded .note-th-folded {
+    display: block; margin: 0 auto; writing-mode: vertical-rl; border: none; background: transparent;
+    cursor: pointer; color: var(--text-muted); font-size: 10px; font-weight: bold; padding: 4px 0;
+    max-height: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.note-table th.note-col-folded .note-th-folded:hover { color: var(--text-primary); }
+.note-table th.note-col-folded, .note-table td.note-col-folded {
+    width: 16px; min-width: 16px; max-width: 16px; padding: 0; text-align: center;
+}
+.note-table td.note-col-folded { font-size: 0; color: transparent; overflow: hidden; }
+.note-table td.note-col-folded > * { display: none; }
+.note-table td.note-col-folded::after { content: '\00B7'; font-size: 11px; color: var(--text-muted); }
+.note-table-pop {
+    position: absolute; z-index: 20; min-width: 180px; max-width: 280px; padding: 8px;
+    display: flex; flex-direction: column; gap: 6px; font-size: 11px;
+    background: var(--bg-primary); color: var(--text-primary);
+    border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px var(--shadow-medium);
+}
+.note-table-pop-q {
+    padding: 3px 6px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 4px;
+    background: var(--input-bg); color: var(--text-primary);
+}
+.note-table-pop-values { max-height: 200px; overflow: auto; display: flex; flex-direction: column; }
+.note-table-pop-values label { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
+.note-table-pop-v { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-table-pop-n { color: var(--text-muted); }
+.note-table-pop-actions { display: flex; gap: 4px; }
+@media print {
+    .note-table-bar, .note-th-btn, .note-th-grip, .note-th-resize, .note-table-pop,
+    .note-table-pager { display: none !important; }
+    .note-table tr.note-row-paged { display: table-row; }
+    .note-table th.note-col-folded .note-th { display: flex; }
+    .note-table th.note-col-folded .note-th-folded { display: none; }
+    .note-table th.note-col-folded, .note-table td.note-col-folded {
+        width: auto; max-width: none; padding: 6px 8px; font-size: inherit; color: inherit;
+    }
+    .note-table td.note-col-folded > * { display: revert; }
+    .note-table td.note-col-folded::after { content: none; }
+}
+
 .markdown-content blockquote {
     border-left: 3px solid #3498db;
     margin: 0.5em 0;
@@ -9502,7 +9614,7 @@ function noteBodyHtml(text, custom) {
             'or press Edit above.</div>';
     }
     const html = renderToolContent(text, custom.plainText, getTextTransforms(custom));
-    return custom.plainText ? html : noteFoldCodeHtml(html, custom);
+    return custom.plainText ? html : noteTablesHtml(noteFoldCodeHtml(html, custom), custom);
 }
 
 /**
@@ -9559,14 +9671,643 @@ function noteCodeToggle(btn, event) {
     saveToolCustomizations(toolCustomizations);
 }
 
-/** A note's result as it reads, for copying: every code block open, and no bars. */
+/** A note's result as it reads, for copying: every code block open, every table as
+ *  written, and no bars. */
 function noteResultForCopy(result) {
     const copy = result.cloneNode(true);
     copy.querySelectorAll('.note-code').forEach(wrap => {
         const pre = wrap.querySelector(':scope > pre');
         if (pre) wrap.replaceWith(pre); else wrap.remove();
     });
+    copy.querySelectorAll('.note-table').forEach(noteTablePristine);
     return copy;
+}
+
+// ---- a note's tables, as they read: sorted, filtered, paged, folded, sized, moved ----
+//
+// Like folded code, none of it is the Markdown's. What a table is sorted by, what it
+// is filtered to, how many rows a page holds, which columns are folded away, how wide
+// they are and in what order is the note's to keep (`tableViews`, by the table's place
+// in the note), so the table as written is still the table everything else reads —
+// the editors, Copy, an export. Columns are known by where they were written
+// (`data-col`), so a moved column takes its sort, filter, fold and width with it.
+
+/** A column with no more different values than this offers them as tick-boxes. */
+const NOTE_TABLE_VALUE_LIST = 20;
+/** A table longer than this is paged, this many rows to a page, until it is told otherwise. */
+const NOTE_TABLE_PAGE = 25;
+const NOTE_TABLE_PAGE_SIZES = [10, 25, 50, 100];
+
+function noteTablesHtml(html, custom) {
+    const t = document.createElement('template');
+    t.innerHTML = html;
+    const views = custom.tableViews || {};
+    t.content.querySelectorAll('table').forEach((table, i) => {
+        const head = table.tHead && table.tHead.rows[0];
+        // A table whose headings are all blank has nothing to sort or fold by name.
+        if (!head || !Array.from(head.cells).some(c => c.textContent.trim())) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'note-table';
+        wrap.dataset.tableIndex = String(i);
+        table.replaceWith(wrap);
+        wrap.innerHTML = '<div class="note-table-bar">' +
+                '<input type="search" class="note-table-q" placeholder="Filter rows…" ' +
+                    'aria-label="Filter rows" oninput="noteTableQuery(this)" onkeydown="event.stopPropagation()">' +
+                '<span class="note-table-count"></span>' +
+                '<button type="button" class="note-btn note-table-clear" onclick="noteTableClear(this)" ' +
+                    'title="Show every row again">Clear</button>' +
+                '<button type="button" class="note-btn note-table-reset-cols" onclick="noteTableResetColumns(this)" ' +
+                    'title="Put the columns back in the order they were written">Reset columns</button>' +
+            '</div>';
+        wrap.appendChild(table);
+        const pager = document.createElement('div');
+        pager.className = 'note-table-pager';
+        wrap.appendChild(pager);
+        Array.from(head.cells).forEach((th, c) => {
+            const name = th.textContent.trim() || ('column ' + (c + 1));
+            th.dataset.col = String(c);
+            th.innerHTML = '<div class="note-th">' +
+                    '<span class="note-th-grip" title="Drag to move this column" aria-hidden="true" ' +
+                        'onpointerdown="noteTableMoveStart(this, event)">\u283F</span>' +
+                    '<button type="button" class="note-th-sort" onclick="noteTableSort(this)" ' +
+                        'title="' + escapeHtml('Sort by ' + name) + '">' +
+                        '<span class="note-th-label">' + th.innerHTML + '</span>' +
+                        '<span class="note-th-arrow" aria-hidden="true"></span></button>' +
+                    '<button type="button" class="note-th-btn note-th-filter" ' +
+                        'onclick="noteTableFilterOpen(this, event)" ' +
+                        'title="' + escapeHtml('Filter by ' + name) + '" aria-label="' + escapeHtml('Filter by ' + name) + '">▾</button>' +
+                    '<button type="button" class="note-th-btn note-th-fold" onclick="noteTableFold(this)" ' +
+                        'title="Fold this column away" aria-label="' + escapeHtml('Fold ' + name + ' away') + '">‹</button>' +
+                '</div>' +
+                '<button type="button" class="note-th-folded" onclick="noteTableFold(this)" ' +
+                    'title="' + escapeHtml('Unfold ' + name) + '">' + escapeHtml(name) + '</button>' +
+                '<span class="note-th-resize" title="Drag to resize; double-click to put it back" ' +
+                    'onpointerdown="noteTableResizeStart(this, event)" ' +
+                    'ondblclick="noteTableResizeReset(this, event)"></span>';
+        });
+        const body = table.tBodies[0];
+        if (body) Array.from(body.rows).forEach((tr, r) => {
+            tr.dataset.row = String(r);
+            Array.from(tr.cells).forEach((cell, c) => { cell.dataset.col = String(c); });
+        });
+        noteTableApply(wrap, views[i] || {});
+    });
+    return t.innerHTML;
+}
+
+/** A row's cell in the column written c-th, wherever that column has been moved to. */
+function noteTableCell(tr, c) {
+    return Array.from(tr.cells).find(cell => cell.dataset.col === String(c)) || null;
+}
+
+function noteTableText(tr, c) {
+    const cell = noteTableCell(tr, c);
+    return cell ? cell.textContent.trim() : '';
+}
+
+/** The columns in the order they show, as where each was written; a column the order
+ *  does not know (one added to the table since) goes at the end. */
+function noteTableOrder(view, count) {
+    const seen = new Set();
+    const order = (view.order || []).filter(c => Number.isInteger(c) && c >= 0 && c < count &&
+        !seen.has(c) && seen.add(c));
+    for (let c = 0; c < count; c++) if (!seen.has(c)) order.push(c);
+    return order;
+}
+
+function noteTablePageSize(view, rows) {
+    if (view.pageSize === 'all') return 0;
+    if (NOTE_TABLE_PAGE_SIZES.includes(view.pageSize)) return view.pageSize;
+    return rows > NOTE_TABLE_PAGE ? NOTE_TABLE_PAGE : 0;
+}
+
+function noteTablePagerHtml(page, pages, size, total) {
+    const go = (label, p, disabled, name, current) =>
+        '<button type="button" class="note-btn note-table-page' + (current ? ' active' : '') + '" data-page="' + p + '" ' +
+            'onclick="noteTableGo(this)" aria-label="' + name + '"' + (current ? ' aria-current="page"' : '') +
+            (disabled ? ' disabled' : '') + '>' + label + '</button>';
+    const from = total ? (size ? (page - 1) * size + 1 : 1) : 0;
+    const to = size ? Math.min(total, page * size) : total;
+    let html = '<span class="note-table-range">' + (total ? from + '\u2013' + to + ' of ' + total : 'No rows') + '</span>';
+    if (size && pages > 1) {
+        html += '<span class="note-table-pages">' + go('\u2039', page - 1, page === 1, 'Previous page');
+        let last = 0;
+        for (let p = 1; p <= pages; p++) {
+            if (p !== 1 && p !== pages && Math.abs(p - page) > 1) continue;
+            if (p - last > 1) html += '<span class="note-table-gap">\u2026</span>';
+            html += go(p, p, false, 'Page ' + p, p === page);
+            last = p;
+        }
+        html += go('\u203A', page + 1, page === pages, 'Next page') + '</span>';
+    }
+    html += '<label class="note-table-size">Rows per page <select onchange="noteTablePageSizeSet(this)">' +
+        NOTE_TABLE_PAGE_SIZES.map(n => '<option value="' + n + '"' + (n === size ? ' selected' : '') + '>' + n + '</option>').join('') +
+        '<option value="all"' + (size ? '' : ' selected') + '>All</option></select></label>';
+    return html;
+}
+
+/** 1,200 · $3.50 · 45% · −2 as numbers; anything else is not one. */
+function noteTableNumber(v) {
+    const s = String(v).replace(/[$€£¥,%\s]/g, '').replace(/−/g, '-');
+    return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s) ? parseFloat(s) : null;
+}
+
+/** 2026-03-04, 3/4/2026, 4 Mar 2026, March 4… as a time; a bare number is not a date. */
+function noteTableDate(v) {
+    const s = String(v);
+    if (!/^\d{4}-\d{1,2}-\d{1,2}/.test(s) && !/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(s) &&
+        !/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\b/i.test(s)) return null;
+    const t = Date.parse(s);
+    return isNaN(t) ? null : t;
+}
+
+/** Sorted as numbers if every value is one, as dates if every value is one, else as words. */
+function noteTableKind(rows, c) {
+    const vals = rows.map(r => noteTableText(r, c)).filter(Boolean);
+    if (vals.length && vals.every(v => noteTableNumber(v) !== null)) return 'number';
+    if (vals.length && vals.every(v => noteTableDate(v) !== null)) return 'date';
+    return 'text';
+}
+
+function noteTableCompare(kind) {
+    const key = (v) => !v ? null : kind === 'number' ? noteTableNumber(v) : kind === 'date' ? noteTableDate(v) : v;
+    return (a, b) => {
+        const x = key(a), y = key(b);
+        if (x === null || y === null) return x === null ? (y === null ? 0 : 1) : -1;
+        return kind === 'text' ? x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' }) : x - y;
+    };
+}
+
+function noteTableFilterOn(f) {
+    return !!(f && (f.q || (f.out && f.out.length)));
+}
+
+/** Put a table as its view says: its rows in order, the ones filtered out hidden,
+ *  its columns folded or sized. Works on the live table and on one being built. */
+function noteTableApply(wrap, view) {
+    const table = wrap.querySelector('table');
+    const head = table.tHead.rows[0];
+    const count = head.cells.length;
+    const body = table.tBodies[0];
+    const rows = body ? Array.from(body.rows) : [];
+    const order = noteTableOrder(view, count);
+    // Only a row whose cells are out of order is touched: moving a heading in the
+    // document, even to where it already is, drops the pointer a resize is holding.
+    const want = order.join();
+    [head].concat(rows).forEach(tr => {
+        const cells = Array.from(tr.cells);
+        if (cells.map(x => x.dataset.col).join() === want) return;
+        order.forEach(c => {
+            const cell = cells.find(x => x.dataset.col === String(c));
+            if (cell) tr.appendChild(cell);
+        });
+    });
+    rows.sort((a, b) => a.dataset.row - b.dataset.row);
+    const sort = view.sort && view.sort.col < count ? view.sort : null;
+    if (sort) {
+        const compare = noteTableCompare(noteTableKind(rows, sort.col));
+        const dir = sort.dir === 'desc' ? -1 : 1;
+        rows.sort((a, b) => {
+            const x = noteTableText(a, sort.col), y = noteTableText(b, sort.col);
+            // Empty cells go last whichever way it is sorted.
+            if (!x || !y) return (!x && !y) ? a.dataset.row - b.dataset.row : (!x ? 1 : -1);
+            return compare(x, y) * dir || a.dataset.row - b.dataset.row;
+        });
+    }
+    rows.forEach(tr => body.appendChild(tr));
+
+    const words = String(view.q || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const filters = view.filters || {};
+    const active = Object.keys(filters).filter(c => +c < count && noteTableFilterOn(filters[c]));
+    let shown = 0;
+    rows.forEach(tr => {
+        const text = tr.textContent.toLowerCase();
+        const ok = words.every(w => text.includes(w)) && active.every(c => {
+            const f = filters[c], v = noteTableText(tr, +c);
+            return (!f.q || v.toLowerCase().includes(String(f.q).toLowerCase())) &&
+                !(f.out && f.out.includes(v));
+        });
+        tr.hidden = !ok;
+        if (ok) shown++;
+    });
+
+    // A page of what the filters leave. Paged-out rows are hidden by a class, not by
+    // `hidden`, so a printed note still has all of them.
+    const matching = rows.filter(tr => !tr.hidden);
+    const size = noteTablePageSize(view, rows.length);
+    const pages = size ? Math.max(1, Math.ceil(matching.length / size)) : 1;
+    const page = Math.min(Math.max(1, +wrap.dataset.page || 1), pages);
+    if (wrap.dataset.page) wrap.dataset.page = String(page);
+    rows.forEach(tr => tr.classList.remove('note-row-paged'));
+    if (size) matching.forEach((tr, i) => {
+        if (i < (page - 1) * size || i >= page * size) tr.classList.add('note-row-paged');
+    });
+    rows.forEach(tr => { if (!tr.className) tr.removeAttribute('class'); });
+    const pager = wrap.querySelector('.note-table-pager');
+    pager.hidden = !(rows.length > NOTE_TABLE_PAGE ||
+        (view.pageSize != null && rows.length > NOTE_TABLE_PAGE_SIZES[0]));
+    pager.innerHTML = pager.hidden ? '' : noteTablePagerHtml(page, pages, size, matching.length);
+
+    const folded = view.folded || [];
+    const widths = view.widths || {};
+    let free = false;
+    Array.from(head.cells).forEach((th) => {
+        const c = +th.dataset.col;
+        const isFolded = folded.includes(c);
+        const w = !isFolded && widths[c] ? widths[c] : 0;
+        if (!isFolded && !w) free = true;
+        th.classList.toggle('note-col-folded', isFolded);
+        th.classList.toggle('note-col-sized', !!w);
+        th.classList.toggle('note-col-filtered', active.includes(String(c)));
+        th.style.width = w ? w + 'px' : '';
+        if (!th.getAttribute('style')) th.removeAttribute('style');
+        const sorted = sort && sort.col === c;
+        if (sorted) th.setAttribute('aria-sort', sort.dir === 'desc' ? 'descending' : 'ascending');
+        else th.removeAttribute('aria-sort');
+        const arrow = th.querySelector('.note-th-arrow');
+        if (arrow) arrow.textContent = sorted ? (sort.dir === 'desc' ? '▼' : '▲') : '';
+        rows.forEach(tr => {
+            const cell = noteTableCell(tr, c);
+            if (!cell) return;
+            cell.classList.toggle('note-col-folded', isFolded);
+            cell.classList.toggle('note-col-sized', !!w);
+            if (!cell.className) cell.removeAttribute('class');
+        });
+    });
+    // While one column is left to take up the slack the table spans the note; once
+    // every column has a size, those sizes are the table.
+    table.classList.toggle('note-table-sized', !free);
+    if (!table.className) table.removeAttribute('class');
+
+    const filtering = words.length > 0 || active.length > 0;
+    const moved = order.some((c, i) => c !== i);
+    const bar = wrap.querySelector('.note-table-bar');
+    // The box to filter rows comes with the pager: a table short enough to need no
+    // pages is read at a glance, and there the box would be clutter.
+    const short = pager.hidden && !filtering;
+    bar.hidden = short && !moved;
+    bar.querySelector('.note-table-reset-cols').hidden = !moved;
+    const q = bar.querySelector('.note-table-q');
+    q.hidden = short;
+    if (q.value !== (view.q || '')) q.value = view.q || '';
+    if (view.q) q.setAttribute('value', view.q); else q.removeAttribute('value');
+    bar.querySelector('.note-table-count').textContent = filtering ? shown + ' of ' + rows.length + ' rows' : '';
+    bar.querySelector('.note-table-clear').hidden = !filtering;
+}
+
+function noteTableContext(el) {
+    const wrap = el.closest('.note-table');
+    const toolId = toolIdOf(el);
+    if (!wrap || !toolId) return null;
+    const custom = toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    const index = wrap.dataset.tableIndex;
+    const view = JSON.parse(JSON.stringify((custom.tableViews || {})[index] || {}));
+    return { wrap, custom, index, view };
+}
+
+/** Keep the view with the note, leaving out whatever is back to how it was written. */
+function noteTableSave(ctx) {
+    const v = ctx.view;
+    if (!v.q) delete v.q;
+    if (!v.sort) delete v.sort;
+    if (v.filters) {
+        Object.keys(v.filters).forEach(c => {
+            const f = v.filters[c];
+            if (!f.q) delete f.q;
+            if (!f.out || !f.out.length) delete f.out;
+            if (!Object.keys(f).length) delete v.filters[c];
+        });
+        if (!Object.keys(v.filters).length) delete v.filters;
+    }
+    if (v.folded && !v.folded.length) delete v.folded;
+    if (v.widths && !Object.keys(v.widths).length) delete v.widths;
+    if (v.order && v.order.every((c, i) => c === i)) delete v.order;
+    const all = Object.assign({}, ctx.custom.tableViews);
+    if (Object.keys(v).length) all[ctx.index] = v; else delete all[ctx.index];
+    if (Object.keys(all).length) ctx.custom.tableViews = all; else delete ctx.custom.tableViews;
+    saveToolCustomizations(toolCustomizations);
+    noteTableApply(ctx.wrap, v);
+}
+
+/** A heading sorts its column up, then down, then back to the order it was written in. */
+function noteTableSort(btn) {
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    const c = +btn.closest('th').dataset.col;
+    const s = ctx.view.sort;
+    ctx.view.sort = !s || s.col !== c ? { col: c, dir: 'asc' } : s.dir === 'asc' ? { col: c, dir: 'desc' } : null;
+    ctx.wrap.dataset.page = '1';
+    noteTableSave(ctx);
+}
+
+function noteTableFold(btn) {
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    const c = +btn.closest('th').dataset.col;
+    const folded = (ctx.view.folded || []).filter(x => x !== c);
+    if (folded.length === (ctx.view.folded || []).length) folded.push(c);
+    ctx.view.folded = folded.sort((a, b) => a - b);
+    noteTableFilterClose();
+    noteTableSave(ctx);
+    const back = ctx.wrap.querySelector('th[data-col="' + c + '"] ' +
+        (folded.includes(c) ? '.note-th-folded' : '.note-th-fold'));
+    if (back) back.focus();
+}
+
+function noteTableQuery(input) {
+    const ctx = noteTableContext(input);
+    if (!ctx) return;
+    ctx.view.q = input.value;
+    ctx.wrap.dataset.page = '1';
+    noteTableSave(ctx);
+}
+
+function noteTableClear(btn) {
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    delete ctx.view.q;
+    delete ctx.view.filters;
+    ctx.wrap.dataset.page = '1';
+    noteTableFilterClose();
+    noteTableSave(ctx);
+}
+
+// ---- one column's filter: the words it holds, or which of its values to keep ----
+
+function noteTableFilterClose() {
+    document.querySelectorAll('.note-table-pop').forEach(p => p.remove());
+}
+
+function noteTableFilterOpen(btn, event) {
+    if (event) event.stopPropagation();
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    const th = btn.closest('th');
+    const c = +th.dataset.col;
+    const open = ctx.wrap.querySelector('.note-table-pop');
+    noteTableFilterClose();
+    if (open && open.dataset.col === String(c)) return;
+    const table = ctx.wrap.querySelector('table');
+    const rows = table.tBodies[0] ? Array.from(table.tBodies[0].rows) : [];
+    const counts = new Map();
+    rows.forEach(tr => { const v = noteTableText(tr, c); counts.set(v, (counts.get(v) || 0) + 1); });
+    const values = Array.from(counts.keys()).sort(noteTableCompare(noteTableKind(rows, c)));
+    const f = (ctx.view.filters || {})[c] || {};
+    const out = f.out || [];
+    const list = values.length <= NOTE_TABLE_VALUE_LIST;
+    const heads = Array.from(th.parentElement.cells);
+    const at = heads.indexOf(th);
+    const pop = document.createElement('div');
+    pop.className = 'note-table-pop';
+    pop.dataset.col = String(c);
+    pop.setAttribute('ondblclick', 'event.stopPropagation()');
+    pop.innerHTML =
+        '<input type="search" class="note-table-pop-q" placeholder="Contains…" ' +
+            'aria-label="Rows whose cell here contains" value="' + escapeHtml(f.q || '') + '" ' +
+            'oninput="noteTableFilterQuery(this)" onkeydown="noteTableFilterKey(event)">' +
+        (list ? '<div class="note-table-pop-values">' + values.map(v =>
+            '<label><input type="checkbox" value="' + escapeHtml(v) + '"' + (out.includes(v) ? '' : ' checked') +
+                ' onchange="noteTableFilterValue(this)" onkeydown="noteTableFilterKey(event)">' +
+                '<span class="note-table-pop-v">' + (v ? escapeHtml(v) : '<em>(empty)</em>') + '</span>' +
+                '<span class="note-table-pop-n">' + counts.get(v) + '</span></label>').join('') + '</div>' : '') +
+        '<div class="note-table-pop-actions">' +
+            (list ? '<button type="button" class="note-btn" onclick="noteTableFilterAll(this, true)">All</button>' +
+                '<button type="button" class="note-btn" onclick="noteTableFilterAll(this, false)">None</button>' : '') +
+            '<button type="button" class="note-btn" onclick="noteTableFilterReset(this)">Clear</button>' +
+        '</div>' +
+        '<div class="note-table-pop-actions note-table-pop-move">' +
+            '<button type="button" class="note-btn" data-step="-1" onclick="noteTableMoveStep(this, -1)"' +
+                (at === 0 ? ' disabled' : '') + '>\u2190 Move left</button>' +
+            '<button type="button" class="note-btn" data-step="1" onclick="noteTableMoveStep(this, 1)"' +
+                (at === heads.length - 1 ? ' disabled' : '') + '>Move right \u2192</button>' +
+        '</div>';
+    pop.style.left = (table.offsetLeft + th.offsetLeft) + 'px';
+    pop.style.top = (table.offsetTop + th.offsetTop + th.offsetHeight) + 'px';
+    ctx.wrap.appendChild(pop);
+    pop.querySelector('input').focus();
+}
+
+function noteTableFilterKey(event) {
+    event.stopPropagation();
+    if (event.key === 'Escape') {
+        const wrap = event.target.closest('.note-table');
+        const c = event.target.closest('.note-table-pop').dataset.col;
+        noteTableFilterClose();
+        const btn = wrap && wrap.querySelector('th[data-col="' + c + '"] .note-th-filter');
+        if (btn) btn.focus();
+    }
+}
+
+function noteTableFilterEdit(el, change) {
+    const ctx = noteTableContext(el);
+    if (!ctx) return;
+    const c = el.closest('.note-table-pop').dataset.col;
+    ctx.view.filters = ctx.view.filters || {};
+    const f = ctx.view.filters[c] = ctx.view.filters[c] || {};
+    change(f, el.closest('.note-table-pop'));
+    ctx.wrap.dataset.page = '1';
+    noteTableSave(ctx);
+}
+
+function noteTableFilterQuery(input) {
+    noteTableFilterEdit(input, (f) => { f.q = input.value; });
+}
+
+function noteTableFilterValue(box) {
+    noteTableFilterEdit(box, (f, pop) => {
+        f.out = Array.from(pop.querySelectorAll('.note-table-pop-values input')).filter(b => !b.checked).map(b => b.value);
+    });
+}
+
+function noteTableFilterAll(btn, keep) {
+    noteTableFilterEdit(btn, (f, pop) => {
+        const boxes = Array.from(pop.querySelectorAll('.note-table-pop-values input'));
+        boxes.forEach(b => { b.checked = keep; });
+        f.out = keep ? [] : boxes.map(b => b.value);
+    });
+}
+
+function noteTableFilterReset(btn) {
+    noteTableFilterEdit(btn, (f, pop) => {
+        delete f.q;
+        delete f.out;
+        pop.querySelector('.note-table-pop-q').value = '';
+        pop.querySelectorAll('.note-table-pop-values input').forEach(b => { b.checked = true; });
+    });
+}
+
+document.addEventListener('mousedown', (e) => {
+    if (!e.target.closest('.note-table-pop, .note-th-filter')) noteTableFilterClose();
+});
+
+// ---- a column's width: drag its heading's edge; double-click the edge to put it back ----
+
+function noteTableResizeStart(handle, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const ctx = noteTableContext(handle);
+    if (!ctx) return;
+    const th = handle.closest('th');
+    const c = th.dataset.col;
+    // The board can be zoomed: the pointer moves in screen pixels, the column in its own.
+    const scale = th.getBoundingClientRect().width / th.offsetWidth || 1;
+    const startW = th.offsetWidth;
+    const startX = event.clientX;
+    th.closest('table').classList.add('note-table-resizing');
+    try { handle.setPointerCapture(event.pointerId); } catch (e) { /* a synthetic pointer */ }
+    const move = (e) => {
+        ctx.view.widths = Object.assign({}, ctx.view.widths, {
+            [c]: Math.max(24, Math.round(startW + (e.clientX - startX) / scale))
+        });
+        noteTableApply(ctx.wrap, ctx.view);
+    };
+    const end = () => {
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', end);
+        handle.removeEventListener('pointercancel', end);
+        th.closest('table').classList.remove('note-table-resizing');
+        if (ctx.view.widths && ctx.view.widths[c]) noteTableSave(ctx);
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+}
+
+function noteTableResizeReset(handle, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const ctx = noteTableContext(handle);
+    if (!ctx || !ctx.view.widths) return;
+    delete ctx.view.widths[handle.closest('th').dataset.col];
+    noteTableSave(ctx);
+}
+
+// ---- pages ----
+
+function noteTableGo(btn) {
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    ctx.wrap.dataset.page = btn.dataset.page;
+    noteTableApply(ctx.wrap, ctx.view);
+    const current = ctx.wrap.querySelector('.note-table-page.active');
+    if (current) current.focus();
+}
+
+function noteTablePageSizeSet(select) {
+    const ctx = noteTableContext(select);
+    if (!ctx) return;
+    ctx.view.pageSize = select.value === 'all' ? 'all' : Number(select.value);
+    ctx.wrap.dataset.page = '1';
+    noteTableSave(ctx);
+    const again = ctx.wrap.querySelector('.note-table-size select');
+    if (again) again.focus();
+}
+
+// ---- moving a column: drag its grip, or Move left / Move right in its ▾ ----
+
+/** Put column c just before column `before` (both as written), or last for -1. */
+function noteTableMoveTo(ctx, c, before) {
+    const count = ctx.wrap.querySelector('table').tHead.rows[0].cells.length;
+    const order = noteTableOrder(ctx.view, count).filter(x => x !== c);
+    const at = before < 0 ? -1 : order.indexOf(before);
+    order.splice(at < 0 ? order.length : at, 0, c);
+    ctx.view.order = order;
+    noteTableSave(ctx);
+}
+
+function noteTableMoveStep(btn, step) {
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    const c = +btn.closest('.note-table-pop').dataset.col;
+    const count = ctx.wrap.querySelector('table').tHead.rows[0].cells.length;
+    const order = noteTableOrder(ctx.view, count);
+    const i = order.indexOf(c), j = i + step;
+    if (j < 0 || j >= order.length) return;
+    order[i] = order[j];
+    order[j] = c;
+    ctx.view.order = order;
+    noteTableFilterClose();
+    noteTableSave(ctx);
+    // The filter stays open over the column where it now is, on the same button.
+    noteTableFilterOpen(ctx.wrap.querySelector('th[data-col="' + c + '"] .note-th-filter'));
+    const again = ctx.wrap.querySelector('.note-table-pop [data-step="' + step + '"]');
+    if (again && !again.disabled) again.focus();
+}
+
+function noteTableMoveStart(grip, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const ctx = noteTableContext(grip);
+    if (!ctx) return;
+    const th = grip.closest('th');
+    const c = +th.dataset.col;
+    const table = th.closest('table');
+    noteTableFilterClose();
+    table.classList.add('note-table-moving');
+    th.classList.add('note-col-moving');
+    try { grip.setPointerCapture(event.pointerId); } catch (e) { /* a synthetic pointer */ }
+    let target = null;
+    const unmark = () => table.querySelectorAll('.note-col-drop-before, .note-col-drop-after')
+        .forEach(x => x.classList.remove('note-col-drop-before', 'note-col-drop-after'));
+    const move = (e) => {
+        unmark();
+        const heads = Array.from(table.tHead.rows[0].cells);
+        target = null;
+        heads.forEach(h => {
+            const r = h.getBoundingClientRect();
+            if (e.clientX >= r.left && e.clientX < r.right) target = { th: h, after: e.clientX > r.left + r.width / 2 };
+        });
+        if (!target && heads.length) {
+            target = e.clientX < heads[0].getBoundingClientRect().left
+                ? { th: heads[0], after: false } : { th: heads[heads.length - 1], after: true };
+        }
+        if (target.th !== th) target.th.classList.add(target.after ? 'note-col-drop-after' : 'note-col-drop-before');
+    };
+    const end = (e) => {
+        grip.removeEventListener('pointermove', move);
+        grip.removeEventListener('pointerup', end);
+        grip.removeEventListener('pointercancel', end);
+        unmark();
+        table.classList.remove('note-table-moving');
+        th.classList.remove('note-col-moving');
+        if (e.type !== 'pointerup' || !target || target.th === th) return;
+        const heads = Array.from(table.tHead.rows[0].cells);
+        let k = heads.indexOf(target.th) + (target.after ? 1 : 0);
+        if (heads[k] === th) k++;
+        noteTableMoveTo(ctx, c, heads[k] ? +heads[k].dataset.col : -1);
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+}
+
+function noteTableResetColumns(btn) {
+    const ctx = noteTableContext(btn);
+    if (!ctx) return;
+    delete ctx.view.order;
+    noteTableSave(ctx);
+}
+
+/** A table as it was written, for copying: every row and column, in order, with none of the controls. */
+function noteTablePristine(wrap) {
+    const table = wrap.querySelector('table');
+    if (!table) { wrap.remove(); return; }
+    table.querySelectorAll('th').forEach(th => {
+        const label = th.querySelector('.note-th-label');
+        if (label) th.innerHTML = label.innerHTML;
+    });
+    const body = table.tBodies[0];
+    if (body) Array.from(body.rows).sort((a, b) => a.dataset.row - b.dataset.row).forEach(tr => body.appendChild(tr));
+    Array.from(table.rows).forEach(tr => Array.from(tr.cells)
+        .sort((a, b) => a.dataset.col - b.dataset.col).forEach(cell => tr.appendChild(cell)));
+    [table].concat(Array.from(table.querySelectorAll('tr, th, td'))).forEach(el => {
+        ['hidden', 'data-row', 'data-col', 'aria-sort', 'style'].forEach(a => el.removeAttribute(a));
+        el.classList.remove('note-col-folded', 'note-col-sized', 'note-col-filtered', 'note-table-sized',
+            'note-table-resizing', 'note-row-paged', 'note-table-moving', 'note-col-moving',
+            'note-col-drop-before', 'note-col-drop-after');
+        if (!el.className) el.removeAttribute('class');
+    });
+    wrap.replaceWith(table);
 }
 
 const NOTE_COPY_ICON = '<svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
