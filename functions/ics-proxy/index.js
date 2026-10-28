@@ -1,6 +1,16 @@
 'use strict';
 
 const ALLOWED_ORIGINS = new Set(['https://toolboard.me', 'https://webpagestickynotes.com', 'https://toolboard.webpagestickynotes.com']);
+
+// A board opened from disk sends its origin as "null" — and so can any page, from
+// inside a sandboxed frame, so "null" cannot be let through to anywhere. It is let
+// through to these only: what the tools that need it from disk read (Class Grades,
+// from a school's learning platform), over https.
+const NULL_ORIGIN_TARGETS = [/(^|\.)instructure\.com$/i];
+
+function nullOriginMayReach(target) {
+  return target.protocol === 'https:' && NULL_ORIGIN_TARGETS.some(re => re.test(target.hostname));
+}
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 const UPSTREAM_TIMEOUT_MS = 15_000;
 
@@ -32,7 +42,8 @@ function corsHeaders(origin) {
 
 exports.icsProxy = async (req, res) => {
   const origin = req.headers['origin'] || '';
-  if (!ALLOWED_ORIGINS.has(origin)) {
+  const fromNull = origin === 'null';
+  if (!ALLOWED_ORIGINS.has(origin) && !fromNull) {
     res.status(403).set({ 'Content-Type': 'text/plain' }).send('Forbidden');
     return;
   }
@@ -56,6 +67,12 @@ exports.icsProxy = async (req, res) => {
 
   if (target.protocol !== 'https:' && target.protocol !== 'http:') {
     res.status(400).set(corsHeaders(origin)).send('Only http/https URLs permitted');
+    return;
+  }
+
+  // Said with CORS headers, so the page can read why rather than see a network error.
+  if (fromNull && !nullOriginMayReach(target)) {
+    res.status(403).set({ ...corsHeaders(origin), 'Content-Type': 'text/plain' }).send('Target host not permitted for this page');
     return;
   }
 
@@ -104,6 +121,13 @@ exports.icsProxy = async (req, res) => {
     return;
   }
   clearTimeout(timer);
+
+  // Followed to somewhere a "null" page may not reach, it is not passed back.
+  if (fromNull && upstreamRes.url && !nullOriginMayReach(new URL(upstreamRes.url))) {
+    if (upstreamRes.body) await upstreamRes.body.cancel().catch(() => {});
+    res.status(403).set({ ...corsHeaders(origin), 'Content-Type': 'text/plain' }).send('Target host not permitted for this page');
+    return;
+  }
 
   const contentLength = parseInt(upstreamRes.headers.get('content-length') || '0', 10);
   if (contentLength > MAX_BODY_BYTES) {
