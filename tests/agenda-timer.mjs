@@ -12,7 +12,7 @@ let count = 0;
 const ok = (l, p, d) => { count++; console.log((p ? '  PASS ' : '  FAIL ') + l + (d ? ' — ' + d : '')); };
 
 const browser = await chromium.launch({ channel: 'chrome' });
-const context = await browser.newContext({ viewport: { width: 1100, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 1100, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
@@ -168,7 +168,7 @@ ok('Finish shows how long each part took', await text('.agt-done .agt-title') ==
 ok('against the plan', /Took .* of 45 min planned \(36 min fitted\)/.test(await text('.agt-done .agt-of')), await text('.agt-done .agt-of'));
 ok('overrun parts stand out', await page.evaluate((s) => !!document.querySelector(s + ' .agt-summary .agt-over-text'), W));
 await page.screenshot({ path: OUT + '/agenda-timer-done.png' });
-await page.click(W + ' .agt-done .agt-btn');
+await page.click(W + ' .agt-done .agt-btn.primary');
 ok('Back to the plan: the plan as it was', JSON.stringify(await names()) ===
     JSON.stringify(['Introductions', 'Background', 'Technical', 'Their questions', 'Wrap-up']) && !(await saved()).agtRun);
 
@@ -238,14 +238,66 @@ for (let k = 0; k < 3; k++) await page.click(W + ' .agt-next-btn');
 const covered = await page.evaluate((s) => Array.from(document.querySelectorAll(s + ' .agt-summary tbody tr')).map(r => r.cells[3].textContent), W);
 ok('the summary says how much of each was covered', JSON.stringify(covered) === JSON.stringify(['', '', '2 of 3', '', '']), JSON.stringify(covered));
 ok('what was not all covered stands out', await page.evaluate((s) => document.querySelectorAll(s + ' .agt-summary .agt-short-text').length, W) === 1);
-await page.click(W + ' .agt-done .agt-btn');
+await page.click(W + ' .agt-done .agt-btn.primary');
 await page.click(W + ' .agt-start-btn');
 await page.click(W + ' .agt-go');
 await page.click(W + ' .agt-next-btn');
 await page.click(W + ' .agt-next-btn');
 ok('a new Start starts the ticks afresh', JSON.stringify(await boxes()) === '[false,false,true]');
-await page.click(W + ' .agt-stop');
-await page.click(W + ' .agt-stop');
+
+// 10. Notes can be changed while the clock runs — for this run; the plan keeps its own.
+const editor = W + ' .agt-run-edit';
+const runNotes = () => page.evaluate((i) => JSON.parse(JSON.stringify(loadToolCustomizations()[i].agtRun)), id);
+await page.click(W + ' .agt-run-notes input[data-k="1"]');
+await page.click(W + ' .agt-notes-edit');
+ok('✎ Edit turns the notes into a box to write in, ready to type', await page.isVisible(editor) &&
+    await page.evaluate((s) => document.activeElement === document.querySelector(s), editor));
+ok('this run’s ticks written into it', await page.inputValue(editor) === NOTES.replace('- [ ] **Testing**', '- [x] **Testing**'), JSON.stringify(await page.inputValue(editor)));
+const clockBefore = await text('.agt-clock');
+await page.keyboard.type('\n- [ ] Follow up on caching');
+await tick(2000);
+ok('the clock keeps going while they are written', await text('.agt-clock') !== clockBefore && await page.isVisible(editor) &&
+    (await page.inputValue(editor)).endsWith('Follow up on caching'));
+ok('kept as they are typed, with the run', (await runNotes()).notes[2].endsWith('- [ ] Follow up on caching') &&
+    JSON.stringify((await runNotes()).ticks[2]) === '[1,2]', JSON.stringify((await runNotes()).ticks));
+ok('the plan keeps its own', (await saved()).agtSections[2].notes === NOTES);
+await page.fill(editor, (await page.inputValue(editor)).replace('- [ ] Systems design', '- [x] Systems design'));
+ok('a “- [x]” written in is a tick', JSON.stringify((await runNotes()).ticks[2]) === '[0,1,2]');
+await page.click(W + ' .agt-controls .agt-btn:nth-child(3)');
+ok('+1 min while writing leaves the box open, and what is in it', await page.isVisible(editor) && (await page.inputValue(editor)).includes('Follow up on caching'));
+await page.keyboard.press('Control+Enter');
+ok('Ctrl+Enter is Done: the notes read again, ticks and all', !(await page.isVisible(editor)) &&
+    JSON.stringify(await boxes()) === '[true,true,true,false]', JSON.stringify(await boxes()));
+await page.click(W + ' .agt-notes-edit');
+await page.click(W + ' .agt-controls .agt-btn:first-child');
+ok('Back leaves the box for the section before', !(await page.isVisible(editor)) && await text('.agt-title') === 'Background');
+ok('whose notes are there to read', (await text('.agt-run-notes')).trim() === 'Warm up with their last project.');
+await page.click(W + ' .agt-next-btn');
+await page.click(W + ' .agt-next-btn');
+ok('a section with no notes offers to add some', await text('.agt-notes-edit') === '+ Add notes' && !(await page.evaluate((s) => !!document.querySelector(s), W + ' .agt-run-notes')));
+await page.click(W + ' .agt-notes-edit');
+await page.keyboard.type('Asked about team size.');
+await page.click(W + ' .agt-notes-done');
+ok('and then shows them', (await text('.agt-run-notes')).trim() === 'Asked about team size.');
+await page.reload({ waitUntil: 'load' });
+await page.clock.runFor(3000);
+await page.waitForSelector(W + ' .agt-run-notes');
+ok('after a reload, what was written is there', (await text('.agt-run-notes')).trim() === 'Asked about team size.' &&
+    (await runNotes()).notes[2].includes('Follow up on caching'));
+await page.click(W + ' .agt-next-btn');
+await page.click(W + ' .agt-next-btn');
+ok('the summary has the notes as the run left them', await page.evaluate((s) => Array.from(document.querySelectorAll(s + ' .agt-done-name')).map(n => n.textContent).join(), W) ===
+    'Background,Technical,Their questions');
+ok('read only there', await page.evaluate((s) => Array.from(document.querySelectorAll(s + ' .agt-done-notes input')).every(b => b.disabled), W));
+ok('covered counts what was ticked by the end', /3 of 4/.test(await text('.agt-summary')));
+await page.click(W + ' .agt-copy-notes');
+await page.waitForTimeout(200);
+const copiedNotes = await page.evaluate(() => navigator.clipboard.readText());
+ok('Copy notes copies them, as Markdown with their ticks', /## Technical\n\nAsk about:\n- \[x\] Systems design/.test(copiedNotes) &&
+    /Follow up on caching/.test(copiedNotes) && /## Their questions\n\nAsked about team size\./.test(copiedNotes), copiedNotes);
+await page.screenshot({ path: OUT + '/agenda-timer-done-notes.png' });
+await page.click(W + ' .agt-done .agt-btn.primary');
+ok('back to the plan, its notes are as they were', (await saved()).agtSections[2].notes === NOTES && !(await saved()).agtSections[3].notes);
 
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
 console.log('  (all ' + count + ' assertions reached)');

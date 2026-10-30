@@ -1742,6 +1742,21 @@ body.dark-mode .rcp-widget { --rcp-accent: #5cb860; --rcp-border: #8b9096; }
 .agt-run-notes li.agt-task input { margin-right: 6px; cursor: pointer; }
 .agt-run-notes li.agt-task:has(input:checked) { color: var(--text-muted); text-decoration: line-through; }
 .agt-short-text { color: #b9770e; font-weight: 600; }
+.agt-notes-panel { position: relative; flex: 1 1 auto; min-height: 60px; display: flex; flex-direction: column; }
+.agt-notes-panel .agt-run-notes { flex: 1 1 auto; padding-right: 64px; }
+.agt-notes-panel.agt-notes-empty { flex: 0 0 auto; min-height: 0; align-items: center; }
+.agt-notes-corner { position: absolute; top: 6px; right: 6px; padding: 2px 8px; font-size: 11px; opacity: .75; }
+.agt-notes-corner:hover, .agt-notes-corner:focus-visible { opacity: 1; }
+.agt-notes-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.agt-run-edit {
+    flex: 1 1 auto; width: 100%; min-height: 80px; resize: none; padding: 8px 10px; font-family: inherit; font-size: 13px;
+    line-height: 1.5; border: 1px solid var(--link-color); border-radius: 6px; background: var(--input-bg); color: var(--text-primary);
+}
+.agt-done-notes { margin-top: 8px; }
+.agt-done-notes > summary { cursor: pointer; font-weight: 600; }
+.agt-done-section { margin-top: 8px; }
+.agt-done-name { font-weight: 600; margin-bottom: 4px; }
+.agt-done-notes .agt-run-notes { padding-right: 10px; }
 .agt-head { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; padding: 0 2px; }
 .agt-head span:first-child { grid-column: 2; }
 .agt-head span:last-child { text-align: center; }
@@ -6519,13 +6534,96 @@ function agtTickItem(box) {
     widget._agtRun = run;
 }
 
+/** A section's notes with this run's ticks written into them, as "- [x]", for editing. */
+function agtBakeTicks(notes, ticks) {
+    let k = -1;
+    return String(notes || '').replace(/^([ \t]*[-*+][ \t]+)\[[ xX]\]([ \t])/gm, (m, a, b) => {
+        k++;
+        return a + ((ticks || []).includes(k) ? '[x]' : '[ ]') + b;
+    });
+}
+
+/**
+ * The current section's notes while it runs: as they read, with ✎ Edit to change
+ * them, or as a box to write in. What is written here is this run's — the plan keeps
+ * its own notes for the next time.
+ */
+function agtRunNotesHtml(run, editing) {
+    const i = run.index, notes = (run.notes || [])[i] || '';
+    if (editing) {
+        return '<div class="agt-notes-panel agt-notes-editing">' +
+            '<div class="agt-notes-bar"><span>Notes for this run — the plan keeps its own</span>' +
+                '<button class="agt-btn agt-notes-done" onclick="agtNotesDone(this)" title="Done (Ctrl+Enter)">Done</button></div>' +
+            '<textarea class="agt-run-edit" spellcheck="true" aria-label="Notes for this section" ' +
+                'oninput="agtNotesInput(this)" onkeydown="agtNotesKey(event, this)" ' +
+                'placeholder="Notes, in Markdown. A line “- [ ] question” is a tick-box.">' +
+                escapeHtml(agtBakeTicks(notes, (run.ticks || [])[i])) + '</textarea>' +
+        '</div>';
+    }
+    if (!notes.trim()) {
+        return '<div class="agt-notes-panel agt-notes-empty">' +
+            '<button class="agt-btn agt-notes-edit" onclick="agtNotesEdit(this)" title="Notes for this run">+ Add notes</button></div>';
+    }
+    return '<div class="agt-notes-panel">' + agtNotesHtml(notes, (run.ticks || [])[i]) +
+        '<button class="agt-btn agt-notes-edit agt-notes-corner" onclick="agtNotesEdit(this)" ' +
+            'title="Edit these notes — for this run; the plan keeps its own">✎ Edit</button></div>';
+}
+
+function agtNotesEdit(btn) {
+    const widget = agtGetWidget(btn);
+    const run = widget._agtRun;
+    if (!run) return;
+    widget._agtEditing = run.index;
+    agtRender(widget);
+}
+
+function agtNotesDone(el) {
+    const widget = agtGetWidget(el);
+    widget._agtEditing = null;
+    agtRender(widget);
+}
+
+function agtNotesKey(event, textarea) {
+    event.stopPropagation();
+    if (event.key === 'Escape' || (event.key === 'Enter' && (event.ctrlKey || event.metaKey))) {
+        event.preventDefault();
+        agtNotesDone(textarea);
+    }
+}
+
+/** Kept as it is typed, ticks and all: a "- [x]" written here is a tick. */
+function agtNotesInput(textarea) {
+    const widget = agtGetWidget(textarea), toolId = agtGetToolId(textarea);
+    const data = agtGetData(toolId);
+    const run = data.run;
+    if (!run) return;
+    run.notes = run.notes || run.durs.map(() => '');
+    run.ticks = run.ticks || run.durs.map(() => []);
+    run.notes[run.index] = textarea.value;
+    run.ticks[run.index] = agtTickItems(textarea.value).map((c, k) => c ? k : -1).filter(k => k >= 0);
+    agtSaveData(toolId, data);
+    widget._agtRun = run;
+    agtGrow(textarea);
+}
+
+/** Every section's notes as this run left them, as Markdown. */
+function agtCopyNotes(btn) {
+    const run = agtGetWidget(btn)._agtRun;
+    if (!run) return;
+    const text = run.names.map((name, j) => {
+        const notes = agtBakeTicks((run.notes || [])[j], (run.ticks || [])[j]).trim();
+        return notes ? '## ' + name + '\n\n' + notes : '';
+    }).filter(Boolean).join('\n\n');
+    copyTextToClipboard(text, 'Notes copied');
+}
+
 /** "4 to cover" for a section with tick-boxes. */
 function agtCoverText(notes) {
     const n = agtTickItems(notes).length;
     return n ? n + ' to cover' : '';
 }
 
-function agtRunHtml(data) {
+function agtRunHtml(data, editing) {
     const run = data.run;
     if (run.done) return agtDoneHtml(run);
     const n = run.durs.length, i = run.index;
@@ -6541,7 +6639,7 @@ function agtRunHtml(data) {
             '<div class="agt-of">of ' + agtLength(run.durs[i]) + (run.durs[i] !== run.planned[i] ? ' <span class="agt-was">(planned ' + agtLength(run.planned[i]) + ')</span>' : '') + '</div>' +
         '</div>' +
         '<div class="agt-status"><span class="agt-delta"></span><span class="agt-end"></span></div>' +
-        agtNotesHtml((run.notes || [])[i], (run.ticks || [])[i]) +
+        agtRunNotesHtml(run, editing === i) +
         '<div class="agt-next">' + (i + 1 < n ? 'Next: <b>' + escapeHtml(run.names[i + 1]) + '</b> · ' + agtLength(run.durs[i + 1]) +
             (agtCoverText((run.notes || [])[i + 1]) ? ' · ' + agtCoverText(run.notes[i + 1]) : '') : 'Last section') + '</div>' +
         '<div class="agt-actions agt-controls">' +
@@ -6581,7 +6679,18 @@ function agtDoneHtml(run) {
                         (items[j] ? ((run.ticks || [])[j] || []).length + ' of ' + items[j] : '') + '</td>' : '') + '</tr>';
             }).join('') +
         '</tbody></table>' +
-        '<div class="agt-actions"><button class="agt-btn primary" onclick="agtStop(this, true)">Back to the plan</button></div>' +
+        ((run.notes || []).some(n => String(n || '').trim()) ?
+            '<details class="agt-done-notes" open><summary>Notes, as this run left them</summary>' +
+                run.names.map((name, j) => String((run.notes || [])[j] || '').trim()
+                    ? '<div class="agt-done-section"><div class="agt-done-name">' + escapeHtml(name) + '</div>' +
+                        agtNotesHtml(run.notes[j], (run.ticks || [])[j]).replace(/ onchange="agtTickItem\(this\)"/g, ' disabled') + '</div>'
+                    : '').join('') +
+                '<div class="agt-note">They go with the run when you go back to the plan: copy them to keep them.</div>' +
+            '</details>' : '') +
+        '<div class="agt-actions">' +
+            ((run.notes || []).some(n => String(n || '').trim())
+                ? '<button class="agt-btn agt-copy-notes" onclick="agtCopyNotes(this)">Copy notes</button>' : '') +
+            '<button class="agt-btn primary" onclick="agtStop(this, true)">Back to the plan</button></div>' +
     '</div>';
 }
 
@@ -6592,7 +6701,13 @@ function agtRender(widget) {
     const run = data.run;
     widget._agtRun = run;
     widget.classList.toggle('agt-running', !!run && !run.done);
-    widget.innerHTML = run ? agtRunHtml(data) : agtEditHtml(toolId, data);
+    widget.innerHTML = run ? agtRunHtml(data, widget._agtEditing) : agtEditHtml(toolId, data);
+    const editor = widget.querySelector('.agt-run-edit');
+    if (editor) {
+        agtGrow(editor);
+        editor.focus();
+        editor.setSelectionRange(editor.value.length, editor.value.length);
+    }
     if (!run) agtOpenNotes(widget).forEach(i => {
         const row = widget.querySelector('.agt-row[data-i="' + i + '"]');
         if (!row) return;
@@ -6676,7 +6791,9 @@ function agtChange(el, change) {
         run.spent[run.index] += now - run.since;
         run.since = now;
     }
+    const was = run.index;
     const msg = change(run, now);
+    if (run.index !== was || run.done) widget._agtEditing = null;
     agtSaveData(toolId, data);
     agtRender(widget);
     if (msg) {
@@ -6769,7 +6886,7 @@ function agtInit() {
     var wcFunctions = [wcBuildSearchIndex, wcGetWidget, wcGetToolId, wcGetState, wcFormatTime, wcRender, wcTick, wcAddZone, wcRemoveZone, wcSaveState, wcInit];
     var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
     var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpGetWidget, rcpRender, rcpRenderTable, rcpActiveOutput, rcpInit, rcpOnInput, rcpOnKeyDown, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
-    var agtFunctions = [agtGetToolId, agtGetWidget, agtGetData, agtSaveData, agtClock, agtLength, agtTimeOfDay, agtScale, agtLive, agtPlanSecs, agtEditHtml, agtSoundHtml, agtReadRows, agtEdit, agtGrow, agtOpenNotes, agtNotesToggle, agtAdd, agtRemove, agtMove, agtNameKey, agtDragStart, agtDragOver, agtDragLeave, agtDrop, agtDragEnd, agtSound, agtStartOpen, agtStartCancel, agtPick, agtTarget, agtFitted, agtPreview, agtStartGo, agtTickItems, agtNotesHtml, agtTickItem, agtCoverText, agtRunHtml, agtDoneHtml, agtRender, agtTick, agtEnsureTicker, agtChime, agtChange, agtNext, agtBack, agtPause, agtAddMinute, agtFit, agtStop, agtInit];
+    var agtFunctions = [agtGetToolId, agtGetWidget, agtGetData, agtSaveData, agtClock, agtLength, agtTimeOfDay, agtScale, agtLive, agtPlanSecs, agtEditHtml, agtSoundHtml, agtReadRows, agtEdit, agtGrow, agtOpenNotes, agtNotesToggle, agtAdd, agtRemove, agtMove, agtNameKey, agtDragStart, agtDragOver, agtDragLeave, agtDrop, agtDragEnd, agtSound, agtStartOpen, agtStartCancel, agtPick, agtTarget, agtFitted, agtPreview, agtStartGo, agtTickItems, agtNotesHtml, agtTickItem, agtBakeTicks, agtRunNotesHtml, agtNotesEdit, agtNotesDone, agtNotesKey, agtNotesInput, agtCopyNotes, agtCoverText, agtRunHtml, agtDoneHtml, agtRender, agtTick, agtEnsureTicker, agtChime, agtChange, agtNext, agtBack, agtPause, agtAddMinute, agtFit, agtStop, agtInit];
     var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions).concat(agtFunctions);
 
     var code = '(function() {\n' +
