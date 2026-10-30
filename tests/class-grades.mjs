@@ -94,11 +94,12 @@ function api(url, auth) {
 }
 
 let schoolMode = 'direct';      // 'direct' | 'blocked'
-let proxyMode = 'ok';           // 'ok' | 'forbidden' | 'preflight' | 'not-permitted' | 'flaky' | 'down'
+let proxyMode = 'ok';           // 'ok' | 'forbidden' | 'preflight' | 'not-permitted' | 'flaky' | 'flaky2' | 'down' | 'school503'
 let notAList = false;
 let brokenClass = null;
 let extraCourse = false;
 const flaked = new Set();
+const flaked2 = new Map();
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Accept', 'Content-Type': 'application/json' };
 
 const browser = await chromium.launch({ channel: 'chrome' });
@@ -128,7 +129,12 @@ await context.route(PROXY + '**', async (route) => {
     // A proxy that falls over now and then: the first assignments page of each class
     // fails once, as an instance out of memory does — no CORS headers, so a failed fetch.
     if (proxyMode === 'flaky' && /\/assignments/.test(target) && !flaked.has(target)) { flaked.add(target); return route.abort('failed'); }
+    if (proxyMode === 'flaky2' && /\/assignments/.test(target) && (flaked2.get(target) || 0) < 2) {
+        flaked2.set(target, (flaked2.get(target) || 0) + 1);
+        return route.abort('failed');
+    }
     if (proxyMode === 'down' && /\/assignments/.test(target)) return route.abort('failed');
+    if (proxyMode === 'school503' && /\/assignments/.test(target)) return route.fulfill({ status: 503, headers: CORS, body: '<html>Down for maintenance</html>' });
     if (proxyMode === 'not-permitted') return route.fulfill({ status: 403, headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/plain' }, body: 'Target host not permitted for this page' });
     const r = api(target, req.headers()['authorization']);
     return route.fulfill({ status: r.status || 200, headers: CORS, body: JSON.stringify(r.body) });
@@ -255,6 +261,37 @@ await page.fill(W + ' .cg-from', day(-4));
 await page.fill(W + ' .cg-to', day(-2));
 await page.dispatchEvent(W + ' .cg-to', 'change');
 ok('due between two dates, both days included', JSON.stringify(await taskLines()) === JSON.stringify(['2.1 Lab', '5.5 Quiz']), JSON.stringify(await taskLines()));
+
+// By when the work was handed in.
+await page.click(W + ' .cg-filters .cg-btn:has-text("Clear filters")');
+const sorted = async () => (await taskLines()).slice().sort();
+await page.selectOption(W + ' .cg-sub', 'past7');
+ok('submitted in the past 7 days, with work not handed in kept unless left out', JSON.stringify(await sorted()) ===
+    JSON.stringify(['2.1 Lab', '5.3 Homework', '5.4 Test Review', '5.5 Quiz', '5.6 Project', '6.1 Final']), JSON.stringify(await sorted()));
+await page.setChecked(W + ' .cg-nosub', false);
+ok('leaving out what was not handed in', JSON.stringify(await sorted()) === JSON.stringify(['2.1 Lab', '5.4 Test Review', '5.5 Quiz']), JSON.stringify(await sorted()));
+ok('two filters on: the range and leaving work out', await filterCount() === '(2)', await filterCount());
+await page.selectOption(W + ' .cg-sub', 'today');
+ok('nothing was handed in today', (await taskLines()).length === 0, JSON.stringify(await taskLines()));
+await page.selectOption(W + ' .cg-sub', 'custom');
+ok('a range of submission dates asks for its two ends', await page.evaluate((s) =>
+    !document.querySelector(s + ' .cg-sub-from').hidden && !document.querySelector(s + ' .cg-sub-to').hidden, W));
+await page.fill(W + ' .cg-sub-from', day(-2));
+await page.fill(W + ' .cg-sub-to', day(-1));
+await page.dispatchEvent(W + ' .cg-sub-to', 'change');
+ok('submitted between two dates — late work by when it came, not when it was due', JSON.stringify(await sorted()) ===
+    JSON.stringify(['5.4 Test Review', '5.5 Quiz']), JSON.stringify(await sorted()));
+ok('kept with the tool', JSON.stringify(await page.evaluate(() => { const f = toolCustomizations.cg.cgFilter; return [f.sub, f.subFrom, f.subTo, f.noSub]; })) ===
+    JSON.stringify(['custom', day(-2), day(-1), false]));
+await page.selectOption(W + ' .cg-sub', 'past7');
+await page.setChecked(W + ' .cg-nosub', true);
+await page.selectOption(W + ' .cg-date', 'next7');
+await page.setChecked(W + ' .cg-nodue', true);
+ok('with a due range too: due this coming week, and handed in this past one or not yet', JSON.stringify(await sorted()) ===
+    JSON.stringify(['5.6 Project']), JSON.stringify(await sorted()));
+await page.click(W + ' .cg-filters .cg-btn:has-text("Clear filters")');
+ok('Clear filters clears it', await page.inputValue(W + ' .cg-sub') === 'any' && await page.isChecked(W + ' .cg-nosub') &&
+    await filterCount() === '' && (await taskLines()).length === 112);
 await page.click(W + ' .cg-filters .cg-btn:has-text("Clear filters")');
 await page.fill(W + ' .cg-q', 'quiz');
 ok('by name', JSON.stringify(await taskLines()) === JSON.stringify(['2.0 Safety Quiz', '5.5 Quiz']), JSON.stringify(await taskLines()));
@@ -279,7 +316,8 @@ ok('filters are kept with the tool', await again.textContent(W + ' .cg-filter-co
     !/5\.4 Test Review/.test(await again.evaluate((s) => classGradesWidgetText(document.querySelector(s)), W)));
 await again.close();
 ok('and hold nothing about anyone’s grades', JSON.stringify(await page.evaluate(() => toolCustomizations.cg.cgFilter)) ===
-    JSON.stringify({ status: ['late', 'missing'], grade: [], min: '', max: '', date: 'any', from: '', to: '', noDue: true, q: '', sort: 'newest' }),
+    JSON.stringify({ status: ['late', 'missing'], grade: [], min: '', max: '', date: 'any', from: '', to: '', noDue: true,
+        sub: 'any', subFrom: '', subTo: '', noSub: true, q: '', sort: 'newest' }),
     JSON.stringify(await page.evaluate(() => toolCustomizations.cg.cgFilter)));
 await page.click(W + ' .cg-btn:has-text("Copy")');
 await page.waitForTimeout(200);
@@ -307,7 +345,8 @@ ok('Save as… keeps it under its name, and the menu shows it', (await savedMenu
     await saveMsg() === 'Saved as \u201CNeeds attention\u201D.' && await page.isHidden(W + ' .cg-save-form'),
     JSON.stringify([await savedMenu(), await saveMsg(), await page.isHidden(W + ' .cg-save-form')]));
 ok('what is kept is the filter, and nothing about anyone’s grades', JSON.stringify(await page.evaluate(() => toolCustomizations.cg.cgSavedFilters)) ===
-    JSON.stringify([{ name: 'Needs attention', filter: { status: ['late', 'missing'], grade: [], min: '', max: '', date: 'any', from: '', to: '', noDue: true, q: '', sort: 'newest' } }]),
+    JSON.stringify([{ name: 'Needs attention', filter: { status: ['late', 'missing'], grade: [], min: '', max: '', date: 'any', from: '', to: '', noDue: true,
+        sub: 'any', subFrom: '', subTo: '', noSub: true, q: '', sort: 'newest' } }]),
     JSON.stringify(await page.evaluate(() => toolCustomizations.cg.cgSavedFilters)));
 await page.click(W + ' .cg-filters .cg-btn:has-text("Clear filters")');
 ok('cleared, the menu says All tasks', (await savedMenu()).shown === 'All tasks');
@@ -615,11 +654,26 @@ await page.click(W + ' .cg-btn:has-text("Refresh")');
 await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary', { timeout: 30000 });
 ok('a proxy request that falls over is tried again, and the report still comes', flaked.size >= 3 &&
     /^Updated/.test(await status()) && (await report()).includes('5.4 Test Review'), await status());
-proxyMode = 'down';
+proxyMode = 'flaky2';
 await page.click(W + ' .cg-btn:has-text("Refresh")');
-await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary', { timeout: 30000 });
+await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary', { timeout: 60000 });
+ok('one that falls over twice running is tried a third time, and the report still comes', [...flaked2.values()].every(n => n === 2) && flaked2.size >= 3 &&
+    /^Updated/.test(await status()), await status());
+proxyMode = 'down';
+requests.length = 0;
+const downStarted = Date.now();
+await page.click(W + ' .cg-btn:has-text("Refresh")');
+await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary', { timeout: 60000 });
 ok('a proxy that keeps falling over is said to have failed, not to have refused the page',
     /proxy failed while reading \/api\/v1\/courses\/\d+\/assignments\. Try Refresh/.test(await status()), await status());
+const tries = requests.filter(r => r.via === 'proxy' && /assignments/.test(r.target));
+ok('after three tries, waiting longer before each', tries.length === 3 && Date.now() - downStarted >= 5500, tries.length + ' tries in ' + (Date.now() - downStarted) + 'ms');
+proxyMode = 'school503';
+requests.length = 0;
+await page.click(W + ' .cg-btn:has-text("Refresh")');
+await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary', { timeout: 60000 });
+ok('the school’s own 503 is said to be the school’s', /The school answered 503 for \/api\/v1\/.*assignments\. Try Refresh/.test(await status()), await status());
+ok('tried once more, not three times', requests.filter(r => r.via === 'proxy' && /assignments/.test(r.target)).length === 2);
 proxyMode = 'ok';
 proxyMode = 'forbidden';
 await page.reload();
@@ -690,8 +744,37 @@ ok('a parent reads each class as the student sees it', requests.some(r => /\/use
 ok('a class whose assignments come back empty to a parent is read from the student’s submissions',
     text.includes('    \uD83D\uDFE5 2.1 Lab - 6/10 (60%) - \u2705 Submitted') &&
     requests.some(r => /courses\/2\/students\/submissions\?student_ids\[\]=11&include\[\]=assignment/.test(decodeURIComponent(r.url))));
-ok('a grade that only repeats the percentage is not said twice', text.includes('Chemistry - 68%\n') && !text.includes('68% (68)'));
-ok('a letter grade still is', text.includes('Math - 93.6% (A-)'));
+ok('a course’s own letter grade is shown', text.includes('Math - 93.6% (A-)'));
+ok('a grade that only repeats the percentage is not said twice: the letter comes from the scale', text.includes('Chemistry - 68% (D+)\n') && !text.includes('68% (68)'), text.slice(0, 200));
+ok('saying where each letter came from', await page.evaluate((s) => {
+    const title = (id) => document.querySelector(s + ' .cg-class[data-course="' + id + '"] > summary').title;
+    return /course’s grading scheme/.test(title(1)) && /scale in the connection settings/.test(title(2));
+}, W));
+ok('the scale, at its boundaries (as the % is shown, to a tenth)', await page.evaluate(() => {
+    const sc = classGradesParseScale(CLASS_GRADES_SCALE);
+    return [93, 92.9, 92.96, 60, 59.9, 87, 0].map(x => classGradesLetter(x, sc)).join();
+}) === 'A,A-,A,D-,F,B+,F');
+const setScale = (v) => page.evaluate(([s, v]) => {
+    const i = document.querySelector(s + ' .cg-scale');
+    i.value = v;
+    i.dispatchEvent(new Event('change', { bubbles: true }));
+}, [W, v]);
+ok('the scale is there to change, the common one to begin with', await page.inputValue(W + ' .cg-scale') === 'A 93, A- 90, B+ 87, B 83, B- 80, C+ 77, C 73, C- 70, D+ 67, D 63, D- 60, F 0');
+await setScale('nonsense');
+ok('a scale that does not read is not kept, and says how to write one', /Write it as letters/.test(await page.textContent(W + ' .cg-scale-msg')) &&
+    !(await page.evaluate(() => toolCustomizations.cg.cgScale)));
+await setScale('A 90; B 80; C 70; D 60; F 0');
+ok('a scale of one’s own takes over', (await report()).includes('Chemistry - 68% (D)\n') &&
+    await page.evaluate(() => toolCustomizations.cg.cgScale) === 'A 90, B 80, C 70, D 60, F 0');
+ok('but never over a course’s own letter', (await report()).includes('Math - 93.6% (A-)'));
+await page.click(W + ' .cg-btn:has-text("Copy")');
+await page.waitForTimeout(200);
+ok('Copy has the letters', /Chemistry - 68% \(D\)/.test(await page.evaluate(() => navigator.clipboard.readText())));
+await setScale('F 0, D 60, C 70, B 80, A 90, A+ 97');
+ok('written in any order, it is read highest first', await page.inputValue(W + ' .cg-scale') === 'A+ 97, A 90, B 80, C 70, D 60, F 0');
+await setScale('A 93, A- 90, B+ 87, B 83, B- 80, C+ 77, C 73, C- 70, D+ 67, D 63, D- 60, F 0');
+ok('back to the common scale, nothing of one’s own is kept', await page.evaluate(() => toolCustomizations.cg.cgScale) === undefined &&
+    (await report()).includes('Chemistry - 68% (D+)'));
 ok('more than one student: a picker', await page.evaluate((s) => !document.querySelector(s).hidden &&
     Array.from(document.querySelector(s).options).map(o => o.textContent).join() === 'Sam Student,Alex Student', W + ' .cg-student'));
 await page.selectOption(W + ' .cg-student', '12');

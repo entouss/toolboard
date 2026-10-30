@@ -497,13 +497,21 @@ personal access token, or a parent's, which shows the students it is linked to.
   board for any public host. A board opened from disk sends its origin as `null`,
   which any sandboxed frame can also send, so for `null` the proxy reaches only
   `*.instructure.com` over https: from disk, use the school's instructure.com address.
+  Requests go one at a time. One the proxy drops (no answer the page can read, as
+  when an instance runs out of memory) is tried twice more, 1.5 s and then 4 s later;
+  a 5xx from the school itself is tried once more and then said to be the school's.
 - **Squares:** 🟩 from 90%, 🟧 from 70%, 🟥 below (adjustable); ⬜ for no grade yet.
+- **Letter grades:** each class's grade comes with its letter — the course's own when it
+  has a grading scheme, otherwise from a scale in the connection settings (the common
+  A 93, A- 90, B+ 87 … F one to begin with, editable). Hovering over a class says which.
   **Status:** ✅ handed in, ⚠️ late, 🚫 missing, ⏳ not yet due.
 - **Classes fold**, closed to begin with, each saying how many tasks it has; Expand all
   and Collapse all, and which are open is kept per student. Tasks are listed newest due
   first (or oldest first, chosen with the filters), undated work last.
 - **Filters** — status, grade colour or a % range, due date (past or next 7/30 days, this
-  week, or a range), and name — narrow what each class lists, not what its summary
+  week, or a range), the date it was handed in (today, the past 7/30 days, this week,
+  or a range; late work by when it came, and work not handed in kept unless left out),
+  and name — narrow what each class lists, not what its summary
   counts. Classes with nothing that matches are left out, and the rest open. Filters
   are kept with the tool; Copy copies what they show.
 - **Saved filters:** the current filters and sort order can be saved under a name

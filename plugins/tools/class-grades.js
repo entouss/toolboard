@@ -36,6 +36,9 @@
 .cg-help { grid-column: 1 / -1; font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 .cg-thresholds { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--text-secondary); }
 .cg-thresholds input { width: 52px; }
+.cg-thresholds input.cg-scale { width: auto; flex: 1; min-width: 180px; }
+.cg-scale-msg { font-size: 11px; color: var(--text-muted); }
+.cg-scale-msg.error { color: #e74c3c; }
 .cg-toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .cg-toolbar select { padding: 3px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 11px; }
 .cg-btn { padding: 4px 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; border-radius: 4px; }
@@ -127,6 +130,10 @@ PluginRegistry.registerTool({
 <span>🟩 from</span><input type="number" class="cg-green" min="0" max="100" onchange="classGradesThresholds(this)"><span>%</span>
 <span>🟧 from</span><input type="number" class="cg-orange" min="0" max="100" onchange="classGradesThresholds(this)"><span>%, 🟥 below</span>
 </div>
+<div class="cg-connection-row cg-thresholds">
+<span>Letters</span><input type="text" class="cg-scale" spellcheck="false" aria-label="Letter grade scale" onchange="classGradesScaleChanged(this)">
+</div>
+<div class="cg-scale-msg">The lowest % for each letter, used when a course has no grading scheme of its own.</div>
 <div class="cg-help">For Canvas LMS: Account ▸ Settings ▸ New access token. A parent’s token works too, and shows the students it is linked to. The token stays in this browser: it is never saved with the board, exported or shared. Unless remembered, it is gone when the page reloads.</div>
 </div>
 </details>
@@ -178,6 +185,20 @@ PluginRegistry.registerTool({
 <input type="date" class="cg-from" aria-label="Due from" onchange="classGradesFiltersChanged(this)" hidden>
 <input type="date" class="cg-to" aria-label="Due to" onchange="classGradesFiltersChanged(this)" hidden>
 <label><input type="checkbox" class="cg-nodue" checked onchange="classGradesFiltersChanged(this)"> with no due date</label>
+</div>
+<label>Submitted</label>
+<div class="cg-filter-row">
+<select class="cg-sub" aria-label="Submitted" onchange="classGradesFiltersChanged(this)">
+<option value="any">Any time</option>
+<option value="today">Today</option>
+<option value="past7">Past 7 days</option>
+<option value="past30">Past 30 days</option>
+<option value="week">This week</option>
+<option value="custom">From… to…</option>
+</select>
+<input type="date" class="cg-sub-from" aria-label="Submitted from" onchange="classGradesFiltersChanged(this)" hidden>
+<input type="date" class="cg-sub-to" aria-label="Submitted to" onchange="classGradesFiltersChanged(this)" hidden>
+<label><input type="checkbox" class="cg-nosub" checked onchange="classGradesFiltersChanged(this)"> include not submitted</label>
 </div>
 <label>Order</label>
 <div class="cg-filter-row">
@@ -284,6 +305,34 @@ function classGradesSaveData(toolId, data) {
     try { localStorage.setItem(classGradesDataKey(toolId), JSON.stringify(data)); } catch (e) { /* shown, just not kept */ }
 }
 
+/** The letters for a percentage when a course has no grading scheme: the common US scale. */
+var CLASS_GRADES_SCALE = 'A 93, A- 90, B+ 87, B 83, B- 80, C+ 77, C 73, C- 70, D+ 67, D 63, D- 60, F 0';
+
+/** "A 93, A- 90, …" as letters with the lowest % for each, highest first; null if it does not read. */
+function classGradesParseScale(text) {
+    var parts = String(text || '').split(/[,;\n]+/).map(function(p) { return p.trim(); }).filter(Boolean);
+    if (!parts.length) return null;
+    var scale = [];
+    for (var i = 0; i < parts.length; i++) {
+        var m = /^(\S+)\s*(?:[:=]|\s)\s*(\d+(?:\.\d+)?)\s*%?$/.exec(parts[i]);
+        if (!m) return null;
+        scale.push({ letter: m[1], min: Number(m[2]) });
+    }
+    return scale.sort(function(a, b) { return b.min - a.min; });
+}
+
+function classGradesScale(custom) {
+    return (custom.cgScale && classGradesParseScale(custom.cgScale)) || classGradesParseScale(CLASS_GRADES_SCALE);
+}
+
+/** The letter for a percentage, as shown (to a tenth): 92.96 shows as 93% and is an A. */
+function classGradesLetter(score, scale) {
+    if (score == null || !isFinite(score) || !scale) return '';
+    var shown = classGradesRound(score);
+    for (var i = 0; i < scale.length; i++) if (shown >= scale[i].min) return scale[i].letter;
+    return '';
+}
+
 function classGradesThresholdValues(custom) {
     var green = Number(custom.cgGreen), orange = Number(custom.cgOrange);
     return { green: isFinite(green) && custom.cgGreen != null ? green : 90, orange: isFinite(orange) && custom.cgOrange != null ? orange : 70 };
@@ -299,6 +348,7 @@ function classGradesInit() {
         widget.querySelector('.cg-base').value = custom.cgBase || '';
         widget.querySelector('.cg-green').value = t.green;
         widget.querySelector('.cg-orange').value = t.orange;
+        widget.querySelector('.cg-scale').value = custom.cgScale || CLASS_GRADES_SCALE;
         classGradesShowFilter(widget, classGradesFilter(custom));
         var remembered = false;
         try { remembered = !!localStorage.getItem(classGradesTokenKey(toolId)); } catch (e) { remembered = false; }
@@ -332,6 +382,9 @@ function classGradesNormalizeBase(raw) {
  * Errors say which: a refused token, a proxy that does not answer this page, a host
  * that cannot be reached.
  */
+/** How long to wait before each retry through the proxy. */
+var CLASS_GRADES_RETRY_MS = [1500, 4000];
+
 async function classGradesRequest(toolId, url, token) {
     var headers = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' };
     var route = _classGradesRoute[toolId] || 'direct';
@@ -346,18 +399,25 @@ async function classGradesRequest(toolId, url, token) {
     if (route === 'proxy') {
         var where = url.replace(/^https?:\/\/[^/]+/, '').replace(/\?.*$/, '');
         // A proxy that falls over sends no CORS headers, so the browser reports a
-        // failed fetch, the same as one that refuses this page. Once is tried again.
-        for (var attempt = 0; attempt < 2; attempt++) {
+        // failed fetch, the same as one that refuses this page. It is tried twice more,
+        // further apart each time: what answers next is a new instance, starting up.
+        // The school's own 5xx comes with the proxy's headers, and is tried once more.
+        for (var attempt = 0; ; attempt++) {
             try {
                 res = await fetch(CLASS_GRADES_PROXY + encodeURIComponent(url), { headers: headers, credentials: 'omit', cache: 'no-store' });
             } catch (e) {
                 res = null;
             }
             if (res && res.status < 500) break;
-            if (attempt === 0) await new Promise(function(r) { setTimeout(r, 1200); });
+            if (attempt >= (res ? 1 : 2)) break;
+            await new Promise(function(r) { setTimeout(r, CLASS_GRADES_RETRY_MS[attempt]); });
         }
-        if (!res || res.status >= 500) {
-            if (_classGradesProxyWorked[toolId] || res) {
+        if (res && res.status >= 500) {
+            // Passed on by the proxy, with its headers: it is the school's own answer.
+            throw new Error('The school answered ' + res.status + ' for ' + where + '. Try Refresh in a moment.');
+        }
+        if (!res) {
+            if (_classGradesProxyWorked[toolId]) {
                 throw new Error('The board’s proxy failed while reading ' + where + '. Try Refresh in a moment.');
             }
             // Never answered at all: a proxy that will not answer this page refuses
@@ -617,19 +677,27 @@ function classGradesTaskGrade(task) {
 
 /** A class's overall grade: the percentage, and the grade beside it when it says
  *  something more (a letter) — not a number that only repeats the percentage. */
-function classGradesClassGrade(c) {
-    if (c.score == null) return 'No grade';
+function classGradesClassGrade(c, scale) {
+    return classGradesClassGradeOf(c, scale).text;
+}
+
+/** The grade's text, and where its letter came from: the course's own scheme, the scale here, or none. */
+function classGradesClassGradeOf(c, scale) {
+    if (c.score == null) return { text: 'No grade', from: '' };
     var pct = classGradesRound(c.score) + '%';
     var g = c.grade == null ? '' : String(c.grade).trim();
     var repeats = /^\d+(\.\d+)?%?$/.test(g) && Math.abs(parseFloat(g) - c.score) < 1;
-    return g && !repeats ? pct + ' (' + g + ')' : pct;
+    if (g && !repeats) return { text: pct + ' (' + g + ')', from: 'course' };
+    var letter = classGradesLetter(c.score, scale || classGradesParseScale(CLASS_GRADES_SCALE));
+    return letter ? { text: pct + ' (' + letter + ')', from: 'scale' } : { text: pct, from: '' };
 }
 
 /**
  * Which tasks are shown, and in what order. Kept with the tool: it says nothing about
  * anyone's grades. Empty means everything; `sort` is newest due first unless asked.
  */
-var CLASS_GRADES_NO_FILTER = { status: [], grade: [], min: '', max: '', date: 'any', from: '', to: '', noDue: true, q: '', sort: 'newest' };
+var CLASS_GRADES_NO_FILTER = { status: [], grade: [], min: '', max: '', date: 'any', from: '', to: '', noDue: true,
+    sub: 'any', subFrom: '', subTo: '', noSub: true, q: '', sort: 'newest' };
 
 function classGradesFilter(custom) {
     var f = Object.assign({}, CLASS_GRADES_NO_FILTER, custom.cgFilter || {});
@@ -646,15 +714,23 @@ function classGradesFilterCount(f) {
     if (String(f.min) !== '' || String(f.max) !== '') n++;
     if (f.date !== 'any') n++;
     if (f.date !== 'any' && !f.noDue) n++;
+    if (f.sub && f.sub !== 'any') n++;
+    if (f.sub && f.sub !== 'any' && f.noSub === false) n++;
     if (String(f.q || '').trim()) n++;
     return n;
 }
 
-/** The due-date window a filter names, as [from, to] times; null for any time. */
-function classGradesDateWindow(f, now) {
+/**
+ * The window a filter names for the due date, or with `which` 'sub' for the date the
+ * work was handed in, as [from, to] times; null for any time.
+ */
+function classGradesDateWindow(f, now, which) {
     var day = 86400000;
     var startOfDay = function(t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
-    switch (f.date) {
+    var sub = which === 'sub';
+    var from = sub ? f.subFrom : f.from, to = sub ? f.subTo : f.to;
+    switch (sub ? f.sub : f.date) {
+        case 'today': return [startOfDay(now), startOfDay(now) + day - 1];
         case 'past7': return [now - 7 * day, now];
         case 'past30': return [now - 30 * day, now];
         case 'next7': return [now, now + 7 * day];
@@ -667,8 +743,8 @@ function classGradesDateWindow(f, now) {
             return [from, from + 7 * day - 1];
         }
         case 'custom': {
-            var a = f.from ? new Date(f.from + 'T00:00:00').getTime() : -Infinity;
-            var b = f.to ? new Date(f.to + 'T23:59:59.999').getTime() : Infinity;
+            var a = from ? new Date(from + 'T00:00:00').getTime() : -Infinity;
+            var b = to ? new Date(to + 'T23:59:59.999').getTime() : Infinity;
             return [a, b];
         }
         default: return null;
@@ -692,6 +768,15 @@ function classGradesTaskShown(task, status, grade, f, t, now) {
         else {
             var due = new Date(task.due).getTime();
             if (due < win[0] || due > win[1]) return false;
+        }
+    }
+    // When it was handed in — a late one by when it came, not when it was due.
+    var subWin = classGradesDateWindow(f, now, 'sub');
+    if (subWin) {
+        if (!task.submittedAt) { if (f.noSub === false) return false; }
+        else {
+            var at = new Date(task.submittedAt).getTime();
+            if (at < subWin[0] || at > subWin[1]) return false;
         }
     }
     var q = String(f.q || '').trim().toLowerCase();
@@ -738,7 +823,8 @@ function classGradesReportModel(snapshot, opts) {
         }
         return {
             id: String(c.id),
-            head: classGradesSquare(c.score, t) + ' ' + c.name + ' - ' + classGradesClassGrade(c),
+            head: classGradesSquare(c.score, t) + ' ' + c.name + ' - ' + classGradesClassGrade(c, opts.scale),
+            letterFrom: classGradesClassGradeOf(c, opts.scale).from,
             name: c.name,
             score: c.score,
             missing: counts.missing,
@@ -832,7 +918,8 @@ function classGradesSetStatus(widget, text, isError) {
 /** One class, folding: its line, task count, when it was read, ↻, summary, tasks. */
 function classGradesClassHtml(m, isOpen, filtering, now, withSummary) {
     return '<details class="cg-class" data-course="' + classGradesEscape(m.id) + '"' + (isOpen ? ' open' : '') + '>' +
-        '<summary>' + classGradesEscape(m.head) + ' <span class="cg-count">\u00B7 ' +
+        '<summary' + (m.letterFrom ? ' title="' + (m.letterFrom === 'course' ? 'Letter from the course’s grading scheme'
+            : 'Letter from the scale in the connection settings') + '"' : '') + '>' + classGradesEscape(m.head) + ' <span class="cg-count">\u00B7 ' +
             (filtering ? m.shown + ' of ' + m.taskCount : m.taskCount) + (m.taskCount === 1 ? ' task' : ' tasks') + '</span>' +
             (m.refreshedAt ? ' <span class="cg-refreshed' + (now - m.refreshedAt > 86400000 ? ' stale' : '') + '">\u00B7 refreshed ' +
                 classGradesEscape(classGradesWhen(m.refreshedAt, now)) + '</span>' : '') +
@@ -856,7 +943,7 @@ function classGradesSectionsReport(snap, custom, now, prefs, showHidden) {
     classGradesSections(custom).forEach(function(name) {
         var preset = saved.find(function(s) { return s.name === name; });
         if (!preset) return;
-        var opts = { thresholds: classGradesThresholdValues(custom), now: now, filter: classGradesFilter({ cgFilter: preset.filter }),
+        var opts = { thresholds: classGradesThresholdValues(custom), scale: classGradesScale(custom), now: now, filter: classGradesFilter({ cgFilter: preset.filter }),
             prefs: prefs, showHidden: showHidden };
         var model = classGradesReportModel(snap, opts).filter(function(m) { return m.shown; });
         var tasks = model.reduce(function(n, m) { return n + m.shown; }, 0);
@@ -921,7 +1008,7 @@ function classGradesRender(widget) {
     }
     var filter = classGradesFilter(custom);
     var filtering = classGradesFilterCount(filter) > 0;
-    var opts = { thresholds: classGradesThresholdValues(custom), now: Date.now(), filter: filter, prefs: prefs, showHidden: showHidden };
+    var opts = { thresholds: classGradesThresholdValues(custom), scale: classGradesScale(custom), now: Date.now(), filter: filter, prefs: prefs, showHidden: showHidden };
     var all = classGradesReportModel(snap, opts);
     // Filtering, a class with nothing that matches is left out, and said to be.
     var model = filtering ? all.filter(function(m) { return m.shown; }) : all;
@@ -1051,6 +1138,11 @@ function classGradesShowFilter(widget, f) {
     widget.querySelector('.cg-to').value = f.to;
     widget.querySelector('.cg-from').hidden = widget.querySelector('.cg-to').hidden = f.date !== 'custom';
     widget.querySelector('.cg-nodue').checked = f.noDue !== false;
+    widget.querySelector('.cg-sub').value = f.sub || 'any';
+    widget.querySelector('.cg-sub-from').value = f.subFrom || '';
+    widget.querySelector('.cg-sub-to').value = f.subTo || '';
+    widget.querySelector('.cg-sub-from').hidden = widget.querySelector('.cg-sub-to').hidden = f.sub !== 'custom';
+    widget.querySelector('.cg-nosub').checked = f.noSub !== false;
     widget.querySelector('.cg-q').value = f.q;
     widget.querySelector('.cg-sort').value = f.sort === 'oldest' ? 'oldest' : 'newest';
     var n = classGradesFilterCount(f);
@@ -1259,7 +1351,10 @@ function classGradesFilterKey(f) {
     return JSON.stringify({
         status: n.status.slice().sort(), grade: n.grade.slice().sort(), min: String(n.min), max: String(n.max),
         date: n.date, from: n.date === 'custom' ? n.from : '', to: n.date === 'custom' ? n.to : '',
-        noDue: n.noDue !== false, q: String(n.q || '').trim(), sort: n.sort === 'oldest' ? 'oldest' : 'newest'
+        noDue: n.noDue !== false,
+        sub: n.sub || 'any', subFrom: n.sub === 'custom' ? n.subFrom : '', subTo: n.sub === 'custom' ? n.subTo : '',
+        noSub: n.noSub !== false,
+        q: String(n.q || '').trim(), sort: n.sort === 'oldest' ? 'oldest' : 'newest'
     });
 }
 
@@ -1417,6 +1512,10 @@ function classGradesFiltersChanged(el) {
         from: widget.querySelector('.cg-from').value,
         to: widget.querySelector('.cg-to').value,
         noDue: widget.querySelector('.cg-nodue').checked,
+        sub: widget.querySelector('.cg-sub').value,
+        subFrom: widget.querySelector('.cg-sub-from').value,
+        subTo: widget.querySelector('.cg-sub-to').value,
+        noSub: widget.querySelector('.cg-nosub').checked,
         q: widget.querySelector('.cg-q').value,
         sort: widget.querySelector('.cg-sort').value
     };
@@ -1443,6 +1542,24 @@ function classGradesThresholds(input) {
     var orange = Number(widget.querySelector('.cg-orange').value);
     if (!isFinite(green) || !isFinite(orange)) return;
     classGradesSaveCustom(classGradesToolId(widget), { cgGreen: green, cgOrange: Math.min(orange, green) });
+    classGradesRender(widget);
+}
+
+/** A new letter scale, kept if it reads; the default one is not kept, so it can improve. */
+function classGradesScaleChanged(input) {
+    var widget = input.closest('.cg-widget');
+    var msg = widget.querySelector('.cg-scale-msg');
+    var scale = classGradesParseScale(input.value);
+    if (!scale) {
+        msg.textContent = 'Write it as letters and the lowest % for each: A 93, A- 90, B+ 87, …';
+        msg.classList.add('error');
+        return;
+    }
+    msg.textContent = 'The lowest % for each letter, used when a course has no grading scheme of its own.';
+    msg.classList.remove('error');
+    var text = scale.map(function(r) { return r.letter + ' ' + r.min; }).join(', ');
+    input.value = text;
+    classGradesSaveCustom(classGradesToolId(widget), { cgScale: text === CLASS_GRADES_SCALE ? undefined : text });
     classGradesRender(widget);
 }
 
