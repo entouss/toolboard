@@ -4812,6 +4812,8 @@ tr:hover {
             <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyDataLinkBtn">Copy Link with Data</button>
             <button class="export-tool-btn ts-single-only" id="toolSettingsExportBtn">Export as HTML</button>
             <button class="export-png-btn ts-single-only" id="toolSettingsExportPngBtn">Export as PNG</button>
+            <button class="export-png-btn ts-single-only" id="toolSettingsExportJsonBtn" title="The tool as a file Import / Export can bring back, on this board or another">Export as JSON</button>
+            <button class="export-png-btn ts-bulk-only" id="toolSettingsExportJsonBulkBtn" title="These tools as one file Import / Export can bring back">Export as JSON</button>
             <button class="send-to-back-btn ts-single-only" id="toolSettingsSendToBackBtn">Send to Back</button>
             <button class="delete-tool-btn ts-single-only" id="toolSettingsDeleteBtn">Hide Tool</button>
             <button class="ts-undo-btn ts-bulk-only" id="toolSettingsUndoBtn" disabled>Undo Changes</button>
@@ -7104,6 +7106,8 @@ function setupToolControls() {
     const settingsDuplicateBtn = document.getElementById('toolSettingsDuplicateBtn');
     const settingsExportBtn = document.getElementById('toolSettingsExportBtn');
     const settingsExportPngBtn = document.getElementById('toolSettingsExportPngBtn');
+    const settingsExportJsonBtn = document.getElementById('toolSettingsExportJsonBtn');
+    const settingsExportJsonBulkBtn = document.getElementById('toolSettingsExportJsonBulkBtn');
     const settingsSendToBackBtn = document.getElementById('toolSettingsSendToBackBtn');
     const settingsDeleteBtn = document.getElementById('toolSettingsDeleteBtn');
     const settingsCloseBtn = settingsOverlay.querySelector('.tool-settings-close');
@@ -7327,6 +7331,7 @@ function setupToolControls() {
         const n = settingsTargetIds.length;
         const all = allToolIdsOnBoard();
         const isAll = n === all.length;
+        settingsExportJsonBulkBtn.textContent = 'Export ' + n + (n === 1 ? ' Tool' : ' Tools') + ' as JSON';
         return (isAll ? 'All Tools' : 'Selected Tools') + ' (' + n + ')';
     }
 
@@ -7738,6 +7743,22 @@ function setupToolControls() {
             closeSettingsModal();
             exportToolAsPng(toolId);
         }
+    });
+
+    // Export as JSON: this tool, or in bulk the tools the panel is acting on.
+    settingsExportJsonBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!currentSettingsToolId) return;
+        const toolId = currentSettingsToolId;
+        closeSettingsModal();
+        exportToolsAsJson([toolId]);
+    });
+    settingsExportJsonBulkBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ids = settingsTargetIds.slice();
+        if (!ids.length) return;
+        closeSettingsModal();
+        exportToolsAsJson(ids);
     });
 
     // Send to back button in modal
@@ -16126,6 +16147,31 @@ function exportTools() {
     });
 
     downloadJSON(exportData, `tools-export-${getTimestamp()}.json`);
+}
+
+/** A file name from what is in the file: the tool's title, or the board's for several. */
+function toolExportFilename(toolIds) {
+    let name;
+    if (toolIds.length === 1) {
+        const custom = toolCustomizations[toolIds[0]] || {};
+        name = custom.title || (getToolContent(toolIds[0]) || {}).title || 'tool';
+    } else {
+        name = getBoardName(currentBoardId) + ' tools';
+    }
+    const slug = String(name).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+    return (slug || 'tool') + '-' + getTimestamp() + '.json';
+}
+
+/** Tools as the Import / Export file: the same entries the Export tab writes, so
+ *  Import from File brings them back, on this board or any other. */
+function exportToolsAsJson(toolIds) {
+    downloadJSON({
+        type: 'tools',
+        exportedAt: new Date().toISOString(),
+        tools: toolIds.map(toolExportEntry)
+    }, toolExportFilename(toolIds));
+    showToolToast(toolIds.length === 1 ? 'Exported as JSON' : 'Exported ' + toolIds.length + ' tools as JSON');
 }
 
 function exportBoards() {

@@ -115,6 +115,16 @@ written — the codec is named in the payload's first character rather than gues
 at, so a link made today stays readable by a build that later changes its mind
 about compression.
 
+## From an exported JSON file
+
+**Export as JSON**, in a tool's settings, downloads the tool as the Import / Export
+file — `{ type: 'tools', exportedAt, tools: [toolExportEntry(id)] }`, the same entry
+the Export tab and the share link write — named after the tool's title. With several
+tools selected, the settings panel's bulk mode offers **Export N Tools as JSON**, all
+of them in one file named after the board. **Import from File** brings either back on
+any board, loading the plugins its tools need; what belongs to one browser alone
+(`LOCAL_ONLY_KEYS`: a script's approval, a fetched source) is left out on the way.
+
 ## From an exported HTML file
 
 **Export as HTML**, in a tool's settings, writes a standalone page. That page now
