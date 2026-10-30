@@ -308,6 +308,36 @@ Copy formatted copies each table as written — every row and every column, in t
 order written, no controls (`noteTablePristine()`); the rich editor shows it as written; printing shows
 folded columns whole and none of the controls.
 
+### On-device AI (✨)
+
+`BoardAI` is the one door to Chrome's built-in model: `status()`, `prompt()`,
+`summarize()`, `translate()`, each streaming, stoppable, and reporting the model's
+one-time download only when there is one (Chrome tells every new session 0% and
+100%). It has no network code and no cloud fallback. `BoardAI.refresh()` marks the
+page `html[data-ai="on" | "none" | "off"]`; Plugin Settings ▸ On-device AI turns it off
+for this browser (`toolboard_onDeviceAI`, not a board setting: boards are shared, and
+the choice is the person's).
+
+A tool offers it by declaring what it can work on, and nothing about how it looks:
+
+```js
+ai: { target: 'fnName' | fn, apply: 'fnName' | fn, actions: ['summarize', 'rewrite', 'reshape', 'ask', 'translate'] }
+```
+
+`target(toolId)` returns `{ text, scope: 'selection' | 'whole', … }`; `apply(toolId,
+result, how, target)` puts a result back, `how` being `replace` or `insert`. The
+framework puts ✨ in the header of a tool that declares `ai` (`boardAIButtonHtml`),
+shown only under `data-ai="on"`, and everything after that is BoardAI's popup
+(`#boardAIPopup`): on the page rather than in the tool, so no tool's layout clips it
+and no tool's export carries it; beside the tool where there is room, draggable,
+closed by ✨, × or Esc. Its scope line follows the selection while it is open. What
+comes back streams into the popup and changes nothing until Replace or Insert, which
+are the tool's `apply`; Copy and Discard never touch the tool, and an answer to a
+question is never put over what it answers. A note's side is `noteAITarget` (the
+selection in whichever editor shows, else the note) and `noteAIApply` (through the
+ordinary saves, so undo takes it back). `tests/note-ai.mjs` fakes the model with
+Chrome's API shape.
+
 ### Copying a note
 
 A note is written in Markdown and read as a document, which are two different things

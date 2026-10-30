@@ -3470,6 +3470,46 @@ body.dark-mode .markdown-content h4, body.dark-mode .markdown-content h5, body.d
 .note-table-pop-v { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .note-table-pop-n { color: var(--text-muted); }
 .note-table-pop-actions { display: flex; gap: 4px; }
+
+/* ✨ in a tool's header, where the model can run; and BoardAI's own popup. */
+.tool-header .ai-btn { display: none; }
+html[data-ai="on"] .tool-header .ai-btn { display: inline-flex; }
+.bai-pop {
+    position: fixed; z-index: 100000; width: 320px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px);
+    display: flex; flex-direction: column; font-size: 12px; color: var(--text-primary);
+    background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;
+    box-shadow: 0 10px 28px var(--shadow-medium); overflow: hidden;
+}
+.bai-pop[hidden], .bai-pop [hidden] { display: none !important; }
+.bai-head {
+    display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; cursor: move; user-select: none;
+    background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);
+}
+.bai-title { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bai-x, .bai-back { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; }
+.bai-x:hover, .bai-back:hover { color: var(--text-primary); }
+.bai-scope { padding: 8px 12px 0; color: var(--text-secondary); font-size: 11px; }
+.bai-menu { padding: 4px 6px 8px; overflow: auto; display: flex; flex-direction: column; gap: 1px; }
+.bai-dl { font-size: 11px; color: var(--text-muted); padding: 2px 6px 0; }
+.bai-group { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 6px 2px; }
+.bai-item { text-align: left; border: none; background: transparent; color: inherit; font: inherit; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
+.bai-item:hover:not(:disabled), .bai-item:focus-visible { background: var(--table-hover); }
+.bai-item:disabled { opacity: .45; cursor: default; }
+.bai-translate { display: flex; gap: 4px; align-items: center; padding: 0 2px; }
+.bai-lang { flex: 1; font-size: 12px; padding: 3px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
+.bai-work { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 12px; min-height: 0; overflow: hidden; }
+.bai-work-head { display: flex; align-items: center; gap: 6px; }
+.bai-what { font-weight: 600; }
+.bai-status { flex: 1; color: var(--text-muted); text-align: right; }
+.bai-status.bai-error { color: #e74c3c; text-align: left; }
+.bai-ask { display: flex; gap: 6px; }
+.bai-q { flex: 1; padding: 5px 7px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
+.bai-out { overflow: auto; min-height: 0; max-height: 50vh; font-size: 12px; user-select: text; }
+.bai-out:empty { display: none; }
+.bai-foot { display: flex; gap: 6px; flex-wrap: wrap; }
+.bai-btn { padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 12px; }
+.bai-btn:hover { background: var(--table-hover); }
+.bai-btn.primary { background: var(--link-color); border-color: var(--link-color); color: #fff; }
 @media print {
     .note-table-bar, .note-th-btn, .note-th-grip, .note-th-resize, .note-table-pop,
     .note-table-pager { display: none !important; }
@@ -4882,7 +4922,9 @@ const NOTE_TEMPLATES = {
             result: '.authoring-result',
             actions: '.note-actions',
             onRender: 'noteRender'
-        }
+        },
+        // What ✨ works on and how it puts things back; the popup is BoardAI's.
+        ai: { target: 'noteAITarget', apply: 'noteAIApply' }
     },
     // A tool the user writes themselves: markup, a script that wires it up, and the
     // data the script reads. None of this is new capability — a note renders its
@@ -5241,6 +5283,8 @@ const PluginRegistry = {
             // Opt in to the shared edit/preview modes. Omit it and nothing below
             // touches the tool. See normalizeAuthoring for the shape.
             authoring: normalizeAuthoring(plugin.authoring),
+            // What ✨ works on and how it puts things back, if the tool offers it.
+            ai: plugin.ai || null,
             // Name a function here to be handed the parameters of the link a tool
             // was opened from — see applyToolHashParams and docs/urls.md.
             hashParams: typeof plugin.hashParams === 'string' ? plugin.hashParams : null,
@@ -9446,6 +9490,7 @@ function createTool(toolId) {
                 <button class="header-btn minimize-btn${isMinimized ? ' minimized' : ''}" title="Minimize">&#8211;</button>
                 <button class="header-btn fullscreen-btn" title="Fullscreen"><svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="12" height="12" rx="1" stroke="currentColor" stroke-width="4" fill="none"/></svg></button>
                 ${guideFor(toolId) ? '<button class="header-btn guide-btn" title="How this tool works">?</button>' : ''}
+                ${boardAIButtonHtml(toolId)}
                 <button class="header-btn settings-btn" title="Settings">&#8942;</button>
                 <button class="header-btn delete-btn" title="Delete">&times;</button>
             </div>
@@ -9620,6 +9665,686 @@ function applyLineTransforms(text, transforms) {
         }
     }
     return text;
+}
+
+// ---- on-device AI: Chrome's built-in model, and nothing else -------------------
+//
+// Chrome can carry a small model of its own (Gemini Nano) and lets a page use it
+// through a few APIs: prompting, summarizing, translating, detecting a language.
+// It runs on this computer. There is no key, no cost, and nothing is sent anywhere
+// — this file has no network code for it at all, and there is no cloud fallback.
+// Where the model cannot run (another browser, a phone, a machine without the
+// memory, a laptop whose administrator turned it off), there is simply no AI on
+// offer, and the rest of the board is as it was.
+//
+// One door for every tool: BoardAI.status(), .prompt(), .summarize(), .translate().
+// Each streams through onChunk(textSoFar), stops on an AbortSignal, and reports the
+// one-time model download through onProgress(0..1).
+
+const BOARD_AI_OFF_KEY = 'toolboard_onDeviceAI';
+
+const BoardAI = {
+    /** Offered unless turned off in Plugin Settings: a person's choice, so not the board's. */
+    enabled() {
+        try { return localStorage.getItem(BOARD_AI_OFF_KEY) !== 'off'; } catch (e) { return true; }
+    },
+
+    setEnabled(on) {
+        try {
+            if (on) localStorage.removeItem(BOARD_AI_OFF_KEY);
+            else localStorage.setItem(BOARD_AI_OFF_KEY, 'off');
+        } catch (e) { /* kept for this page only */ }
+        return this.refresh();
+    },
+
+    _api(kind) {
+        return { prompt: self.LanguageModel, summarize: self.Summarizer, translate: self.Translator,
+            detect: self.LanguageDetector }[kind] || null;
+    },
+
+    /** Chrome has said this two ways; both come out as ready, download, downloading or unavailable. */
+    _norm(value) {
+        if (value === 'available' || value === 'readily-available' || value === 'readily') return 'ready';
+        if (value === 'downloadable' || value === 'after-download') return 'download';
+        if (value === 'downloading') return 'downloading';
+        return 'unavailable';
+    },
+
+    /** How one capability stands here: ready, download, downloading, unavailable, unsupported. */
+    async status(kind, options) {
+        const api = this._api(kind);
+        if (!api || typeof api.availability !== 'function') return 'unsupported';
+        try { return this._norm(await api.availability(options)); } catch (e) { return 'unavailable'; }
+    },
+
+    async statuses() {
+        const [prompt, summarize, translate] = await Promise.all([
+            this.status('prompt', BOARD_AI_TEXT), this.status('summarize'),
+            this.status('translate', { sourceLanguage: 'en', targetLanguage: 'es' })
+        ]);
+        return { prompt, summarize, translate };
+    },
+
+    usable(status) { return status === 'ready' || status === 'download' || status === 'downloading'; },
+
+    /** Why a capability is not on offer, in a sentence. */
+    why(status) {
+        if (status === 'off') return 'On-device AI is turned off in Plugin Settings.';
+        if (status === 'unsupported') return 'This browser has no on-device model. It needs Chrome on a desktop ' +
+            '(Windows, macOS, Linux or a Chromebook Plus).';
+        if (status === 'unavailable') return 'Chrome’s on-device model is not available here: this computer may not have ' +
+            'the memory or the disk it needs, or it has been turned off by an administrator.';
+        if (status === 'download') return 'Ready once Chrome has downloaded its on-device model, the first time it is used.';
+        if (status === 'downloading') return 'Chrome is downloading its on-device model.';
+        return 'Ready, on this computer.';
+    },
+
+    /** Mark the page with whether there is any AI on offer, for the buttons that offer it. */
+    async refresh() {
+        const s = await this.statuses();
+        const on = this.enabled() && (this.usable(s.prompt) || this.usable(s.summarize) || this.usable(s.translate));
+        document.documentElement.dataset.ai = !this.enabled() ? 'off' : on ? 'on' : 'none';
+        document.dispatchEvent(new CustomEvent('boardai-change', { detail: s }));
+        return s;
+    },
+
+    /**
+     * The download's progress, when there is a download. Chrome tells every new
+     * session 0% and then 100%, model already on disk or not; told only to a model
+     * that was not ready, "downloading" means downloading.
+     */
+    async _monitor(kind, options, onProgress) {
+        if (!onProgress || (await this.status(kind, options)) === 'ready') return undefined;
+        return (m) => m.addEventListener('downloadprogress', (e) => onProgress(e.loaded));
+    },
+
+    /** A stream to its whole text. Chrome has sent the text so far at each step, and
+     *  now sends only what is new; either way onChunk gets the text so far. */
+    async _collect(stream, onChunk, signal) {
+        let out = '';
+        for await (const chunk of stream) {
+            // Stopped means stopped, whether or not the stream itself heeds the signal.
+            if (signal && signal.aborted) throw new DOMException('Stopped', 'AbortError');
+            const piece = String(chunk);
+            out = out && piece.startsWith(out) ? piece : out + piece;
+            if (onChunk) onChunk(out);
+        }
+        return out;
+    },
+
+    _check() {
+        if (!this.enabled()) throw new Error(this.why('off'));
+    },
+
+    /** A prompt, with an optional system prompt and JSON schema for the answer. */
+    async prompt(text, opts = {}) {
+        this._check();
+        if (!self.LanguageModel) throw new Error(this.why('unsupported'));
+        const session = await LanguageModel.create({
+            ...BOARD_AI_TEXT,
+            initialPrompts: opts.system ? [{ role: 'system', content: opts.system }] : undefined,
+            signal: opts.signal,
+            monitor: await this._monitor('prompt', BOARD_AI_TEXT, opts.onProgress)
+        });
+        try {
+            const stream = session.promptStreaming(text, { signal: opts.signal, responseConstraint: opts.schema });
+            return await this._collect(stream, opts.onChunk, opts.signal);
+        } finally {
+            if (session.destroy) session.destroy();
+        }
+    },
+
+    /** A summary: type key-points, tldr, teaser or headline; length short, medium or long. */
+    async summarize(text, opts = {}) {
+        this._check();
+        if (!self.Summarizer) throw new Error(this.why('unsupported'));
+        const summarizer = await Summarizer.create({
+            type: opts.type || 'key-points', length: opts.length || 'medium', format: opts.format || 'markdown',
+            sharedContext: opts.context, expectedInputLanguages: ['en'], outputLanguage: 'en',
+            signal: opts.signal, monitor: await this._monitor('summarize', undefined, opts.onProgress)
+        });
+        try {
+            return await this._collect(summarizer.summarizeStreaming(text, { signal: opts.signal }), opts.onChunk, opts.signal);
+        } finally {
+            if (summarizer.destroy) summarizer.destroy();
+        }
+    },
+
+    /** The language a text is in, as a code like "en"; null when it cannot be told. */
+    async detect(text) {
+        if (!self.LanguageDetector) return null;
+        try {
+            const detector = await LanguageDetector.create();
+            const found = await detector.detect(text);
+            if (detector.destroy) detector.destroy();
+            return found && found[0] && found[0].detectedLanguage !== 'und' ? found[0].detectedLanguage : null;
+        } catch (e) { return null; }
+    },
+
+    /** A translation into `to`, from `from` or from whatever language the text is in. */
+    async translate(text, opts = {}) {
+        this._check();
+        if (!self.Translator) throw new Error(this.why('unsupported'));
+        const from = opts.from || await this.detect(text) || 'en';
+        if (from === opts.to) return text;
+        const pair = { sourceLanguage: from, targetLanguage: opts.to };
+        const status = await this.status('translate', pair);
+        if (!this.usable(status)) throw new Error('Chrome cannot translate from ' + boardAILanguageName(from) +
+            ' to ' + boardAILanguageName(opts.to) + ' on this computer.');
+        const translator = await Translator.create({ ...pair, signal: opts.signal,
+            monitor: status === 'ready' || !opts.onProgress ? undefined : (m) => m.addEventListener('downloadprogress', (e) => opts.onProgress(e.loaded)) });
+        try {
+            return await this._collect(translator.translateStreaming(text, { signal: opts.signal }), opts.onChunk, opts.signal);
+        } finally {
+            if (translator.destroy) translator.destroy();
+        }
+    }
+};
+
+/** What the board says to the model and expects back: English text. */
+const BOARD_AI_TEXT = {
+    expectedInputs: [{ type: 'text', languages: ['en'] }],
+    expectedOutputs: [{ type: 'text', languages: ['en'] }]
+};
+
+const BOARD_AI_LANGUAGES = [['en', 'English'], ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'],
+    ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['zh', 'Chinese'], ['ja', 'Japanese'],
+    ['ko', 'Korean'], ['hi', 'Hindi'], ['ar', 'Arabic'], ['ru', 'Russian'], ['tr', 'Turkish'], ['vi', 'Vietnamese']];
+
+function boardAILanguageName(code) {
+    const hit = BOARD_AI_LANGUAGES.find(l => l[0] === code);
+    return hit ? hit[1] : code;
+}
+
+setTimeout(() => { BoardAI.refresh(); }, 0);
+
+/** Plugin Settings: the switch, and what this computer can do. */
+async function boardAIRenderSettings() {
+    const box = document.getElementById('boardAIEnabled');
+    const line = document.getElementById('boardAIStatus');
+    if (!box || !line) return;
+    box.checked = BoardAI.enabled();
+    box.onchange = async () => { await BoardAI.setEnabled(box.checked); boardAIRenderSettings(); };
+    const s = await BoardAI.statuses();
+    if (!BoardAI.enabled()) { line.textContent = BoardAI.why('off'); return; }
+    const names = { prompt: 'Writing and asking', summarize: 'Summaries', translate: 'Translation' };
+    const usable = Object.keys(s).filter(k => BoardAI.usable(s[k]));
+    line.textContent = !usable.length ? BoardAI.why(s.prompt === 'unsupported' ? 'unsupported' : 'unavailable')
+        : Object.keys(s).map(k => names[k] + ': ' + (s[k] === 'ready' ? 'ready' : s[k] === 'download' ? 'downloads on first use'
+            : s[k] === 'downloading' ? 'downloading' : 'not here')).join(' · ') +
+          '. It runs on this computer; nothing is sent anywhere.';
+}
+
+// ---- ✨: BoardAI's own popup, for any tool that offers it ----------------------
+//
+// A tool says what it can offer and nothing about how it looks:
+//
+//     ai: { target: fn | 'name', apply: fn | 'name', actions: ['summarize', …] }
+//
+// target(toolId) → { text, scope: 'selection' | 'whole', … }  what to work on now
+// apply(toolId, result, how, target)                        how: 'replace' | 'insert'
+//
+// The framework puts ✨ in the header of a tool that declares it, where the model
+// can run; everything after that is this popup's. It lives on the page, not in the
+// tool, so no tool's layout can clip it and no tool's export carries it. What comes
+// back changes nothing until Replace or Insert, which are the tool's own `apply`.
+
+const BOARD_AI_GROUPS = ['summarize', 'rewrite', 'reshape', 'ask', 'translate'];
+
+const BOARD_AI_ACTIONS = [
+    { id: 'keypoints', group: 'summarize', label: 'Key points', needs: 'summarize' },
+    { id: 'tldr', group: 'summarize', label: 'TL;DR', needs: 'summarize' },
+    { id: 'shorter', group: 'rewrite', label: 'Shorter', needs: 'prompt', ask: 'shorter and tighter, keeping every point that matters' },
+    { id: 'clearer', group: 'rewrite', label: 'Clearer', needs: 'prompt', ask: 'clearer and easier to follow' },
+    { id: 'formal', group: 'rewrite', label: 'More formal', needs: 'prompt', ask: 'more formal and professional' },
+    { id: 'casual', group: 'rewrite', label: 'More casual', needs: 'prompt', ask: 'more casual and friendly' },
+    { id: 'fix', group: 'rewrite', label: 'Fix spelling & grammar', needs: 'prompt', ask: 'correct in spelling, grammar and punctuation, changing nothing else' },
+    { id: 'checklist', group: 'reshape', label: 'Into a checklist', needs: 'prompt' },
+    { id: 'table', group: 'reshape', label: 'Into a table', needs: 'prompt' },
+    { id: 'sections', group: 'reshape', label: 'Into sections', needs: 'prompt' },
+    { id: 'ask', group: 'ask', label: 'Ask about it…', needs: 'prompt' }
+];
+
+const BOARD_AI_GROUP_NAMES = { summarize: 'Summarize', rewrite: 'Rewrite', reshape: 'Reshape', ask: 'Ask', translate: 'Translate' };
+
+const BOARD_AI_SYSTEM = 'You work on text written in Markdown. Keep its meaning, its links, its code and its ' +
+    'Markdown formatting. Reply with the result only: no preface, no explanation, no closing remarks.';
+
+/** What a tool declares about ✨, with its two functions found; null if it offers none. */
+function getToolAI(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    if (!custom.templateId) return null;
+    const template = NOTE_TEMPLATES[custom.templateId] || PluginRegistry.getTool(custom.templateId);
+    const decl = template && template.ai;
+    if (!decl) return null;
+    const fn = (f) => typeof f === 'function' ? f : (typeof f === 'string' && typeof window[f] === 'function' ? window[f] : null);
+    const target = fn(decl.target), apply = fn(decl.apply);
+    if (!target) return null;
+    const groups = Array.isArray(decl.actions) && decl.actions.length ? decl.actions.filter(g => BOARD_AI_GROUPS.includes(g)) : BOARD_AI_GROUPS;
+    return { target, apply, groups };
+}
+
+function boardAIButtonHtml(toolId) {
+    return getToolAI(toolId) ? '<button class="header-btn ai-btn" onmousedown="event.preventDefault()" ' +
+        'onclick="boardAIOpen(event, this)" aria-haspopup="dialog" ' +
+        'title="On-device AI — Chrome’s own model, on this computer; nothing is sent anywhere">✨</button>' : '';
+}
+
+/** The popup's one state: which tool it is for, and what is under way. */
+const boardAIState = { toolId: null, controller: null, result: '', action: null, target: null };
+
+function boardAIPopup() {
+    let pop = document.getElementById('boardAIPopup');
+    if (pop) return pop;
+    pop = document.createElement('div');
+    pop.id = 'boardAIPopup';
+    pop.className = 'bai-pop';
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', 'On-device AI');
+    pop.hidden = true;
+    // The selection in the tool is what an action works on, so pressing in here must
+    // not take it away — except where there is something here to type in or select.
+    pop.addEventListener('mousedown', (e) => {
+        if (!e.target.closest('input, select, textarea, .bai-out')) e.preventDefault();
+    });
+    pop.addEventListener('dblclick', (e) => e.stopPropagation());
+    pop.innerHTML =
+        '<div class="bai-head" title="Drag to move">' +
+            '<span class="bai-title"></span>' +
+            '<button class="bai-x" onclick="boardAIClose()" aria-label="Close" title="Close (Esc)">×</button>' +
+        '</div>' +
+        '<div class="bai-scope"></div>' +
+        '<div class="bai-menu"></div>' +
+        '<div class="bai-work" hidden>' +
+            '<div class="bai-work-head">' +
+                '<button class="bai-back" onclick="boardAIBack()" title="Back to what it can do">‹</button>' +
+                '<span class="bai-what"></span><span class="bai-status" aria-live="polite"></span>' +
+                '<button class="bai-btn bai-stop" onclick="boardAIStop()">Stop</button>' +
+            '</div>' +
+            '<div class="bai-ask" hidden><input class="bai-q" placeholder="Ask about it…" ' +
+                'onkeydown="boardAIAskKey(event, this)"><button class="bai-btn" onclick="boardAIAsk()">Ask</button></div>' +
+            '<div class="bai-out"></div>' +
+            '<div class="bai-foot" hidden>' +
+                '<button class="bai-btn primary bai-replace" onclick="boardAIApply(\'replace\')"></button>' +
+                '<button class="bai-btn bai-insert" onclick="boardAIApply(\'insert\')">Insert below</button>' +
+                '<button class="bai-btn bai-copy" onclick="boardAICopy()">Copy</button>' +
+                '<button class="bai-btn bai-discard" onclick="boardAIBack()">Discard</button>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(pop);
+    boardAIDraggable(pop, pop.querySelector('.bai-head'));
+    return pop;
+}
+
+function boardAIDraggable(pop, handle) {
+    handle.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button')) return;
+        e.preventDefault();
+        const r = pop.getBoundingClientRect();
+        const dx = e.clientX - r.left, dy = e.clientY - r.top;
+        handle.setPointerCapture(e.pointerId);
+        const move = (ev) => {
+            pop.style.left = Math.max(0, Math.min(window.innerWidth - 60, ev.clientX - dx)) + 'px';
+            pop.style.top = Math.max(0, Math.min(window.innerHeight - 30, ev.clientY - dy)) + 'px';
+        };
+        const up = () => { handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+    });
+}
+
+function boardAITool() {
+    return boardAIState.toolId ? document.querySelector('.tool[data-tool="' + CSS.escape(boardAIState.toolId) + '"]') : null;
+}
+
+/** Beside the tool where there is room — right, then left — else over its corner. */
+function boardAIPlace(pop, tool) {
+    const t = tool.getBoundingClientRect();
+    const w = pop.offsetWidth, h = pop.offsetHeight, gap = 8;
+    let left;
+    if (t.right + gap + w <= window.innerWidth - gap) left = t.right + gap;
+    else if (t.left - gap - w >= gap) left = t.left - gap - w;
+    else left = Math.max(gap, Math.min(t.right - w - gap, window.innerWidth - w - gap));
+    const top = Math.max(gap, Math.min(t.top, window.innerHeight - h - gap));
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+}
+
+async function boardAIOpen(event, btn) {
+    if (event) event.stopPropagation();
+    const tool = btn.closest('.tool');
+    const toolId = tool && tool.getAttribute('data-tool');
+    const ai = toolId && getToolAI(toolId);
+    if (!ai) return;
+    const pop = boardAIPopup();
+    if (!pop.hidden && boardAIState.toolId === toolId) { boardAIClose(); return; }
+    boardAIStop();
+    boardAIState.toolId = toolId;
+    const custom = toolCustomizations[toolId] || {};
+    pop.querySelector('.bai-title').textContent = '✨ ' + (custom.title || (getToolContent(toolId) || {}).title || 'Tool');
+    pop.hidden = false;
+    boardAIShowMenu();
+    boardAIPlace(pop, tool);
+    document.querySelectorAll('.ai-btn[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    btn.setAttribute('aria-expanded', 'true');
+    await boardAIRenderMenu();
+}
+
+function boardAIClose() {
+    boardAIStop();
+    const pop = document.getElementById('boardAIPopup');
+    if (pop) pop.hidden = true;
+    boardAIState.toolId = null;
+    document.querySelectorAll('.ai-btn[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+}
+
+/** What the tool says it would work on, right now. */
+function boardAITarget() {
+    const ai = boardAIState.toolId && getToolAI(boardAIState.toolId);
+    if (!ai || !boardAITool()) return null;
+    try { return ai.target(boardAIState.toolId) || null; } catch (e) { return null; }
+}
+
+function boardAIWords(text) { return (String(text || '').trim().match(/\S+/g) || []).length; }
+
+function boardAIScopeText(target) {
+    const words = boardAIWords(target && target.text);
+    if (!words) return 'Nothing to work on yet: write something first.';
+    return (target.scope === 'selection' ? 'On the selection' : 'On all of it') + ' (' + words + ' word' + (words === 1 ? '' : 's') + ')';
+}
+
+function boardAIShowMenu() {
+    const pop = boardAIPopup();
+    pop.querySelector('.bai-menu').hidden = false;
+    pop.querySelector('.bai-scope').hidden = false;
+    pop.querySelector('.bai-work').hidden = true;
+}
+
+async function boardAIRenderMenu() {
+    const pop = boardAIPopup();
+    const ai = getToolAI(boardAIState.toolId);
+    if (!ai) return;
+    const target = boardAITarget();
+    pop.querySelector('.bai-scope').textContent = boardAIScopeText(target);
+    const menu = pop.querySelector('.bai-menu');
+    menu.innerHTML = '<div class="bai-dl" hidden>The first time, Chrome downloads its on-device model.</div>' +
+        ai.groups.map(g => '<div class="bai-group">' + BOARD_AI_GROUP_NAMES[g] + '</div>' +
+            (g === 'translate'
+                ? '<div class="bai-translate"><select class="bai-lang" aria-label="Translate to">' +
+                    BOARD_AI_LANGUAGES.map(l => '<option value="' + l[0] + '"' + (l[0] === 'es' ? ' selected' : '') + '>' + l[1] + '</option>').join('') +
+                  '</select><button class="bai-item" data-ai="translate" data-needs="translate" onclick="boardAIPick(this)">Translate</button></div>'
+                : BOARD_AI_ACTIONS.filter(a => a.group === g).map(a =>
+                    '<button class="bai-item" data-ai="' + a.id + '" data-needs="' + a.needs + '" onclick="boardAIPick(this)">' +
+                    escapeHtml(a.label) + '</button>').join(''))).join('');
+    const s = await BoardAI.statuses();
+    const can = (needs) => BoardAI.usable(s[needs]) || (needs === 'summarize' && BoardAI.usable(s.prompt));
+    menu.querySelector('.bai-dl').hidden = !Object.keys(s).some(k => s[k] === 'download');
+    boardAIEnableItems(s, can);
+}
+
+function boardAIEnableItems(s, can) {
+    const pop = document.getElementById('boardAIPopup');
+    if (!pop) return;
+    const words = boardAIWords((boardAITarget() || {}).text);
+    pop.querySelectorAll('.bai-item').forEach(item => {
+        const ok = !!words && can(item.dataset.needs);
+        item.disabled = !ok;
+        item.title = ok ? '' : !words ? 'Write something first' : BoardAI.why(s[item.dataset.needs]);
+    });
+    boardAIState.statuses = s;
+}
+
+// The selection is what an action works on, so what the popup says it will work on
+// follows the selection while the popup is open.
+document.addEventListener('selectionchange', () => {
+    const pop = document.getElementById('boardAIPopup');
+    if (!pop || pop.hidden || pop.querySelector('.bai-menu').hidden) return;
+    pop.querySelector('.bai-scope').textContent = boardAIScopeText(boardAITarget());
+    const s = boardAIState.statuses;
+    if (s) boardAIEnableItems(s, (needs) => BoardAI.usable(s[needs]) || (needs === 'summarize' && BoardAI.usable(s.prompt)));
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const pop = document.getElementById('boardAIPopup');
+    if (pop && !pop.hidden) { e.stopPropagation(); boardAIClose(); }
+}, true);
+
+function boardAIPick(item) {
+    const action = item.dataset.ai;
+    const target = boardAITarget();
+    if (!target || !boardAIWords(target.text)) return;
+    boardAIState.target = target;
+    const lang = action === 'translate' ? boardAIPopup().querySelector('.bai-lang').value : null;
+    if (action === 'ask') {
+        boardAIWork('Ask about it');
+        const pop = boardAIPopup();
+        pop.querySelector('.bai-ask').hidden = false;
+        pop.querySelector('.bai-stop').hidden = true;
+        pop.querySelector('.bai-status').textContent = '';
+        pop.querySelector('.bai-q').value = '';
+        pop.querySelector('.bai-q').focus();
+        return;
+    }
+    boardAIRun(action, { lang });
+}
+
+/** From the list of what it can do to one of them being done. */
+function boardAIWork(title) {
+    const pop = boardAIPopup();
+    pop.querySelector('.bai-menu').hidden = true;
+    pop.querySelector('.bai-scope').hidden = true;
+    pop.querySelector('.bai-work').hidden = false;
+    pop.querySelector('.bai-what').textContent = title;
+    pop.querySelector('.bai-out').innerHTML = '';
+    pop.querySelector('.bai-foot').hidden = true;
+    pop.querySelector('.bai-ask').hidden = true;
+    return pop;
+}
+
+function boardAIBack() {
+    boardAIStop();
+    boardAIShowMenu();
+    boardAIRenderMenu();
+}
+
+function boardAIAskKey(event, input) {
+    event.stopPropagation();
+    if (event.key === 'Enter') { event.preventDefault(); boardAIAsk(); }
+}
+
+function boardAIAsk() {
+    const q = boardAIPopup().querySelector('.bai-q').value.trim();
+    if (q) boardAIRun('ask', { question: q });
+}
+
+/** What the model says, as it will read — its own markup shown as text, not run. */
+function boardAIPreviewHtml(text) {
+    return '<div class="markdown-content">' + parseMarkdown(String(text || '').replace(/</g, '&lt;')) + '</div>';
+}
+
+/** Rows and columns from the model, as a Markdown table. */
+function boardAITableMarkdown(json) {
+    const data = JSON.parse(json);
+    const cols = (data.columns || []).map(String);
+    if (!cols.length) throw new Error('No columns came back.');
+    const cell = (v) => String(v == null ? '' : v).replace(/\|/g, '\\|').replace(/\n+/g, ' ').trim();
+    const rows = (data.rows || []).map(r => cols.map((c, i) => cell(Array.isArray(r) ? r[i] : '')));
+    return '| ' + cols.map(cell).join(' | ') + ' |\n|' + cols.map(() => ' --- ').join('|') + '|\n' +
+        rows.map(r => '| ' + r.join(' | ') + ' |').join('\n');
+}
+
+async function boardAIRun(action, extra) {
+    const st = boardAIState;
+    if (st.controller) st.controller.abort();
+    const controller = st.controller = new AbortController();
+    const def = BOARD_AI_ACTIONS.find(a => a.id === action) || {};
+    const text = (st.target || {}).text || '';
+    const title = action === 'translate' ? 'Translate to ' + boardAILanguageName(extra.lang)
+        : action === 'ask' ? 'Ask about it' : BOARD_AI_GROUP_NAMES[def.group] + ': ' + def.label;
+    const pop = boardAIWork(title);
+    if (action === 'ask') {
+        pop.querySelector('.bai-ask').hidden = false;
+        pop.querySelector('.bai-q').value = extra.question;
+    }
+    const status = pop.querySelector('.bai-status');
+    const out = pop.querySelector('.bai-out');
+    const stop = pop.querySelector('.bai-stop');
+    status.classList.remove('bai-error');
+    status.textContent = 'Working…';
+    stop.hidden = false;
+    st.result = '';
+    st.action = action;
+    const mine = () => st.controller === controller;
+    const onChunk = (t) => { if (!mine()) return; st.result = t; status.textContent = 'Writing…'; out.innerHTML = boardAIPreviewHtml(t); };
+    const onProgress = (p) => {
+        if (!mine()) return;
+        status.textContent = p >= 1 ? 'Model downloaded — starting…' : 'Downloading the on-device model… ' + Math.round(p * 100) + '%';
+    };
+    const base = { signal: controller.signal, onChunk, onProgress };
+    try {
+        let result;
+        if (action === 'keypoints' || action === 'tldr') {
+            const type = action === 'tldr' ? 'tldr' : 'key-points';
+            result = BoardAI.usable(await BoardAI.status('summarize'))
+                ? await BoardAI.summarize(text, { ...base, type, length: 'medium' })
+                : await BoardAI.prompt((action === 'tldr' ? 'Summarize this in two or three sentences:\n\n'
+                    : 'Summarize this as a short Markdown list of its key points:\n\n') + text, { ...base, system: BOARD_AI_SYSTEM });
+        } else if (def.ask) {
+            result = await BoardAI.prompt('Rewrite this to be ' + def.ask + ':\n\n' + text, { ...base, system: BOARD_AI_SYSTEM });
+        } else if (action === 'checklist') {
+            result = await BoardAI.prompt('Turn this into a Markdown checklist: one "- [ ] " line for each action or point, ' +
+                'in the order they come.\n\n' + text, { ...base, system: BOARD_AI_SYSTEM });
+        } else if (action === 'sections') {
+            result = await BoardAI.prompt('Organize this into sections, each under a "## " heading that names it, ' +
+                'keeping all of its content.\n\n' + text, { ...base, system: BOARD_AI_SYSTEM });
+        } else if (action === 'table') {
+            const json = await BoardAI.prompt('Make a table of the things this lists: choose the columns, and give one row ' +
+                'for each thing, as JSON.\n\n' + text, {
+                    signal: controller.signal, onProgress, system: BOARD_AI_SYSTEM,
+                    onChunk: () => { if (mine()) status.textContent = 'Writing…'; },
+                    schema: { type: 'object', required: ['columns', 'rows'], properties: {
+                        columns: { type: 'array', items: { type: 'string' } },
+                        rows: { type: 'array', items: { type: 'array', items: { type: 'string' } } } } }
+                });
+            result = boardAITableMarkdown(json);
+        } else if (action === 'translate') {
+            result = await BoardAI.translate(text, { ...base, to: extra.lang });
+        } else if (action === 'ask') {
+            result = await BoardAI.prompt('Answer the question from this text alone. If it does not say, say so ' +
+                'in a sentence.\n\nText:\n' + text + '\n\nQuestion: ' + extra.question, { ...base,
+                    system: 'You answer questions about a text. Be brief and exact.' });
+        }
+        if (!mine()) return;
+        st.result = String(result || '').trim();
+        out.innerHTML = boardAIPreviewHtml(st.result);
+        status.textContent = st.result ? '' : 'Nothing came back.';
+        stop.hidden = true;
+        boardAIShowFoot();
+    } catch (e) {
+        if (!mine()) return;
+        stop.hidden = true;
+        status.textContent = controller.signal.aborted ? 'Stopped.' : (e && e.message ? e.message : 'The on-device model could not do that.');
+        if (!controller.signal.aborted) status.classList.add('bai-error');
+        if (st.result) boardAIShowFoot();
+    } finally {
+        if (mine()) st.controller = null;
+    }
+}
+
+function boardAIShowFoot() {
+    const st = boardAIState;
+    const foot = boardAIPopup().querySelector('.bai-foot');
+    foot.hidden = !st.result;
+    const ai = getToolAI(st.toolId);
+    const replace = foot.querySelector('.bai-replace');
+    const insert = foot.querySelector('.bai-insert');
+    // An answer is put next to what it answers, never over it; and a tool that
+    // cannot take anything back offers only Copy.
+    replace.hidden = st.action === 'ask' || !ai || !ai.apply;
+    insert.hidden = !ai || !ai.apply;
+    replace.textContent = (st.target || {}).scope === 'selection' ? 'Replace selection' : 'Replace';
+}
+
+function boardAIStop() {
+    if (boardAIState.controller) boardAIState.controller.abort();
+}
+
+function boardAICopy() {
+    copyTextToClipboard(boardAIState.result || '', 'Copied');
+}
+
+/** Hand what came back to the tool, which puts it in its own way. */
+function boardAIApply(how) {
+    const st = boardAIState;
+    const ai = getToolAI(st.toolId);
+    if (!ai || !ai.apply || !st.result || !boardAITool()) return;
+    ai.apply(st.toolId, st.result, how, st.target);
+    boardAIClose();
+    showToolToast(how === 'replace' ? 'Replaced — Undo puts it back' : 'Inserted — Undo takes it out');
+}
+
+// ---- a note's side of it: what to work on, and how to put it back ------------
+
+/** The selection in whichever of the note's editors shows, or the whole note. */
+function noteAITarget(toolId) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.note-widget');
+    const custom = toolCustomizations[toolId] || {};
+    const whole = { scope: 'whole', kind: 'note', text: custom.customContent != null ? custom.customContent : '' };
+    if (!widget) return whole;
+    const showing = (el) => el && el.getClientRects().length > 0;
+    const surface = widget.querySelector('.note-rich');
+    if (widget.classList.contains('note-rich-on') && showing(surface)) {
+        const sel = window.getSelection();
+        if (sel.rangeCount && !sel.isCollapsed && surface.contains(sel.anchorNode) && surface.contains(sel.focusNode)) {
+            const range = sel.getRangeAt(0).cloneRange();
+            const holder = document.createElement('div');
+            holder.appendChild(range.cloneContents());
+            const text = noteHtmlToMarkdown(holder.innerHTML);
+            if (text.trim()) return { scope: 'selection', kind: 'rich', range, text };
+        }
+    }
+    const source = widget.querySelector('.note-source');
+    if (showing(source) && document.activeElement === source && source.selectionEnd > source.selectionStart) {
+        return { scope: 'selection', kind: 'md', start: source.selectionStart, end: source.selectionEnd,
+            text: source.value.slice(source.selectionStart, source.selectionEnd) };
+    }
+    return whole;
+}
+
+/** Put it in the note: over what it was made from, or after it — the way typing would. */
+function noteAIApply(toolId, md, how, target) {
+    const tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    const widget = tool && tool.querySelector('.note-widget');
+    if (!widget || !md) return;
+    target = target || { kind: 'note' };
+    if (target.kind === 'rich') {
+        const surface = widget.querySelector('.note-rich');
+        surface.focus();
+        const range = target.range;
+        if (how === 'insert') range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('insertHTML', false, parseMarkdown((how === 'insert' ? '\n\n' : '') + md));
+        noteRichSave(surface);
+    } else if (target.kind === 'md') {
+        const source = widget.querySelector('.note-source');
+        const v = source.value;
+        source.value = how === 'replace' ? v.slice(0, target.start) + md + v.slice(target.end)
+            : v.slice(0, target.end) + '\n\n' + md + v.slice(target.end);
+        noteOnInput(source);
+    } else {
+        const custom = toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+        const now = custom.customContent != null ? custom.customContent : '';
+        const next = how === 'replace' ? md : now.replace(/\s+$/, '') + (now.trim() ? '\n\n' : '') + md;
+        if (document.activeElement && widget.contains(document.activeElement)) document.activeElement.blur();
+        custom.customContent = next;
+        saveToolCustomizations(toolCustomizations);
+        noteApplyEditor(toolId);
+        noteRender(toolId);
+    }
 }
 
 // ---- the note, in the shared authoring shell ----------------------------------
@@ -15530,6 +16255,12 @@ function openPluginSettingsModal() {
                 </div>
 
                 <div class="plugin-section">
+                    <h3>On-device AI</h3>
+                    <label class="plugin-ai-toggle"><input type="checkbox" id="boardAIEnabled"> Offer AI on notes, with Chrome’s own built-in model</label>
+                    <p class="plugin-hint" id="boardAIStatus"></p>
+                </div>
+
+                <div class="plugin-section">
                     <h3>Add External Plugin</h3>
                     <div class="plugin-add-row">
                         <input type="text" id="pluginUrlInput" class="plugin-url-input" placeholder="Enter plugin URL...">
@@ -15834,6 +16565,7 @@ function openPluginSettingsModal() {
 
     updateOfficialPluginButtons();
     refreshPluginLists();
+    boardAIRenderSettings();
     modal.classList.add('open');
 }
 

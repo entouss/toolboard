@@ -179,6 +179,46 @@ there — that file is a whole copy of the app, and whoever wrote it already con
 everything it does. What this guarantees is that nothing *Toolboard* exports carries
 an approval.
 
+## On-device AI
+
+A script can use Chrome's own built-in model (Gemini Nano) through `BoardAI`, the same
+door the note's ✨ uses. It runs on the user's computer: no key, no cost, nothing sent
+anywhere, and there is no cloud fallback. Where the model cannot run — another browser,
+a phone, a machine without the memory, an administrator's policy — or the user has
+turned it off in Plugin Settings, it is simply not there, so check before offering it:
+
+```js
+function (el, data, api) {
+  el.querySelector('button').onclick = async () => {
+    // ready, download (the first use downloads the model), downloading, unavailable, unsupported
+    const status = await BoardAI.status('prompt');
+    if (!BoardAI.usable(status)) { el.querySelector('.out').textContent = BoardAI.why(status); return; }
+    const answer = await BoardAI.prompt('Three names for a kitten', {
+      system: 'Reply with a short Markdown list only.',
+      onChunk: (soFar) => { el.querySelector('.out').textContent = soFar; },
+      onProgress: (loaded) => { el.querySelector('.out').textContent = 'Downloading… ' + Math.round(loaded * 100) + '%'; }
+    });
+    api.save({ last: answer });
+  };
+}
+```
+
+| Call | What it does |
+|---|---|
+| `BoardAI.status(kind)` | `'prompt'`, `'summarize'` or `'translate'`, as above |
+| `BoardAI.usable(status)` / `BoardAI.why(status)` | Whether it can run; why not, in a sentence |
+| `BoardAI.prompt(text, { system, schema, signal, onChunk, onProgress })` | A reply; with a JSON Schema in `schema`, a JSON string in that shape |
+| `BoardAI.summarize(text, { type, length, signal, onChunk, onProgress })` | `type` is `key-points`, `tldr`, `teaser` or `headline` |
+| `BoardAI.translate(text, { to, from, signal, onChunk, onProgress })` | `from` is detected when left out |
+
+Each streams through `onChunk` with the text so far, stops on its `AbortSignal`, and
+reports the one-time model download through `onProgress`. Chrome lets the download
+start only from something the user did, so call these from a click.
+
+A tool that ships in a plugin can instead offer the board's own ✨ popup — summarize,
+rewrite, reshape, ask, translate — by declaring `ai: { target, apply }` in its
+registration; see [Architecture](architecture.md#on-device-ai-).
+
 ## Sharing one
 
 A dynamic tool exports like any other tool, and its fields travel with it — markup,
