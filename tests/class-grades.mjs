@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, 'out');
-const ok = (l, p, d) => console.log((p ? '  PASS ' : '  FAIL ') + l + (d ? ' — ' + d : ''));
+let count = 0;
+const ok = (l, p, d) => { count++; console.log((p ? '  PASS ' : '  FAIL ') + l + (d ? ' — ' + d : '')); };
 
 const SCHOOL = 'https://school.example.org';
 const PROXY = 'https://ics-proxy-esjyexqdtq-ue.a.run.app/';
@@ -152,6 +153,20 @@ await page.addInitScript(() => {
     localStorage.setItem('finance_default_customTools', JSON.stringify(['cg']));
     localStorage.setItem('finance_default_toolCustomizations', JSON.stringify({ cg: { templateId: 'class-grades', title: 'Class Grades' } }));
     localStorage.setItem('finance_default_positions', JSON.stringify({ cg: { x: 20, y: 20, z: 5, width: 900, height: 700 } }));
+});
+// Chrome's on-device model, faked with its API shape: Class Grades offers ✨ on it.
+await page.addInitScript(() => {
+    const ai = window.__ai = { calls: [], reply: () => '- All fine.' };
+    window.LanguageModel = {
+        availability: async () => 'available',
+        create: async (opts) => {
+            ai.calls.push({ op: 'create', system: opts.initialPrompts && opts.initialPrompts[0] && opts.initialPrompts[0].content });
+            return {
+                promptStreaming: (input) => { ai.calls.push({ op: 'prompt', input }); return (async function* () { yield ai.reply(input); })(); },
+                destroy: () => {}
+            };
+        }
+    };
 });
 await page.goto('http://localhost:8777/index.html');
 await page.waitForSelector('.tool[data-tool="cg"] .cg-widget', { timeout: 15000 });
@@ -791,11 +806,74 @@ ok('a parent refreshes one of a student’s classes the same way', requests.some
     !requests.some(r => /\/courses\/1\b|users\/self/.test(r.url)) && (await report()).includes('Essay 1 - 9/10'));
 ok('the choice is kept with the tool', await page.evaluate(() => toolCustomizations.cg.cgStudent) === '12');
 
+// On-device AI: ✨ in the header, BoardAI's popup, the grade report compact and read only.
+const P = '#boardAIPopup ';
+const aiOpen = async () => {
+    await page.evaluate(() => { const p = document.getElementById('boardAIPopup'); if (p && !p.hidden) boardAIClose(); });
+    await page.hover('.tool[data-tool="cg"] .tool-header');
+    await page.click('.tool[data-tool="cg"] .ai-btn');
+    await page.waitForTimeout(150);
+};
+const aiText = () => page.evaluate(() => classGradesAIText('cg', Date.now()).text);
+ok('Class Grades offers ✨, where the model can run', await page.isVisible('.tool[data-tool="cg"] .tool-header .ai-btn') ||
+    await page.evaluate(() => !!document.querySelector('.tool[data-tool="cg"] .ai-btn') && document.documentElement.dataset.ai === 'on'));
+await aiOpen();
+ok('its own actions, and Ask: nothing that would rewrite a report', await page.evaluate(() =>
+    Array.from(document.querySelectorAll('#boardAIPopup .bai-group')).map(g => g.textContent).join()) === 'Grades,Ask' &&
+    await page.evaluate(() => Array.from(document.querySelectorAll('#boardAIPopup .bai-item')).map(b => b.textContent).join('|')) ===
+        'Student summary|What needs attention|What’s due this week|Ask about it…');
+ok('saying whose report, and that it is all of it', await page.textContent(P + '.bai-scope') === 'Alex Student · 1 class, all of them, whatever the filters show',
+    await page.textContent(P + '.bai-scope'));
+let ai = await aiText();
+ok('the report it reads: today, the student, each class with its grade and letter', /^Today is \w+day, /.test(ai) && ai.includes('Student: Alex Student.') &&
+    ai.includes('Class: History — 81% (B-)'), ai);
+ok('and the work graded lately', ai.includes('Graded in the last 14 days: Essay 1: 9/10 (90%)'), ai);
+ok('and nothing of the token', !/token|Bearer/i.test(ai));
+await page.selectOption(W + ' .cg-student', '11');
+await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary');
+await page.waitForTimeout(100);
+ai = await aiText();
+ok('another student, their own report', ai.includes('Student: Sam Student.') && ai.includes('Class: Chemistry — 68% (D+)') && !ai.includes('History'), ai);
+ok('what is missing, with when it was due', /Missing: 5\.3 Homework \(was due \w{3}, \w{3} \d+\)/.test(ai), ai);
+ok('what came in late', /Late: 5\.5 Quiz \(handed in late/.test(ai));
+ok('what is due within two weeks, and not what is further off', /Due in the next 14 days: 5\.6 Project \(due/.test(ai) && !ai.includes('6.1 Final'));
+await page.evaluate(() => { classGradesSaveCustom('cg', { cgFilter: { status: ['missing'] } });
+    classGradesRender(document.querySelector('.tool[data-tool="cg"] .cg-widget')); });
+ok('the filters only showing what is missing', !(await report()).includes('5.4 Test Review'));
+ok('the report it reads is all of it, whatever the filters show', (await aiText()).includes('5.4 Test Review: 18/20 (90%)'));
+await page.evaluate(() => { classGradesSaveCustom('cg', { cgFilter: undefined });
+    classGradesRender(document.querySelector('.tool[data-tool="cg"] .cg-widget')); });
+await page.evaluate(() => classGradesSaveCustom('cg', { cgClassOrder: { '11': { mode: 'name', order: [], pinned: [], hidden: ['2'] } } }));
+ok('but not a class hidden by hand', !(await aiText()).includes('Chemistry'), await aiText());
+await page.evaluate(() => classGradesSaveCustom('cg', { cgClassOrder: undefined }));
+await aiOpen();
+await page.evaluate(() => { window.__ai.reply = () => '- **Chemistry** needs attention: 68% (D+), 5.3 Homework missing.'; });
+await page.click(P + '.bai-item[data-ai="custom:summary"]');
+await page.waitForFunction(() => !document.querySelector('#boardAIPopup .bai-foot').hidden, null, { timeout: 5000 });
+const asked = await page.evaluate(() => window.__ai.calls.filter(c => c.op === 'prompt').pop().input);
+ok('Student summary asks with its own instruction, over the report', /^Summarize this grade report/.test(asked) && asked.includes('Class: Chemistry — 68% (D+)'));
+ok('told to use only the report', /never invent a class, a task, a grade or a date/.test(await page.evaluate(() => window.__ai.calls.filter(c => c.op === 'create').pop().system)));
+ok('the answer shows', /Chemistry needs attention/.test(await page.textContent(P + '.bai-out')));
+ok('and can only be copied: a report is not written into', await page.evaluate(() =>
+    Array.from(document.querySelectorAll('#boardAIPopup .bai-foot button')).filter(b => !b.hidden).map(b => b.textContent).join()) === 'Copy,Discard');
+await page.click(P + '.bai-copy');
+await page.waitForTimeout(150);
+ok('Copy copies it', /Chemistry\*\* needs attention/.test(await page.evaluate(() => navigator.clipboard.readText())));
+ok('and nothing of it is kept', !(await page.evaluate(() => Object.keys(localStorage).some(k => (localStorage.getItem(k) || '').includes('needs attention')))));
+await page.click(P + '.bai-back');
+await page.click(P + '.bai-item[data-ai="custom:week"]');
+await page.waitForFunction(() => !document.querySelector('#boardAIPopup .bai-foot').hidden, null, { timeout: 5000 });
+ok('What’s due this week asks for that', /^List the work due in the next 7 days/.test(await page.evaluate(() => window.__ai.calls.filter(c => c.op === 'prompt').pop().input)));
+await page.screenshot({ path: OUT + '/class-grades-ai.png' });
+await page.click(P + '.bai-x');
+ok('with no grades yet, there is nothing to read, and it says so', JSON.stringify(await page.evaluate(() => classGradesAITarget('no-such-tool'))) ===
+    JSON.stringify({ text: '', scope: 'whole', emptyLabel: 'No grades to read yet: connect and Refresh first.' }));
+
 await page.screenshot({ path: OUT + '/class-grades.png' });
 await page.evaluate(() => document.body.classList.add('dark-mode'));
 await page.waitForTimeout(150);
 await page.screenshot({ path: OUT + '/class-grades-dark.png' });
 
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
-console.log('  (all ' + 143 + ' assertions reached)');
+console.log('  (all ' + count + ' assertions reached)');
 await browser.close();

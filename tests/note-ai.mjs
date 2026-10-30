@@ -29,6 +29,17 @@ await context.addInitScript(() => {
         create: async (opts) => {
             ai.calls.push({ kind, op: 'create', opts: { ...opts, monitor: !!opts.monitor, signal: undefined } });
             const state = typeof ai.state === 'object' ? ai.state[kind] : ai.state;
+            // A download that never gets anywhere: 0%, then nothing, until stopped.
+            if (ai.hang) {
+                if (opts.monitor) {
+                    const target = new EventTarget();
+                    opts.monitor(target);
+                    target.dispatchEvent(Object.assign(new Event('downloadprogress'), { loaded: 0 }));
+                }
+                return new Promise((resolve, reject) => {
+                    if (opts.signal) opts.signal.addEventListener('abort', () => reject(new DOMException('Stopped', 'AbortError')));
+                });
+            }
             // As Chrome does: a model on disk still tells a new session 0% and 100%.
             if (opts.monitor) {
                 const target = new EventTarget();
@@ -272,6 +283,34 @@ await page.evaluate(() => document.body.classList.remove('dark-mode'));
 await page.click(P + '.bai-x');
 await page.evaluate(() => { window.__ai.chunks = 'delta'; });
 
+// 9b. A download that does not move: said plainly, and where Chrome says why.
+await page.evaluate(() => { boardAIStallMs = 700; window.__ai.hang = true; window.__ai.state = 'downloadable'; });
+await pick('shorter');
+await page.waitForTimeout(300);
+ok('a first download stuck at 0% shows 0%', /Downloading the on-device model… 0%/.test(await page.textContent(P + '.bai-status')), await page.textContent(P + '.bai-status'));
+ok('with no hint yet', !(await page.isVisible(P + '.bai-hint')));
+await page.waitForTimeout(800);
+ok('then, when nothing has moved for a while, where Chrome says why', await page.isVisible(P + '.bai-hint') &&
+    /chrome:\/\/on-device-internals/.test(await page.textContent(P + '.bai-hint')));
+await page.click(P + '.bai-hint-copy');
+await page.waitForTimeout(150);
+ok('the address can be copied, since a page cannot link to it', await page.evaluate(() => navigator.clipboard.readText()) === 'chrome://on-device-internals');
+await page.click(P + '.bai-stop');
+await page.waitForTimeout(200);
+ok('Stop still stops it, and the hint goes', /Stopped/.test(await page.textContent(P + '.bai-status')) && !(await page.isVisible(P + '.bai-hint')));
+await page.evaluate(() => { window.__ai.state = 'downloading'; });
+await page.click(P + '.bai-back');
+await page.click(P + '.bai-item[data-ai="shorter"]');
+await page.waitForTimeout(300);
+ok('tried again while Chrome is still downloading, it says so rather than "Working…"',
+    /Chrome is still downloading its on-device model/.test(await page.textContent(P + '.bai-status')), await page.textContent(P + '.bai-status'));
+await page.waitForTimeout(800);
+ok('and the hint follows there too', await page.isVisible(P + '.bai-hint'));
+await page.screenshot({ path: OUT + '/note-ai-downloading.png' });
+await page.click(P + '.bai-stop');
+await page.click(P + '.bai-x');
+await page.evaluate(() => { boardAIStallMs = 30000; window.__ai.hang = false; window.__ai.state = 'available'; });
+
 // 10. Only some capabilities here.
 await page.evaluate(() => { window.__ai.state = { prompt: 'unavailable', summarize: 'available', translate: 'unavailable' }; return BoardAI.refresh(); });
 await open();
@@ -286,8 +325,10 @@ await page.evaluate(() => { window.__ai.state = 'available'; return BoardAI.refr
 const [plain, small] = await page.evaluate(() => {
     PluginRegistry.registerTool({ id: 'test-plain', name: 'Plain', title: 'Plain', content: '<div class="t-plain">Plain</div>' });
     PluginRegistry.registerTool({ id: 'test-small', name: 'Small', title: 'Small', content: '<div class="t-small">Small</div>',
-        ai: { target: () => ({ text: 'alpha beta gamma', scope: 'whole' }), apply: (id, result, how) => { window.__applied = [id, result, how]; },
-            actions: ['summarize'] } });
+        ai: { target: () => ({ text: 'alpha beta gamma', scope: 'whole', label: 'The small text' }),
+            apply: (id, result, how) => { window.__applied = [id, result, how]; },
+            actions: ['summarize'],
+            custom: [{ id: 'mine', group: 'Mine', label: 'Do mine', system: 'MY SYSTEM', prompt: (t) => 'MINE: ' + t }] } });
     const a = createNoteWithTemplate('test-plain');
     const b = createNoteWithTemplate('test-small');
     return [a, b];
@@ -299,8 +340,16 @@ await page.evaluate((i) => { const t = document.querySelector('.tool[data-tool="
 await page.hover('.tool[data-tool="' + small + '"] .tool-header');
 await page.click('.tool[data-tool="' + small + '"] .ai-btn');
 await page.waitForTimeout(150);
-ok('offering only what it asked for', await page.evaluate(() => Array.from(document.querySelectorAll('#boardAIPopup .bai-group')).map(g => g.textContent).join()) === 'Summarize' &&
+ok('offering only what it asked for, its own actions first', await page.evaluate(() => Array.from(document.querySelectorAll('#boardAIPopup .bai-group')).map(g => g.textContent).join()) === 'Mine,Summarize' &&
     await page.textContent(P + '.bai-title') === '✨ Small');
+ok('saying what it works on in its own words', await page.textContent(P + '.bai-scope') === 'The small text');
+await page.evaluate(() => { window.__ai.reply = () => 'mine done'; });
+await page.click(P + '.bai-item[data-ai="custom:mine"]');
+await done();
+ok('its own action asks with its own prompt and instruction', (await calls()).filter(c => c.op === 'prompt').pop().input === 'MINE: alpha beta gamma' &&
+    (await calls()).filter(c => c.kind === 'prompt' && c.op === 'create').pop().opts.initialPrompts[0].content === 'MY SYSTEM' &&
+    await page.textContent(P + '.bai-what') === 'Do mine');
+await page.click(P + '.bai-back');
 await page.evaluate(() => { window.__ai.reply = () => '- alpha'; });
 await page.click(P + '.bai-item[data-ai="tldr"]');
 await done();
@@ -311,6 +360,12 @@ ok('and Replace hands the result to its own apply', JSON.stringify(await page.ev
 await page.evaluate(() => openPluginSettingsModal());
 await page.waitForSelector('#boardAIEnabled');
 await page.waitForTimeout(200);
+await page.evaluate(() => { window.__ai.state = 'downloading'; });
+await page.evaluate(() => boardAIRenderSettings());
+await page.waitForTimeout(150);
+ok('Plugin Settings says when Chrome is downloading', /Writing and asking: downloading/.test(await page.textContent('#boardAIStatus')), await page.textContent('#boardAIStatus'));
+await page.evaluate(() => { window.__ai.state = 'available'; return boardAIRenderSettings(); });
+await page.waitForTimeout(150);
 ok('Plugin Settings has the switch, on', await page.isChecked('#boardAIEnabled') && /runs on this computer; nothing is sent anywhere/.test(await page.textContent('#boardAIStatus')), await page.textContent('#boardAIStatus'));
 await page.uncheck('#boardAIEnabled');
 await page.waitForTimeout(200);

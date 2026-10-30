@@ -501,6 +501,14 @@ personal access token, or a parent's, which shows the students it is linked to.
   when an instance runs out of memory) is tried twice more, 1.5 s and then 4 s later;
   a 5xx from the school itself is tried once more and then said to be the school's.
 - **Squares:** 🟩 from 90%, 🟧 from 70%, 🟥 below (adjustable); ⬜ for no grade yet.
+- **✨ On-device AI** (where Chrome's own model can run — see BoardAI): **Student
+  summary**, **What needs attention**, **What's due this week**, and **Ask about it…**,
+  over a compact copy of the selected student's report: every class with its grade,
+  letter and change since the last check, what is missing or late, what is due within
+  two weeks and what was graded within two weeks, and today's date. All the student's
+  classes but those hidden by hand, whatever the filters show. Read only: an answer is
+  copied, never written into the report, and none of it is kept. The grades never leave
+  the computer; there is no cloud model behind it.
 - **Letter grades:** each class's grade comes with its letter — the course's own when it
   has a grading scheme, otherwise from a scale in the connection settings (the common
   A 93, A- 90, B+ 87 … F one to begin with, editable). Hovering over a class says which.

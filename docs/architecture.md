@@ -324,8 +324,14 @@ A tool offers it by declaring what it can work on, and nothing about how it look
 ai: { target: 'fnName' | fn, apply: 'fnName' | fn, actions: ['summarize', 'rewrite', 'reshape', 'ask', 'translate'] }
 ```
 
-`target(toolId)` returns `{ text, scope: 'selection' | 'whole', … }`; `apply(toolId,
-result, how, target)` puts a result back, `how` being `replace` or `insert`. The
+`target(toolId)` returns `{ text, scope: 'selection' | 'whole', label?, emptyLabel?, … }`
+(`label` says what it covers in the tool's own words, `emptyLabel` why there is
+nothing yet); `apply(toolId, result, how, target)` puts a result back, `how` being
+`replace` or `insert` — a tool with no `apply` is read only, and its answers can only
+be copied. `custom: [{ id, group, label, system?, prompt: (text) => string }]` are the
+tool's own actions, listed first under their own heading: Class Grades offers a student
+summary, what needs attention and what is due this week this way, over a compact report
+(`classGradesAIText`) small enough for the model's input. The
 framework puts ✨ in the header of a tool that declares `ai` (`boardAIButtonHtml`),
 shown only under `data-ai="on"`, and everything after that is BoardAI's popup
 (`#boardAIPopup`): on the page rather than in the tool, so no tool's layout clips it

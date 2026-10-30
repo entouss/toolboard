@@ -104,6 +104,10 @@
     document.head.appendChild(style);
 })();
 
+/** What the on-device model is told it is for; the report it is given is the only source. */
+var CLASS_GRADES_AI_SYSTEM_TEXT = 'You help a parent or a student understand a school grade report. Use only the ' +
+    'report you are given, and never invent a class, a task, a grade or a date. Be brief, plain and kind. Write Markdown.';
+
 PluginRegistry.registerTool({
     id: 'class-grades',
     name: 'Class Grades',
@@ -252,6 +256,24 @@ PluginRegistry.registerTool({
 </div>`,
     contentType: 'html',
     onInit: 'classGradesInit',
+    // ✨ where Chrome's own model can run: read only — an answer is copied, never
+    // written into the report — and the grades never leave this computer.
+    ai: {
+        target: 'classGradesAITarget',
+        actions: ['ask'],
+        custom: [
+            { id: 'summary', group: 'Grades', label: 'Student summary', system: CLASS_GRADES_AI_SYSTEM_TEXT,
+                prompt: function(text) { return 'Summarize this grade report in at most 8 short bullet points: first the classes ' +
+                    'that need attention and why (a low or falling grade, missing or late work), then what is due in the next ' +
+                    '7 days, then what is going well.\n\n' + text; } },
+            { id: 'attention', group: 'Grades', label: 'What needs attention', system: CLASS_GRADES_AI_SYSTEM_TEXT,
+                prompt: function(text) { return 'List only what needs doing now, most urgent first: missing work, late work, ' +
+                    'and low or falling grades. One bullet each, naming the class. If nothing does, say so.\n\n' + text; } },
+            { id: 'week', group: 'Grades', label: 'What\u2019s due this week', system: CLASS_GRADES_AI_SYSTEM_TEXT,
+                prompt: function(text) { return 'List the work due in the next 7 days from today, in order of due date, each with ' +
+                    'its class and due day. If nothing is due, say so.\n\n' + text; } }
+        ]
+    },
     source: 'external',
     defaultWidth: 620,
     defaultHeight: 480
@@ -336,6 +358,81 @@ function classGradesLetter(score, scale) {
 function classGradesThresholdValues(custom) {
     var green = Number(custom.cgGreen), orange = Number(custom.cgOrange);
     return { green: isFinite(green) && custom.cgGreen != null ? green : 90, orange: isFinite(orange) && custom.cgOrange != null ? orange : 70 };
+}
+
+// =============================================
+// ON-DEVICE AI
+// =============================================
+
+/** How far back and ahead the model is shown work, and how much of each list. */
+var CLASS_GRADES_AI_DAYS = 14;
+var CLASS_GRADES_AI_LIST = 8;
+
+/**
+ * The student's report, compact, for the on-device model: its input is small, and a
+ * report of a hundred tasks would not fit. Every class with its grade, its letter and
+ * its change since the last check; then what is missing, late, due within two weeks
+ * and graded within two weeks. All the student's classes but the ones hidden by hand,
+ * whatever the filters show. Nothing here is kept, and nothing leaves the computer.
+ */
+function classGradesAIText(toolId, now) {
+    var custom = classGradesCustom(toolId);
+    var data = classGradesData(toolId);
+    var students = data.students || [];
+    var studentId = custom.cgStudent != null && students.some(function(s) { return String(s.id) === String(custom.cgStudent); })
+        ? String(custom.cgStudent) : (students[0] ? String(students[0].id) : '');
+    var snap = (data.snapshots || {})[studentId];
+    if (!snap || !(snap.courses || []).length) return null;
+    var student = students.find(function(s) { return String(s.id) === studentId; });
+    var prefs = classGradesClassPrefs(custom, studentId);
+    var scale = classGradesScale(custom);
+    var day = 86400000, span = CLASS_GRADES_AI_DAYS * day;
+    var when = function(iso) {
+        return new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    };
+    var list = function(items) {
+        return items.slice(0, CLASS_GRADES_AI_LIST).join('; ') +
+            (items.length > CLASS_GRADES_AI_LIST ? '; and ' + (items.length - CLASS_GRADES_AI_LIST) + ' more' : '');
+    };
+    var courses = (snap.courses || []).filter(function(c) { return prefs.hidden.indexOf(String(c.id)) < 0; })
+        .sort(function(a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }); });
+    var out = ['Today is ' + new Date(now).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '.'];
+    if (student && student.name) out.push('Student: ' + student.name + '.');
+    courses.forEach(function(c) {
+        var grade = c.score == null ? 'no grade yet' : classGradesClassGrade(c, scale);
+        var change = c.score == null || c.previous == null ? ''
+            : c.score > c.previous ? ', up ' + classGradesRound(c.score - c.previous) + ' since the last check'
+            : c.score < c.previous ? ', down ' + classGradesRound(c.previous - c.score) + ' since the last check' : ', unchanged since the last check';
+        var missing = [], late = [], due = [], graded = [];
+        (c.tasks || []).forEach(function(task) {
+            var status = classGradesTaskStatus(task, now);
+            var at = task.due ? new Date(task.due).getTime() : null;
+            if (status.kind === 'missing') missing.push(task.name + (task.due ? ' (was due ' + when(task.due) + ')' : ''));
+            else if (status.kind === 'late') late.push(task.name + ' (handed in late ' + when(task.submittedAt) + ')');
+            else if (status.kind === 'upcoming' && at != null && at >= now && at <= now + span) due.push({ at: at, text: task.name + ' (due ' + when(task.due) + ')' });
+            var g = classGradesTaskGrade(task);
+            var gradedAt = task.submittedAt || task.due;
+            if (task.score != null && gradedAt && now - new Date(gradedAt).getTime() <= span && new Date(gradedAt).getTime() <= now) {
+                graded.push(task.name + ': ' + g.text);
+            }
+        });
+        due.sort(function(a, b) { return a.at - b.at; });
+        out.push('');
+        out.push('Class: ' + c.name + ' \u2014 ' + grade + change + '.');
+        out.push('Missing: ' + (missing.length ? list(missing) : 'none') + '.');
+        if (late.length) out.push('Late: ' + list(late) + '.');
+        out.push('Due in the next ' + CLASS_GRADES_AI_DAYS + ' days: ' + (due.length ? list(due.map(function(d) { return d.text; })) : 'nothing') + '.');
+        if (graded.length) out.push('Graded in the last ' + CLASS_GRADES_AI_DAYS + ' days: ' + list(graded) + '.');
+    });
+    return { text: out.join('\n'), label: (student && student.name ? student.name + ' \u00B7 ' : '') +
+        courses.length + (courses.length === 1 ? ' class' : ' classes') + ', all of them, whatever the filters show' };
+}
+
+/** What ✨ works on: the report as above, or nothing yet. */
+function classGradesAITarget(toolId) {
+    var r = classGradesAIText(toolId, Date.now());
+    return r ? { text: r.text, scope: 'whole', label: r.label }
+        : { text: '', scope: 'whole', emptyLabel: 'No grades to read yet: connect and Refresh first.' };
 }
 
 function classGradesInit() {

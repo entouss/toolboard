@@ -3498,12 +3498,17 @@ html[data-ai="on"] .tool-header .ai-btn { display: inline-flex; }
 .bai-translate { display: flex; gap: 4px; align-items: center; padding: 0 2px; }
 .bai-lang { flex: 1; font-size: 12px; padding: 3px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
 .bai-work { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 12px; min-height: 0; overflow: hidden; }
-.bai-work-head { display: flex; align-items: center; gap: 6px; }
-.bai-what { font-weight: 600; }
-.bai-status { flex: 1; color: var(--text-muted); text-align: right; }
+.bai-work-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bai-what { font-weight: 600; flex: 1; }
+/* Its own line: "still downloading" says more than a word or two. */
+.bai-status { order: 5; flex: 1 1 100%; color: var(--text-muted); line-height: 1.45; }
+.bai-status:empty { display: none; }
 .bai-status.bai-error { color: #e74c3c; text-align: left; }
 .bai-ask { display: flex; gap: 6px; }
 .bai-q { flex: 1; padding: 5px 7px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); }
+.bai-hint { font-size: 11px; color: var(--text-secondary); background: var(--bg-secondary); border-radius: 4px; padding: 6px 8px; line-height: 1.5; }
+.bai-hint code { font-size: 11px; }
+.bai-hint .bai-btn { margin-left: 4px; padding: 1px 6px; font-size: 11px; }
 .bai-out { overflow: auto; min-height: 0; max-height: 50vh; font-size: 12px; user-select: text; }
 .bai-out:empty { display: none; }
 .bai-foot { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -9881,9 +9886,11 @@ async function boardAIRenderSettings() {
 //
 //     ai: { target: fn | 'name', apply: fn | 'name', actions: ['summarize', …] }
 //
-// target(toolId) → { text, scope: 'selection' | 'whole', … }  what to work on now
+// target(toolId) → { text, scope: 'selection' | 'whole', label?, emptyLabel?, … }
 // apply(toolId, result, how, target)                        how: 'replace' | 'insert'
+// custom: [{ id, group, label, system?, prompt: (text) => string }]   its own actions
 //
+// A tool with no `apply` is read, never written: what comes back can only be copied.
 // The framework puts ✨ in the header of a tool that declares it, where the model
 // can run; everything after that is this popup's. It lives on the page, not in the
 // tool, so no tool's layout can clip it and no tool's export carries it. What comes
@@ -9920,8 +9927,11 @@ function getToolAI(toolId) {
     const fn = (f) => typeof f === 'function' ? f : (typeof f === 'string' && typeof window[f] === 'function' ? window[f] : null);
     const target = fn(decl.target), apply = fn(decl.apply);
     if (!target) return null;
-    const groups = Array.isArray(decl.actions) && decl.actions.length ? decl.actions.filter(g => BOARD_AI_GROUPS.includes(g)) : BOARD_AI_GROUPS;
-    return { target, apply, groups };
+    const groups = Array.isArray(decl.actions) ? decl.actions.filter(g => BOARD_AI_GROUPS.includes(g)) : BOARD_AI_GROUPS;
+    // A tool's own actions: a prompt of its own over the same text, under its own heading.
+    const own = (Array.isArray(decl.custom) ? decl.custom : []).filter(a => a && a.id && a.label && typeof a.prompt === 'function')
+        .map(a => ({ id: 'custom:' + a.id, group: a.group || 'For this tool', label: a.label, system: a.system, prompt: a.prompt, needs: 'prompt' }));
+    return { target, apply, groups, custom: own };
 }
 
 function boardAIButtonHtml(toolId) {
@@ -9929,6 +9939,10 @@ function boardAIButtonHtml(toolId) {
         'onclick="boardAIOpen(event, this)" aria-haspopup="dialog" ' +
         'title="On-device AI — Chrome’s own model, on this computer; nothing is sent anywhere">✨</button>' : '';
 }
+
+/** How long nothing may happen — no download progress, no words — before the popup
+ *  says where Chrome explains itself. */
+let boardAIStallMs = 30000;
 
 /** The popup's one state: which tool it is for, and what is under way. */
 const boardAIState = { toolId: null, controller: null, result: '', action: null, target: null };
@@ -9963,6 +9977,9 @@ function boardAIPopup() {
             '</div>' +
             '<div class="bai-ask" hidden><input class="bai-q" placeholder="Ask about it…" ' +
                 'onkeydown="boardAIAskKey(event, this)"><button class="bai-btn" onclick="boardAIAsk()">Ask</button></div>' +
+            '<div class="bai-hint" hidden>Not moving? Chrome says why at ' +
+                '<code>chrome://on-device-internals</code> — open it in a new tab and look at Broker State and Event Logs. ' +
+                '<button class="bai-btn bai-hint-copy" onclick="boardAICopyInternals()">Copy address</button></div>' +
             '<div class="bai-out"></div>' +
             '<div class="bai-foot" hidden>' +
                 '<button class="bai-btn primary bai-replace" onclick="boardAIApply(\'replace\')"></button>' +
@@ -10049,7 +10066,8 @@ function boardAIWords(text) { return (String(text || '').trim().match(/\S+/g) ||
 
 function boardAIScopeText(target) {
     const words = boardAIWords(target && target.text);
-    if (!words) return 'Nothing to work on yet: write something first.';
+    if (!words) return (target && target.emptyLabel) || 'Nothing to work on yet: write something first.';
+    if (target.label) return target.label;
     return (target.scope === 'selection' ? 'On the selection' : 'On all of it') + ' (' + words + ' word' + (words === 1 ? '' : 's') + ')';
 }
 
@@ -10067,7 +10085,12 @@ async function boardAIRenderMenu() {
     const target = boardAITarget();
     pop.querySelector('.bai-scope').textContent = boardAIScopeText(target);
     const menu = pop.querySelector('.bai-menu');
+    const own = [];
+    ai.custom.forEach(a => { if (!own.includes(a.group)) own.push(a.group); });
     menu.innerHTML = '<div class="bai-dl" hidden>The first time, Chrome downloads its on-device model.</div>' +
+        own.map(g => '<div class="bai-group">' + escapeHtml(g) + '</div>' + ai.custom.filter(a => a.group === g).map(a =>
+            '<button class="bai-item" data-ai="' + escapeHtml(a.id) + '" data-needs="prompt" onclick="boardAIPick(this)">' +
+            escapeHtml(a.label) + '</button>').join('')).join('') +
         ai.groups.map(g => '<div class="bai-group">' + BOARD_AI_GROUP_NAMES[g] + '</div>' +
             (g === 'translate'
                 ? '<div class="bai-translate"><select class="bai-lang" aria-label="Translate to">' +
@@ -10139,7 +10162,12 @@ function boardAIWork(title) {
     pop.querySelector('.bai-out').innerHTML = '';
     pop.querySelector('.bai-foot').hidden = true;
     pop.querySelector('.bai-ask').hidden = true;
+    pop.querySelector('.bai-hint').hidden = true;
     return pop;
+}
+
+function boardAICopyInternals() {
+    copyTextToClipboard('chrome://on-device-internals', 'Copied: paste it into a new tab');
 }
 
 function boardAIBack() {
@@ -10178,10 +10206,12 @@ async function boardAIRun(action, extra) {
     const st = boardAIState;
     if (st.controller) st.controller.abort();
     const controller = st.controller = new AbortController();
-    const def = BOARD_AI_ACTIONS.find(a => a.id === action) || {};
+    const ai = getToolAI(st.toolId);
+    const own = ai && ai.custom.find(a => a.id === action);
+    const def = own || BOARD_AI_ACTIONS.find(a => a.id === action) || {};
     const text = (st.target || {}).text || '';
     const title = action === 'translate' ? 'Translate to ' + boardAILanguageName(extra.lang)
-        : action === 'ask' ? 'Ask about it' : BOARD_AI_GROUP_NAMES[def.group] + ': ' + def.label;
+        : action === 'ask' ? 'Ask about it' : own ? own.label : BOARD_AI_GROUP_NAMES[def.group] + ': ' + def.label;
     const pop = boardAIWork(title);
     if (action === 'ask') {
         pop.querySelector('.bai-ask').hidden = false;
@@ -10196,15 +10226,44 @@ async function boardAIRun(action, extra) {
     st.result = '';
     st.action = action;
     const mine = () => st.controller === controller;
-    const onChunk = (t) => { if (!mine()) return; st.result = t; status.textContent = 'Writing…'; out.innerHTML = boardAIPreviewHtml(t); };
+    // Nothing happening for a while is said, with where Chrome explains it: a model
+    // that will not download sits at 0% or at "Working…" for as long as anyone waits.
+    const hint = pop.querySelector('.bai-hint');
+    let stall = null;
+    const alive = () => {
+        clearTimeout(stall);
+        hint.hidden = true;
+        stall = setTimeout(() => { if (mine()) hint.hidden = false; }, boardAIStallMs);
+    };
+    alive();
+    const onChunk = (t) => { if (!mine()) return; alive(); st.result = t; status.textContent = 'Writing…'; out.innerHTML = boardAIPreviewHtml(t); };
+    let lastProgress = -1;
+    let stillDownloading = '';
     const onProgress = (p) => {
         if (!mine()) return;
-        status.textContent = p >= 1 ? 'Model downloaded — starting…' : 'Downloading the on-device model… ' + Math.round(p * 100) + '%';
+        if (p > lastProgress) { lastProgress = p; alive(); }
+        status.textContent = p >= 1 ? 'Model downloaded — starting…'
+            : (stillDownloading || 'Downloading the on-device model…') + ' ' + Math.round(p * 100) + '%';
     };
+    // Chrome may still be fetching the model from an earlier try: the request waits for
+    // it, and "Working…" would look like something stuck.
+    const need = own ? 'prompt' : action === 'translate' ? 'translate' : action === 'keypoints' || action === 'tldr' ? 'summarize' : 'prompt';
+    BoardAI.status(need).then((state) => {
+        if (!mine() || st.result || lastProgress >= 1) return;
+        if (state === 'downloading') {
+            stillDownloading = 'Chrome is still downloading its on-device model (several GB). ' +
+                'It goes on in the background: you can close this and come back.';
+            status.textContent = stillDownloading + (lastProgress >= 0 ? ' ' + Math.round(lastProgress * 100) + '%' : '');
+        } else if (state === 'download' && /^Working/.test(status.textContent)) {
+            status.textContent = 'Starting Chrome’s download of its on-device model…';
+        }
+    });
     const base = { signal: controller.signal, onChunk, onProgress };
     try {
         let result;
-        if (action === 'keypoints' || action === 'tldr') {
+        if (own) {
+            result = await BoardAI.prompt(own.prompt(text), { ...base, system: own.system || BOARD_AI_SYSTEM });
+        } else if (action === 'keypoints' || action === 'tldr') {
             const type = action === 'tldr' ? 'tldr' : 'key-points';
             result = BoardAI.usable(await BoardAI.status('summarize'))
                 ? await BoardAI.summarize(text, { ...base, type, length: 'medium' })
@@ -10248,7 +10307,8 @@ async function boardAIRun(action, extra) {
         if (!controller.signal.aborted) status.classList.add('bai-error');
         if (st.result) boardAIShowFoot();
     } finally {
-        if (mine()) st.controller = null;
+        clearTimeout(stall);
+        if (mine()) { st.controller = null; hint.hidden = true; }
     }
 }
 
