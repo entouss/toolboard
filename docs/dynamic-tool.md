@@ -184,12 +184,14 @@ an approval.
 A script can use Chrome's own built-in model (Gemini Nano) through `BoardAI`, the same
 door the note's ✨ uses. It runs on the user's computer: no key, no cost, nothing sent
 anywhere, and there is no cloud fallback. Where the model cannot run — another browser,
-a phone, a machine without the memory, an administrator's policy — or the user has
-turned it off in Plugin Settings, it is simply not there, so check before offering it:
+a phone, a machine without the memory, an administrator's policy — it is simply not
+there. And it is **off until the user turns it on** in Plugin Settings ▸ On-device AI;
+off, every call refuses. So check both before offering it:
 
 ```js
 function (el, data, api) {
   el.querySelector('button').onclick = async () => {
+    if (!BoardAI.enabled()) { el.querySelector('.out').textContent = BoardAI.why('off'); return; }
     // ready, download (the first use downloads the model), downloading, unavailable, unsupported
     const status = await BoardAI.status('prompt');
     if (!BoardAI.usable(status)) { el.querySelector('.out').textContent = BoardAI.why(status); return; }
@@ -205,6 +207,7 @@ function (el, data, api) {
 
 | Call | What it does |
 |---|---|
+| `BoardAI.enabled()` | Whether the user has turned it on in Plugin Settings (off until they do) |
 | `BoardAI.status(kind)` | `'prompt'`, `'summarize'` or `'translate'`, as above |
 | `BoardAI.usable(status)` / `BoardAI.why(status)` | Whether it can run; why not, in a sentence |
 | `BoardAI.prompt(text, { system, schema, signal, onChunk, onProgress })` | A reply; with a JSON Schema in `schema`, a JSON string in that shape |

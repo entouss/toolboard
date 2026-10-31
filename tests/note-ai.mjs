@@ -14,6 +14,8 @@ const ok = (l, p, d) => { count++; console.log((p ? '  PASS ' : '  FAIL ') + l +
 const browser = await chromium.launch({ channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 1300, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
 await context.addInitScript(() => {
+    // BoardAI is off until a person turns it on; these tests are about it on.
+    if (localStorage.getItem('toolboard_onDeviceAI') == null) localStorage.setItem('toolboard_onDeviceAI', 'on');
     const ai = window.__ai = { state: 'available', calls: [], chunks: 'delta', reply: null, slow: 0 };
     const stream = (text) => (async function* () {
         const words = String(text).split(/(?<= )/);
@@ -377,6 +379,38 @@ ok('and BoardAI will not run', await page.evaluate(() => BoardAI.prompt('hi').th
 await page.check('#boardAIEnabled');
 await page.waitForTimeout(200);
 ok('on again, it is back', await page.evaluate(() => document.documentElement.dataset.ai) === 'on');
+
+// Off until turned on: a browser that never chose has no ✨, even with a model.
+const fresh = await browser.newContext({ viewport: { width: 1300, height: 900 } });
+await fresh.addInitScript(() => {
+    window.LanguageModel = { availability: async () => 'available', create: async () => ({ promptStreaming: () => (async function* () { yield 'x'; })(), destroy: () => {} }) };
+});
+const page2 = await fresh.newPage();
+await page2.goto('http://localhost:8777/index.html');
+await page2.waitForSelector('#toolboard', { timeout: 20000 });
+await page2.waitForTimeout(800);
+await page2.evaluate(() => { const id = createNoteWithText('# Off\n\nSome words.', 'Off'); setToolMode(id, 'render'); });
+await page2.waitForTimeout(400);
+ok('a browser that never turned it on: off, with a model there', await page2.evaluate(() => document.documentElement.dataset.ai) === 'off' &&
+    await page2.evaluate(() => localStorage.getItem('toolboard_onDeviceAI')) === null);
+ok('so no ✨ on any tool', await page2.evaluate(() => Array.from(document.querySelectorAll('.ai-btn')).every(b => !b.getClientRects().length)));
+ok('and BoardAI will not run for a script either', await page2.evaluate(() => BoardAI.prompt('hi').then(() => 'ran', e => e.message)) ===
+    'On-device AI is turned off in Plugin Settings.');
+await page2.evaluate(() => openPluginSettingsModal());
+await page2.waitForSelector('#boardAIEnabled');
+await page2.waitForTimeout(300);
+ok('Plugin Settings shows it off, and says how to turn it on', !(await page2.isChecked('#boardAIEnabled')) &&
+    /^Off\. Tick it to offer ✨/.test(await page2.textContent('#boardAIStatus')) && /✨ AI in the tools that support it/.test(await page2.textContent('label.plugin-ai-toggle')),
+    await page2.textContent('#boardAIStatus'));
+await page2.check('#boardAIEnabled');
+await page2.waitForTimeout(300);
+ok('ticked, it is on, and kept by this browser', await page2.evaluate(() => document.documentElement.dataset.ai) === 'on' &&
+    await page2.evaluate(() => localStorage.getItem('toolboard_onDeviceAI')) === 'on');
+await page2.reload();
+await page2.waitForSelector('#toolboard', { timeout: 20000 });
+await page2.waitForTimeout(800);
+ok('and still on after a reload', await page2.evaluate(() => document.documentElement.dataset.ai) === 'on');
+await fresh.close();
 
 ok('nothing went over the network for any of it', offsite.length === 0, JSON.stringify(offsite.slice(0, 5)));
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));

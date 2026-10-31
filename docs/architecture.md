@@ -314,9 +314,10 @@ folded columns whole and none of the controls.
 `summarize()`, `translate()`, each streaming, stoppable, and reporting the model's
 one-time download only when there is one (Chrome tells every new session 0% and
 100%). It has no network code and no cloud fallback. `BoardAI.refresh()` marks the
-page `html[data-ai="on" | "none" | "off"]`; Plugin Settings ▸ On-device AI turns it off
-for this browser (`toolboard_onDeviceAI`, not a board setting: boards are shared, and
-the choice is the person's).
+page `html[data-ai="on" | "none" | "off"]`. It is **off until turned on**: Plugin
+Settings ▸ On-device AI turns it on for this browser (`toolboard_onDeviceAI` = `on`,
+not a board setting: boards are shared, and the choice is the person's). Off, no tool
+shows ✨ and `BoardAI.prompt()` and the rest refuse.
 
 A tool offers it by declaring what it can work on, and nothing about how it looks:
 

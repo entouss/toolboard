@@ -11,6 +11,8 @@ const ok = (l, p, d) => { count++; console.log((p ? '  PASS ' : '  FAIL ') + l +
 const browser = await chromium.launch({ channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 1300, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
 await context.addInitScript(() => {
+    // BoardAI is off until a person turns it on; these tests are about it on.
+    if (localStorage.getItem('toolboard_onDeviceAI') == null) localStorage.setItem('toolboard_onDeviceAI', 'on');
     const ai = window.__ai = { calls: [], replies: [], reply: () => 'Fine.' };
     window.LanguageModel = {
         availability: async () => 'available',

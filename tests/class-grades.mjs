@@ -156,6 +156,8 @@ await page.addInitScript(() => {
 });
 // Chrome's on-device model, faked with its API shape: Class Grades offers ✨ on it.
 await page.addInitScript(() => {
+    // BoardAI is off until a person turns it on; these tests are about it on.
+    if (localStorage.getItem('toolboard_onDeviceAI') == null) localStorage.setItem('toolboard_onDeviceAI', 'on');
     const ai = window.__ai = { calls: [], reply: () => '- All fine.' };
     window.LanguageModel = {
         availability: async () => 'available',

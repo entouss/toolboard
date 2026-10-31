@@ -9686,19 +9686,19 @@ function applyLineTransforms(text, transforms) {
 // Each streams through onChunk(textSoFar), stops on an AbortSignal, and reports the
 // one-time model download through onProgress(0..1).
 
-const BOARD_AI_OFF_KEY = 'toolboard_onDeviceAI';
+const BOARD_AI_KEY = 'toolboard_onDeviceAI';
 
 const BoardAI = {
-    /** Offered unless turned off in Plugin Settings: a person's choice, so not the board's. */
+    /** Off until turned on in Plugin Settings — by this browser: a person's choice, so
+     *  not the board's. Where the browser keeps nothing, the choice lasts this page. */
+    _on: false,
     enabled() {
-        try { return localStorage.getItem(BOARD_AI_OFF_KEY) !== 'off'; } catch (e) { return true; }
+        try { return localStorage.getItem(BOARD_AI_KEY) === 'on'; } catch (e) { return this._on; }
     },
 
     setEnabled(on) {
-        try {
-            if (on) localStorage.removeItem(BOARD_AI_OFF_KEY);
-            else localStorage.setItem(BOARD_AI_OFF_KEY, 'off');
-        } catch (e) { /* kept for this page only */ }
+        this._on = !!on;
+        try { localStorage.setItem(BOARD_AI_KEY, on ? 'on' : 'off'); } catch (e) { /* kept for this page only */ }
         return this.refresh();
     },
 
@@ -9871,7 +9871,12 @@ async function boardAIRenderSettings() {
     box.checked = BoardAI.enabled();
     box.onchange = async () => { await BoardAI.setEnabled(box.checked); boardAIRenderSettings(); };
     const s = await BoardAI.statuses();
-    if (!BoardAI.enabled()) { line.textContent = BoardAI.why('off'); return; }
+    if (!BoardAI.enabled()) {
+        line.textContent = 'Off. Tick it to offer ✨ in the tools that support it' +
+            (Object.keys(s).some(k => BoardAI.usable(s[k])) ? '' : ' — though this browser has no on-device model to use') +
+            '. It runs on this computer; nothing is sent anywhere.';
+        return;
+    }
     const names = { prompt: 'Writing and asking', summarize: 'Summaries', translate: 'Translation' };
     const usable = Object.keys(s).filter(k => BoardAI.usable(s[k]));
     line.textContent = !usable.length ? BoardAI.why(s.prompt === 'unsupported' ? 'unsupported' : 'unavailable')
@@ -16414,7 +16419,7 @@ function openPluginSettingsModal() {
 
                 <div class="plugin-section">
                     <h3>On-device AI</h3>
-                    <label class="plugin-ai-toggle"><input type="checkbox" id="boardAIEnabled"> Offer AI on notes, with Chrome’s own built-in model</label>
+                    <label class="plugin-ai-toggle"><input type="checkbox" id="boardAIEnabled"> Offer ✨ AI in the tools that support it, using Chrome’s own built-in model</label>
                     <p class="plugin-hint" id="boardAIStatus"></p>
                 </div>
 
