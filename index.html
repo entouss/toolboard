@@ -9934,6 +9934,9 @@ function getToolAI(toolId) {
             needs: 'prompt', input: typeof a.input === 'string' ? a.input : null, needsText: a.needsText !== false,
             schema: a.schema && typeof a.preview === 'function' ? a.schema : null, parse: typeof a.parse === 'function' ? a.parse : null,
             preview: typeof a.preview === 'function' ? a.preview : null, apply: a.apply !== false, applyLabels: a.applyLabels || null,
+            applyHow: Array.isArray(a.applyHow) ? a.applyHow : ['replace', 'insert'],
+            clean: typeof a.clean === 'function' ? a.clean : null, format: typeof a.format === 'function' ? a.format : null,
+            check: typeof a.check === 'function' ? a.check : null, repair: typeof a.repair === 'function' ? a.repair : null,
             show: typeof a.show === 'function' ? a.show : null }));
     return { target, apply, groups, custom: own };
 }
@@ -10202,9 +10205,10 @@ function boardAIAsk() {
     if (q) boardAIRun(boardAIState.asking || 'ask', { question: q });
 }
 
-/** What the model says, as it will read — its own markup shown as text, not run. */
+/** What the model says, as it will read — its own markup shown as text, not run.
+ *  Inside a code block Markdown escapes it already: escaped twice, `<` read `&lt;`. */
 function boardAIPreviewHtml(text) {
-    return '<div class="markdown-content">' + parseMarkdown(String(text || '').replace(/</g, '&lt;')) + '</div>';
+    return '<div class="markdown-content">' + parseMarkdown(noteTidyOutsideCode(String(text || ''), (t) => t.replace(/</g, '&lt;'))) + '</div>';
 }
 
 /** Rows and columns from the model, as a Markdown table. */
@@ -10242,6 +10246,7 @@ async function boardAIRun(action, extra) {
     stop.hidden = false;
     st.result = '';
     st.data = null;
+    st.checkError = '';
     st.action = action;
     const mine = () => st.controller === controller;
     // Nothing happening for a while is said, with where Chrome explains it: a model
@@ -10254,7 +10259,8 @@ async function boardAIRun(action, extra) {
         stall = setTimeout(() => { if (mine()) hint.hidden = false; }, boardAIStallMs);
     };
     alive();
-    const onChunk = (t) => { if (!mine()) return; alive(); st.result = t; status.textContent = 'Writing…'; out.innerHTML = boardAIPreviewHtml(t); };
+    const shown = (t) => own && own.format && !own.schema ? own.format(own.clean ? own.clean(t) : t) : t;
+    const onChunk = (t) => { if (!mine()) return; alive(); st.result = t; status.textContent = 'Writing…'; out.innerHTML = boardAIPreviewHtml(shown(t)); };
     let lastProgress = -1;
     let stillDownloading = '';
     const onProgress = (p) => {
@@ -10292,7 +10298,23 @@ async function boardAIRun(action, extra) {
             st.data = data;
             result = own.preview(data);
         } else if (own) {
-            result = await BoardAI.prompt(own.prompt(text, extra.question), { ...base, system: own.system || BOARD_AI_SYSTEM });
+            const ask = (input) => BoardAI.prompt(input, { ...base, system: own.system || BOARD_AI_SYSTEM });
+            const tidy = (r) => own.clean ? own.clean(String(r || '')) : r;
+            result = tidy(await ask(own.prompt(text, extra.question, st.target)));
+            // A tool that can tell whether the answer works says so before it is offered;
+            // what does not work goes back once, with why, and is offered only to copy if
+            // it still does not.
+            if (own.check && result && mine()) {
+                status.textContent = 'Checking it…';
+                let problem = await own.check(result, st.target);
+                if (problem && own.repair && mine()) {
+                    status.textContent = 'Fixing: ' + problem;
+                    const second = tidy(await ask(own.repair(text, result, problem, extra.question)));
+                    if (second && mine()) { result = second; problem = await own.check(result, st.target); }
+                }
+                if (!mine()) return;
+                st.checkError = problem || '';
+            }
         } else if (action === 'keypoints' || action === 'tldr') {
             const type = action === 'tldr' ? 'tldr' : 'key-points';
             result = BoardAI.usable(await BoardAI.status('summarize'))
@@ -10326,8 +10348,9 @@ async function boardAIRun(action, extra) {
         }
         if (!mine()) return;
         st.result = String(result || '').trim();
-        out.innerHTML = boardAIPreviewHtml(st.result);
-        status.textContent = st.result ? '' : 'Nothing came back.';
+        out.innerHTML = boardAIPreviewHtml(own && own.format && !own.schema ? own.format(st.result) : st.result);
+        status.textContent = !st.result ? 'Nothing came back.' : st.checkError || '';
+        if (st.result && st.checkError) status.classList.add('bai-error');
         stop.hidden = true;
         boardAIShowFoot();
     } catch (e) {
@@ -10353,9 +10376,10 @@ function boardAIShowFoot() {
     const labels = (own && own.applyLabels) || {};
     // An answer is put next to what it answers, never over it; and a tool that
     // cannot take anything back, or an action of its own that it keeps out, offers only Copy.
-    const takes = !!ai && !!ai.apply && (!own || own.apply);
-    replace.hidden = st.action === 'ask' || !takes;
-    insert.hidden = !takes;
+    const takes = !!ai && !!ai.apply && (!own || own.apply) && !st.checkError;
+    const how = own ? own.applyHow : ['replace', 'insert'];
+    replace.hidden = st.action === 'ask' || !takes || how.indexOf('replace') < 0;
+    insert.hidden = !takes || how.indexOf('insert') < 0;
     replace.textContent = labels.replace || ((st.target || {}).scope === 'selection' ? 'Replace selection' : 'Replace');
     insert.textContent = labels.insert || 'Insert below';
 }
@@ -10374,7 +10398,8 @@ function boardAIApply(how) {
     const ai = getToolAI(st.toolId);
     if (!ai || !ai.apply || !st.result || !boardAITool()) return;
     const own = ai.custom.find(a => a.id === st.action);
-    if (own && !own.apply) return;
+    if (own && (!own.apply || own.applyHow.indexOf(how) < 0)) return;
+    if (st.checkError) return;
     // A tool may refuse — what it was made for has changed since — and says why itself.
     if (ai.apply(st.toolId, st.result, how, st.target, { action: own ? own.own : st.action, data: st.data }) === false) return;
     boardAIClose();

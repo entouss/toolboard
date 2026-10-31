@@ -2312,6 +2312,7 @@ function mermDiagRender(widget) {
     }
 
     if (!code) {
+        widget._mermError = '';
         preview.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">Enter Mermaid syntax on the left</span>';
         if (statusEl) statusEl.textContent = '';
         return;
@@ -2325,15 +2326,18 @@ function mermDiagRender(widget) {
         try {
             window.mermaid.render(id, code).then(function(result) {
                 preview.innerHTML = result.svg;
+                widget._mermError = '';
                 if (statusEl) statusEl.textContent = 'Rendered successfully';
                 statusEl.style.color = '#27ae60';
             }).catch(function(err) {
+                widget._mermError = String(err.message || err);
                 preview.innerHTML = '<div class="mermaid-diag-error">' + (err.message || err) + '</div>';
                 if (statusEl) { statusEl.textContent = 'Syntax error'; statusEl.style.color = '#e74c3c'; }
                 var badEl = document.getElementById('d' + id);
                 if (badEl) badEl.remove();
             });
         } catch (err) {
+            widget._mermError = String(err.message || err);
             preview.innerHTML = '<div class="mermaid-diag-error">' + (err.message || err) + '</div>';
             if (statusEl) { statusEl.textContent = 'Syntax error'; statusEl.style.color = '#e74c3c'; }
         }
@@ -2425,6 +2429,80 @@ function mermDiagExportPng(btn) {
         a.click();
     };
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+}
+
+// ---- ✨: Chrome's own model, for a diagram -------------------------------------
+
+var MERMAID_AI_SYSTEM = 'You write Mermaid diagram code (mermaid.js, version 11). Reply with the Mermaid code ' +
+    'only: no Markdown fences, no explanation. Put a label with spaces or punctuation in double quotes.';
+var MERMAID_AI_KINDS = /^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram(-v2)?|erDiagram|gantt|pie|gitGraph|journey|mindmap|timeline|quadrantChart|xychart-beta|sankey-beta|requirementDiagram|C4\w+|block-beta|packet-beta|architecture-beta|kanban)\b/;
+
+/** The diagram as the editor has it, and Mermaid's complaint about it, if any. */
+function mermDiagAITarget(toolId) {
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var widget = tool && tool.querySelector('.mermaid-diag-widget');
+    var textarea = widget && widget.querySelector('.mermaid-diag-editor textarea');
+    var code = textarea ? textarea.value : mermDiagLoadData(toolId).code;
+    var kind = (String(code).split('\n').filter(function(l) { return l.trim() && !/^\s*%%/.test(l); })[0] || '').trim().split(/\s/)[0];
+    var lines = String(code).split('\n').filter(function(l) { return l.trim(); }).length;
+    return { scope: 'whole', kind: 'diagram', text: code.trim() ? code : '', error: (widget && widget._mermError) || '',
+        label: 'On this diagram (' + (kind || 'Mermaid') + ', ' + lines + (lines === 1 ? ' line' : ' lines') + ')' +
+            (widget && widget._mermError ? ' — it has a syntax error' : ''),
+        emptyLabel: 'No diagram yet: describe one and it is drawn.' };
+}
+
+/**
+ * The code alone, whatever came with it: what is inside a ``` block if there is one,
+ * from the line that names the kind of diagram on. A `click` line, and any line with
+ * a javascript: address, is dropped — the diagram is drawn with Mermaid's loose
+ * setting, where those run.
+ */
+function mermDiagAIClean(text) {
+    var t = String(text || '').replace(/\r/g, '');
+    var fence = /```[ \t]*(?:mermaid)?[^\n]*\n([\s\S]*?)(?:\n```|$)/.exec(t);
+    if (fence) t = fence[1];
+    var lines = t.split('\n');
+    var start = lines.findIndex(function(l) { return MERMAID_AI_KINDS.test(l) || /^\s*(---|%%\{)/.test(l); });
+    if (start > 0) lines = lines.slice(start);
+    return lines.filter(function(l) { return !/^\s*click\s/i.test(l) && !/javascript\s*:/i.test(l); })
+        .join('\n').replace(/\s+$/, '').replace(/^\n+/, '');
+}
+
+function mermDiagAIFormat(code) {
+    return '```mermaid\n' + code + '\n```';
+}
+
+/** '' when Mermaid can draw it, else what Mermaid says is wrong, in a line. */
+function mermDiagAICheck(code) {
+    return new Promise(function(resolve) {
+        if (!MERMAID_AI_KINDS.test((String(code).split('\n').filter(function(l) { return l.trim() && !/^\s*(%%|---)/.test(l); })[0] || ''))) {
+            resolve('It does not start with a kind of diagram, such as flowchart TD.');
+            return;
+        }
+        mermDiagLoadLib(function() {
+            Promise.resolve().then(function() { return window.mermaid.parse(code); }).then(function() { resolve(''); }, function(err) {
+                var msg = String((err && (err.message || err.str)) || err || 'Mermaid cannot read it.').split('\n').filter(Boolean);
+                resolve(msg.slice(0, 3).join(' ').replace(/\s+/g, ' ').slice(0, 240));
+            });
+        });
+    });
+}
+
+/** A diagram into the editor, over what was there, through the ordinary save so Undo takes it back. */
+function mermDiagAIApply(toolId, code, how, target, info) {
+    if (how !== 'replace' || !code) return false;
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var widget = tool && tool.querySelector('.mermaid-diag-widget');
+    var textarea = widget && widget.querySelector('.mermaid-diag-editor textarea');
+    if (!textarea) { mermDiagSaveData(toolId, code); return true; }
+    textarea.value = code;
+    mermDiagRender(widget);
+    return true;
+}
+
+function mermDiagAIRepair(text, code, problem) {
+    return 'This Mermaid code does not draw. Mermaid says: ' + problem + '\n\n' + code +
+        '\n\nFix it so that Mermaid can draw it, changing as little as possible. Reply with the whole diagram.';
 }
 
 function mermDiagInit() {
@@ -5607,7 +5685,7 @@ function dgmInit() {
 
     var seqFunctions = [seqGetToolId, seqGetData, seqSaveData, seqInit, seqRender, seqOnInput, seqShowHelp, seqParseColors, seqParseText, seqRenderDiagram];
     var ftreeFunctions = [ftreeGetToolId, ftreeGetData, ftreeSaveData, ftreeDefaultData, ftreeGetVisiblePersons, ftreeFilterVisibleData, ftreeInit, ftreeComputeLayout, ftreeRender, ftreeSetupPanZoom, ftreeApplyTransform, ftreeUpdateZoomLabel, ftreeSaveViewState, ftreeZoomIn, ftreeZoomOut, ftreeFitView, ftreeResetView, ftreeNodeClick, ftreeShowNodePopup, ftreeClosePopup, ftreePopupEditField, ftreePopupEditGender, ftreePopupEditColor, ftreeNextPersonId, ftreeShowAddPopup, ftreeCloseAddPopup, ftreeAddPopupSave, ftreeAddParent, ftreeAddChild, ftreeAddSpouse, ftreeDeletePerson, ftreeToggleChildren, ftreeToggleParents, ftreeNodeToggleChildren, ftreeNodeToggleParents, ftreeOpenEditor, ftreeCloseEditor, ftreeEditorSave, ftreeEditorClear, ftreeToggleForm, ftreeGetSpouse, ftreeGetChildrenOf, ftreeGetParentsOf, ftreeRenderForm, ftreeFormEditField, ftreeFormEditGender, ftreeFormAddPerson, ftreeFormAddChild, ftreeFormAddParent, ftreeFormAddSpouse, ftreeFormSetRoot, ftreeFormDelete];
-    var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagOnRender, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagInit];
+    var mermDiagFunctions = [mermDiagGetToolId, mermDiagGetWidget, mermDiagLoadLib, mermDiagSaveData, mermDiagLoadData, mermDiagRender, mermDiagOnInput, mermDiagOnRender, mermDiagInsertTemplate, mermDiagExportSvg, mermDiagExportPng, mermDiagAITarget, mermDiagAIClean, mermDiagAIFormat, mermDiagAICheck, mermDiagAIApply, mermDiagAIRepair, mermDiagInit];
     var dgmFunctions = [dgmGetToolId, dgmNewState, dgmGetState, dgmSaveData, dgmPushUndo, dgmScreenToWorld, dgmWorldToScreen, dgmUnrotatePoint, dgmRotatePoint, dgmPointInRect, dgmPointInEllipse, dgmPointInDiamond, dgmPointNearLine, dgmGetCurvePoints, dgmDrawCurvePath, dgmEvalCurveAt, dgmCurveTangentAt, dgmGetCurveMidHandles, dgmHitCurveMidHandle, dgmHitBendPoint, dgmPointToSegmentDist, dgmClipLineByBox, dgmHitLineText, dgmHitTest, dgmGetHandles, dgmHitHandle, dgmHitRotHandle, dgmHitLineHandle, dgmGetPorts, dgmCalloutPtr, dgmHitCalloutHandle, dgmFindSnapPort, dgmResolveConnections, dgmMouseDown, dgmMouseMove, dgmMouseUp, dgmWheel, dgmDblClick, dgmHover, dgmHideContextMenu, dgmShowContextMenu, dgmContextAction, dgmSyncToolbar, dgmInvertColor, dgmDraw, dgmDrawGrid, dgmWrapLines, dgmDrawShape, dgmDrawArrowhead, dgmDrawPorts, dgmDrawSelection, dgmDrawGhost, dgmStartTextEdit, dgmFinishTextEdit, dgmSetTool, dgmAddShape, dgmSetFill, dgmToggleTransparentFill, dgmSetStroke, dgmSetStrokeWidth, dgmSetLineDash, dgmSetTextColor, dgmSetTextSize, dgmSetTextAlign, dgmSetTextVAlign, dgmSetTextRotation, dgmDeleteSelected, dgmSendToFront, dgmSendToBack, dgmUndo, dgmFitView, dgmToggleAutoFit, dgmOnRender, dgmExportPNG, dgmRenderTabs, dgmSwitchTab, dgmAddTab, dgmCloseTab, dgmRenameTab, dgmInit];
 
     var allFunctions = seqFunctions.concat(ftreeFunctions).concat(mermDiagFunctions).concat(dgmFunctions);
@@ -5765,6 +5843,40 @@ PluginRegistry.registerTool({
         result: '.authoring-result',
         actions: '.mermaid-diag-actions',
         onRender: 'mermDiagOnRender'
+    },
+    // ✨ where Chrome's own model can run. A diagram it writes is drawn by Mermaid before
+    // it is offered — sent back once if it does not draw — and goes in only by Use this diagram.
+    ai: {
+        target: 'mermDiagAITarget',
+        apply: 'mermDiagAIApply',
+        actions: ['ask'],
+        custom: [
+            { id: 'draw', group: 'Diagram', label: 'Draw from a description', system: MERMAID_AI_SYSTEM, needsText: false,
+                input: 'Describe it: “sign-up flow: form, email check, welcome page”',
+                applyHow: ['replace'], applyLabels: { replace: 'Use this diagram' },
+                clean: mermDiagAIClean, format: mermDiagAIFormat, check: mermDiagAICheck, repair: mermDiagAIRepair,
+                prompt: function(text, what) { return 'Write a Mermaid diagram of: ' + what + '\n\nChoose the kind of diagram that ' +
+                    'fits it best (flowchart, sequenceDiagram, classDiagram, stateDiagram-v2, erDiagram, gantt, pie, mindmap or ' +
+                    'timeline), with short labels.'; } },
+            { id: 'change', group: 'Diagram', label: 'Change it', system: MERMAID_AI_SYSTEM,
+                input: 'What should change? “add a step for a failed payment”',
+                show: function(t) { return !!t.text; },
+                applyHow: ['replace'], applyLabels: { replace: 'Use this diagram' },
+                clean: mermDiagAIClean, format: mermDiagAIFormat, check: mermDiagAICheck, repair: mermDiagAIRepair,
+                prompt: function(text, what) { return 'Here is a Mermaid diagram:\n\n' + text + '\n\nChange it: ' + what +
+                    '\n\nKeep everything else as it is. Reply with the whole changed diagram.'; } },
+            { id: 'fix', group: 'Diagram', label: 'Fix the error', system: MERMAID_AI_SYSTEM,
+                show: function(t) { return !!t.text && !!t.error; },
+                applyHow: ['replace'], applyLabels: { replace: 'Use this diagram' },
+                clean: mermDiagAIClean, format: mermDiagAIFormat, check: mermDiagAICheck, repair: mermDiagAIRepair,
+                prompt: function(text, what, t) { return 'This Mermaid diagram does not draw. Mermaid says: ' + (t && t.error || '') +
+                    '\n\n' + text + '\n\nFix it, changing as little as possible. Reply with the whole fixed diagram.'; } },
+            { id: 'explain', group: 'Diagram', label: 'Explain this diagram', apply: false,
+                system: 'You explain diagrams in plain words. Be brief. Reply with the explanation only.',
+                show: function(t) { return !!t.text; },
+                prompt: function(text) { return 'Explain this Mermaid diagram for someone who cannot see it: one sentence on what ' +
+                    'it shows, then its parts or steps in order as short bullets.\n\n' + text; } }
+        ]
     },
     onInit: 'mermDiagInit',
     defaultWidth: 600,

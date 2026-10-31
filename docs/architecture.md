@@ -337,7 +337,15 @@ may also take `input` (a placeholder: it asks for a line first, passed as
 `preview(data)` and an optional `parse(json)` (the model answers in JSON, the popup
 shows the preview, and `apply` gets the data as `info.data` in
 `apply(toolId, result, how, target, { action, data })`), `apply: false` (Copy only),
-`applyLabels: { replace, insert }`, and `show(target)` (whether it is listed now). An
+`applyLabels: { replace, insert }`, `applyHow: ['replace']` (which of the two it
+offers), and `show(target)` (whether it is listed now). `prompt(text, input, target)`
+gets the target too. `clean(result)` tidies what came back and `format(result)` is how
+the popup shows it while Copy keeps it as it is; `check(result)` resolves to '' when the
+result works and to why not when it does not, and with `repair(text, result, why)` it
+goes back to the model once — still not working, it is said and offered only to copy.
+The Mermaid Diagram uses these: Draw from a description, Change it, Fix the error and
+Explain, every diagram parsed by Mermaid before Use this diagram is offered, and `click`
+lines and `javascript:` addresses dropped (`mermDiagAI*`). An
 `apply` that returns `false` refuses, and the popup stays open. The Agenda Timer uses
 all of them: planning, **Draft an agenda…** asks what it is for and fills the plan by
 Replace the plan or Add to the plan; after a run, **Write-up** and **Action items**

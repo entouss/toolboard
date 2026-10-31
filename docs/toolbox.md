@@ -15,6 +15,7 @@ Each toolbox file follows this pattern in order:
 - `plugins/toolboxes/core-tools.js` — Checklist, Simple Calculator
 - `plugins/toolboxes/productivity-tools.js` — Agenda Timer (✨ drafts a plan, writes up a run), Pomodoro Timer, Unit Converter, Playback Speed Calc, Calendar, Random Picker, Dice Roller, Stopwatch, YouTube Embed
 - `plugins/toolboxes/developer-tools.js` — Diff Viewer, Sequence Diagram, JWT Decoder, Code Formatter, Cron Expression, Regex Tester, Epoch Converter, IP Address Info, and others
+- `plugins/toolboxes/diagram-tools.js` — Mermaid Diagram (✨ draws one from a description, changes it, fixes a syntax error, explains it), Sequence Diagram, Family Tree, Diagram
 - `plugins/toolboxes/finance-tools.js` — Investment Calculator, Tax Calculator, Loan Calculator
 - `plugins/toolboxes/creative-tools.js` — Color Picker, Drawing Canvas, Emoticon Picker, Family Tree, Image Viewer
 - `plugins/toolboxes/educational-tools.js` — Analog Clock, Money Counter, World Map
