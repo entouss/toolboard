@@ -436,6 +436,15 @@
 /* Sub-items. One level: an item and the things it is made of. */
 .proj-row-tools { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
 .proj-indent { display: inline-block; width: 14px; }
+/* ▾ open, ▸ folded with how many it holds; a gap where there is nothing to fold, so
+   every handle at one depth lines up. */
+.proj-fold, .proj-fold-gap { display: inline-flex; align-items: center; justify-content: center; width: 14px; padding: 0; }
+.proj-fold { border: none; background: none; cursor: pointer; line-height: 1; color: var(--text-secondary); font-size: 11px; }
+.proj-fold:hover { color: var(--text-primary); }
+.proj-fold:focus-visible { outline: 2px solid #3498db; outline-offset: 1px; border-radius: 2px; }
+.proj-fold-count { font-size: 9px; font-weight: 600; margin-left: 1px; padding: 0 3px; border-radius: 6px;
+    background: var(--border-light); color: var(--text-secondary); }
+.proj-fold-mark { color: var(--text-muted); margin-right: 3px; }
 .proj-nest { color: var(--text-muted); font-size: 10px; }
 .proj-table tbody tr.proj-is-parent > td { font-weight: 600; }
 .proj-rollup { color: var(--text-muted); font-size: 10px; margin-left: 3px; }
@@ -579,6 +588,7 @@ PluginRegistry.registerTool({
                     '<button class="proj-btn proj-settings-toggle" ' +
                         'onclick="projToggleSettings(this)"></button>' +
                     '<button class="proj-btn" onclick="projAddRow(this)">+ Row</button>' +
+                    '<button class="proj-btn proj-fold-all" onclick="projFoldAll(this)" hidden>Collapse all</button>' +
                     '<button class="proj-btn" onclick="projAddColumn(this)">+ Column</button>' +
                     '<button class="proj-btn proj-csv-out" onclick="projExportCsv(this)" ' +
                         'title="Download the table as CSV, which Excel, Numbers and Sheets all open">' +
@@ -1298,6 +1308,80 @@ function projOrderedRows(data) {
     // rather than quietly dropped.
     data.rows.forEach(r => { if (out.indexOf(r) < 0) out.push(r); });
     return out;
+}
+
+// ---- Folding: sub-tasks out of sight -----------------------------------------------
+//
+// A way of looking, not an edit: which rows are folded is kept with the tool's view,
+// as the divider is, so it lasts a reload and is not in the plan, its undo, its CSV or
+// its share link. Folded rows are out of the table and the chart only — every total,
+// date, slack, export and ✨ still counts them.
+
+/** The rows folded in this tool, as a set of ids. */
+function projFoldedOf(toolId) {
+    const list = (toolCustomizations[toolId] || {}).projFolded;
+    return new Set(Array.isArray(list) ? list : []);
+}
+
+/** Folded or not, kept — only rows that still have sub-tasks, so the list cannot grow
+ *  with ids of rows long gone. */
+function projSaveFolded(toolId, data, folded) {
+    toolCustomizations[toolId] = toolCustomizations[toolId] || {};
+    const keep = data.rows.filter(r => folded.has(r.id) && projIsParent(data, r)).map(r => r.id);
+    if (keep.length) toolCustomizations[toolId].projFolded = keep;
+    else delete toolCustomizations[toolId].projFolded;
+    saveToolCustomizations(toolCustomizations);
+}
+
+/** Out of sight: some row above it is folded. The folded row itself still shows. */
+function projIsHidden(data, row, folded) {
+    if (!folded.size) return false;
+    return projAncestry(data, row).slice(0, -1).some(a => folded.has(a.id));
+}
+
+/** How many rows a fold puts away: everything under it, at every level. */
+function projDescendantCount(data, rowId) {
+    let n = 0;
+    const walk = (id) => projChildren(data, id).forEach(c => { n++; if (n < 1000) walk(c.id); });
+    walk(rowId);
+    return n;
+}
+
+/** Open a row and everything it hangs from, so a row just put there is in sight. */
+function projUnfoldTo(toolId, data, rowId) {
+    const folded = projFoldedOf(toolId);
+    const row = data.rows.find(r => r.id === rowId);
+    if (!row || !folded.size) return;
+    let changed = false;
+    projAncestry(data, row).forEach(a => { if (folded.delete(a.id)) changed = true; });
+    if (changed) projSaveFolded(toolId, data, folded);
+}
+
+function projToggleFold(btn) {
+    const toolId = projToolId(btn), widget = projWidget(btn);
+    if (!toolId || !widget) return;
+    const data = projGetData(toolId);
+    const id = btn.getAttribute('data-row');
+    const folded = projFoldedOf(toolId);
+    if (folded.has(id)) folded.delete(id); else folded.add(id);
+    projSaveFolded(toolId, data, folded);
+    projRenderTable(widget, data);
+    projRenderGantt(widget, data);
+    const again = widget.querySelector('.proj-fold[data-row="' + CSS.escape(id) + '"]');
+    if (again) again.focus({ preventScroll: true });
+}
+
+/** Fold every row with sub-tasks, or — when all are folded already — open them all. */
+function projFoldAll(btn) {
+    const toolId = projToolId(btn), widget = projWidget(btn);
+    if (!toolId || !widget) return;
+    const data = projGetData(toolId);
+    const parents = data.rows.filter(r => projIsParent(data, r));
+    const folded = projFoldedOf(toolId);
+    const all = parents.length && parents.every(r => folded.has(r.id));
+    projSaveFolded(toolId, data, all ? new Set() : new Set(parents.map(r => r.id)));
+    projRenderTable(widget, data);
+    projRenderGantt(widget, data);
 }
 
 /**
@@ -2380,6 +2464,7 @@ function projAIApply(toolId, result, how, target, info) {
     if (info.action === 'rows' && how === 'replace') data.rows = made;
     else data.rows = data.rows.concat(made);
     projSetData(toolId, data);
+    if (parent && made.length) projUnfoldTo(toolId, data, made[0].id);
     const widget = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"] .proj-widget');
     if (widget) projRender(widget, toolId);
     return true;
@@ -3009,22 +3094,46 @@ function projRenderTable(widget, data) {
             projColumnHeadHtml(col) + '</th>').join('') +
         '<th></th></tr></thead>';
     const ordered = projOrderedRows(data);
+    const toolId = projToolId(widget);
+    const folded = toolId ? projFoldedOf(toolId) : new Set();
+    const parents = data.rows.filter(r => projIsParent(data, r));
+    const foldAll = widget.querySelector('.proj-fold-all');
+    if (foldAll) {
+        const all = parents.length > 0 && parents.every(r => folded.has(r.id));
+        foldAll.hidden = !parents.length;
+        foldAll.textContent = all ? 'Expand all' : 'Collapse all';
+        foldAll.title = all ? 'Show every sub-task' : 'Fold every task with sub-tasks down to its own row';
+    }
     const body = '<tbody>' + (ordered.length
         ? ordered.map((row, i) => {
+            // Asked of the whole list, not the rows in sight: indenting is about where a
+            // row sits in the plan, and a folded row above is still above it.
+            if (projIsHidden(data, row, folded)) return '';
             const depth = projRowDepth(data, row);
             const isParent = projIsParent(data, row);
+            const isFolded = isParent && folded.has(row.id);
+            const name = String(projCell(row, 'item') || '').trim() || 'Untitled';
+            const held = isFolded ? projDescendantCount(data, row.id) : 0;
+            const fold = isParent
+                ? '<button type="button" class="proj-fold" data-row="' + row.id + '" aria-expanded="' + !isFolded + '" ' +
+                    'onclick="projToggleFold(this)" title="' + (isFolded ? 'Show the ' + held + (held === 1 ? ' sub-task' : ' sub-tasks') + ' of '
+                        : 'Hide the sub-tasks of ') + escapeHtml(name) + '">' + (isFolded ? '▸' : '▾') + '</button>'
+                : '<span class="proj-fold-gap"></span>';
+            // How many a fold holds goes at the end of the tools, so it never pushes the
+            // handle out of line with the rows around it.
+            const heldMark = held ? '<span class="proj-fold-count" title="' + held + (held === 1 ? ' sub-task' : ' sub-tasks') + ' folded away">' + held + '</span>' : '';
             // One step of indent per level it already sits at, so a sub-task lines up
             // under its task rather than under the project.
             const canIndent = !!projIndentTarget(data, ordered, i);
             const tools = '<span class="proj-row-tools">' +
-                '<span class="proj-indent"></span>'.repeat(depth) +
+                '<span class="proj-indent"></span>'.repeat(depth) + fold +
                 '<span class="proj-handle">☰</span>' +
                 (canIndent ? '<button class="proj-x proj-nest" title="Make this a sub-item" ' +
                     'onclick="projIndentRow(this)" data-row="' + row.id + '">↳</button>' : '') +
                 (depth ? '<button class="proj-x proj-nest" title="Move it out one level" ' +
-                    'onclick="projOutdentRow(this)" data-row="' + row.id + '">↰</button>' : '') +
+                    'onclick="projOutdentRow(this)" data-row="' + row.id + '">↰</button>' : '') + heldMark +
             '</span>';
-            const classes = (isParent ? ' proj-is-parent' : '') +
+            const classes = (isParent ? ' proj-is-parent' : '') + (isFolded ? ' proj-folded' : '') +
                 (projPercent(data, row) >= 100 ? ' proj-done' : '');
             return '<tr draggable="true" data-row="' + row.id + '"' +
                     (classes ? ' class="' + classes.trim() + '"' : '') +
@@ -3080,7 +3189,8 @@ function projRenderGantt(widget, data) {
         return d === null ? null : Math.round((d - today) / PROJ_DAY);
     };
 
-    const ordered = projOrderedRows(data);
+    const ganttFolded = projToolId(widget) ? projFoldedOf(projToolId(widget)) : new Set();
+    const ordered = projOrderedRows(data).filter(r => !projIsHidden(data, r, ganttFolded));
     let dayMin = 0, dayMax = 1;
     ordered.forEach(row => {
         const reach = barSpan(sched[row.id] || { start: 0, days: 0 });
@@ -3250,7 +3360,9 @@ function projRenderGantt(widget, data) {
         return '<div class="proj-gantt-row">' +
             '<span class="proj-gantt-label' +
                 (row.parent ? ' proj-sub-label proj-depth-' + projRowDepth(data, row) : '') + '">' +
-                '<span class="proj-gantt-name" title="' + escapeHtml(label) + '">' +
+                '<span class="proj-gantt-name" title="' + escapeHtml(label) +
+                    (ganttFolded.has(row.id) && isParent ? ' — its sub-tasks are folded away in the table' : '') + '">' +
+                    (ganttFolded.has(row.id) && isParent ? '<span class="proj-fold-mark">▸</span>' : '') +
                     escapeHtml(label) + '</span>' +
                 '<span class="proj-gantt-when" title="' + escapeHtml(label) + ': ' +
                     when.start + ' to ' + when.end + '">' + whenText + '</span>' +
@@ -4385,6 +4497,9 @@ function projIndentRow(btn) {
         if (!parent) return;
         const row = data.rows.find(r => r.id === rowId);
         if (row) row.parent = parent.id;
+        // Put under a folded row, it would vanish as it landed.
+        const toolId = projToolId(btn);
+        if (row && toolId) projUnfoldTo(toolId, data, row.id);
     });
 }
 
@@ -4926,6 +5041,7 @@ function projRowDrop(tr, event) {
         projSeedData, projGetData, projSetData, projColumn, projCell,
         projFieldSize, projLongestLine, projNoteCols, projNoteRows,
         projGrowAttrs, projGrowField, projChildren, projIsParent, projOrderedRows,
+        projFoldedOf, projSaveFolded, projIsHidden, projDescendantCount, projUnfoldTo, projToggleFold, projFoldAll,
         projSizeMenu,
         projRowDepth, projAncestry, projSubtreeDepth, projIndentTarget,
         projRowNumber, projRowTitle, projRowOwner, projDepLabel, projCopyTitle,

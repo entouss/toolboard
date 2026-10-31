@@ -177,6 +177,14 @@ in days, which columns exist, and the rows.
 }
 ```
 
+Beside `projectData`, and outside it, the tool keeps how it is being looked at:
+`projSplit` (the table's share of the height in Both) and `projFolded`, the ids of
+rows whose sub-tasks are folded out of sight. Folding is a view, not an edit, so it
+is not in the plan's undo, its CSV, its Markdown or its share link, and every total
+and ✨ action still counts the folded rows. A row indented under a folded row, or
+given sub-tasks by ✨ Break down, opens it and everything it hangs from
+(`projUnfoldTo()`), so nothing lands out of sight.
+
 **The sizes start on the ladder's rungs**: S is a week, M a sprint, L a timebox, XL
 a quarter, and XS the few days that sit under a week — so "that's an M" and "that's a
 sprint" say the same thing until somebody changes one of them. Either end goes
