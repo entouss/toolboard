@@ -172,8 +172,12 @@ await page.goto('http://localhost:8777/index.html');
 await page.waitForSelector('.tool[data-tool="cg"] .cg-widget', { timeout: 15000 });
 await page.waitForTimeout(400);
 const W = '.tool[data-tool="cg"] .cg-widget';
-// The report as Copy has it: every class, every task, folded or not.
-const report = () => page.evaluate((s) => classGradesWidgetText(document.querySelector(s)), W);
+// The report as Copy has it: every class, every task, folded or not. Its columns are
+// lined up by spaces; `flat` puts the old " - " between them, so what each line says
+// is checked apart from how it is lined up — which section 20 checks.
+const flat = (t) => String(t).replace(/(\S) {2,}(?=\S)/g, '$1 - ');
+const aligned = () => page.evaluate((s) => classGradesWidgetText(document.querySelector(s)), W);
+const report = async () => flat(await aligned());
 const status = () => page.textContent(W + ' .cg-status');
 const fmt = (d) => page.evaluate((x) => classGradesDate(x), iso(d));
 const connect = async (token, remember) => {
@@ -437,16 +441,16 @@ ok('a saved filter already a section is not offered again', (await page.evaluate
     .map(o => o.value).filter(Boolean).join(), W)) === 'Low grades', await page.textContent(W + ' .cg-add-section'));
 text = await report();
 ok('the report is the sections, one after another', text ===
-    'Missing  (1 task in 1 class)\n  \uD83D\uDFE9 Math - 92.4% (A-)\n      \u2B1C 5.3 Homework - Not graded - \uD83D\uDEAB Missing - Due ' + await fmt(-5) +
-    '\n\nUpcoming  (2 tasks in 1 class)\n  \uD83D\uDFE9 Math - 92.4% (A-)\n      \u2B1C 5.6 Project - Not graded - \u23F3 Not submitted - Due ' + await fmt(3) +
+    'Missing (1 task in 1 class)\n  \uD83D\uDFE9 Math - 92.4% (A-)\n      \u2B1C 5.3 Homework - Not graded - \uD83D\uDEAB Missing - Due ' + await fmt(-5) +
+    '\n\nUpcoming (2 tasks in 1 class)\n  \uD83D\uDFE9 Math - 92.4% (A-)\n      \u2B1C 5.6 Project - Not graded - \u23F3 Not submitted - Due ' + await fmt(3) +
     '\n      \u2B1C 6.1 Final - Not graded - \u23F3 Not submitted - Due ' + await fmt(40) +
-    '\n\nNothing  (Nothing here)', text);
+    '\n\nNothing (Nothing here)', text);
 ok('each with its own order: Upcoming oldest first', text.indexOf('5.6 Project') < text.indexOf('6.1 Final'));
 ok('an empty section says so', /Nothing here\./.test(await page.textContent(W + ' .cg-section[data-section="Nothing"]')));
 ok('sections and their classes start open', await page.evaluate((s) => Array.from(document.querySelectorAll(s + ' .cg-section, ' + s + ' .cg-section .cg-class')).every(d => d.open), W));
 await page.click(W + ' .cg-sections-list li[data-name="Upcoming"] button[aria-label="Move Upcoming up"]');
 ok('↑ moves a section earlier', JSON.stringify(await sectionNames()) === JSON.stringify(['Upcoming', 'Missing', 'Nothing']) &&
-    (await report()).indexOf('Upcoming  (') < (await report()).indexOf('Missing  ('));
+    (await report()).indexOf('Upcoming (') < (await report()).indexOf('Missing ('));
 ok('and the keyboard stays with it', await page.evaluate(() => document.activeElement.closest('li') && document.activeElement.closest('li').dataset.name) === 'Upcoming');
 await page.click(W + ' .cg-sections-list li[data-name="Nothing"] button[aria-label="Remove Nothing"]');
 ok('× takes a section out', JSON.stringify(await sectionNames()) === JSON.stringify(['Upcoming', 'Missing']) && !/Nothing  \(/.test(await report()));
@@ -456,23 +460,23 @@ ok('and come back when asked', /\n  Missing 1, late 1, 1 due this week\. /.test(
 await page.uncheck(W + ' .cg-section-summaries');
 await page.click(W + ' .cg-btn:has-text("Copy")');
 await page.waitForTimeout(200);
-ok('Copy copies the sections, in order', await page.evaluate(() => navigator.clipboard.readText()) === await report());
+ok('Copy copies the sections, in order', await page.evaluate(() => navigator.clipboard.readText()) === await aligned());
 await page.selectOption(W + ' .cg-saved', 'Upcoming');
 await page.click(W + ' .cg-rename');
 await page.fill(W + ' .cg-save-name', 'Coming up');
 await page.press(W + ' .cg-save-name', 'Enter');
 ok('renaming a saved filter renames its section', JSON.stringify(await sectionNames()) === JSON.stringify(['Coming up', 'Missing']) &&
-    /^Coming up  \(/.test(await report()));
+    /^Coming up \(/.test(await report()));
 await page.selectOption(W + ' .cg-saved', 'Missing');
 await page.click(W + ' .cg-delete');
 await page.click(W + ' .cg-delete');
 ok('deleting one takes its section out, and says so', JSON.stringify(await sectionNames()) === JSON.stringify(['Coming up']) &&
-    /“Missing” was a section/.test(await page.textContent(W + ' .cg-sections-note')) && !/Missing  \(/.test(await report()));
+    /“Missing” was a section/.test(await page.textContent(W + ' .cg-sections-note')) && !/Missing \(/.test(await report()));
 const again3 = await context.newPage();
 await again3.goto('http://localhost:8777/index.html');
 await again3.waitForSelector(W + ' .cg-section');
 ok('the sections and their order are kept with the tool', await again3.inputValue(W + ' .cg-view') === 'sections' &&
-    /^Coming up  \(/.test(await again3.evaluate((s) => classGradesWidgetText(document.querySelector(s)), W)));
+    /^Coming up \(/.test(await again3.evaluate((s) => classGradesWidgetText(document.querySelector(s)), W)));
 await again3.close();
 mathScore = 97;
 await page.click(W + ' .cg-section .cg-class[data-course="1"] .cg-class-refresh');
@@ -560,7 +564,7 @@ await page.dispatchEvent(W + ' .cg-green', 'change');
 await page.click(W + ' .cg-connection summary');
 await page.click(W + ' .cg-btn:has-text("Copy")');
 await page.waitForTimeout(200);
-ok('Copy puts the report on the clipboard as it reads', await page.evaluate(() => navigator.clipboard.readText()) === await report());
+ok('Copy puts the report on the clipboard as it reads, lined up', await page.evaluate(() => navigator.clipboard.readText()) === await aligned());
 
 // 5. The grade moves between checks.
 mathScore = 93.6;
@@ -572,7 +576,7 @@ ok('a second check says how each grade moved', (await report()).includes('Grade 
 // 5b. One class read again, and only that one.
 const classState = (id) => page.evaluate(([s, id]) => {
     const d = document.querySelector(s + ' .cg-class[data-course="' + id + '"]');
-    return d ? { open: d.open, summary: d.querySelector('summary').textContent } : null;
+    return d ? { open: d.open, summary: d.querySelector('summary').textContent.replace(/ {2,}/g, ' ') } : null;
 }, [W, id]);
 const stamps = () => page.evaluate((i) => {
     const d = JSON.parse(localStorage.getItem('toolboard_classGradesData_' + i));
@@ -729,7 +733,7 @@ const folds = () => page.evaluate((s) => Array.from(document.querySelectorAll(s 
     summary: d.querySelector('summary').textContent })), W);
 let f = await folds();
 ok('every class starts folded, its tasks hidden', f.length === 3 && f.every(x => !x.open && !x.tasksShown), JSON.stringify(f.map(x => x.open)));
-ok('its line, task count and summary still showing', f.some(x => /Math - 93\.6% \(A-\) · 5 tasks/.test(x.summary) && /Missing 1, late 1, 1 due this week\./.test(x.summary)),
+ok('its line, task count and summary still showing', f.some(x => /Math {2,}93\.6% \(A-\) +· 5 tasks/.test(x.summary) && /Missing 1, late 1, 1 due this week\./.test(x.summary)),
     f.map(x => x.summary).join(' | '));
 await page.click(W + ' .cg-class[data-course="1"] > summary');
 f = await folds();
@@ -784,7 +788,7 @@ ok('a scale of one’s own takes over', (await report()).includes('Chemistry - 6
 ok('but never over a course’s own letter', (await report()).includes('Math - 93.6% (A-)'));
 await page.click(W + ' .cg-btn:has-text("Copy")');
 await page.waitForTimeout(200);
-ok('Copy has the letters', /Chemistry - 68% \(D\)/.test(await page.evaluate(() => navigator.clipboard.readText())));
+ok('Copy has the letters', /Chemistry - 68% \(D\)/.test(flat(await page.evaluate(() => navigator.clipboard.readText()))));
 await setScale('F 0, D 60, C 70, B 80, A 90, A+ 97');
 ok('written in any order, it is read highest first', await page.inputValue(W + ' .cg-scale') === 'A+ 97, A 90, B 80, C 70, D 60, F 0');
 await setScale('A 93, A- 90, B+ 87, B 83, B- 80, C+ 77, C 73, C- 70, D+ 67, D 63, D- 60, F 0');
@@ -868,6 +872,86 @@ await page.screenshot({ path: OUT + '/class-grades-ai.png' });
 await page.click(P + '.bai-x');
 ok('with no grades yet, there is nothing to read, and it says so', JSON.stringify(await page.evaluate(() => classGradesAITarget('no-such-tool'))) ===
     JSON.stringify({ text: '', scope: 'whole', emptyLabel: 'No grades to read yet: connect and Refresh first.' }));
+
+// 20. Columns. A task's name, grade, status and due date — and its class's name and
+// grade — line up by spaces in the report's mono font, a class's grade in the same
+// column as its tasks'. A name too long for its column is cut short on screen, its
+// whole name in the tooltip and in Copy.
+const LONG = 'A very long assignment name that goes on and on, well past the column';
+await page.evaluate(([long, due, sub]) => {
+    const data = classGradesData('cg');
+    const snap = data.snapshots[Object.keys(data.snapshots)[0]];
+    const math = snap.courses.find(c => c.tasks && c.tasks.length);
+    math.tasks.push({ id: 'long', name: long, due: due, score: 8, points: 10, submittedAt: sub, state: 'graded' });
+    classGradesSaveData('cg', data);
+    const widget = document.querySelector('.tool[data-tool="cg"] .cg-widget');
+    classGradesRender(widget);
+    widget.querySelectorAll('.cg-class').forEach(d => { d.open = true; });
+}, [LONG, iso(2), iso(1)]);
+await page.waitForTimeout(200);
+// Where each column starts on screen: the character after each run of two or more spaces.
+const measure = () => page.evaluate((s) => {
+    const xs = (el) => {
+        const nodes = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        let n, text = '';
+        while ((n = walk.nextNode())) {
+            if (n.parentNode.closest('.cg-count, .cg-refreshed, .cg-class-refresh, .cg-class-summary')) continue;
+            nodes.push({ n, at: text.length });
+            text += n.data;
+        }
+        const at = (i) => { const k = nodes.filter(x => x.at <= i).pop(); const r = document.createRange(); r.setStart(k.n, i - k.at); r.setEnd(k.n, i - k.at + 1); return Math.round(r.getBoundingClientRect().left); };
+        let start = 0;
+        return text.split('\n').map(line => {
+            const cols = [];
+            const re = / {2,}(?=\S)/g;
+            let m;
+            while ((m = re.exec(line))) cols.push(at(start + m.index + m[0].length));
+            start += line.length + 1;
+            return cols;
+        }).filter(c => c.length);
+    };
+    return Array.from(document.querySelectorAll(s + ' .cg-class')).map(d => ({
+        head: xs(d.querySelector('summary'))[0], tasks: xs(d.querySelector('.cg-tasks')) }));
+}, W);
+const columns = await measure();
+const tasks = columns.flatMap(c => c.tasks);
+const same = (list) => list.every(x => Math.abs(x - list[0]) <= 1);
+ok('every task’s grade, status and due date start in the same column, in every class', tasks.length > 3 &&
+    [0, 1, 2].every(k => same(tasks.map(t => t[k]))), JSON.stringify(tasks.slice(0, 4)));
+ok('and each class’s grade in the same column as its tasks’ grades', columns.every(c => c.head && Math.abs(c.head[0] - tasks[0][0]) <= 1),
+    JSON.stringify(columns.map(c => c.head)) + ' vs ' + tasks[0][0]);
+const cut = await page.evaluate((s) => { const e = Array.from(document.querySelectorAll(s + ' .cg-tasks span[title]'))[0]; return e ? { title: e.title, text: e.textContent } : null; }, W);
+ok('a name too long for its column is cut short on screen, its whole name in the tooltip', !!cut && cut.title === LONG &&
+    /^\S+ A very long assignment name that go.*…/.test(cut.text) && !cut.text.includes('past the column'), JSON.stringify(cut));
+ok('and does not push the other columns out (checked above, with it among them)', tasks.some(t => t.length === 3));
+const copyText = await aligned();
+ok('Copy keeps the whole name', copyText.includes(LONG));
+const textCol = (line) => { const m = /\S {2,}(?=\S)/.exec(line); return m ? Array.from(line.slice(0, m.index + m[0].length)).length : -1; };
+const textLines = copyText.split('\n');
+const headLine = textLines.find(l => /Math/.test(l) && !/^ /.test(l));
+const taskLine = textLines.find(l => /^ {4}\S/.test(l) && !l.includes(LONG));
+ok('in Copy too, a class’s grade is in the column of its tasks’ grades, indent and all', textCol(headLine) === textCol(taskLine) && textCol(headLine) > 0,
+    JSON.stringify([headLine, taskLine]));
+// Sections line up with each other, not each on its own: one section holding only a
+// short name and another only the long one still share their columns.
+await page.evaluate(() => {
+    classGradesSaveCustom('cg', { cgSavedFilters: [{ name: 'Labs', filter: { q: 'Lab' } }, { name: 'Long one', filter: { q: 'very long' } }],
+        cgSections: ['Labs', 'Long one'], cgView: 'sections' });
+    const widget = document.querySelector('.tool[data-tool="cg"] .cg-widget');
+    classGradesRender(widget);
+    widget.querySelectorAll('.cg-class').forEach(d => { d.open = true; });
+});
+await page.waitForTimeout(200);
+const across = await measure();
+const acrossTasks = across.flatMap(c => c.tasks);
+ok('in Sections, the columns line up across sections, not only within each', across.length >= 2 && acrossTasks.length >= 2 &&
+    [0, 1, 2].every(k => same(acrossTasks.map(t => t[k]))) && across.every(c => c.head && Math.abs(c.head[0] - acrossTasks[0][0]) <= 1),
+    JSON.stringify(across));
+const sectionText = (await aligned()).split('\n');
+const sHead = sectionText.find(l => /^ {2}\S/.test(l)), sTask = sectionText.find(l => /^ {6}\S/.test(l) && !l.includes(LONG));
+ok('and in their Copy', textCol(sHead) === textCol(sTask) && textCol(sHead) > 0, JSON.stringify([sHead, sTask]));
+await page.evaluate(() => { classGradesSaveCustom('cg', { cgView: 'single' }); classGradesRender(document.querySelector('.tool[data-tool="cg"] .cg-widget')); });
+ok('a name with runs of spaces in it is written with one, so they cannot pass for a column', await page.evaluate(() => classGradesOneLine('  Unit   3\tQuiz ')) === 'Unit 3 Quiz');
 
 await page.screenshot({ path: OUT + '/class-grades.png' });
 await page.evaluate(() => document.body.classList.add('dark-mode'));

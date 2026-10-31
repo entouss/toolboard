@@ -501,6 +501,10 @@ personal access token, or a parent's, which shows the students it is linked to.
   when an instance runs out of memory) is tried twice more, 1.5 s and then 4 s later;
   a 5xx from the school itself is tried once more and then said to be the school's.
 - **Squares:** 🟩 from 90%, 🟧 from 70%, 🟥 below (adjustable); ⬜ for no grade yet.
+- **Columns:** a task's name, grade, status and due date, and its class's name and grade,
+  line up by spaces in the report's mono font — a class's grade in the column of its
+  tasks' grades, across every class and every section. A name past 60 characters is
+  cut short with … on screen, whole in its tooltip and in Copy; Copy is lined up too.
 - **✨ On-device AI** (where Chrome's own model can run — see BoardAI): **Student
   summary**, **What needs attention**, **What's due this week**, and **Ask about it…**,
   over a compact copy of the selected student's report: every class with its grade,

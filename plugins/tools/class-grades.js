@@ -48,8 +48,8 @@
 .cg-btn:disabled { opacity: 0.5; cursor: default; }
 .cg-status { font-size: 11px; color: var(--text-muted); margin-left: auto; }
 .cg-status.error { color: #c0392b; font-weight: 600; }
-.cg-report { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
-.cg-report:empty::before { content: attr(data-empty); color: var(--text-muted); font-family: inherit; }
+.cg-report { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; }
+.cg-report:empty::before { content: attr(data-empty); color: var(--text-muted); font-family: inherit; white-space: pre-wrap; }
 .cg-student-name { margin-bottom: 8px; }
 .cg-filters { border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; }
 .cg-filters > summary { cursor: pointer; font-weight: 600; color: var(--text-heading); padding: 2px 0; }
@@ -891,9 +891,9 @@ function classGradesReportModel(snapshot, opts) {
     var courses = (snapshot.courses || []).slice().sort(function(a, b) {
         return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
     });
-    return classGradesArrange(courses.map(function(c) {
+    var arranged = classGradesArrange(courses.map(function(c) {
         var counts = { missing: 0, late: 0, week: 0 };
-        var lines = [];
+        var rows = [];
         // By due date, newest first unless asked otherwise; no due date last either way.
         var tasks = (c.tasks || []).slice().sort(function(a, b) {
             if (!a.due || !b.due) return (a.due ? 0 : 1) - (b.due ? 0 : 1) || a.name.localeCompare(b.name);
@@ -909,8 +909,8 @@ function classGradesReportModel(snapshot, opts) {
             // The summary counts every task; the filter decides which are listed.
             var g = classGradesTaskGrade(task);
             if (!classGradesTaskShown(task, status, g, f, t, now)) return;
-            lines.push(classGradesSquare(g.pct, t) + ' ' + task.name + ' - ' + g.text + ' - ' +
-                status.icon + ' ' + status.text + ' - ' + (task.due ? 'Due ' + classGradesDate(task.due) : 'No due date'));
+            rows.push({ square: classGradesSquare(g.pct, t), name: classGradesOneLine(task.name), grade: g.text,
+                icon: status.icon, status: status.text, due: task.due ? 'Due ' + classGradesDate(task.due) : 'No due date' });
         });
         var change;
         if (c.score == null || c.previous == null) change = c.previous === undefined ? 'First check.' : 'No grade to compare.';
@@ -920,7 +920,7 @@ function classGradesReportModel(snapshot, opts) {
         }
         return {
             id: String(c.id),
-            head: classGradesSquare(c.score, t) + ' ' + c.name + ' - ' + classGradesClassGrade(c, opts.scale),
+            headParts: { square: classGradesSquare(c.score, t), name: classGradesOneLine(c.name), grade: classGradesClassGrade(c, opts.scale) },
             letterFrom: classGradesClassGradeOf(c, opts.scale).from,
             name: c.name,
             score: c.score,
@@ -929,11 +929,75 @@ function classGradesReportModel(snapshot, opts) {
             // Read before each class kept its own time: the report's time is the class's.
             refreshedAt: c.refreshedAt || snapshot.fetchedAt || null,
             taskCount: tasks.length,
-            shown: lines.length,
-            lines: lines,
+            shown: rows.length,
+            rows: rows,
             summary: 'Missing ' + counts.missing + ', late ' + counts.late + ', ' + counts.week + ' due this week. ' + change
         };
     }), opts.prefs, opts.showHidden);
+    return opts.noAlign ? arranged : arranged.map(classGradesAlign(opts.filter));
+}
+
+/** A name on one line, its runs of spaces one: two in a row would read as a column gap. */
+function classGradesOneLine(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+
+/** The name column's widest: past it a name is cut short with … on screen, and its
+ *  whole name is in its tooltip and in Copy. */
+var CLASS_GRADES_NAME_COLUMN = 60;
+var CLASS_GRADES_GAP = '  ';
+/** How much further in a task's name starts than its class's, in Copy's text. */
+var CLASS_GRADES_TASK_INDENT = 4;
+
+function classGradesWidth(s) { return Array.from(String(s)).length; }
+function classGradesPad(s, n) { return s + ' '.repeat(Math.max(0, n - classGradesWidth(s))); }
+function classGradesCut(s, n) {
+    var chars = Array.from(String(s));
+    return chars.length > n ? chars.slice(0, n - 1).join('').replace(/\s+$/, '') + '\u2026' : String(s);
+}
+
+/**
+ * The report in columns, lined up by spaces in the report's mono font: name, grade,
+ * status, due for a task, and name, grade for its class — a class's grade in the
+ * same column as its tasks' grades, its name padded by the tasks' indent. One set of
+ * columns for every class listed, so they still line up with several open. Each line
+ * has as many emoji before each column as every other, so emoji wider than a
+ * character move every line alike.
+ *
+ * On screen (`headHtml`, `linesHtml`) a name past the column is cut short, its whole
+ * name in its tooltip; Copy's text (`head`, `lines`) keeps whole names, and such a
+ * line runs on. Returns the mapper that sets them; widths come from the classes the
+ * filter lists.
+ */
+function classGradesAlign(filter) {
+    var models = null, w = null;
+    return function(m, i, all) {
+        if (models !== all) {
+            models = all;
+            var filtering = filter && classGradesFilterCount(filter) > 0;
+            var listed = all.filter(function(x) { return !filtering || x.shown; });
+            var rows = [].concat.apply([], listed.map(function(x) { return x.rows; }));
+            var heads = listed.map(function(x) { return x.headParts; });
+            var widest = function(list, key) {
+                return list.reduce(function(n, r) { return Math.max(n, classGradesWidth(r[key])); }, 0);
+            };
+            w = { name: Math.min(CLASS_GRADES_NAME_COLUMN, Math.max(widest(rows, 'name'), widest(heads, 'name'))),
+                grade: Math.max(widest(rows, 'grade'), widest(heads, 'grade')), status: widest(rows, 'status') };
+        }
+        var G = CLASS_GRADES_GAP, h = m.headParts, indent = CLASS_GRADES_TASK_INDENT;
+        var esc = classGradesEscape;
+        var cutHead = classGradesCut(h.name, w.name);
+        m.head = h.square + ' ' + classGradesPad(h.name, w.name + indent) + G + h.grade;
+        // On screen a class's ▸ and its tasks' indent are the same width.
+        m.headHtml = (cutHead !== h.name ? '<span title="' + esc(h.name) + '">' : '') + esc(h.square + ' ' + classGradesPad(cutHead, w.name)) +
+            (cutHead !== h.name ? '</span>' : '') + esc(G + classGradesPad(h.grade, w.grade));
+        var rest = function(r) { return G + classGradesPad(r.grade, w.grade) + G + r.icon + ' ' + classGradesPad(r.status, w.status) + G + r.due; };
+        m.lines = m.rows.map(function(r) { return r.square + ' ' + classGradesPad(r.name, w.name) + rest(r); });
+        m.linesHtml = m.rows.map(function(r) {
+            var cut = classGradesCut(r.name, w.name);
+            var line = esc(r.square + ' ' + classGradesPad(cut, w.name) + rest(r));
+            return cut === r.name ? line : '<span title="' + esc(r.name) + '">' + line + '</span>';
+        });
+        return m;
+    };
 }
 
 // =============================================
@@ -1016,7 +1080,7 @@ function classGradesSetStatus(widget, text, isError) {
 function classGradesClassHtml(m, isOpen, filtering, now, withSummary) {
     return '<details class="cg-class" data-course="' + classGradesEscape(m.id) + '"' + (isOpen ? ' open' : '') + '>' +
         '<summary' + (m.letterFrom ? ' title="' + (m.letterFrom === 'course' ? 'Letter from the course’s grading scheme'
-            : 'Letter from the scale in the connection settings') + '"' : '') + '>' + classGradesEscape(m.head) + ' <span class="cg-count">\u00B7 ' +
+            : 'Letter from the scale in the connection settings') + '"' : '') + '>' + m.headHtml + ' <span class="cg-count">\u00B7 ' +
             (filtering ? m.shown + ' of ' + m.taskCount : m.taskCount) + (m.taskCount === 1 ? ' task' : ' tasks') + '</span>' +
             (m.refreshedAt ? ' <span class="cg-refreshed' + (now - m.refreshedAt > 86400000 ? ' stale' : '') + '">\u00B7 refreshed ' +
                 classGradesEscape(classGradesWhen(m.refreshedAt, now)) + '</span>' : '') +
@@ -1024,25 +1088,30 @@ function classGradesClassHtml(m, isOpen, filtering, now, withSummary) {
             (m.refreshedAt ? ' \u00B7 refreshed ' + classGradesEscape(new Date(m.refreshedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })) : '') +
             '" onclick="classGradesRefreshClass(this, event)">\u21BB</button>' +
             (withSummary ? '<span class="cg-class-summary">' + classGradesEscape(m.summary) + '</span>' : '') + '</summary>' +
-        '<div class="cg-tasks">' + (m.lines.length ? m.lines.map(classGradesEscape).join('\n') : '<span class="cg-count">No tasks.</span>') + '</div>' +
+        '<div class="cg-tasks">' + (m.linesHtml.length ? m.linesHtml.join('\n') : '<span class="cg-count">No tasks.</span>') + '</div>' +
         '</details>';
 }
 
 /**
  * The Sections view: saved filters, one after another, in the order chosen. Each is
  * its own filters and order; a class appears in a section only with tasks that match
- * it. Returns { html, text }.
+ * it. Its columns line up across every section, not each on its own. Returns { html, text }.
  */
 function classGradesSectionsReport(snap, custom, now, prefs, showHidden) {
     var saved = classGradesSaved(custom);
     var withSummary = custom.cgSectionSummaries === true;
     var html = [], text = [];
-    classGradesSections(custom).forEach(function(name) {
+    var sections = classGradesSections(custom).map(function(name) {
         var preset = saved.find(function(s) { return s.name === name; });
-        if (!preset) return;
+        if (!preset) return null;
         var opts = { thresholds: classGradesThresholdValues(custom), scale: classGradesScale(custom), now: now, filter: classGradesFilter({ cgFilter: preset.filter }),
-            prefs: prefs, showHidden: showHidden };
-        var model = classGradesReportModel(snap, opts).filter(function(m) { return m.shown; });
+            prefs: prefs, showHidden: showHidden, noAlign: true };
+        return { name: name, model: classGradesReportModel(snap, opts).filter(function(m) { return m.shown; }) };
+    }).filter(Boolean);
+    var every = [].concat.apply([], sections.map(function(s) { return s.model; }));
+    every.forEach(classGradesAlign(null));
+    sections.forEach(function(section) {
+        var name = section.name, model = section.model;
         var tasks = model.reduce(function(n, m) { return n + m.shown; }, 0);
         var count = model.length ? tasks + (tasks === 1 ? ' task' : ' tasks') + ' in ' + model.length + (model.length === 1 ? ' class' : ' classes') : 'Nothing here';
         html.push('<details class="cg-section" open data-section="' + classGradesEscape(name) + '">' +
@@ -1050,7 +1119,7 @@ function classGradesSectionsReport(snap, custom, now, prefs, showHidden) {
             (model.length ? model.map(function(m) { return classGradesClassHtml(m, true, true, now, withSummary); }).join('')
                 : '<div class="cg-count cg-section-empty">Nothing here.</div>') +
             '</details>');
-        var block = [name + '  (' + count + ')'];
+        var block = [name + ' (' + count + ')'];
         model.forEach(function(m) {
             block.push('  ' + m.head);
             m.lines.forEach(function(l) { block.push('      ' + l); });
