@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, 'out');
-const ok = (l, p, d) => console.log((p ? '  PASS ' : '  FAIL ') + l + (d ? ' — ' + d : ''));
+let count = 0;
+const ok = (l, p, d) => { count++; console.log((p ? '  PASS ' : '  FAIL ') + l + (d ? ' — ' + d : '')); };
 
 const browser = await chromium.launch({ channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 1200, height: 850 },
@@ -276,8 +277,10 @@ ok('and not a character of it changed by being opened', comment.md === '<!-- not
     JSON.stringify(comment.md));
 const raw = await blocked('Before <span style="color:red">red</span> after\n');
 ok('raw HTML is guarded the same way', !raw.rich && /cannot keep/.test(raw.why), JSON.stringify(raw));
+ok('and the reason names the line to change', /“Before <span style="color:red">red<\/span> after”/.test(raw.why) &&
+    /“<!-- note to self -->”/.test(comment.why), raw.why);
 const tasks = await blocked('- [ ] buy milk\n- [x] done\n');
-ok('and so is a checklist', !tasks.rich, JSON.stringify(tasks));
+ok('a checklist is not: its boxes are kept', tasks.rich && !tasks.why && tasks.md === '- [ ] buy milk\n- [x] done\n', JSON.stringify(tasks));
 const plain = await blocked('# Heading\n\nA paragraph with **bold**, a [link](https://x.io) and\n\n- a list\n- of two\n\n> and a quote\n');
 ok('while ordinary Markdown — headings, bold, links, lists, quotes — opens in rich as asked',
     plain.rich && !plain.why, JSON.stringify(plain));
@@ -288,7 +291,7 @@ ok('nor is a character spelled as an entity — &copy; and © are one note — w
     await page.evaluate(() => noteRoundTrips('&copy; 2026 &amp; &nbsp;x') && !noteRoundTrips('<!-- note to self -->\ntext')));
 ok('the test is what a note means, not how it was spelled: __this__ and **this** are one note',
     await page.evaluate(() => noteRoundTrips('__this__ and * star list') && noteRoundTrips('+ a\n+ b') &&
-        !noteRoundTrips('- [ ] a checklist')));
+        noteRoundTrips('- [ ] a checklist')));
 ok('a note shown as plain text is not offered rich text at all',
     await page.evaluate(() => /plain text/.test(noteRichBlocker({ plainText: true, customContent: 'x' }))));
 ok('but one whose lines are sorted or changed when shown is: that happens to the showing, not the writing',
@@ -1710,7 +1713,57 @@ ok('a link inside bold, or run into words, keeps its brackets, so nothing beside
         '<p><a href="https://example.org">elsewhere</a></p>'].map(noteHtmlToMarkdown).join('|')) ===
     '**[https://example.org](https://example.org)**|x[https://example.org](https://example.org)y|[elsewhere](https://example.org)');
 
+// 15. An empty list item or heading — Enter for a new item, not typed in yet — is kept,
+// and the note still opens in the rich editor. It used to be dropped on the way through,
+// so the note no longer came back as itself and was refused rich text from then on.
+ok('empty items and headings come back as they were left, in either kind of list',
+    await page.evaluate(() => ['- one\n-', '- one\n- ', '1. one\n2.', '* one\n*', '- one\n-\n- three', 'a\n\n-', '#', 'Para\n\n## \n\nMore']
+        .every(noteRoundTrips)));
+ok('written the way somebody would have left them', await page.evaluate(() =>
+    ['- one\n- ', '1. one\n2. ', '- one\n-\n- three', '## '].map(m => noteHtmlToMarkdown(parseMarkdown(m))).join('|')) ===
+    '- one\n-|1. one\n2.|- one\n-\n- three|##');
+ok('a checklist keeps its boxes, ticked or not, nested and numbered too', await page.evaluate(() =>
+    noteHtmlToMarkdown(parseMarkdown('- [ ] **bold** task\n  - [x] nested\n\n1. [ ] numbered'))) ===
+    '- [ ] **bold** task\n  - [x] nested\n\n1. [ ] numbered');
+const listy = await page.evaluate(() => {
+    const id = createNoteWithText('- one\n- two', 'Listy');
+    toolCustomizations[id].noteEditor = 'rich';
+    saveToolCustomizations(toolCustomizations);
+    noteApplyEditor(id);
+    setToolMode(id, 'edit');
+    return id;
+});
+await page.waitForTimeout(600);
+await front(listy);
+await page.evaluate((s) => {
+    const li = document.querySelectorAll(s)[1];
+    li.closest('.note-rich').focus();
+    const r = document.createRange(); r.selectNodeContents(li); r.collapse(false);
+    getSelection().removeAllRanges(); getSelection().addRange(r);
+}, sel(listy, '.note-rich li'));
+await page.keyboard.press('Enter');
+await page.waitForTimeout(500);
+ok('Enter for a new item, left empty, is saved as one', await md(listy) === '- one\n- two\n-', JSON.stringify(await md(listy)));
+await reach(listy, '.note-mode-md');
+await page.waitForTimeout(250);
+ok('switching to Markdown shows it', !(await isRich(listy)) &&
+    await page.evaluate((s) => document.querySelector(s).value, sel(listy, '.note-source')) === '- one\n- two\n-');
+ok('and Rich can still be pressed', await page.evaluate((s) => !document.querySelector(s).disabled, sel(listy, '.note-mode-rich')));
+await reach(listy, '.note-mode-rich');
+await page.waitForTimeout(250);
+ok('switching back opens it in the rich editor, the empty item still there', await isRich(listy) &&
+    await page.evaluate((s) => document.querySelectorAll(s).length, sel(listy, '.note-rich li')) === 3 && await md(listy) === '- one\n- two\n-',
+    JSON.stringify(await md(listy)));
+await reach(listy, '.note-mode-md');
+await page.waitForTimeout(200);
+await page.fill(sel(listy, '.note-source'), '1. first\n2. ');
+await page.waitForTimeout(400);
+await reach(listy, '.note-mode-rich');
+await page.waitForTimeout(250);
+ok('so does a numbered item typed in Markdown and not filled in yet', await isRich(listy) && await md(listy) === '1. first\n2. ',
+    JSON.stringify(await md(listy)));
+
 ok('no page errors', errors.length === 0, JSON.stringify(errors).slice(0, 300));
-console.log('  (all ' + 242 + ' assertions reached)');
+console.log('  (all ' + count + ' assertions reached)');
 await page.screenshot({ path: OUT + '/note-editor.png' });
 await browser.close();

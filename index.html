@@ -11485,16 +11485,35 @@ function noteRichBarHtml(custom) {
  * - a `<pre>` without a `<code>` inside — which is what making a code block from the
  *   bar produces — lost its block and became a paragraph;
  * - list items are written `- item` rather than `-   item`, so Copy Markdown reads
- *   the way somebody would have typed it.
+ *   the way somebody would have typed it;
+ * - an empty list item or heading — Enter for a new item, not yet typed in — was
+ *   dropped, so the note no longer came back as itself and was refused rich text
+ *   from then on: it is written `-`, `2.` or `#`, as somebody would have left it;
+ * - a checklist's boxes were dropped, leaving plain items: they are `[ ]` and `[x]`.
  */
 let noteTurndownCache = null;
 function noteTurndown() {
     if (noteTurndownCache) return noteTurndownCache;
     if (typeof TurndownService === 'undefined') return null;
     const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', bulletListMarker: '-',
-        emDelimiter: '*', strongDelimiter: '**', br: '', hr: '---' });
+        emDelimiter: '*', strongDelimiter: '**', br: '', hr: '---',
+        blankReplacement: (content, node) => {
+            if (node.nodeName === 'LI') return noteListPrefix(node).trim() + '\n';
+            // A list of nothing but empty items is blank as a whole: each is still kept.
+            if (/^[OU]L$/.test(node.nodeName)) return '\n\n' + Array.from(node.children).filter(li => li.nodeName === 'LI')
+                .map(li => noteListPrefix(li).trim()).join('\n') + '\n\n';
+            if (/^H[1-6]$/.test(node.nodeName)) return '\n\n' + '#'.repeat(Number(node.nodeName[1])) + '\n\n';
+            return node.isBlock ? '\n\n' : '';
+        } });
     const escape = td.escape.bind(td);
     td.escape = (text) => escape(text).replace(/</g, '\\<').replace(/&(?=#?\w+;)/g, '\\&');
+    // A checklist's box, before the inputs below are dropped: marked writes one as the
+    // first thing in its item.
+    td.addRule('taskBox', {
+        filter: (node) => node.nodeName === 'INPUT' && (node.getAttribute('type') || '').toLowerCase() === 'checkbox' &&
+            !!node.parentNode && node.parentNode.nodeName === 'LI' && !node.previousSibling,
+        replacement: (content, node) => node.hasAttribute('checked') ? '[x]' : '[ ]'
+    });
     td.remove(['script', 'style', 'iframe', 'object', 'embed', 'noscript', 'template', 'head', 'meta',
         'link', 'title', 'form', 'input', 'button', 'select', 'textarea', 'svg', 'canvas', 'video', 'audio']);
     // Markdown has no underline, so it is kept as the HTML for one, which `marked`
@@ -11576,12 +11595,7 @@ function noteTurndown() {
     td.addRule('tightListItem', {
         filter: 'li',
         replacement: (content, node) => {
-            const parent = node.parentNode;
-            let prefix = '- ';
-            if (parent && parent.nodeName === 'OL') {
-                const start = Number(parent.getAttribute('start')) || 1;
-                prefix = (start + Array.prototype.indexOf.call(parent.children, node)) + '. ';
-            }
+            const prefix = noteListPrefix(node);
             const body = content.replace(/^\n+/, '').replace(/\n+$/, '\n')
                 .replace(/\n/gm, '\n' + ' '.repeat(prefix.length));
             return prefix + body + (node.nextSibling && !/\n$/.test(body) ? '\n' : '');
@@ -11589,6 +11603,14 @@ function noteTurndown() {
     });
     noteTurndownCache = td;
     return td;
+}
+
+/** `- `, or `3. ` for the third item of a numbered list. */
+function noteListPrefix(node) {
+    const parent = node.parentNode;
+    if (!parent || parent.nodeName !== 'OL') return '- ';
+    const start = Number(parent.getAttribute('start')) || 1;
+    return (start + Array.prototype.indexOf.call(parent.children, node)) + '. ';
 }
 
 function noteHtmlToMarkdown(html) {
@@ -11650,13 +11672,27 @@ function noteRoundTrips(markdown) {
     return noteSameHtml(shown, parseMarkdown(noteHtmlToMarkdown(shown)));
 }
 
+/** The first line of the first block that does not survive the trip on its own,
+ *  shortened — so the note can say what to change — or '' when none is to blame alone. */
+function noteRichBlockingLine(markdown) {
+    let tokens;
+    try { tokens = marked.lexer(String(markdown || '')); } catch (e) { return ''; }
+    const bad = tokens.find(t => t.type !== 'space' && t.raw && t.raw.trim() && !noteRoundTrips(t.raw));
+    if (!bad) return '';
+    const line = bad.raw.trim().split('\n').find(l => !noteRoundTrips(l)) || bad.raw.trim().split('\n')[0];
+    const short = line.trim();
+    return short.length > 60 ? short.slice(0, 57) + '…' : short;
+}
+
 /** Why this note cannot be written in rich text, in a sentence, or '' when it can. */
 function noteRichBlocker(custom) {
     const c = custom || {};
     if (!noteTurndown()) return 'The rich editor needs a library that did not load';
     if (c.plainText) return 'This note is shown as plain text, not Markdown';
     if (!noteRoundTrips(c.customContent)) {
-        return 'This note has formatting the rich editor cannot keep — raw HTML, a checklist or a comment, say';
+        const line = noteRichBlockingLine(c.customContent);
+        return line ? 'The rich editor cannot keep “' + line + '” — raw HTML or a comment, say. Change or remove it to write this note in rich text'
+            : 'This note has formatting the rich editor cannot keep — raw HTML or a comment, say';
     }
     return '';
 }
