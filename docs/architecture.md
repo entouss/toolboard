@@ -331,7 +331,17 @@ nothing yet); `apply(toolId, result, how, target)` puts a result back, `how` bei
 be copied. `custom: [{ id, group, label, system?, prompt: (text) => string }]` are the
 tool's own actions, listed first under their own heading: Class Grades offers a student
 summary, what needs attention and what is due this week this way, over a compact report
-(`classGradesAIText`) small enough for the model's input. The
+(`classGradesAIText`) small enough for the model's input. An action of a tool's own
+may also take `input` (a placeholder: it asks for a line first, passed as
+`prompt(text, input)`), `needsText: false` (it runs on an empty tool), `schema` with
+`preview(data)` and an optional `parse(json)` (the model answers in JSON, the popup
+shows the preview, and `apply` gets the data as `info.data` in
+`apply(toolId, result, how, target, { action, data })`), `apply: false` (Copy only),
+`applyLabels: { replace, insert }`, and `show(target)` (whether it is listed now). An
+`apply` that returns `false` refuses, and the popup stays open. The Agenda Timer uses
+all of them: planning, **Draft an agenda…** asks what it is for and fills the plan by
+Replace the plan or Add to the plan; after a run, **Write-up** and **Action items**
+work from the notes as the run left them, to copy (`agtAITarget`, `agtAIApply`). The
 framework puts ✨ in the header of a tool that declares `ai` (`boardAIButtonHtml`),
 shown only under `data-ai="on"`, and everything after that is BoardAI's popup
 (`#boardAIPopup`): on the page rather than in the tool, so no tool's layout clips it

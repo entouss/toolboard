@@ -6862,6 +6862,86 @@ function agtStop(btn, now) {
     agtRender(widget);
 }
 
+// ---- ✨: what Chrome's own model can do for an agenda -------------------------
+
+var AGT_AI_SYSTEM = 'You help people run interviews, meetings and talks. Be brief and concrete. ' +
+    'Reply with the result only: no preface, no closing remarks.';
+var AGT_AI_MAX_SECTIONS = 15;
+
+/** "7.5 min" for the model, which could take 7:30 for a time of day. */
+function agtAIMins(secs) {
+    return (Math.round(secs / 30) / 2) + ' min';
+}
+
+/** What ✨ works on: the plan, the run so far, or the run as it ended. */
+function agtAITarget(toolId) {
+    const data = agtGetData(toolId);
+    const run = data.run;
+    if (!run) {
+        const total = agtPlanSecs(data.sections).reduce((a, b) => a + b, 0);
+        const text = data.sections.filter(s => String(s.name || '').trim() || s.minutes).map(s =>
+            '## ' + (String(s.name || '').trim() || 'Untitled') + ' — ' + agtAIMins(agtPlanSecs([s])[0]) + (s.fixed ? ' (fixed)' : '') +
+            (String(s.notes || '').trim() ? '\n\n' + String(s.notes).trim() : '')).join('\n\n');
+        return { scope: 'whole', kind: 'plan', text: text ? 'Agenda, ' + agtAIMins(total) + ' planned.\n\n' + text : '',
+            label: 'On this agenda (' + data.sections.length + ' section' + (data.sections.length === 1 ? '' : 's') + ', ' + agtLength(total) + ')',
+            emptyLabel: 'No sections yet: draft some, or add them by hand.' };
+    }
+    const now = Date.now();
+    const live = run.done ? null : agtLive(run, now);
+    const took = (j) => live && j === run.index ? live.cur : run.spent[j] / 1000;
+    const shown = run.done ? run.names.length : run.index + 1;
+    const text = run.names.slice(0, shown).map((name, j) => {
+        const notes = agtBakeTicks((run.notes || [])[j], (run.ticks || [])[j]).trim();
+        return '## ' + name + ' — planned ' + agtAIMins(run.planned[j]) + ', took ' + agtClock(took(j)) +
+            (!run.done && j === run.index ? ' so far' : '') + (notes ? '\n\n' + notes : '');
+    }).join('\n\n');
+    const head = run.done
+        ? 'A run of this agenda, finished: it took ' + agtClock(run.spent.reduce((a, b) => a + b, 0) / 1000) + ' of ' +
+            agtAIMins(run.planned.reduce((a, b) => a + b, 0)) + ' planned. Times taken are minutes:seconds. ' +
+            '"[x]" is a point covered, "[ ]" one that was not.'
+        : 'A run of this agenda, under way: section ' + (run.index + 1) + ' of ' + run.names.length + '. Times taken are ' +
+            'minutes:seconds. "[x]" is a point covered.';
+    return { scope: 'whole', kind: run.done ? 'done' : 'run', text: head + '\n\n' + text,
+        label: run.done ? 'On this run, as it ended' : 'On this run so far' };
+}
+
+/** A draft from the model made into sections the plan can hold — or nothing usable. */
+function agtAICleanDraft(json) {
+    const list = json && Array.isArray(json.sections) ? json.sections : [];
+    const sections = list.map(s => {
+        const name = String((s && s.name) || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+        const minutes = Math.min(480, Math.max(0.5, Math.round((Number(s && s.minutes) || 0) * 2) / 2));
+        const points = (Array.isArray(s && s.points) ? s.points : []).map(t =>
+            String(t || '').replace(/^\s*(?:[-*+]\s*)?(?:\[[ xX]?\]\s*)?/, '').replace(/\s+/g, ' ').trim().slice(0, 160)).filter(Boolean).slice(0, 6);
+        const out = { name, minutes };
+        if (s && s.fixed === true) out.fixed = true;
+        if (points.length) out.notes = points.map(t => '- [ ] ' + t).join('\n');
+        return out;
+    }).filter(s => s.name).slice(0, AGT_AI_MAX_SECTIONS);
+    if (!sections.length) throw new Error('No sections came back. Try saying a little more about it.');
+    return sections;
+}
+
+/** The draft as it will read in the plan. */
+function agtAIDraftPreview(sections) {
+    const total = sections.reduce((a, s) => a + s.minutes, 0);
+    return sections.map((s, i) => (i + 1) + '. **' + s.name.replace(/([*_`\\])/g, '\\$1') + '** — ' + s.minutes + ' min' + (s.fixed ? ' 🔒' : '') +
+        (s.notes ? '\n' + s.notes.split('\n').map(l => '    ' + l).join('\n') : '')).join('\n') +
+        '\n\nTotal ' + total + ' min. Start still fits it to the time you have.';
+}
+
+/** A draft into the plan, through the ordinary save so Undo takes it back. Not while it runs. */
+function agtAIApply(toolId, result, how, target, info) {
+    if (!info || info.action !== 'draft' || !Array.isArray(info.data)) return false;
+    const data = agtGetData(toolId);
+    if (data.run) { if (typeof showToolToast === 'function') showToolToast('The timer is running: stop it to change the plan'); return false; }
+    const draft = info.data.map(s => Object.assign({}, s));
+    data.sections = how === 'replace' ? draft : data.sections.concat(draft);
+    agtSaveData(toolId, data);
+    document.querySelectorAll('.tool[data-tool="' + CSS.escape(toolId) + '"] .agt-widget').forEach(agtRender);
+    return true;
+}
+
 function agtInit() {
     document.querySelectorAll('.agt-widget').forEach(widget => {
         if (widget.dataset.inited || !agtGetToolId(widget)) return;
@@ -6886,7 +6966,7 @@ function agtInit() {
     var wcFunctions = [wcBuildSearchIndex, wcGetWidget, wcGetToolId, wcGetState, wcFormatTime, wcRender, wcTick, wcAddZone, wcRemoveZone, wcSaveState, wcInit];
     var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
     var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpGetWidget, rcpRender, rcpRenderTable, rcpActiveOutput, rcpInit, rcpOnInput, rcpOnKeyDown, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
-    var agtFunctions = [agtGetToolId, agtGetWidget, agtGetData, agtSaveData, agtClock, agtLength, agtTimeOfDay, agtScale, agtLive, agtPlanSecs, agtEditHtml, agtSoundHtml, agtReadRows, agtEdit, agtGrow, agtOpenNotes, agtNotesToggle, agtAdd, agtRemove, agtMove, agtNameKey, agtDragStart, agtDragOver, agtDragLeave, agtDrop, agtDragEnd, agtSound, agtStartOpen, agtStartCancel, agtPick, agtTarget, agtFitted, agtPreview, agtStartGo, agtTickItems, agtNotesHtml, agtTickItem, agtBakeTicks, agtRunNotesHtml, agtNotesEdit, agtNotesDone, agtNotesKey, agtNotesInput, agtCopyNotes, agtCoverText, agtRunHtml, agtDoneHtml, agtRender, agtTick, agtEnsureTicker, agtChime, agtChange, agtNext, agtBack, agtPause, agtAddMinute, agtFit, agtStop, agtInit];
+    var agtFunctions = [agtGetToolId, agtGetWidget, agtGetData, agtSaveData, agtClock, agtLength, agtTimeOfDay, agtScale, agtLive, agtPlanSecs, agtEditHtml, agtSoundHtml, agtReadRows, agtEdit, agtGrow, agtOpenNotes, agtNotesToggle, agtAdd, agtRemove, agtMove, agtNameKey, agtDragStart, agtDragOver, agtDragLeave, agtDrop, agtDragEnd, agtSound, agtStartOpen, agtStartCancel, agtPick, agtTarget, agtFitted, agtPreview, agtStartGo, agtTickItems, agtNotesHtml, agtTickItem, agtBakeTicks, agtRunNotesHtml, agtNotesEdit, agtNotesDone, agtNotesKey, agtNotesInput, agtCopyNotes, agtCoverText, agtRunHtml, agtDoneHtml, agtRender, agtTick, agtEnsureTicker, agtChime, agtChange, agtNext, agtBack, agtPause, agtAddMinute, agtFit, agtStop, agtAIMins, agtAITarget, agtAICleanDraft, agtAIDraftPreview, agtAIApply, agtInit];
     var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions).concat(agtFunctions);
 
     var code = '(function() {\n' +
@@ -7433,6 +7513,39 @@ PluginRegistry.registerTool({
     title: 'Agenda Timer',
     content: '<div class="agt-widget"></div>',
     onInit: 'agtInit',
+    // ✨ where Chrome's own model can run: a first draft of the plan, and after a run a
+    // write-up of its notes. What it writes is shown first; only a draft goes in, by Replace or Add.
+    ai: {
+        target: 'agtAITarget',
+        apply: 'agtAIApply',
+        actions: ['ask'],
+        custom: [
+            { id: 'draft', group: 'Agenda', label: 'Draft an agenda', system: AGT_AI_SYSTEM, needsText: false,
+                input: 'What is it for, and how long? “45-minute interview for a senior engineer”',
+                show: function(t) { return t.kind === 'plan'; },
+                applyLabels: { replace: 'Replace the plan', insert: 'Add to the plan' },
+                schema: { type: 'object', required: ['sections'], properties: { sections: { type: 'array', items: {
+                    type: 'object', required: ['name', 'minutes', 'points'], properties: {
+                        name: { type: 'string' }, minutes: { type: 'number' }, fixed: { type: 'boolean' },
+                        points: { type: 'array', items: { type: 'string' } } } } } } },
+                parse: agtAICleanDraft,
+                preview: agtAIDraftPreview,
+                prompt: function(text, what) { return 'Plan an agenda for: ' + what + '\n\nGive 3 to 8 sections in the order they ' +
+                    'happen. Each has a short name, its length in minutes, fixed set true only for a part that must keep its ' +
+                    'length however short time is (a wrap-up, say), and 2 to 4 short points or questions to cover. If a length ' +
+                    'is given, the minutes add up to it.'; } },
+            { id: 'writeup', group: 'Agenda', label: 'Write-up', system: AGT_AI_SYSTEM, apply: false,
+                show: function(t) { return t.kind === 'done'; },
+                prompt: function(text) { return 'Write up this run from its notes for someone who was not there. Start with two ' +
+                    'or three sentences on how it went, then a "## " heading for each section that has notes with its key points ' +
+                    'as bullets, then "## Not covered" listing the "[ ]" points, if any. Use only what the notes say.\n\n' + text; } },
+            { id: 'actions', group: 'Agenda', label: 'Action items', system: AGT_AI_SYSTEM, apply: false,
+                show: function(t) { return t.kind !== 'plan'; },
+                prompt: function(text) { return 'List the follow-ups and action items in these notes as a Markdown checklist, one ' +
+                    '"- [ ] " line each, naming who where the notes say. Add a follow-up for each "[ ]" point that was not ' +
+                    'covered. If there are none, say so in a sentence.\n\n' + text; } }
+        ]
+    },
     defaultWidth: 380,
     defaultHeight: 480,
     source: 'external'

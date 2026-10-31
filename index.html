@@ -9930,7 +9930,11 @@ function getToolAI(toolId) {
     const groups = Array.isArray(decl.actions) ? decl.actions.filter(g => BOARD_AI_GROUPS.includes(g)) : BOARD_AI_GROUPS;
     // A tool's own actions: a prompt of its own over the same text, under its own heading.
     const own = (Array.isArray(decl.custom) ? decl.custom : []).filter(a => a && a.id && a.label && typeof a.prompt === 'function')
-        .map(a => ({ id: 'custom:' + a.id, group: a.group || 'For this tool', label: a.label, system: a.system, prompt: a.prompt, needs: 'prompt' }));
+        .map(a => ({ id: 'custom:' + a.id, own: a.id, group: a.group || 'For this tool', label: a.label, system: a.system, prompt: a.prompt,
+            needs: 'prompt', input: typeof a.input === 'string' ? a.input : null, needsText: a.needsText !== false,
+            schema: a.schema && typeof a.preview === 'function' ? a.schema : null, parse: typeof a.parse === 'function' ? a.parse : null,
+            preview: typeof a.preview === 'function' ? a.preview : null, apply: a.apply !== false, applyLabels: a.applyLabels || null,
+            show: typeof a.show === 'function' ? a.show : null }));
     return { target, apply, groups, custom: own };
 }
 
@@ -10085,12 +10089,13 @@ async function boardAIRenderMenu() {
     const target = boardAITarget();
     pop.querySelector('.bai-scope').textContent = boardAIScopeText(target);
     const menu = pop.querySelector('.bai-menu');
+    const fits = ai.custom.filter(a => { try { return !a.show || a.show(target || {}); } catch (e) { return false; } });
     const own = [];
-    ai.custom.forEach(a => { if (!own.includes(a.group)) own.push(a.group); });
+    fits.forEach(a => { if (!own.includes(a.group)) own.push(a.group); });
     menu.innerHTML = '<div class="bai-dl" hidden>The first time, Chrome downloads its on-device model.</div>' +
-        own.map(g => '<div class="bai-group">' + escapeHtml(g) + '</div>' + ai.custom.filter(a => a.group === g).map(a =>
-            '<button class="bai-item" data-ai="' + escapeHtml(a.id) + '" data-needs="prompt" onclick="boardAIPick(this)">' +
-            escapeHtml(a.label) + '</button>').join('')).join('') +
+        own.map(g => '<div class="bai-group">' + escapeHtml(g) + '</div>' + fits.filter(a => a.group === g).map(a =>
+            '<button class="bai-item" data-ai="' + escapeHtml(a.id) + '" data-needs="prompt"' + (a.needsText ? '' : ' data-free="1"') +
+            ' onclick="boardAIPick(this)">' + escapeHtml(a.label) + (a.input ? '…' : '') + '</button>').join('')).join('') +
         ai.groups.map(g => '<div class="bai-group">' + BOARD_AI_GROUP_NAMES[g] + '</div>' +
             (g === 'translate'
                 ? '<div class="bai-translate"><select class="bai-lang" aria-label="Translate to">' +
@@ -10110,7 +10115,7 @@ function boardAIEnableItems(s, can) {
     if (!pop) return;
     const words = boardAIWords((boardAITarget() || {}).text);
     pop.querySelectorAll('.bai-item').forEach(item => {
-        const ok = !!words && can(item.dataset.needs);
+        const ok = (!!words || item.dataset.free === '1') && can(item.dataset.needs);
         item.disabled = !ok;
         item.title = ok ? '' : !words ? 'Write something first' : BoardAI.why(s[item.dataset.needs]);
     });
@@ -10136,20 +10141,31 @@ document.addEventListener('keydown', (e) => {
 function boardAIPick(item) {
     const action = item.dataset.ai;
     const target = boardAITarget();
-    if (!target || !boardAIWords(target.text)) return;
+    if (!target || (!boardAIWords(target.text) && item.dataset.free !== '1')) return;
     boardAIState.target = target;
     const lang = action === 'translate' ? boardAIPopup().querySelector('.bai-lang').value : null;
-    if (action === 'ask') {
-        boardAIWork('Ask about it');
+    const ai = getToolAI(boardAIState.toolId);
+    const own = ai && ai.custom.find(a => a.id === action);
+    // Asking, and a tool's action that wants a line from you first, wait for it here.
+    if (action === 'ask' || (own && own.input)) {
+        boardAIState.asking = action;
+        boardAIWork(own ? own.label : 'Ask about it');
         const pop = boardAIPopup();
         pop.querySelector('.bai-ask').hidden = false;
         pop.querySelector('.bai-stop').hidden = true;
         pop.querySelector('.bai-status').textContent = '';
+        boardAIAskBox(pop, own);
         pop.querySelector('.bai-q').value = '';
         pop.querySelector('.bai-q').focus();
         return;
     }
     boardAIRun(action, { lang });
+}
+
+/** The line to type in: a question, or what a tool's own action asks for. */
+function boardAIAskBox(pop, own) {
+    pop.querySelector('.bai-q').placeholder = own ? own.input : 'Ask about it…';
+    pop.querySelector('.bai-ask .bai-btn').textContent = own ? 'Go' : 'Ask';
 }
 
 /** From the list of what it can do to one of them being done. */
@@ -10183,7 +10199,7 @@ function boardAIAskKey(event, input) {
 
 function boardAIAsk() {
     const q = boardAIPopup().querySelector('.bai-q').value.trim();
-    if (q) boardAIRun('ask', { question: q });
+    if (q) boardAIRun(boardAIState.asking || 'ask', { question: q });
 }
 
 /** What the model says, as it will read — its own markup shown as text, not run. */
@@ -10213,8 +10229,9 @@ async function boardAIRun(action, extra) {
     const title = action === 'translate' ? 'Translate to ' + boardAILanguageName(extra.lang)
         : action === 'ask' ? 'Ask about it' : own ? own.label : BOARD_AI_GROUP_NAMES[def.group] + ': ' + def.label;
     const pop = boardAIWork(title);
-    if (action === 'ask') {
+    if (action === 'ask' || (own && own.input)) {
         pop.querySelector('.bai-ask').hidden = false;
+        boardAIAskBox(pop, own);
         pop.querySelector('.bai-q').value = extra.question;
     }
     const status = pop.querySelector('.bai-status');
@@ -10224,6 +10241,7 @@ async function boardAIRun(action, extra) {
     status.textContent = 'Working…';
     stop.hidden = false;
     st.result = '';
+    st.data = null;
     st.action = action;
     const mine = () => st.controller === controller;
     // Nothing happening for a while is said, with where Chrome explains it: a model
@@ -10261,8 +10279,20 @@ async function boardAIRun(action, extra) {
     const base = { signal: controller.signal, onChunk, onProgress };
     try {
         let result;
-        if (own) {
-            result = await BoardAI.prompt(own.prompt(text), { ...base, system: own.system || BOARD_AI_SYSTEM });
+        if (own && own.schema) {
+            // Data in the tool's shape, shown as it will read; the tool's apply gets the data.
+            const json = await BoardAI.prompt(own.prompt(text, extra.question), {
+                signal: controller.signal, onProgress, system: own.system || BOARD_AI_SYSTEM, schema: own.schema,
+                onChunk: () => { if (!mine()) return; alive(); status.textContent = 'Writing…'; }
+            });
+            let data;
+            try { data = JSON.parse(json); } catch (e) { throw new Error('What came back could not be read. Try again.'); }
+            if (own.parse) data = own.parse(data);
+            if (!mine()) return;
+            st.data = data;
+            result = own.preview(data);
+        } else if (own) {
+            result = await BoardAI.prompt(own.prompt(text, extra.question), { ...base, system: own.system || BOARD_AI_SYSTEM });
         } else if (action === 'keypoints' || action === 'tldr') {
             const type = action === 'tldr' ? 'tldr' : 'key-points';
             result = BoardAI.usable(await BoardAI.status('summarize'))
@@ -10319,11 +10349,15 @@ function boardAIShowFoot() {
     const ai = getToolAI(st.toolId);
     const replace = foot.querySelector('.bai-replace');
     const insert = foot.querySelector('.bai-insert');
+    const own = ai && ai.custom.find(a => a.id === st.action);
+    const labels = (own && own.applyLabels) || {};
     // An answer is put next to what it answers, never over it; and a tool that
-    // cannot take anything back offers only Copy.
-    replace.hidden = st.action === 'ask' || !ai || !ai.apply;
-    insert.hidden = !ai || !ai.apply;
-    replace.textContent = (st.target || {}).scope === 'selection' ? 'Replace selection' : 'Replace';
+    // cannot take anything back, or an action of its own that it keeps out, offers only Copy.
+    const takes = !!ai && !!ai.apply && (!own || own.apply);
+    replace.hidden = st.action === 'ask' || !takes;
+    insert.hidden = !takes;
+    replace.textContent = labels.replace || ((st.target || {}).scope === 'selection' ? 'Replace selection' : 'Replace');
+    insert.textContent = labels.insert || 'Insert below';
 }
 
 function boardAIStop() {
@@ -10339,7 +10373,10 @@ function boardAIApply(how) {
     const st = boardAIState;
     const ai = getToolAI(st.toolId);
     if (!ai || !ai.apply || !st.result || !boardAITool()) return;
-    ai.apply(st.toolId, st.result, how, st.target);
+    const own = ai.custom.find(a => a.id === st.action);
+    if (own && !own.apply) return;
+    // A tool may refuse — what it was made for has changed since — and says why itself.
+    if (ai.apply(st.toolId, st.result, how, st.target, { action: own ? own.own : st.action, data: st.data }) === false) return;
     boardAIClose();
     showToolToast(how === 'replace' ? 'Replaced — Undo puts it back' : 'Inserted — Undo takes it out');
 }
