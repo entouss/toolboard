@@ -32,6 +32,29 @@
 .calc-toggle span { display: block; padding: 8px; text-align: center; cursor: pointer; font-size: 12px; background: var(--bg-secondary); color: var(--text-primary); }
 .calc-toggle input:checked + span { background: #3498db; color: white; }
 .calc-toggle input { display: none; }
+.tax-source { margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.tax-edit { border: none; background: none; padding: 0; font-size: 11px; color: #2980b9; cursor: pointer; text-decoration: underline; }
+.tax-warn { margin-bottom: 10px; padding: 6px 8px; border-radius: 4px; font-size: 11px; color: #c0392b; background: var(--bg-secondary); }
+.tb-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.tb-head label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: var(--text-secondary); }
+.tb-head select { width: auto; padding: 4px 6px; }
+.tb-btn, .tb-add { border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 4px; font-size: 11px; padding: 4px 8px; cursor: pointer; }
+.tb-btn:disabled { opacity: 0.5; cursor: default; }
+.tb-note { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.tb-status { margin-bottom: 14px; }
+.tb-status-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.tb-status-name { font-weight: 600; font-size: 13px; }
+.tb-status-head label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11px; }
+.tb-status-head input { width: 110px; padding: 4px 6px; font-size: 12px; }
+.tb-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+.tb-table th { text-align: left; font-weight: 600; font-size: 11px; color: var(--text-muted); padding: 2px 4px; }
+.tb-table td { padding: 2px 4px; }
+.tb-table input { padding: 4px 6px; font-size: 12px; }
+.tb-table td.tb-to { color: var(--text-secondary); white-space: nowrap; }
+.tb-x { border: none; background: none; color: var(--text-muted); cursor: pointer; font-size: 14px; }
+.tb-x:hover:not(:disabled) { color: #c0392b; }
+.tb-x:disabled { opacity: 0.3; cursor: default; }
+.tb-problem { font-size: 11px; color: #c0392b; margin-top: 4px; }
 `;
     document.head.appendChild(style);
 })();
@@ -59,36 +82,354 @@ const taxBrackets = {
 };
 const stdDeductions = {single: 16100, married: 32200};
 
+// ---- Tax brackets, by year: one table for the whole app ---------------------------------
+//
+// The brackets and standard deductions live once, under an app-level key, so every
+// board's Tax Calculator works from the same figures and the Tax Brackets tool edits
+// them. Nothing saved — a new browser, an exported board — means the built-in year.
+// Rates are kept in per cent, as they are typed; a bracket runs from its own amount
+// to the next one's, so brackets cannot overlap or leave a gap.
+
+const TAX_TABLE_KEY = 'toolboard_taxBrackets';
+const TAX_STATUSES = { single: 'Single', married: 'Married Filing Jointly' };
+
+/** The built-in figures: the brackets the calculator always had, as one year. */
+function taxBuiltin() {
+    const year = {};
+    Object.keys(TAX_STATUSES).forEach(s => {
+        year[s] = { deduction: stdDeductions[s], brackets: taxBrackets[s].map(b => ({ from: b.min, rate: Math.round(b.rate * 10000) / 100 })) };
+    });
+    return { '2026': year };
+}
+
+function taxClone(x) { return JSON.parse(JSON.stringify(x)); }
+
+/** The table as saved, or the built-in one. Anything unreadable is left out, not trusted. */
+function taxTableLoad() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(TAX_TABLE_KEY) || 'null'); } catch (e) { saved = null; }
+    const years = {};
+    if (saved && saved.years && typeof saved.years === 'object') {
+        Object.keys(saved.years).forEach(y => {
+            if (!/^\d{4}$/.test(y) || !saved.years[y] || typeof saved.years[y] !== 'object') return;
+            const year = {};
+            Object.keys(TAX_STATUSES).forEach(s => {
+                const st = saved.years[y][s];
+                if (!st || !Array.isArray(st.brackets)) return;
+                year[s] = { deduction: st.deduction, brackets: st.brackets.map(b => ({ from: b && b.from, rate: b && b.rate })) };
+            });
+            if (Object.keys(year).length) years[y] = year;
+        });
+    }
+    return { years: Object.keys(years).length ? years : taxBuiltin() };
+}
+
+/** Saved, and everything that shows the brackets brought up to date — but the tool
+ *  being typed into keeps its fields, and only its sums change. */
+function taxTableSave(table, typing) {
+    try { localStorage.setItem(TAX_TABLE_KEY, JSON.stringify(table)); } catch (e) { /* kept for this page only */ }
+    taxTableChanged(typing);
+}
+
+function taxTableChanged(typing) {
+    document.querySelectorAll('.tb-widget').forEach(w => { if (w === typing) tbRefreshDerived(w); else tbRender(w); });
+    if (document.getElementById('taxResults')) calculateTax();
+}
+
+function taxYearsOf(table) {
+    return Object.keys(table.years).sort((a, b) => Number(a) - Number(b));
+}
+
+/** The year a calculator left on its default uses: this year's, if there is one,
+ *  otherwise the latest there is. */
+function taxDefaultYear(table) {
+    const years = taxYearsOf(table);
+    const now = String(new Date().getFullYear());
+    return years.includes(now) ? now : years[years.length - 1];
+}
+
+/** What is wrong with one status's figures, in words. */
+function taxProblems(st) {
+    const out = [];
+    if (!st) return ['No figures.'];
+    if (!(Number(st.deduction) >= 0) || st.deduction === '' || st.deduction === null) out.push('The standard deduction needs to be an amount.');
+    const b = st.brackets || [];
+    if (!b.length) out.push('There are no brackets.');
+    b.forEach((x, i) => {
+        const from = Number(x.from), rate = Number(x.rate);
+        if (x.from === '' || x.from === null || !isFinite(from) || from < 0) out.push('Bracket ' + (i + 1) + ' needs a starting amount.');
+        else if (i === 0 && from !== 0) out.push('The first bracket has to start at 0.');
+        else if (i > 0 && isFinite(Number(b[i - 1].from)) && from <= Number(b[i - 1].from)) out.push('Bracket ' + (i + 1) + ' has to start above bracket ' + i + '.');
+        if (x.rate === '' || x.rate === null || !isFinite(rate) || rate < 0 || rate > 100) out.push('Bracket ' + (i + 1) + ' needs a rate from 0 to 100%.');
+    });
+    return out;
+}
+
+/** One status's brackets as the calculator uses them: in order, the unusable left out,
+ *  each running to where the next begins. */
+function taxBracketsFor(st) {
+    const rows = ((st && st.brackets) || [])
+        .map(b => ({ from: Number(b.from), rate: Number(b.rate) }))
+        .filter(b => b.from >= 0 && isFinite(b.from) && b.rate >= 0 && b.rate <= 100 && isFinite(b.rate))
+        .sort((a, b) => a.from - b.from);
+    return rows.map((b, i) => ({ min: b.from, max: i + 1 < rows.length ? rows[i + 1].from : Infinity, rate: b.rate / 100 }));
+}
+
+// ---- The Tax Brackets tool ----------------------------------------------------------
+
+function tbToolId(el) {
+    const tool = el && el.closest('.tool');
+    return tool ? tool.getAttribute('data-tool') : null;
+}
+
+function tbYearOf(widget, table) {
+    const years = taxYearsOf(table);
+    const toolId = tbToolId(widget);
+    const picked = toolId && typeof toolCustomizations !== 'undefined' ? String((toolCustomizations[toolId] || {}).tbYear || '') : '';
+    return years.includes(picked) ? picked : taxDefaultYear(table);
+}
+
+function tbMoney(n) {
+    return '$' + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+
+function tbInit() {
+    document.querySelectorAll('.tb-widget').forEach(tbRender);
+}
+
+function tbRender(widget) {
+    const table = taxTableLoad();
+    const years = taxYearsOf(table);
+    const year = tbYearOf(widget, table);
+    widget.dataset.year = year;
+    const builtin = taxBuiltin();
+    const attr = (v) => (v === null || v === undefined || (typeof v === 'number' && !isFinite(v))) ? '' : String(v);
+    const status = (s) => {
+        const st = table.years[year][s];
+        if (!st) return '';
+        const rows = st.brackets.map((b, i) =>
+            '<tr><td><input type="number" class="tb-from" min="0" step="50" value="' + escapeHtml(attr(b.from)) + '" oninput="tbOnInput(this)" aria-label="Bracket ' + (i + 1) + ' starts at"' + (i === 0 ? ' title="The first bracket starts at 0"' : '') + '></td>' +
+            '<td class="tb-to"></td>' +
+            '<td><input type="number" class="tb-rate" min="0" max="100" step="0.1" value="' + escapeHtml(attr(b.rate)) + '" oninput="tbOnInput(this)" aria-label="Bracket ' + (i + 1) + ' rate, per cent"></td>' +
+            '<td><button type="button" class="tb-x" onclick="tbRemoveBracket(this)" title="Remove this bracket"' + (st.brackets.length < 2 ? ' disabled' : '') + '>×</button></td></tr>').join('');
+        return '<div class="tb-status" data-status="' + s + '">' +
+            '<div class="tb-status-head"><span class="tb-status-name">' + TAX_STATUSES[s] + '</span>' +
+                '<label>Standard deduction <input type="number" class="tb-ded" min="0" step="50" value="' + escapeHtml(attr(st.deduction)) + '" oninput="tbOnInput(this)"></label></div>' +
+            '<table class="tb-table"><thead><tr><th>From</th><th>To</th><th>Rate %</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
+            '<button type="button" class="tb-add" onclick="tbAddBracket(this)">+ Bracket</button>' +
+            '<div class="tb-problem" role="status"></div></div>';
+    };
+    widget.innerHTML =
+        '<div class="tb-head"><label>Tax year <select class="tb-year" onchange="tbPickYear(this)">' +
+            years.map(y => '<option value="' + y + '"' + (y === year ? ' selected' : '') + '>' + y + '</option>').join('') + '</select></label>' +
+            '<button type="button" class="tb-btn" onclick="tbAddYear(this)" title="A new year, starting from a copy of the latest">+ Year</button>' +
+            '<button type="button" class="tb-btn" onclick="tbDeleteYear(this)"' + (years.length < 2 ? ' disabled title="The last year cannot go"' : ' title="Delete this year’s brackets"') + '>Delete year</button>' +
+            (builtin[year] ? '<button type="button" class="tb-btn tb-reset" onclick="tbResetYear(this)" title="Back to the built-in ' + year + ' figures">Reset year</button>' : '') +
+        '</div>' +
+        '<div class="tb-note">Shared by every board’s Tax Calculator, on this device.</div>' +
+        Object.keys(TAX_STATUSES).map(status).join('');
+    tbRefreshDerived(widget);
+}
+
+/** The To column and the problems, from what is in the fields — redrawn as they are
+ *  typed into without touching the fields themselves. */
+function tbRefreshDerived(widget) {
+    const table = taxTableLoad();
+    const year = widget.dataset.year;
+    if (!table.years[year]) { tbRender(widget); return; }
+    widget.querySelectorAll('.tb-status').forEach(el => {
+        const st = table.years[year][el.dataset.status];
+        const rows = el.querySelectorAll('tbody tr');
+        rows.forEach((tr, i) => {
+            const next = st && st.brackets[i + 1];
+            const to = next && Number(next.from) > 0 ? tbMoney(Number(next.from) - 1) : (next ? '' : 'and up');
+            tr.querySelector('.tb-to').textContent = to;
+        });
+        const problems = taxProblems(st);
+        const box = el.querySelector('.tb-problem');
+        box.textContent = problems.join(' ');
+        box.hidden = !problems.length;
+    });
+    const reset = widget.querySelector('.tb-reset');
+    if (reset) reset.disabled = JSON.stringify(taxBuiltin()[year]) === JSON.stringify(table.years[year]);
+}
+
+function tbReadStatus(el) {
+    const num = (v) => v === '' ? null : Number(v);
+    return {
+        deduction: num(el.querySelector('.tb-ded').value),
+        brackets: Array.from(el.querySelectorAll('tbody tr')).map(tr => ({ from: num(tr.querySelector('.tb-from').value), rate: num(tr.querySelector('.tb-rate').value) }))
+    };
+}
+
+/** A change to one status of the year shown: read back from its fields and saved. */
+function tbStore(el, typing) {
+    const widget = el.closest('.tb-widget');
+    const statusEl = el.closest('.tb-status');
+    if (!widget || !statusEl) return null;
+    const table = taxTableLoad();
+    const year = widget.dataset.year;
+    if (!table.years[year]) return null;
+    table.years[year][statusEl.dataset.status] = tbReadStatus(statusEl);
+    taxTableSave(table, typing ? widget : null);
+    return widget;
+}
+
+function tbOnInput(input) {
+    tbStore(input, true);
+}
+
+function tbAddBracket(btn) {
+    const widget = btn.closest('.tb-widget');
+    const statusEl = btn.closest('.tb-status');
+    const status = statusEl.dataset.status;
+    const body = statusEl.querySelector('tbody');
+    const last = body.lastElementChild;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><input type="number" class="tb-from"></td><td class="tb-to"></td><td><input type="number" class="tb-rate"></td><td></td>';
+    // Above the last one, at its rate: a start to edit rather than a blank to fill.
+    tr.querySelector('.tb-from').value = last ? String((Number(last.querySelector('.tb-from').value) || 0) + 10000) : '0';
+    tr.querySelector('.tb-rate').value = last ? last.querySelector('.tb-rate').value : '';
+    body.appendChild(tr);
+    tbStore(btn, false);
+    const added = widget.querySelector('.tb-status[data-status="' + status + '"] tbody tr:last-child .tb-from');
+    if (added) added.focus();
+}
+
+function tbRemoveBracket(btn) {
+    const tr = btn.closest('tr');
+    const statusEl = btn.closest('.tb-status');
+    if (!tr || !statusEl || statusEl.querySelectorAll('tbody tr').length < 2) return;
+    const anchor = statusEl.querySelector('.tb-ded');
+    tr.remove();
+    tbStore(anchor, false);
+}
+
+function tbSetYear(widget, year) {
+    const toolId = tbToolId(widget);
+    if (toolId && typeof toolCustomizations !== 'undefined' && typeof saveToolCustomizations === 'function') {
+        const next = Object.assign({}, toolCustomizations);
+        next[toolId] = Object.assign({}, next[toolId] || {}, { tbYear: year });
+        saveToolCustomizations(next);
+    }
+    widget.dataset.year = year;
+}
+
+function tbPickYear(select) {
+    const widget = select.closest('.tb-widget');
+    tbSetYear(widget, select.value);
+    tbRender(widget);
+}
+
+/** A new year after the latest, copied from it: next year's brackets are this year's
+ *  moved up a little, so they are quicker to edit than to type. */
+function tbAddYear(btn) {
+    const widget = btn.closest('.tb-widget');
+    const table = taxTableLoad();
+    const years = taxYearsOf(table);
+    const latest = years[years.length - 1];
+    const next = String(Number(latest) + 1);
+    table.years[next] = taxClone(table.years[latest]);
+    tbSetYear(widget, next);
+    taxTableSave(table, null);
+}
+
+function tbDeleteYear(btn) {
+    const widget = btn.closest('.tb-widget');
+    const table = taxTableLoad();
+    const year = widget.dataset.year;
+    if (taxYearsOf(table).length < 2 || !table.years[year]) return;
+    if (!window.confirm('Delete the ' + year + ' tax brackets? Every board’s Tax Calculator shares them, and this cannot be undone.')) return;
+    delete table.years[year];
+    tbSetYear(widget, taxDefaultYear(table));
+    taxTableSave(table, null);
+}
+
+function tbResetYear(btn) {
+    const widget = btn.closest('.tb-widget');
+    const year = widget.dataset.year;
+    const builtin = taxBuiltin();
+    if (!builtin[year]) return;
+    const table = taxTableLoad();
+    table.years[year] = taxClone(builtin[year]);
+    taxTableSave(table, null);
+}
+
+/** From a Tax Calculator: the Tax Brackets tool on this board, or a new one. */
+function taxOpenBrackets() {
+    let id = null;
+    document.querySelectorAll('.tool').forEach(t => {
+        const tid = t.getAttribute('data-tool');
+        const custom = typeof toolCustomizations !== 'undefined' ? toolCustomizations[tid] || {} : {};
+        if (!id && (tid === 'tax-brackets' || custom.templateId === 'tax-brackets')) id = tid;
+    });
+    // A board opened only to look at is not added to.
+    const lookOnly = typeof viewOnlyMode !== 'undefined' && viewOnlyMode;
+    if (!id && !lookOnly && typeof createNoteWithTemplate === 'function') id = createNoteWithTemplate('tax-brackets');
+    if (!id) return;
+    // A calculator filling the window would hide the tool it just opened.
+    if (typeof exitToolFullscreen === 'function') exitToolFullscreen();
+    if (typeof navigateToTool === 'function' && typeof currentBoardId !== 'undefined') navigateToTool(currentBoardId, id);
+}
+
+// Another tab saved the brackets: this one shows them too.
+window.addEventListener('storage', (e) => { if (e.key === TAX_TABLE_KEY) taxTableChanged(null); });
+
 function calculateTax() {
+    // The years come from the shared table, so the list is made before the saved
+    // choice is put back into it.
+    const table = taxTableLoad();
+    const yearEl = document.getElementById('taxYear');
+    if (yearEl) {
+        const keep = yearEl.value;
+        const auto = taxDefaultYear(table);
+        const thisYear = String(new Date().getFullYear());
+        yearEl.innerHTML = '<option value="">' + (auto === thisYear ? 'This year' : 'Latest') + ' (' + auto + ')</option>' +
+            taxYearsOf(table).map(y => '<option value="' + y + '">' + y + '</option>').join('');
+        yearEl.value = keep && table.years[keep] ? keep : '';
+    }
     calcSync('tax');
     const incomeEl = document.getElementById('taxIncome');
     const statusEl = document.getElementById('taxStatus');
     const resultsEl = document.getElementById('taxResults');
     if (!incomeEl || !statusEl || !resultsEl) return;
 
+    const year = yearEl && yearEl.value && table.years[yearEl.value] ? yearEl.value : taxDefaultYear(table);
     const income = parseFloat(incomeEl.value) || 0;
     const status = statusEl.value;
-    const ded = stdDeductions[status];
+    const figures = table.years[year][status];
+    const source = '<div class="tax-source">' + year + ' ' + (TAX_STATUSES[status] || status) + ' brackets \u00B7 ' +
+        '<button type="button" class="tax-edit" onclick="taxOpenBrackets()">edit in Tax Brackets</button></div>';
+    const brackets = taxBracketsFor(figures);
+    if (!figures || !brackets.length) {
+        resultsEl.innerHTML = '<div style="color:#c0392b;text-align:center;padding:20px;">There are no usable ' + year + ' brackets for ' +
+            (TAX_STATUSES[status] || status) + '.</div>' + source;
+        return;
+    }
+    const problems = taxProblems(figures);
+    const ded = Number(figures.deduction) >= 0 ? Number(figures.deduction) : 0;
     const taxable = Math.max(0, income - ded);
     let totalTax = 0;
     let breakdown = '';
 
-    for (const b of taxBrackets[status]) {
+    for (const b of brackets) {
         if (taxable > b.min) {
             const amt = Math.min(taxable, b.max) - b.min;
             const tax = amt * b.rate;
             totalTax += tax;
             if (amt > 0) {
-                breakdown += '<div class="calc-row"><span>' + (b.rate*100) + '%</span><span>$' + amt.toLocaleString() + '</span><span class="calc-card-value negative">$' + tax.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</span></div>';
+                breakdown += '<div class="calc-row"><span>' + (Math.round(b.rate * 10000) / 100) + '%</span><span>$' + amt.toLocaleString() + '</span><span class="calc-card-value negative">$' + tax.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</span></div>';
             }
         }
     }
 
     const effRate = income > 0 ? (totalTax / income * 100).toFixed(1) : 0;
-    const margBracket = taxBrackets[status].find(function(b) { return taxable >= b.min && taxable < b.max; });
-    const margRate = margBracket ? margBracket.rate * 100 : 37;
+    const margBracket = brackets.find(function(b) { return taxable >= b.min && taxable < b.max; });
+    const margRate = margBracket ? Math.round(margBracket.rate * 10000) / 100 : Math.round(brackets[brackets.length - 1].rate * 10000) / 100;
 
     resultsEl.innerHTML =
+        (problems.length ? '<div class="tax-warn">The ' + year + ' ' + (TAX_STATUSES[status] || status) + ' figures have a problem: ' + escapeHtml(problems.join(' ')) +
+            ' Worked out from the brackets that can be used.</div>' : '') +
         '<div class="calc-grid">' +
             '<div class="calc-card"><div class="calc-card-label">Standard Deduction</div><div class="calc-card-value positive">$' + ded.toLocaleString() + '</div></div>' +
             '<div class="calc-card"><div class="calc-card-label">Taxable Income</div><div class="calc-card-value">$' + taxable.toLocaleString() + '</div></div>' +
@@ -97,7 +438,8 @@ function calculateTax() {
         '</div>' +
         '<div class="calc-section-title">TAX BY BRACKET</div>' +
         breakdown +
-        '<div class="calc-row" style="padding:8px 0;font-weight:600;"><span>Take Home (Monthly)</span><span class="calc-card-value positive">$' + ((income - totalTax) / 12).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</span></div>';
+        '<div class="calc-row" style="padding:8px 0;font-weight:600;"><span>Take Home (Monthly)</span><span class="calc-card-value positive">$' + ((income - totalTax) / 12).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</span></div>' +
+        source;
 }
 
 // ---- What was typed, kept -----------------------------------------------------------
@@ -110,7 +452,7 @@ function calculateTax() {
 const CALC_FIELDS = {
     loan: ['loanAmount', 'loanCurrent', 'loanRate', 'loanYears', 'loanExtra', 'loanClosing'],
     growth: ['growthInitial', 'growthMonthly', 'growthRate', 'growthYears', 'growthCompound'],
-    tax: ['taxIncome', 'taxStatus']
+    tax: ['taxIncome', 'taxStatus', 'taxYear']
 };
 
 /** A field by id, or a group of radios by name, inside one widget. */
@@ -481,12 +823,16 @@ function calculateGrowth() {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [calcField, calcWidgetOf, calcSync, calcReset, calculateTax, calculateLoan, loanMoney, loanSpan, loanClosingOf, loanMonth, loanMonthText, loanPaymentsMade, loanScheduled, loanScheduleText, loanPayDown, loanFromBalance, calculateGrowth];
+    const functionsToExport = [taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
+        tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
+        tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, taxOpenBrackets, calcField, calcWidgetOf, calcSync, calcReset, calculateTax, calculateLoan, loanMoney, loanSpan, loanClosingOf, loanMonth, loanMonthText, loanPaymentsMade, loanScheduled, loanScheduleText, loanPayDown, loanFromBalance, calculateGrowth];
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
     const code = '(function() {\n' +
         'if (typeof calculateTax !== "undefined") return;\n' +
         'window.taxBrackets = ' + JSON.stringify(taxBrackets) + ';\n' +
         'window.CALC_FIELDS = ' + JSON.stringify(CALC_FIELDS) + ';\n' +
+        'window.TAX_TABLE_KEY = ' + JSON.stringify(TAX_TABLE_KEY) + ';\n' +
+        'window.TAX_STATUSES = ' + JSON.stringify(TAX_STATUSES) + ';\n' +
         'window.stdDeductions = ' + JSON.stringify(stdDeductions) + ';\n' +
         functionsToExport.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -506,7 +852,7 @@ PluginRegistry.registerToolbox({
     icon: '💰',
     color: '#27ae60',
     version: '1.0.0',
-    tools: ['dynamic-investment-calculator', 'dynamic-tax-calculator', 'loan-calculator'],
+    tools: ['dynamic-investment-calculator', 'dynamic-tax-calculator', 'tax-brackets', 'loan-calculator'],
     source: 'external'
 });
 
@@ -537,10 +883,27 @@ PluginRegistry.registerTool({
     toolbox: 'finance',
     tags: ['tax', 'income', 'federal', 'bracket'],
     title: 'Tax Calculator',
-    content: '<div class="calc-widget"><button type="button" class="calc-reset" hidden onclick="calcReset(this, \'tax\')" title="Put every field back to its default">Reset</button><div class="calc-grid"><div><label>Annual Income</label><input type="number" id="taxIncome" value="75000" oninput="calculateTax()"></div><div><label>Filing Status</label><select id="taxStatus" onchange="calculateTax()"><option value="single">Single</option><option value="married">Married Filing Jointly</option></select></div></div><div id="taxResults"></div></div>',
+    content: '<div class="calc-widget"><button type="button" class="calc-reset" hidden onclick="calcReset(this, \'tax\')" title="Put every field back to its default">Reset</button><div class="calc-grid"><div><label>Annual Income</label><input type="number" id="taxIncome" value="75000" oninput="calculateTax()"></div><div><label>Filing Status</label><select id="taxStatus" onchange="calculateTax()"><option value="single">Single</option><option value="married">Married Filing Jointly</option></select></div><div><label>Tax Year</label><select id="taxYear" onchange="calculateTax()" title="Which year’s brackets, from Tax Brackets"><option value="">This year</option></select></div></div><div id="taxResults"></div></div>',
     onInit: 'calculateTax',
     defaultWidth: 360,
     defaultHeight: 400,
+    source: 'external'
+});
+
+// Tax Brackets: the brackets and standard deductions every Tax Calculator uses, by year
+PluginRegistry.registerTool({
+    id: 'tax-brackets',
+    name: 'Tax Brackets',
+    description: 'Federal tax brackets and standard deductions by year, shared by every Tax Calculator',
+    icon: '📊',
+    version: '1.0.0',
+    toolbox: 'finance',
+    tags: ['tax', 'bracket', 'deduction', 'year', 'settings'],
+    title: 'Tax Brackets',
+    content: '<div class="calc-widget tb-widget"></div>',
+    onInit: 'tbInit',
+    defaultWidth: 420,
+    defaultHeight: 560,
     source: 'external'
 });
 
