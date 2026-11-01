@@ -76,6 +76,34 @@ ok('a balance the payment cannot touch: said, rather than a payoff that never co
 await set('#loanCurrent', '');
 ok('emptied, a new loan again', /Total Interest/.test((await cards())[1]));
 
+// 4b. A closing date: where the schedule says the loan stands, by the calendar.
+const sched = (k) => { const g = Math.pow(1 + r, k); return P0 * g - pmt * (g - 1) / r; };
+await set('#loanClosing', '2022-11-15');
+text = await results();
+ok('a new loan that closed four years ago: what the schedule has owed today, and the last payment', (await page.innerText('.loan-schedule')) ===
+    'On schedule today: ' + money(sched(48)) + ' owed, 48 of 360 payments made. Last payment Nov 2052.', await page.innerText('.loan-schedule'));
+ok('the amortization years have their calendar years', /Year 1 · 2023/.test(text) && /Year 5 · 2027/.test(text) && /Year 30 · 2052/.test(text), text.slice(-400));
+await set('#loanExtra', 200);
+ok('and an extra payment its payoff month', new RegExp('Payoff: ' + span(monthsToPay(P0, pmt + 200)) + ' · \\w{3} \\d{4}').test(await results()));
+await set('#loanExtra', 0);
+await set('#loanClosing', '2026-12-10');
+ok('not closed yet: when it closes, and the first and last payments', (await page.innerText('.loan-schedule')) === 'Closes Dec 10, 2026: first payment Jan 2027, last Dec 2056.',
+    await page.innerText('.loan-schedule'));
+await set('#loanClosing', '2022-11-15');
+const due = sched(48);
+await set('#loanCurrent', Math.round(due - 5000));
+const ahead = await page.innerText('.loan-pace');
+const aheadMonths = scheduleAt(Math.round(due - 5000)) - 48;
+ok('a balance below the schedule’s: ahead, by how much and about how long', ahead === 'Ahead of schedule by ' + money(due - Math.round(due - 5000)) + ', about ' + span(aheadMonths).replace(/^0y /, '') +
+    ': after 48 payments the schedule has ' + money(due) + ' owed. The original schedule ends Nov 2052.', ahead + ' | ' + aheadMonths);
+await set('#loanCurrent', Math.round(due + 3000));
+ok('above it: behind', /^Behind schedule by \$3,0\d\d, about \d+m: after 48 payments/.test(await page.innerText('.loan-pace')), await page.innerText('.loan-pace'));
+await set('#loanCurrent', due.toFixed(2));
+ok('on it: on schedule', (await page.innerText('.loan-pace')) === 'Right on schedule, 48 payments in. The original schedule ends Nov 2052.', await page.innerText('.loan-pace'));
+await set('#loanCurrent', '');
+await set('#loanClosing', '');
+ok('without a closing date, no schedule lines', (await page.locator('.loan-schedule, .loan-pace').count()) === 0);
+
 // 5. Kept: what was typed comes back after a reload, and Reset puts the defaults back.
 const reset = (within = '#loanResults') => page.evaluate((w) => { const b = document.querySelector(w).closest('.calc-widget').querySelector('.calc-reset'); return b ? !b.hidden : null; }, within);
 ok('untouched, there is nothing to reset and nothing saved', (await reset()) === false &&
@@ -83,13 +111,14 @@ ok('untouched, there is nothing to reset and nothing saved', (await reset()) ===
 await set('#loanAmount', 420000);
 await set('#loanCurrent', 380000);
 await set('#loanRate', 5.25);
+await set('#loanClosing', '2021-06-30');
 await page.waitForTimeout(700);
 ok('changed, Reset is offered', (await reset()) === true);
 await page.reload();
 await page.waitForSelector('#loanResults .calc-card', { timeout: 25000 });
 await page.waitForTimeout(300);
 ok('a reload keeps what was typed, the empty fields included', await page.evaluate(() =>
-    ['loanAmount', 'loanCurrent', 'loanRate', 'loanYears', 'loanExtra'].map(i => document.getElementById(i).value).join()) === '420000,380000,5.25,30,0');
+    ['loanAmount', 'loanCurrent', 'loanRate', 'loanYears', 'loanExtra', 'loanClosing'].map(i => document.getElementById(i).value).join()) === '420000,380000,5.25,30,0,2021-06-30');
 ok('and the figures are worked out from it', /Time Left/.test(await results()) && (await page.innerText('.loan-position')).includes('original schedule'));
 await page.click('#loanResults >> xpath=.. >> .calc-reset');
 await page.waitForTimeout(300);

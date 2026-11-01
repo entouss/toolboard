@@ -465,7 +465,7 @@ These plugins are maintained as part of Toolboard:
 | Plugin | Path | Description |
 |--------|------|-------------|
 | Developer Tools | `plugins/toolboxes/developer-tools.js` | JWT, Regex, Code Formatter, Cron, Epoch, Diff, Sequence Diagram |
-| Finance Tools | `plugins/toolboxes/finance-tools.js` | Investment, Tax, Loan calculators (a loan new or already under way, from its current balance) |
+| Finance Tools | `plugins/toolboxes/finance-tools.js` | Investment, Tax, Loan calculators (a loan new or already under way, from its current balance and closing date; fields kept) |
 | Developer Dashboard | `plugins/boards/developer-dashboard.js` | Pre-configured developer workspace |
 
 Load them via **Settings > Plugins > Official Plugins**.

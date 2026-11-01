@@ -108,7 +108,7 @@ function calculateTax() {
 // offered only when there is something to reset.
 
 const CALC_FIELDS = {
-    loan: ['loanAmount', 'loanCurrent', 'loanRate', 'loanYears', 'loanExtra'],
+    loan: ['loanAmount', 'loanCurrent', 'loanRate', 'loanYears', 'loanExtra', 'loanClosing'],
     growth: ['growthInitial', 'growthMonthly', 'growthRate', 'growthYears', 'growthCompound'],
     tax: ['taxIncome', 'taxStatus']
 };
@@ -209,8 +209,9 @@ function calculateLoan() {
     // original loan set — a fixed-rate payment does not change as the balance does.
     const currentEl = document.getElementById('loanCurrent');
     const current = currentEl ? parseFloat(currentEl.value) : NaN;
+    const closing = loanClosingOf();
     if (current > 0 && Math.abs(current - principal) >= 0.005) {
-        resultsEl.innerHTML = loanFromBalance(principal, current, monthlyRate, numPayments, monthlyPayment, totalInterest, extraPayment);
+        resultsEl.innerHTML = loanFromBalance(principal, current, monthlyRate, numPayments, monthlyPayment, totalInterest, extraPayment, closing);
         return;
     }
 
@@ -237,7 +238,7 @@ function calculateLoan() {
         paidPrincipal += prinPmt;
         bal -= prinPmt;
         if (checkYears.includes(m / 12)) {
-            milestones += '<div class="calc-row"><span>Year ' + (m/12) + '</span><span>Balance: $' + Math.max(0,bal).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span><span style="color:var(--text-muted);">Paid: $' + paidPrincipal.toLocaleString(undefined,{maximumFractionDigits:0}) + '</span></div>';
+            milestones += '<div class="calc-row"><span>Year ' + (m/12) + (closing ? ' \u00B7 ' + loanMonth(closing, m).getFullYear() : '') + '</span><span>Balance: $' + Math.max(0,bal).toLocaleString(undefined,{maximumFractionDigits:0}) + '</span><span style="color:var(--text-muted);">Paid: $' + paidPrincipal.toLocaleString(undefined,{maximumFractionDigits:0}) + '</span></div>';
         }
     }
 
@@ -248,7 +249,8 @@ function calculateLoan() {
             '<div class="calc-card"><div class="calc-card-label">Total Cost</div><div class="calc-card-value">$' + totalPayment.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</div></div>' +
             '<div class="calc-card"><div class="calc-card-label">Interest Ratio</div><div class="calc-card-value">' + (totalInterest/principal*100).toFixed(1) + '%</div></div>' +
         '</div>' +
-        (extraPayment > 0 ? '<div class="calc-highlight"><div class="calc-highlight-title">WITH $' + extraPayment.toLocaleString() + '/mo EXTRA</div><div class="calc-row" style="border:none;font-size:13px;"><span>Payoff: ' + yearsWithExtra + 'y ' + monthsRemainder + 'm</span><span class="calc-card-value positive" style="font-size:13px;">Save $' + interestSaved.toLocaleString(undefined,{maximumFractionDigits:0}) + '</span></div></div>' : '') +
+        (closing ? '<div class="calc-row loan-schedule" style="border:none;margin-bottom:10px;color:var(--text-secondary);">' + loanScheduleText(closing, principal, monthlyRate, monthlyPayment, numPayments) + '</div>' : '') +
+        (extraPayment > 0 ? '<div class="calc-highlight"><div class="calc-highlight-title">WITH $' + extraPayment.toLocaleString() + '/mo EXTRA</div><div class="calc-row" style="border:none;font-size:13px;"><span>Payoff: ' + yearsWithExtra + 'y ' + monthsRemainder + 'm' + (closing ? ' \u00B7 ' + loanMonthText(closing, monthsWithExtra) : '') + '</span><span class="calc-card-value positive" style="font-size:13px;">Save $' + interestSaved.toLocaleString(undefined,{maximumFractionDigits:0}) + '</span></div></div>' : '') +
         '<div class="calc-section-title">AMORTIZATION</div>' +
         milestones;
 }
@@ -259,6 +261,52 @@ function loanMoney(n, digits) {
 
 function loanSpan(months) {
     return Math.floor(months / 12) + 'y ' + (months % 12) + 'm';
+}
+
+/**
+ * The closing date, if one is given: the day the loan began. Payments fall monthly
+ * from the month after it, so payment k is due in the k-th month after closing.
+ */
+function loanClosingOf() {
+    const el = document.getElementById('loanClosing');
+    const m = el && /^(\d{4})-(\d{2})-(\d{2})$/.exec(el.value || '');
+    if (!m) return null;
+    return { y: +m[1], m: +m[2] - 1, d: +m[3], date: new Date(+m[1], +m[2] - 1, +m[3]) };
+}
+
+/** The month a payment falls in: k months after closing. */
+function loanMonth(closing, k) {
+    return new Date(closing.y, closing.m + k, 1);
+}
+
+function loanMonthText(closing, k) {
+    return loanMonth(closing, k).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
+
+/** Payments due by today: one a month from the month after closing, this month's included. */
+function loanPaymentsMade(closing, numPayments) {
+    const now = new Date();
+    const made = (now.getFullYear() * 12 + now.getMonth()) - (closing.y * 12 + closing.m);
+    return Math.max(0, Math.min(numPayments, made));
+}
+
+/** What the original schedule says is owed after k payments. */
+function loanScheduled(principal, monthlyRate, payment, k) {
+    const g = Math.pow(1 + monthlyRate, k);
+    return Math.max(0, principal * g - payment * (g - 1) / monthlyRate);
+}
+
+/** For a new loan with a closing date: where the schedule says it stands today. */
+function loanScheduleText(closing, principal, monthlyRate, payment, numPayments) {
+    const last = loanMonthText(closing, numPayments);
+    if (closing.date > new Date()) {
+        return 'Closes ' + closing.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) +
+            ': first payment ' + loanMonthText(closing, 1) + ', last ' + last + '.';
+    }
+    const made = loanPaymentsMade(closing, numPayments);
+    if (made >= numPayments) return 'Paid off on schedule in ' + last + '.';
+    return 'On schedule today: ' + loanMoney(loanScheduled(principal, monthlyRate, payment, made)) + ' owed, ' + made + ' of ' + numPayments +
+        ' payments made. Last payment ' + last + '.';
 }
 
 /** Months and interest to pay a balance off at a payment, a month at a time. */
@@ -278,7 +326,7 @@ function loanPayDown(balance, monthlyRate, payment, limit) {
  * of the original is paid, and where on the original schedule that balance sits —
  * the month whose balance first comes down to it.
  */
-function loanFromBalance(principal, current, monthlyRate, numPayments, payment, totalInterest, extra) {
+function loanFromBalance(principal, current, monthlyRate, numPayments, payment, totalInterest, extra, closing) {
     const owedInterest = current * monthlyRate;
     const note = current > principal
         ? '<div class="calc-row" style="border:none;color:var(--text-muted);">The current balance is more than the original amount; worked out from it all the same.</div>' : '';
@@ -301,6 +349,24 @@ function loanFromBalance(principal, current, monthlyRate, numPayments, payment, 
     }
     const position = current >= principal ? 'That is the original amount or more: the start of the original schedule.'
         : 'That balance is where the original schedule is after ' + loanSpan(at) + ', with ' + loanSpan(numPayments - at) + ' of it to go.';
+
+    // With a closing date, the balance can be held against what the schedule says is
+    // owed by now: ahead where less is owed, behind where more is.
+    let pace = '';
+    if (closing) {
+        const made = loanPaymentsMade(closing, numPayments);
+        const due = loanScheduled(principal, monthlyRate, payment, made);
+        const diff = due - current;
+        const original = ' The original schedule ends ' + loanMonthText(closing, numPayments) + '.';
+        if (closing.date > new Date()) pace = 'The loan has not closed yet, so there is nothing to be ahead or behind of.' + original;
+        else if (Math.abs(diff) < 1) pace = 'Right on schedule, ' + made + (made === 1 ? ' payment' : ' payments') + ' in.' + original;
+        else {
+            const months = Math.abs(at - made);
+            pace = (diff > 0 ? 'Ahead of schedule by ' : 'Behind schedule by ') + loanMoney(Math.abs(diff)) +
+                (months ? ', about ' + loanSpan(months).replace(/^0y /, '') : '') + ': after ' + made + (made === 1 ? ' payment' : ' payments') +
+                ' the schedule has ' + loanMoney(due) + ' owed.' + original;
+        }
+    }
 
     let extraHtml = '';
     if (extra > 0) {
@@ -334,6 +400,7 @@ function loanFromBalance(principal, current, monthlyRate, numPayments, payment, 
                 '<div class="calc-card-label">' + loanMoney(paid) + ' of ' + loanMoney(principal) + '</div></div>' +
         '</div>' +
         '<div class="calc-row loan-position" style="border:none;margin-bottom:10px;color:var(--text-secondary);">' + position + '</div>' +
+        (pace ? '<div class="calc-row loan-pace" style="border:none;margin:-6px 0 10px;color:var(--text-secondary);">' + pace + '</div>' : '') +
         extraHtml +
         '<div class="calc-section-title">AMORTIZATION, FROM NOW</div>' +
         milestones;
@@ -414,7 +481,7 @@ function calculateGrowth() {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [calcField, calcWidgetOf, calcSync, calcReset, calculateTax, calculateLoan, loanMoney, loanSpan, loanPayDown, loanFromBalance, calculateGrowth];
+    const functionsToExport = [calcField, calcWidgetOf, calcSync, calcReset, calculateTax, calculateLoan, loanMoney, loanSpan, loanClosingOf, loanMonth, loanMonthText, loanPaymentsMade, loanScheduled, loanScheduleText, loanPayDown, loanFromBalance, calculateGrowth];
     // Wrap in IIFE that checks if already defined (plugin loaded) vs needs defining (exported HTML)
     const code = '(function() {\n' +
         'if (typeof calculateTax !== "undefined") return;\n' +
@@ -487,7 +554,7 @@ PluginRegistry.registerTool({
     toolbox: 'finance',
     tags: ['loan', 'mortgage', 'amortization', 'payment'],
     title: 'Loan Calculator',
-    content: '<div class="calc-widget"><button type="button" class="calc-reset" hidden onclick="calcReset(this, \'loan\')" title="Put every field back to its default">Reset</button><div class="calc-grid"><div><label>Original Amount</label><input type="number" id="loanAmount" value="300000" oninput="calculateLoan()"></div><div><label>Current Balance</label><input type="number" id="loanCurrent" placeholder="Same as original" title="What is owed today, for a loan already under way. Empty for a new loan." oninput="calculateLoan()"></div><div><label>Interest Rate %</label><input type="number" id="loanRate" value="6.5" step="0.125" oninput="calculateLoan()"></div><div><label>Loan Term (Years)</label><input type="number" id="loanYears" value="30" oninput="calculateLoan()"></div><div><label>Extra Payment/mo</label><input type="number" id="loanExtra" value="0" oninput="calculateLoan()"></div></div><div id="loanResults"></div></div>',
+    content: '<div class="calc-widget"><button type="button" class="calc-reset" hidden onclick="calcReset(this, \'loan\')" title="Put every field back to its default">Reset</button><div class="calc-grid"><div><label>Original Amount</label><input type="number" id="loanAmount" value="300000" oninput="calculateLoan()"></div><div><label>Current Balance</label><input type="number" id="loanCurrent" placeholder="Same as original" title="What is owed today, for a loan already under way. Empty for a new loan." oninput="calculateLoan()"></div><div><label>Interest Rate %</label><input type="number" id="loanRate" value="6.5" step="0.125" oninput="calculateLoan()"></div><div><label>Loan Term (Years)</label><input type="number" id="loanYears" value="30" oninput="calculateLoan()"></div><div><label>Extra Payment/mo</label><input type="number" id="loanExtra" value="0" oninput="calculateLoan()"></div><div><label>Closing Date</label><input type="date" id="loanClosing" title="The day the loan closed, if it has: payments are counted monthly from the month after" oninput="calculateLoan()"></div></div><div id="loanResults"></div></div>',
     onInit: 'calculateLoan',
     defaultWidth: 380,
     defaultHeight: 450,
