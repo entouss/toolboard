@@ -68,6 +68,8 @@ ok('to scale: a quarter as wide as its days', Math.abs(q[1].width - 91 / span * 
 ok('and where its days are', Math.abs(q[1].left - (Date.UTC(2026, 9, 1) - Date.UTC(2026, 6, 2)) / 864e5 / span * 100) < 0.01);
 const today = await page.evaluate((s) => parseFloat(document.querySelector(s + ' .proj-tl-today').style.left), TL);
 ok('a line for today, inside the quarter it is in', today > q[1].left && today < q[1].left + q[1].width, String(today));
+const todayLabel = await page.evaluate((s) => { const l = document.querySelector(s + ' .proj-axis .proj-today-label'); return { text: l.textContent, title: l.title }; }, T);
+ok('the chart’s today label carries the date beside it', todayLabel.text === 'today Oct 31' && todayLabel.title === 'Today: Oct 31, 2026', JSON.stringify(todayLabel));
 
 // 2b. Under the quarters, their timeboxes and sprints: two six-week timeboxes of three
 // fortnights, then the planning week, each counted inside its parent.

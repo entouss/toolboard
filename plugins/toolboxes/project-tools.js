@@ -77,7 +77,6 @@
 .proj-tl-seg { position: absolute; top: 0; bottom: 0; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 3px; container-type: inline-size;
     background: var(--bg-primary); overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 4px;
     padding: 0 3px; font-size: 10px; color: var(--text-secondary); white-space: nowrap; }
-.proj-tl-row.halves .proj-tl-seg { background: rgba(52, 152, 219, 0.10); }
 .proj-tl-seg.now { border-color: #3498db; color: var(--text-primary); }
 .proj-tl-seg.now .proj-tl-name { font-weight: 700; }
 .proj-tl-seg.past { opacity: 0.5; }
@@ -543,7 +542,8 @@
 /* A period boundary runs the height of the axis strip; the rows below carry their
    own, so the line reads as continuous without being one element. */
 .proj-period { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-color); }
-.proj-today-label { position: absolute; top: -14px; font-size: 10px; color: var(--proj-critical); transform: translateX(-50%); }
+.proj-today-label { position: absolute; top: -14px; font-size: 10px; color: var(--proj-critical); transform: translateX(-50%); white-space: nowrap; }
+.proj-today-date { font-weight: 600; }
 .proj-dep-line { position: absolute; height: 1px; background: var(--text-muted); opacity: 0.6; }
 .proj-warn { color: var(--proj-critical); font-size: 10px; margin-top: 4px; flex: 0 0 auto; }
 `;
@@ -3386,7 +3386,8 @@ function projRenderGantt(widget, data) {
             axisPicker + spanPick + legend + '</div>' +
         '<div class="proj-gantt-scroll"><div class="proj-gantt-grid">' +
             '<div class="proj-axis">' + bands.join('') + ticks.join('') +
-                '<span class="proj-today-label" style="left:' + pos(0) + '%">today</span>' +
+                '<span class="proj-today-label" style="left:' + pos(0) + '%" title="Today: ' + escapeHtml(projLongDate(today)) + '">today ' +
+                    '<span class="proj-today-date">' + escapeHtml(projShortDate(today)) + '</span></span>' +
                 '<span class="proj-today" style="left:' + pos(0) + '%"></span>' +
             '</div>' + rows +
         '</div></div>' + warn +
