@@ -30,7 +30,7 @@ const fill = async (sel, v) => { await page.fill(sel, String(v)); await page.wai
 
 // 1. Nothing saved: the built-in year, as before.
 ok('with nothing saved, the calculator’s figures are the built-in ones', (await card('Total Tax')) === '$7,670' && (await card('Standard Deduction')) === '$16,100', await card('Total Tax'));
-ok('it says which year and status, and where to change them', (await page.innerText('.tax-source')) === '2026 Single brackets · edit in Tax Brackets');
+ok('it says which year and status, and where to change them', (await page.innerText('.tax-source')) === '2026 Single brackets · edit in Tax & Retirement Rules');
 ok('the year list: this year by default, and the years there are', await page.evaluate(() =>
     Array.from(document.querySelectorAll('#taxYear option')).map(o => o.value + '=' + o.textContent).join()) === '=This year (2026),2026=2026');
 

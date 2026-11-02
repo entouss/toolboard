@@ -787,15 +787,19 @@ labels.
                 balance, rate,          // null rate: the default for its kind, below
                 monthly,                // added a month, or a loan's payment where it has no details
                 compounding,            // investments: 'monthly' (default) or 'annual'
+                basis,                  // investments: cost basis; null = all of the balance (no gains)
+                tax, planType,          // retirement: 'pretax'|'roth', and '401k'|'ira' for its contribution limit
                 loan: { amount, years, extra, closing,      // the Loan Calculator's fields
                         escrow } } ],                       // the plan's own: tax and insurance a month
   incomes:  [ { id, name, amount, every: 'month'|'year', growth, from: 'YYYY-MM', to: 'YYYY-MM', taxed,
                 deductions, taxes,       // flat amounts per `every`, as on a pay stub
-                intoAccount, intoAmount, match } ],   // part of the deductions saved into an account, and the employer's match
+                intoAccount, intoAmount, match,       // part of the deductions saved into an account, and the employer's match
+                wages } ],                            // false: not pay from work, so no payroll tax
             // a Social Security line instead: { id, type: 'ss', name, birth: 'YYYY-MM', fraBenefit,
             //   claimYears, claimMonths, growth /* cost of living */, to, taxed, deductions, taxes }
   expenses: [ { id, name, amount, every, growth, from, to } ],   // null growth: inflation
-  tax: { on: true, status: 'single', year: '' },  // federal tax from toolboard_taxBrackets; '' = this year's
+  tax: { on: true, status: 'single', year: '',    // federal tax from toolboard_taxBrackets; '' = this year's
+         payroll },                              // payroll tax; unset follows `on`
   surplusTo: '',                         // account id; '' the first cash account
   assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000,
             returns: { cash: 2, investment: 7, … } },
@@ -820,13 +824,42 @@ its balance each January over the IRS Uniform Lifetime factor, a twelfth a month
 cash. Pre-tax money drawn before 59½ is said, not penalised. `fpRetireMax` finds the
 most spending that still lasts, by halving.
 
+`fpNeededToStop` turns it round: for each year, the savings that would be needed at
+its start to stop working then and last to `until` — whether or not `retire.on`, as
+long as there is a birth month. Savings are what can be drawn on (cash, investments,
+retirement and other accounts; not property). Stopping work stops every line of pay
+from work (`wages` not false) from that year, even one with a `to` of its own; a
+pension or rent goes on to its end, and Social Security from its claiming age. The
+working years run once with
+`fpProject(plan, 0, { stopT: Infinity, snapshots: true })`, keeping the balances each
+year; each year's figure is then found from that snapshot with `{ stopT, from, lite }`
+runs, the savings scaled up or down in the shares the accounts hold, halving until it
+just lasts. The earliest year whose own savings last is where it says you could stop.
+It is worked out a moment after typing stops (`fpNeededFor`, cached on the widget by
+the plan, the rules and the month); about 0.3 s for a 55-year plan.
+
 A Social Security line is worked out as the SSA does: full retirement age from the birth
 year (`fpFullRetirementMonths`), the benefit at that age (`fraBenefit`, today's dollars,
 from the ssa.gov statement) cut by 5/9 of 1% a month for the first 36 months claimed
 early and 5/12 of 1% beyond, or raised 2/3 of 1% a month for waiting, to 70
 (`fpClaimFactor`). It is paid from the month the claiming age is reached and rises by
-`growth`, the cost of living, inflation when empty. The federal estimate counts 85% of
-it, the most that can be taxable; typed taxes on it still win.
+`growth`, the cost of living, inflation when empty. The part of it that is taxable comes
+from the IRS worksheet (`fpSSTaxable`): half the benefits plus the other income against
+the year's two amounts, which are not moved with inflation; typed taxes on it still win.
+The ages, the adjustments and the start of minimum withdrawals are all read from the
+rules below.
+
+Taxes the plan estimates, from the year's rules (`fpTaxInfo`): federal income tax on
+pay less what goes pre-tax into a 401(k), on pre-tax withdrawals and on the taxable part
+of Social Security (`fpFederalTax`); capital gains on what is drawn from an investment
+account with a `basis`, at their own brackets on top of ordinary income (each draw is
+part basis, part gain, in proportion, and the basis is followed as money goes in and
+out); and payroll tax on each line of pay from work (`fpPayrollTax`: each line its own
+wage base, Medicare on all of it, the surtax on the household's pay above the
+threshold). Brackets, the deduction and the wage base move up with inflation; the
+Social Security amounts and the surtax threshold do not. A retirement account's
+contributions from pay and of its own are checked against the year's limit for its plan
+type (`fpLimitCheck`), with catch-up from the household's birth year, and said when over.
 
 Of an income line's deductions, `intoAmount` goes into the asset account `intoAccount`
 (a 401(k), say) and `match` is what the employer adds to it, both in the line's own
@@ -866,8 +899,10 @@ goes when `surplusTo` is empty.
 
 Beside it, `fpFolded` lists the sections folded to their headings (`summary`,
 `accounts`, `income`, `expenses`, `month`, `assumptions`, `ahead`), for looking at
-the plan with someone else there. That is how the tool is being looked at, not part
-of the plan, so it is kept outside `financePlan`.
+the plan with someone else there, and `fpChartYears: { from, to }` the calendar years
+the Ahead chart and year table are narrowed to (unset: all of them; clipped to the
+years the plan runs, never fewer than two). Both are how the tool is being looked at,
+not part of the plan, so they are kept outside `financePlan`.
 
 It is board data, so it is undone like any edit and kept in JSON exports, which are
 the person's own backups. It is **not** carried by share links or HTML exports:
@@ -879,7 +914,15 @@ to someone else, and `financePlan` is one.
 - `toolboard_pluginUrls` — installed external plugin URLs
 - `toolboard_toolPluginIndex` — tool id → plugin URL, built as plugins load (see [URL Hashes](urls.md))
 - `toolboard_sideNav` — `{ open, expanded: [workshopIds], revealed }`: whether the side navigation is open, which of its workshops are, and the board it last opened the way to (so a reload does not reopen what was closed by hand). Closed when unset or unreadable; on a phone it always starts closed
-- `toolboard_taxBrackets` — `{ years: { '2026': { single: { deduction, brackets: [{ from, rate }] }, married: { … } } } }`: the federal brackets and standard deductions by year, edited in the Tax Brackets tool and used by every board's Tax Calculator. Rates are per cent as typed; a bracket runs from its `from` to the next one's. Unset or unreadable means the built-in year, so an exported board's calculator still works. Not on a board, so not in board undo, exports or share links
+- `toolboard_taxBrackets` — `{ years: { '2026': { single: { deduction, brackets: [{ from, rate }] }, married: { … }, capGains, payroll, ssTax, limits, withdraw, socialSecurity } } }`: the rules of each year, edited in the Tax & Retirement Rules tool (id `tax-brackets`, once Tax Brackets) and used by every board's Tax Calculator and Finance Planning. Rates are per cent as typed; a bracket runs from its `from` to the next one's. The other parts:
+  - `capGains: { single: [{ from, rate }], married: […] }` — long-term gains brackets, by where taxable income reaches
+  - `payroll: { ssRate, wageBase, medicare, surtax, surtaxSingle, surtaxMarried }`
+  - `ssTax: { single: { half, most }, married: { … } }` — the 50% and 85% amounts for Social Security
+  - `limits: { k401, k401CatchUp, k401CatchUp6063, ira, iraCatchUp }`
+  - `withdraw: { earlyYears, earlyMonths, penalty, rmdStart: [{ from, age }], rmdTable: [{ age, divisor }] }` — `from` is a birth year
+  - `socialSecurity: { fra: [{ from, years, months }], earliest, latest, early, earlyMonths, earlyMore, delayed }` — per cent a month; the built-in fractions (5/9, 5/12, 2/3) are kept exact
+
+  Kept as typed. `taxRulesFor(year)` gives the planner a year's rules cleaned up, every unusable one the built-in, cached on the stored string. A part missing from a saved year (one saved before these were kept) is the built-in. Unset or unreadable means the built-in year, so an exported board's calculator still works. Not on a board, so not in board undo, exports or share links
 - `toolboard_boardManagerView` — `grid` or `list`: whether the Boards popup shows cards or one row a board. Cards when unset or unreadable; the same choice for every board
 - `toolboard_workshops` — the workshops boards are kept in, `[{ id, name, parentId }]`; `parentId: null` is the top. A board in one has `workshopId` on its entry in `financeBoards`, and a board without one is at the top — which is every board from before workshops, so there is nothing to migrate. See [Workshops](architecture.md#workshops--where-boards-are-kept)
 

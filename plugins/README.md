@@ -466,7 +466,7 @@ These plugins are maintained as part of Toolboard:
 | Plugin | Path | Description |
 |--------|------|-------------|
 | Developer Tools | `plugins/toolboxes/developer-tools.js` | JWT, Regex, Code Formatter, Cron, Epoch, Diff, Sequence Diagram |
-| Finance Tools | `plugins/toolboxes/finance-tools.js` | Finance Planning (accounts, income and expenses, net worth and where it leads), Investment, Tax (by year, from the shared Tax Brackets tool), Loan calculators (a loan new or already under way, from its current balance and closing date; fields kept) |
+| Finance Tools | `plugins/toolboxes/finance-tools.js` | Finance Planning (accounts, income and expenses, net worth and where it leads), Investment, Tax (by year, from the shared Tax & Retirement Rules tool: brackets, payroll tax, limits and retirement rules), Loan calculators (a loan new or already under way, from its current balance and closing date; fields kept) |
 | Developer Dashboard | `plugins/boards/developer-dashboard.js` | Pre-configured developer workspace |
 
 Load them via **Settings > Plugins > Official Plugins**.
