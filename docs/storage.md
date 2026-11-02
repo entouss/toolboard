@@ -798,9 +798,27 @@ labels.
   tax: { on: true, status: 'single', year: '' },  // federal tax from toolboard_taxBrackets; '' = this year's
   surplusTo: '',                         // account id; '' the first cash account
   assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000,
-            returns: { cash: 2, investment: 7, … } }
+            returns: { cash: 2, investment: 7, … } },
+  retire: { on: false, birth: 'YYYY-MM', ageYears: 65, ageMonths: 0, until: 95,
+            spending: null,              // a month in today's dollars; null = today's expenses
+            buffer: 6 },                 // months of spending kept in cash
+  drawOrder: [ { id } ]                  // accounts drawn on in retirement, in order
 }
+// a retirement account may say tax: 'pretax' (default) or 'roth'
 ```
+
+With `retire.on` and a birth month (the plan's, or a Social Security line's), the plan
+runs to the age in `until` instead of `assume.years`. From the retirement month pay
+stops — Social Security and lines with a `to` of their own go on — and so do
+contributions and pay into accounts; `spending` takes the place of Expenses and rises
+with inflation; loans are still paid. Each month the cash account that takes what is
+left over is kept at `buffer` months of spending by drawing on `drawOrder` (cash, then
+investments, then pre-tax, then Roth, unless reordered; never property). Pre-tax money
+counts as income for the federal estimate, and enough more is drawn to pay that tax.
+From 73 (75 for those born in 1960 or later) each pre-tax account pays out at least
+its balance each January over the IRS Uniform Lifetime factor, a twelfth a month, into
+cash. Pre-tax money drawn before 59½ is said, not penalised. `fpRetireMax` finds the
+most spending that still lasts, by halving.
 
 A Social Security line is worked out as the SSA does: full retirement age from the birth
 year (`fpFullRetirementMonths`), the benefit at that age (`fraBenefit`, today's dollars,

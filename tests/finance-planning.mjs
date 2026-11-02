@@ -351,6 +351,85 @@ await page.waitForSelector('#toolPopup #taxIncome');
 ok('and the Tax Calculator is given the same', (await page.inputValue('#toolPopup #taxIncome')) === String((3000 * 0.85 + 1000) * 12), await page.inputValue('#toolPopup #taxIncome'));
 await page.click('#toolPopup .tool-popup-cancel');
 
+// Retirement: pay stops, savings are drawn on. Inflation and returns at nought here, so
+// every figure can be worked out by hand.
+const R0 = { years: 30, inflation: 0, real: false, spread: 0, target: 0, returns: { cash: 0, investment: 0, retirement: 0, other: 0, property: 0, loan: 0, credit: 0 } };
+const rproj = (shift) => page.evaluate(([i, s]) => fpProject(fpGet(i), s || 0), [id, shift]);
+await setPlan({
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'v', name: 'Fund', kind: 'investment', balance: 100000, rate: 0, monthly: 100 }],
+    incomes: [{ id: 'job', name: 'Job', amount: 5000, every: 'month', growth: 0, taxed: false },
+              { id: 'ss', type: 'ss', name: 'SS', birth: '1970-11', fraBenefit: 2000, claimYears: 62, claimMonths: 0, growth: 0, taxed: false }],
+    expenses: [{ id: 'e', name: 'Costs', amount: 3000, every: 'month', growth: 0 }],
+    tax: { on: false }, assume: R0,
+    retire: { on: true, birth: '', ageYears: 60, ageMonths: 0, until: 70, spending: 3000, buffer: 0 }
+});
+await page.waitForTimeout(200);
+let rp = await rproj();
+ok('the plan runs to the age it is to last to, taking the birth month from Social Security', rp.rows.length - 1 === 14 && rp.rows[0].age === 56 && rp.rows[14].age === 69, rp.rows.length + ' ' + rp.rows[0].age + ' ' + rp.rows[14].age);
+ok('retiring at 60: November 2030', rp.milestones.retire === 49);
+ok('working: $1,900 left over a month, the fund getting its $100', Math.abs(rp.rows[4].assets - (91200 + 104800)) < 0.01, String(rp.rows[4].assets));
+ok('retired: pay and contributions stop, spending comes out of cash', Math.abs(rp.rows[6].assets - (91200 - 72000 + 104800)) < 0.01, String(rp.rows[6].assets));
+ok('Social Security starts at 62 (70% of $2,000) and carries on', Math.abs(rp.rows[7].assets - 104800) < 0.01 && Math.abs(rp.rows[7].cash) < 0.01, rp.rows[7].assets + ' / ' + rp.rows[7].cash);
+ok('then the fund is drawn on, $1,600 a month, until it runs out in April 2039, at 68', rp.milestones.runsOut === 150 &&
+    /It runs out at 68 \(Apr 2039\)/.test(await page.innerText('.fp-retire-out')), rp.milestones.runsOut + ' ' + await page.innerText('.fp-retire-out'));
+ok('the years show the age, and what was drawn', /Withdrawn/.test(await page.innerText('.fp-years')) && Math.abs(rp.rows[9].withdrawn - 1600 * 12) < 0.01, String(rp.rows[9].withdrawn));
+await setPlan(Object.assign(await plan(), { retire: Object.assign((await plan()).retire, { buffer: 6 }) }));
+rp = await rproj();
+ok('a buffer of six months stays in cash; the fund is drawn on to keep it', Math.abs(rp.rows[7].cash - 18000) < 0.01 && Math.abs(rp.rows[7].assets - 104800) < 0.01, rp.rows[7].cash + ' / ' + rp.rows[7].assets);
+
+// Pre-tax money is taxed as it is drawn: enough more is drawn to pay it.
+const taxOf = (annual) => { const t = Math.max(0, annual - 16100); const B = [[0, 12400, .10], [12400, 50400, .12], [50400, 105700, .22], [105700, 201775, .24], [201775, 256225, .32], [256225, 640800, .35], [640800, Infinity, .37]];
+    return B.reduce((s, [lo, hi, r]) => s + (t > lo ? (Math.min(t, hi) - lo) * r : 0), 0); };
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'IRA', kind: 'retirement', balance: 500000, rate: 0, tax: 'pretax' }],
+    tax: { on: true, status: 'single', year: '' }, assume: R0, retire: { on: true, birth: '1960-01', ageYears: 66, ageMonths: 0, until: 70, spending: 5000, buffer: 0 } });
+rp = await rproj();
+const G = rp.rows[1].withdrawn / 12;
+ok('pre-tax: drawn, less its federal tax, comes to the $5,000 spent', Math.abs(G - taxOf(G * 12) / 12 - 5000) < 0.05 && Math.abs(rp.rows[1].withdrawTax - taxOf(G * 12)) < 0.6, G + ' ' + rp.rows[1].withdrawTax);
+await setPlan(Object.assign(await plan(), { accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'Roth IRA', kind: 'retirement', balance: 500000, rate: 0, tax: 'roth' }] }));
+rp = await rproj();
+ok('Roth: drawn as it is, untaxed', Math.abs(rp.rows[1].withdrawn - 60000) < 0.01 && rp.rows[1].withdrawTax === 0);
+
+// The minimum a pre-tax account pays out.
+ok('minimum withdrawals start at 73, or 75 from those born in 1960; the IRS table', await page.evaluate(() => [fpRmdAge(1959), fpRmdAge(1960), fpRmdFactor(73), fpRmdFactor(75), fpRmdFactor(90), fpRmdFactor(130)].join()) === '73,75,26.5,24.6,12.2,2');
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'IRA', kind: 'retirement', balance: 400000, rate: 0, tax: 'pretax' }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1951-06', ageYears: 65, ageMonths: 0, until: 80, spending: 0, buffer: 0 } });
+rp = await rproj();
+const r75 = 400000 / 24.6 / 12, jan = 400000 - 2 * r75, r76 = jan / 23.7 / 12;
+ok('born 1951: paid out from the start — at 75 this year, a twelfth of 1/24.6; from January, of 1/23.7 of what is there then', rp.milestones.rmd === 1 &&
+    Math.abs(rp.rows[1].withdrawn - (2 * r75 + 10 * r76)) < 0.01 && Math.abs(rp.rows[1].cash - rp.rows[1].withdrawn) < 0.01, rp.rows[1].withdrawn + ' vs ' + (2 * r75 + 10 * r76));
+
+// Drawn before 59½: said.
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: '401(k)', kind: 'retirement', balance: 300000, rate: 0 }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1975-01', ageYears: 55, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
+await page.waitForTimeout(150);
+ok('pre-tax money drawn at 55: a 10% penalty may apply', /drawn in Jan 2030, before 59½: a 10% penalty may apply/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
+
+// The order money is drawn in, and changing it.
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'r', name: 'Roth', kind: 'retirement', balance: 10000, rate: 0, tax: 'roth' },
+        { id: 'i', name: 'Brokerage', kind: 'investment', balance: 10000, rate: 0 }, { id: 'h', name: 'Home', kind: 'property', balance: 300000, rate: 0 }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1960-11', ageYears: 66, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
+await page.waitForTimeout(150);
+const drawn = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-draw tr')).map(t => t.innerText.replace('☰', '').replace(/\s+/g, ' ').trim()).join(' | '));
+ok('the usual order: cash, investments, then Roth — property never', (await drawn()) === '1. Cash Cash | 2. Brokerage Investment | 3. Roth Retirement, Roth', await drawn());
+const after12 = async () => { const r = await rproj(); return r.rows[1].assets - 300000; };
+ok('a year at $1,000: the brokerage spent, $2,000 taken from the Roth', Math.abs((await after12()) - 8000) < 0.01 &&
+    await page.evaluate((i) => { const p = fpGet(i); const r = fpProject(p, 0); return true; }, id));
+await page.focus('.fp-draw tr[data-id="r"] .fp-grip');
+await page.keyboard.press('ArrowUp');
+await page.waitForTimeout(150);
+ok('↑ on a row moves it up the order, kept with the plan', (await drawn()).startsWith('1. Cash Cash | 2. Roth') && (await plan()).drawOrder.map(x => x.id).join() === 'c,r,i');
+
+// The most that could be spent.
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'r', name: 'Roth', kind: 'retirement', balance: 120000, rate: 0, tax: 'roth' }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1960-11', ageYears: 66, ageMonths: 0, until: 76, spending: 500, buffer: 0 } });
+const best = await page.evaluate((i) => fpRetireMax(fpGet(i), 0), id);
+ok('the most a month that lasts: $120,000 over ten years is $1,000', best >= 990 && best <= 1000, String(best));
+await page.waitForTimeout(500);
+ok('and the plan says it', /You could spend up to \$(990|1,000) a month in retirement/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
+const summary = await page.evaluate((i) => fpSummaryText(fpGet(i)), id);
+ok('Copy summary has a Retirement part', /### Retirement/.test(summary) && /The money lasts to 76/.test(summary) && /Drawn on in this order: Cash, Roth \(Roth\)/.test(summary), summary.slice(summary.indexOf('### Retirement')));
+ok('and the model reads the same', /\nRetirement:\n- Retire Nov 2026 at 66/.test(await page.evaluate((i) => fpAITarget(i).text, id)));
+
 // Running short.
 await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 3000, rate: 0 }], incomes: [{ id: 'i', name: 'Pay', amount: 2000, every: 'month', growth: 0, taxed: false }],
     expenses: [{ id: 'e', name: 'Rent', amount: 2500, every: 'month', growth: 0 }], tax: { on: false }, assume: { years: 5, inflation: 0, real: false, spread: 0, target: 0, returns: {} } });
@@ -379,8 +458,8 @@ await page.evaluate((i) => { fpSet(i, fpDefaultPlan()); fpRender(document.queryS
 await page.click('.fp-empty .fp-btn');
 await page.waitForTimeout(300);
 const secs = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-section[data-sec]')).map(s => s.dataset.sec + (s.classList.contains('fp-folded') ? '-' : '+')).join());
-ok('seven sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,month+,assumptions+,ahead+' &&
-    (await page.locator('.fp-section .fp-fold').count()) === 7, await secs());
+ok('eight sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,assumptions+,ahead+' &&
+    (await page.locator('.fp-section .fp-fold').count()) === 8, await secs());
 await page.fill(row('Savings') + ' [data-f="balance"]', '15500');
 await page.click('.fp-section[data-sec="summary"] .fp-fold');
 await page.waitForTimeout(150);
@@ -391,16 +470,16 @@ ok('kept with the tool, beside the plan and not in it', await page.evaluate((i) 
     !('fpFolded' in toolCustomizations[i].financePlan), id));
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,month-,assumptions-,ahead-' &&
+ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,assumptions-,ahead-' &&
     (await page.innerText('.fp-fold-all')) === 'Show all' && !(await page.isVisible('.fp-chart')) && !(await page.isVisible(row('Savings'))));
 await page.waitForTimeout(700);
 await page.reload();
 await page.waitForSelector('.fp-widget .fp-section', { timeout: 25000 });
 await page.waitForTimeout(300);
-ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,month-,assumptions-,ahead-');
+ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,assumptions-,ahead-');
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,month+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
+ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
 await page.click('.fp-section[data-sec="income"] .fp-fold');
 await page.selectOption(row('Car loan') + ' [data-f="kind"]', 'credit');
 await page.waitForTimeout(200);
