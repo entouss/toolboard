@@ -119,6 +119,7 @@ PluginRegistry.registerBoard({
 | `styles` | string | No | CSS to inject |
 | `defaultWidth` | number | No | Default width in pixels |
 | `defaultHeight` | number | No | Default height in pixels |
+| `popup` | object | No | `{ fill, read }` (functions or global names): lets another tool open this one for a moment with `openToolPopup()` — `fill(body, inputs)` fills and works it out, `read(body)` returns its figures |
 | `source` | string | No | 'embedded' or 'external' |
 
 ### PluginRegistry.registerToolbox(options)
@@ -465,7 +466,7 @@ These plugins are maintained as part of Toolboard:
 | Plugin | Path | Description |
 |--------|------|-------------|
 | Developer Tools | `plugins/toolboxes/developer-tools.js` | JWT, Regex, Code Formatter, Cron, Epoch, Diff, Sequence Diagram |
-| Finance Tools | `plugins/toolboxes/finance-tools.js` | Investment, Tax (by year, from the shared Tax Brackets tool), Loan calculators (a loan new or already under way, from its current balance and closing date; fields kept) |
+| Finance Tools | `plugins/toolboxes/finance-tools.js` | Finance Planning (accounts, income and expenses, net worth and where it leads), Investment, Tax (by year, from the shared Tax Brackets tool), Loan calculators (a loan new or already under way, from its current balance and closing date; fields kept) |
 | Developer Dashboard | `plugins/boards/developer-dashboard.js` | Pre-configured developer workspace |
 
 Load them via **Settings > Plugins > Official Plugins**.

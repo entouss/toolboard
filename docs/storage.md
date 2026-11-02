@@ -777,6 +777,85 @@ being moved. Grades are stored per school because schools grade differently; any
 that has to combine two of them — a career GPA — works in point values rather than in
 labels.
 
+### Finance Planning — a person's own figures
+
+`toolCustomizations[toolId].financePlan`:
+
+```js
+{
+  accounts: [ { id, name, kind: 'cash'|'investment'|'retirement'|'property'|'other'|'loan'|'credit',
+                balance, rate,          // null rate: the default for its kind, below
+                monthly,                // added a month, or a loan's payment where it has no details
+                compounding,            // investments: 'monthly' (default) or 'annual'
+                loan: { amount, years, extra, closing,      // the Loan Calculator's fields
+                        escrow } } ],                       // the plan's own: tax and insurance a month
+  incomes:  [ { id, name, amount, every: 'month'|'year', growth, from: 'YYYY-MM', to: 'YYYY-MM', taxed,
+                deductions, taxes,       // flat amounts per `every`, as on a pay stub
+                intoAccount, intoAmount, match } ],   // part of the deductions saved into an account, and the employer's match
+            // a Social Security line instead: { id, type: 'ss', name, birth: 'YYYY-MM', fraBenefit,
+            //   claimYears, claimMonths, growth /* cost of living */, to, taxed, deductions, taxes }
+  expenses: [ { id, name, amount, every, growth, from, to } ],   // null growth: inflation
+  tax: { on: true, status: 'single', year: '' },  // federal tax from toolboard_taxBrackets; '' = this year's
+  surplusTo: '',                         // account id; '' the first cash account
+  assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000,
+            returns: { cash: 2, investment: 7, … } }
+}
+```
+
+A Social Security line is worked out as the SSA does: full retirement age from the birth
+year (`fpFullRetirementMonths`), the benefit at that age (`fraBenefit`, today's dollars,
+from the ssa.gov statement) cut by 5/9 of 1% a month for the first 36 months claimed
+early and 5/12 of 1% beyond, or raised 2/3 of 1% a month for waiting, to 70
+(`fpClaimFactor`). It is paid from the month the claiming age is reached and rises by
+`growth`, the cost of living, inflation when empty. The federal estimate counts 85% of
+it, the most that can be taxable; typed taxes on it still win.
+
+Of an income line's deductions, `intoAmount` goes into the asset account `intoAccount`
+(a 401(k), say) and `match` is what the employer adds to it, both in the line's own
+period and growing with it. Both land in the account and are not spent; `intoAmount`
+still comes out of take-home, as on the pay stub, and the deductions count as at least
+that much. With no account, or one that has gone, they are deductions like the rest.
+An account given money from pay and a `monthly` of its own is warned about, in case
+the two are the same money.
+
+A loan's `escrow` is paid each month beside its payment but does not pay it down; it
+rises with inflation and goes on after the loan is paid off, since the tax and
+insurance it covers do. The Loan Calculator has no escrow, so a trip through it keeps
+the plan's.
+
+An income line's `deductions` and `taxes` come out of it, in its own period, and grow
+with it. Taxes typed on a line are paid as typed and keep that line out of the federal
+estimate, which then covers only the `taxed` lines left; take-home is income less
+both.
+
+A loan with its original amount, term and a rate has its payment worked out from them,
+as the Loan Calculator does, with `extra` on top; a loan without them uses `monthly`. A
+loan's balance left empty, with a closing date, is what its schedule says is owed today.
+The popup sends every one of these fields to the calculator and takes every one back.
+
+Each of the three lists may hold section headings, `{ id, type: 'section', name, folded }`.
+An entry belongs to the heading above it, and entries above the first heading belong to
+none. A heading shows its section's totals: for accounts, held, owed, net, and paid in
+and out a month; for income and expenses, the lines running now, a month and a year.
+Folded, its entries are out of sight and its totals stay. The sums skip headings
+(`fpCalc`), so sectioning changes nothing that is worked out. A heading moves with its
+entries as one block, and only to where a section begins; removing a heading keeps its
+entries, which join the section above. An entry moved under a folded heading opens it.
+
+`accounts`, `incomes` and `expenses` are each in the order shown, which the person sets
+by dragging a row's ☰ or pressing ↑/↓ on it; a row moves only within its own list. The first cash account in that order is where what is left over
+goes when `surplusTo` is empty.
+
+Beside it, `fpFolded` lists the sections folded to their headings (`summary`,
+`accounts`, `income`, `expenses`, `month`, `assumptions`, `ahead`), for looking at
+the plan with someone else there. That is how the tool is being looked at, not part
+of the plan, so it is kept outside `financePlan`.
+
+It is board data, so it is undone like any edit and kept in JSON exports, which are
+the person's own backups. It is **not** carried by share links or HTML exports:
+`PRIVATE_SHARE_KEYS` in `index.html` lists the keys that stay behind when a tool goes
+to someone else, and `financePlan` is one.
+
 ## App-Level Keys (not board-scoped)
 
 - `toolboard_pluginUrls` — installed external plugin URLs

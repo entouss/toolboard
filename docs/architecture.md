@@ -345,7 +345,7 @@ summary, what needs attention and what is due this week this way, over a compact
 (`classGradesAIText`) small enough for the model's input. An action of a tool's own
 may also take `input` (a placeholder: it asks for a line first, passed as
 `prompt(text, input)`), `needsText: false` (it runs on an empty tool), `schema` with
-`preview(data)` and an optional `parse(json)` (the model answers in JSON, the popup
+`preview(data, target)` and an optional `parse(json, target)` (the model answers in JSON, the popup
 shows the preview, and `apply` gets the data as `info.data` in
 `apply(toolId, result, how, target, { action, data })`), `apply: false` (Copy only),
 `applyLabels: { replace, insert }`, `applyHow: ['replace']` (which of the two it
@@ -369,7 +369,7 @@ the table to schedule; Break this row down works on the row whose cell has the c
 own slack bands: given to the model with each row, and then put right on each bullet
 by `finish(result, target)`, a tool action's last word on what came back
 (`projAISquareUp`), so the square is the table's wherever it knows. A row it can
-only call not started keeps the model's square, which may come from the notes. An
+only call not started keeps the model's square, which may come from the notes. Finance Planning does the same with a person's own money (`fpAI*`): the model reads every figure already worked out, with a few facts drawn from them (months of cash, savings rate, debt payments), and never sums; its prose ends with the note that it is an estimate, not advice (`finish`), and Sort expenses into sections uses the target in `parse` and `preview` to know the lines. An
 `apply` that returns `false` refuses, and the popup stays open. The Agenda Timer uses
 all of them: planning, **Draft an agenda…** asks what it is for and fills the plan by
 Replace the plan or Add to the plan; after a run, **Write-up** and **Action items**
@@ -472,3 +472,31 @@ Three plugin types registered via global `PluginRegistry`:
 Plugin files live in `plugins/toolboxes/` and `plugins/boards/`. They're loaded via `<script>` tags (either from the official plugins list or user-added URLs saved in localStorage).
 
 Plugins can also be installed on demand: opening a `#tool/<toolId>` link resolves the tool to the plugin that provides it, installs that plugin, and opens the tool maximized — see [URL Hashes](urls.md).
+
+### A tool for a moment — `openToolPopup()`
+
+One tool can open another in a popup, filled from what it knows, and take back what
+it comes to: Finance Planning opens a loan account in the Loan Calculator, and **Use
+these figures** puts the balance, rate and payment back in the account. The copy in
+the popup is not on the board and nothing in it is saved: no tool id, no
+customizations, no undo.
+
+```js
+openToolPopup('loan-calculator', {
+    title: 'Loan Calculator: Mortgage',
+    inputs: { amount: 300000, balance: 250000, rate: 6.5, years: 30 },
+    useLabel: 'Use these figures',          // optional
+    onUse: (figures) => { /* … */ }          // return false to keep it open
+});
+```
+
+A tool takes part by declaring `popup: { fill, read }` when it registers (functions or
+global names): `fill(body, inputs)` puts the values in and works the tool out, and
+`read(body)` returns its figures, or `null`. Without `onUse` the popup is only to look
+at, with Close. Escape belongs to the popup while it is open, ahead of the board's own
+uses of it, and the focus goes back to whatever opened it.
+
+Because a tool can now be on the board and in a popup at once, a tool that takes part
+must find its fields inside its own widget, never by `document.getElementById`: the
+finance calculators work out `calculateLoan(el)` for the widget `el` is in, and every
+widget of that kind when called with nothing, as at start-up.

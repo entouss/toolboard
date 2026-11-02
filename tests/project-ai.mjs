@@ -131,7 +131,7 @@ await replies([JSON.stringify({ rows: [{ task: 'Set up the site', size: 'S', aft
 await page.click(P + '.bai-item[data-ai="custom:breakdown"]');
 await done();
 call = (await prompts())[0];
-ok('the row goes to the model, with the plan around it', /Break this task into the smaller tasks[^]*#2 Build: size L \(30 d\)/.test(call.input) && /The rest of the plan, for context:\nPlan as of/.test(call.input), call.input.slice(0, 200));
+ok('the row goes to the model, with the plan around it', /in the order they happen:\n\S+ #2 Build: size L \(30 d\)/.test(call.input) && /The rest of the plan, for context:\nPlan as of/.test(call.input), call.input.slice(0, 200));
 ok('one way in, named for the row: no Replace', (await page.textContent(P + '.bai-insert')) === 'Add as sub-rows of #2' && !(await visible('.bai-replace')));
 await page.click(P + '.bai-insert');
 await page.waitForTimeout(300);
