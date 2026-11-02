@@ -33,6 +33,8 @@ The router splits the query off, decodes it, and hands it to the tool named by t
 PluginRegistry.registerTool({ id: 'curriculum-explorer', hashParams: 'currApplyHashParams', … });
 ```
 
+Finance Planning takes `?example=1` (`fpApplyHashParams`): an empty planner is filled with the made-up example its guide shows; one already in use is left alone.
+
 `applyToolHashParams` calls `window[hashParams](instanceId, params)` once the tool exists — for a tool the link created, after `onReady`; for one already on the board, right after it is maximized. So the same link works whether or not the visitor has the tool already.
 
 Anything the parameters name has to be reachable from the browser: `http`/`https`, and a host that allows cross-origin reads. Where a host does not, the Curriculum Explorer retries through the board's CORS proxy (`functions/ics-proxy`), which answers only the published origins — so the fallback works on `toolboard.me` and refuses elsewhere, and the tool says which route the document came by.

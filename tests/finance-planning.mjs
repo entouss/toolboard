@@ -180,6 +180,18 @@ const debtFreeText = new Date(2026, 10 + loanMonths - 1, 1).toLocaleDateString('
 ok('said as a date', shown.includes('Debt-free ' + debtFreeText), shown.slice(0, 200));
 ok('and the goal, the month net worth passes it', proj.milestones.target !== null && shown.includes('$250,000 net worth'));
 ok('a row a year, and the chart', proj.rows.length === 11 && await page.isVisible('.fp-chart'));
+// The scale's labels never sit on one another: a small debt beside large assets puts the
+// bottom of the scale just under $0.
+await setPlan(Object.assign(await plan(), { accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 250000, rate: 0 }, { id: 'l', name: 'Loan', kind: 'loan', balance: 5000, rate: 5, monthly: 500 }] }));
+await page.waitForTimeout(200);
+const axis = await page.evaluate(() => Array.from(document.querySelectorAll('.fp-chart > text[text-anchor="end"]')).map(t => ({ text: t.textContent, y: Number(t.getAttribute('y')) })));
+ok('a small debt: no two labels of the scale on top of one another, and $0 still said', axis.every((a, i) => axis.every((b, j) => i === j || Math.abs(a.y - b.y) >= 12)) &&
+    axis.some(a => a.text === '$0') && !axis.some(a => a.text === '−$5k'), JSON.stringify(axis));
+ok('the grid line keeps its place, and the debt its line', (await page.locator('.fp-chart .fp-grid, .fp-chart .fp-zero').count()) === 4 && await page.isVisible('.fp-chart .fp-liab'));
+await setPlan(Object.assign(await plan(), { accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'v', name: 'Fund', kind: 'investment', balance: 0, rate: 6, monthly: 500 },
+    { id: 'l', name: 'Loan', kind: 'loan', balance: 10000, rate: 12, monthly: 500 }] }));
+await page.waitForTimeout(200);
+
 // The years the chart and the year table look at.
 const ticks = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-chart > text[text-anchor="middle"]')).map(t => t.textContent).join());
 const tableYears = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-years tbody tr td:first-child')).map(t => t.textContent).join());
@@ -237,8 +249,9 @@ ok('and the tax brackets move up with inflation, so a year in, the same income p
 
 // Annual compounding, as the Investment Calculator counts it: a year's growth on what
 // was there at its start, what went in during the year added at its end.
+// (Pay of $100 a month covers what goes in: with nothing to pay for it, the fund would be drawn on.)
 await setPlan({ accounts: [{ id: 'v', name: 'Fund', kind: 'investment', balance: 100000, rate: 6, monthly: 100, compounding: 'annual' }],
-    tax: { on: false }, assume: { years: 10, inflation: 0, real: false, spread: 0, target: 0, returns: {} } });
+    incomes: [{ id: 'i', name: 'Pay', amount: 100, every: 'month', growth: 0, taxed: false }], tax: { on: false }, assume: { years: 10, inflation: 0, real: false, spread: 0, target: 0, returns: {} } });
 let fv = 100000; for (let y = 0; y < 10; y++) fv = fv * 1.06 + 1200;
 let fundEnd = await page.evaluate((i) => fpProject(fpGet(i), 0).rows[10].assets, id);
 ok('annual compounding: the Investment Calculator’s sum', Math.abs(fundEnd - fv) < 0.01, fundEnd + ' vs ' + fv);
@@ -273,13 +286,14 @@ await setPlan({
 });
 await page.waitForTimeout(150);
 first = await page.evaluate((i) => fpProject(fpGet(i), 0).first, id);
-// Side work alone is estimated: $24,000 less the $16,100 deduction is $7,900, at 10%.
-const sideTax = (24000 - 16100) * 0.10;
+// Side work is estimated on top of the job, whose taxes are typed: tax on $96,000 less tax
+// on the job's $72,000 — $12,290 less $7,010, $5,280 a year.
+const sideTax = 12290 - 7010;
 ok('deductions come out, in each line’s own period', Math.abs(first.deductions - (500 + 100)) < 1e-9, String(first.deductions));
-ok('taxes typed are paid as typed, and that line is left out of the estimate', Math.abs(first.typedTax - 1200) < 1e-9 && Math.abs(first.estimatedTax - sideTax / 12) < 1e-9 &&
+ok('taxes typed are paid as typed, and the rest is estimated in the brackets above that line', Math.abs(first.typedTax - 1200) < 1e-9 && Math.abs(first.estimatedTax - sideTax / 12) < 1e-9 &&
     Math.abs(first.tax - (1200 + sideTax / 12)) < 1e-9, JSON.stringify(first));
 ok('take-home: income, less deductions, less taxes', Math.abs(first.takeHome - (8000 - 600 - 1200 - sideTax / 12)) < 1e-9 && /deductions \$600/.test(await page.innerText('.fp-month')) &&
-    /take-home \$6,134/.test(await page.innerText('.fp-month')), await page.innerText('.fp-month'));
+    /take-home \$5,760/.test(await page.innerText('.fp-month')), await page.innerText('.fp-month'));
 const year2 = await page.evaluate((i) => { const p = fpGet(i); p.tax.on = false; p.incomes = p.incomes.slice(0, 1); return fpProject(p, 0); }, id);
 ok('and they grow with the income: a year on, the job’s 10% raise lifts all three', Math.abs(year2.rows[2].cash - (() => { let c = 0; for (let t = 1; t <= 24; t++) { const g = Math.pow(1.1, (t - 1) / 12); c += (6000 - 500 - 1200) * g; } return c; })()) < 0.01);
 ok('a line with typed taxes says “estimate” no more; one without, still does', (await page.getAttribute('tr[data-id="b"] [data-f="taxes"]', 'placeholder')) === 'estimate' &&
@@ -333,22 +347,22 @@ ok('a month now says it went into the account, saved and not spent', /From pay, 
 await page.click('tr[data-id="j"] .fp-more');
 await page.waitForTimeout(150);
 const incDetail = 'tr.fp-income-detail[data-id="j"]';
-ok('▸ on an income line: which part of its deductions goes where, and the match', (await page.inputValue(incDetail + ' [data-f="intoAmount"]')) === '600' &&
-    (await page.inputValue(incDetail + ' [data-f="intoAccount"]')) === 'k' && (await page.inputValue(incDetail + ' [data-f="match"]')) === '300' &&
+ok('▸ on an income line: which part of its deductions goes where, and the match — a plan from before read as one row', (await page.inputValue(incDetail + ' [data-f="into.amount"]')) === '600' &&
+    (await page.inputValue(incDetail + ' [data-f="into.account"]')) === 'k' && (await page.inputValue(incDetail + ' [data-f="into.match"]')) === '300' &&
     /Into 401\(k\): \$900 a month/.test(await page.innerText(incDetail)));
 ok('the account’s section total counts it as going in', await page.evaluate((i) => { const p = fpGet(i); return fpSectionTotal(p, 'accounts', fpEntries(p.accounts)).monthlyIn; }, id) === 900);
 await page.fill('tr[data-id="k"] [data-f="monthly"]', '600');
 await page.waitForTimeout(150);
 ok('the same account with money of its own too: a warning it may be counted twice', /counted twice/.test(await page.innerText(incDetail)));
 await page.fill('tr[data-id="k"] [data-f="monthly"]', '');
-await page.fill(incDetail + ' [data-f="intoAmount"]', '1200');
+await page.fill(incDetail + ' [data-f="into.amount"]', '1200');
 await page.waitForTimeout(150);
 pay = await page.evaluate((i) => fpProject(fpGet(i), 0).first, id);
 ok('more into the account than the deductions typed: the deductions are at least that', Math.abs(pay.deductions - 1200) < 1e-9 && /more than the deductions typed/.test(await page.innerText(incDetail)));
 await page.click('tr[data-id="k"] .fp-x');
 await page.waitForTimeout(150);
 pay = await page.evaluate((i) => ({ first: fpProject(fpGet(i), 0).first, line: fpGet(i).incomes[0] }), id);
-ok('the account removed: the line forgets it, and the deductions are simply spent', pay.line.intoAccount === '' && pay.first.payrollOwn === 0 && Math.abs(pay.first.takeHome - (8000 - 1000 - 1500)) < 1e-9, JSON.stringify(pay));
+ok('the account removed: the line forgets it, and the deductions are simply spent', pay.line.into[0].account === '' && pay.line.intoAccount === undefined && pay.first.payrollOwn === 0 && Math.abs(pay.first.takeHome - (8000 - 1000 - 1500)) < 1e-9, JSON.stringify(pay));
 
 // Social Security, as the SSA works it out.
 const fra = await page.evaluate(() => [1937, 1938, 1943, 1954, 1955, 1957, 1959, 1960, 1990].map(fpFullRetirementMonths));
@@ -360,13 +374,13 @@ await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, ra
 await page.click('.fp-section[data-sec="income"] .fp-head-acts .fp-btn:has-text("+ Social Security")');
 await page.waitForTimeout(150);
 ok('+ Social Security: a line, its details open on the birth month', await page.evaluate(() => document.activeElement && document.activeElement.dataset.f === 'birth') &&
-    /Your birth month and the benefit/.test(await page.innerText('tr.fp-income-detail')));
+    /Your birth month, and the benefit at full retirement age .* or, left empty, an estimate from pay/.test(await page.innerText('tr.fp-income-detail')));
 await page.fill('tr.fp-income-detail [data-f="birth"]', '1990-03');
 await page.fill('tr.fp-income-detail [data-f="fraBenefit"]', '2400');
 await page.waitForTimeout(150);
 const ssText = await page.innerText('tr.fp-income-detail');
 ok('worked out: full retirement age 67, all of it at 67, from March 2057, and what that is then', /Full retirement age 67/.test(ssText) && /100% of the benefit/.test(ssText) &&
-    ssText.includes('Starts Mar 2057 at $2,400.00 a month in today’s dollars, about ' + money(2400 * Math.pow(1.02, 31 + (2 - 10) / 12)) + ' then'), ssText.replace(/\n/g, ' | '));
+    ssText.includes('Starts Mar 2057, at 67, with $2,400.00 a month in today’s dollars, about ' + money(2400 * Math.pow(1.02, 31 + (2 - 10) / 12)) + ' then'), ssText.replace(/\n/g, ' | '));
 ok('the line shows the amount and the month it starts', (await page.innerText('.fp-ss-amount')) === '$2,400.00' && (await page.innerText('.fp-ss-start')) === '2057-03');
 ok('and Ahead says when', /Social Security starts Mar 2057/.test(await page.innerText('.fp-projection')));
 await page.fill('tr.fp-income-detail [data-f="claimYears"]', '62');
@@ -440,11 +454,11 @@ const r75 = 400000 / 24.6 / 12, jan = 400000 - 2 * r75, r76 = jan / 23.7 / 12;
 ok('born 1951: paid out from the start — at 75 this year, a twelfth of 1/24.6; from January, of 1/23.7 of what is there then', rp.milestones.rmd === 1 &&
     Math.abs(rp.rows[1].withdrawn - (2 * r75 + 10 * r76)) < 0.01 && Math.abs(rp.rows[1].cash - rp.rows[1].withdrawn) < 0.01, rp.rows[1].withdrawn + ' vs ' + (2 * r75 + 10 * r76));
 
-// Drawn before 59½: said.
-await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: '401(k)', kind: 'retirement', balance: 300000, rate: 0 }],
+// Drawn before 59½: said — from an IRA. (A 401(k) left at 55, below, is not.)
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'IRA', kind: 'retirement', balance: 300000, rate: 0, planType: 'ira' }],
     tax: { on: false }, assume: R0, retire: { on: true, birth: '1975-01', ageYears: 55, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
 await page.waitForTimeout(150);
-ok('pre-tax money drawn at 55: a 10% penalty may apply', /drawn in Jan 2030, before 59½: a 10% penalty may apply/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
+ok('pre-tax money drawn at 55: a 10% penalty may apply', /drawn in Jan 2030, at 55, before 59½: a 10% penalty may apply/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
 
 // The order money is drawn in, and changing it.
 await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'r', name: 'Roth', kind: 'retirement', balance: 10000, rate: 0, tax: 'roth' },
@@ -452,7 +466,7 @@ await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, ra
     tax: { on: false }, assume: R0, retire: { on: true, birth: '1960-11', ageYears: 66, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
 await page.waitForTimeout(150);
 const drawn = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-draw tr')).map(t => t.innerText.replace('☰', '').replace(/\s+/g, ' ').trim()).join(' | '));
-ok('the usual order: cash, investments, then Roth — property never', (await drawn()) === '1. Cash Cash | 2. Brokerage Investment | 3. Roth Retirement, Roth', await drawn());
+ok('the usual order: cash, investments, then Roth — property never', (await drawn()) === '1. Cash Cash | 2. Brokerage Investment | 3. Roth Roth 401(k)', await drawn());
 const after12 = async () => { const r = await rproj(); return r.rows[1].assets - 300000; };
 ok('a year at $1,000: the brokerage spent, $2,000 taken from the Roth', Math.abs((await after12()) - 8000) < 0.01 &&
     await page.evaluate((i) => { const p = fpGet(i); const r = fpProject(p, 0); return true; }, id));
@@ -469,7 +483,7 @@ ok('the most a month that lasts: $120,000 over ten years is $1,000', best >= 990
 await page.waitForTimeout(500);
 ok('and the plan says it', /You could spend up to \$(990|1,000) a month in retirement/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
 const summary = await page.evaluate((i) => fpSummaryText(fpGet(i)), id);
-ok('Copy summary has a Retirement part', /### Retirement/.test(summary) && /The money lasts to 76/.test(summary) && /Drawn on in this order: Cash, Roth \(Roth\)/.test(summary), summary.slice(summary.indexOf('### Retirement')));
+ok('Copy summary has a Retirement part', /### Retirement/.test(summary) && /The money lasts to 76/.test(summary) && /Drawn on in this order: Cash, Roth \(Roth 401\(k\)\)/.test(summary), summary.slice(summary.indexOf('### Retirement')));
 ok('and the model reads the same', /\nRetirement:\n- Retire Nov 2026 at 66/.test(await page.evaluate((i) => fpAITarget(i).text, id)));
 
 // Running short.
@@ -500,8 +514,8 @@ await page.evaluate((i) => { fpSet(i, fpDefaultPlan()); fpRender(document.queryS
 await page.click('.fp-empty .fp-btn');
 await page.waitForTimeout(300);
 const secs = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-section[data-sec]')).map(s => s.dataset.sec + (s.classList.contains('fp-folded') ? '-' : '+')).join());
-ok('eight sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,assumptions+,ahead+' &&
-    (await page.locator('.fp-section .fp-fold').count()) === 8, await secs());
+ok('nine sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,advice+,assumptions+,ahead+' &&
+    (await page.locator('.fp-section .fp-fold').count()) === 9, await secs());
 await page.fill(row('Savings') + ' [data-f="balance"]', '15500');
 await page.click('.fp-section[data-sec="summary"] .fp-fold');
 await page.waitForTimeout(150);
@@ -512,16 +526,16 @@ ok('kept with the tool, beside the plan and not in it', await page.evaluate((i) 
     !('fpFolded' in toolCustomizations[i].financePlan), id));
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,assumptions-,ahead-' &&
+ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,advice-,assumptions-,ahead-' &&
     (await page.innerText('.fp-fold-all')) === 'Show all' && !(await page.isVisible('.fp-chart')) && !(await page.isVisible(row('Savings'))));
 await page.waitForTimeout(700);
 await page.reload();
 await page.waitForSelector('.fp-widget .fp-section', { timeout: 25000 });
 await page.waitForTimeout(300);
-ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,assumptions-,ahead-');
+ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,advice-,assumptions-,ahead-');
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
+ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,advice+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
 await page.click('.fp-section[data-sec="income"] .fp-fold');
 await page.selectOption(row('Car loan') + ' [data-f="kind"]', 'credit');
 await page.waitForTimeout(200);
@@ -705,7 +719,7 @@ L = await lim();
 ok('an IRA: $700 a month is over its $7,500', L.over && L.ira && L.yearly === 8400 && L.limit === 7500, JSON.stringify(L));
 await page.click('tr[data-id="k"] .fp-more');
 await page.waitForTimeout(150);
-ok('its details: the plan type, and what the limit is', (await page.inputValue('tr.fp-detail[data-id="k"] [data-f="planType"]')) === 'ira' &&
+ok('its kind says it is an IRA, and its details what the limit is', (await page.inputValue('tr[data-id="k"] [data-f="kind"]')) === 'retirement:ira:pretax' &&
     /\$8,400 a year goes in, over the 2026 IRA limit of \$7,500/.test(await page.innerText('tr.fp-detail[data-id="k"]')));
 
 // Capital gains on what is drawn from an investment account given a cost basis. A
@@ -777,6 +791,15 @@ ok('and what is needed only shrinks, year on year', nd.rows.every((r, i) => i ==
 await setPlan(Object.assign({}, NEED, { incomes: NEED.incomes.concat([{ id: 'pen', name: 'Pension', amount: 1000, every: 'month', growth: 0, taxed: false, wages: false, to: '2030-10' }]) }));
 nd = await needOf();
 ok('a pension with an end goes on to it: $48,000 less to stop now', Math.abs(nd.rows[0].needed - 312000) < 200, String(nd.rows[0].needed));
+// Retiring at 55 in the plan: from then on, what can be drawn on is what the plan draws
+// down — as Ahead shows it, never more than the assets.
+await setPlan(Object.assign({}, NEED, { retire: Object.assign({}, NEED.retire, { on: true, ageYears: 55 }) }));
+const both = await page.evaluate((i) => { const p = fpGet(i); return [fpNeededToStop(p).rows, fpProject(p, 0).rows]; }, id);
+// (With no debts, that is net worth less the home — overdrawn cash counted against it.)
+ok('what can be drawn on follows the plan through retirement: net worth less the home, every year',
+    both[0].every(r => { const row = both[1].find(x => x.t === r.t); return row && Math.abs(r.have - (row.net - 300000)) < 1e-6; }),
+    both[0].map(r => Math.round(r.have)).join() + ' / ' + both[1].map(r => Math.round(r.net - 300000)).join());
+ok('and before retiring, the same as working on', Math.abs(both[0][2].have - 50400) < 1e-6);
 // Social Security from 62 (70% of $1,000) on to 70: the years it pays need less.
 await setPlan(Object.assign({}, NEED, { incomes: NEED.incomes.concat([{ id: 'ss', type: 'ss', name: 'SS', birth: '1976-11', fraBenefit: 1000, claimYears: 62, claimMonths: 0, growth: 0, taxed: false }]),
     retire: Object.assign({}, NEED.retire, { until: 70 }) }));
@@ -836,6 +859,417 @@ const timing = await page.evaluate((i) => {
     const t0 = performance.now(); const n = fpNeededToStop(p); return [performance.now() - t0, n.rows.length];
 }, id);
 ok('fifty-five years of it, worked out in well under two seconds', timing[1] === 55 && timing[0] < 2000, timing.join(' ms, rows '));
+
+// Ages beside years and months, wherever the household's birth month is known.
+ok('ages count by the month: born Nov 1976, 50 in Nov 2026 and 49 in Oct 2026', await page.evaluate(() => {
+    const p = { retire: { birth: '1976-11' }, incomes: [] };
+    return fpAgeAt(p, new Date(2026, 10, 1)) === 50 && fpAgeAt(p, new Date(2026, 9, 1)) === 49 && fpAgeAt({ retire: {}, incomes: [] }, new Date()) === null &&
+        fpAgeAt({ retire: {}, incomes: [{ id: 's', type: 'ss', birth: '1980-01' }] }, new Date(2026, 10, 1)) === 46;
+}));
+await setPlan({
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 1000, rate: 0 }, { id: 'l', name: 'Car', kind: 'loan', balance: 10000, rate: 0, monthly: 500 },
+               { id: 'm', name: 'Mortgage', kind: 'loan', balance: 10000, rate: 6, loan: { amount: 120000, years: 30, extra: 0, closing: '' } }],
+    incomes: [{ id: 'job', name: 'Job', amount: 2000, every: 'month', growth: 0, taxed: false, from: '2027-01', to: '2030-10' }],
+    expenses: [{ id: 'e', name: 'Costs', amount: 2500, every: 'month', growth: 0 }],
+    tax: { on: false }, assume: Object.assign({}, R0, { years: 10, target: 0 }),
+    retire: { on: false, birth: '1976-11', ageYears: 55, ageMonths: 0, until: 90, spending: 1000, buffer: 0 }
+});
+await page.waitForTimeout(700);
+ahead = await page.innerText('.fp-projection');
+// The last row is the end of October 2036, a month short of 60.
+ok('Ahead: a month and the age then — cash runs out in Nov 2026, at 50; debt-free at 51', /Cash runs out Nov 2026, at 50/.test(ahead) && /Debt-free \w{3} 2028, at 51/.test(ahead), ahead.slice(0, 300));
+ok('the subtitle and the end of the table: to age 59, and in 2036, at 59', /10 years, to age 59/.test(ahead) && /In 2036, at 59:/.test(ahead));
+const ageCol = await page.evaluate(() => {
+    const heads = Array.from(document.querySelectorAll('.fp-years thead th')).map(t => t.textContent);
+    return [heads[1], Array.from(document.querySelectorAll('.fp-years tbody tr')).map(tr => tr.children[0].textContent + '=' + tr.children[1].textContent).slice(0, 3).join()];
+});
+ok('the year table has an Age column with Retirement off', ageCol[0] === 'Age' && ageCol[1] === 'Now=50,2027=50,2028=51', ageCol.join(' | '));
+ok('the chart: the age under each year, and in the tips', await page.evaluate(() => Array.from(document.querySelectorAll('.fp-chart .fp-tick-age')).length > 2 &&
+    /^2027, age 50 — /.test(document.querySelectorAll('.fp-chart .fp-hit title')[1].textContent)));
+ok('the year lists: the year and the age', (await page.evaluate(() => Array.from(document.querySelectorAll('.fp-range-from option')).slice(0, 2).map(o => o.textContent).join())) === 'Now · 50,2027 · 50');
+await page.click('tr[data-id="m"] .fp-more');
+await page.waitForTimeout(150);
+ok('a loan’s payoff month, with the age then', /Time left .* · \w{3} \d{4}, at \d+/.test(await page.innerText('tr.fp-detail[data-id="m"]')), await page.innerText('tr.fp-detail[data-id="m"]'));
+ok('From and Until say the age in their hints', (await page.getAttribute('tr[data-id="job"] [data-f="to"]', 'title')) === 'Until (empty: no end) — at 53' &&
+    (await page.getAttribute('tr[data-id="job"] [data-f="from"]', 'title')) === 'From (empty: now) — at 50');
+await page.click('.fp-section[data-sec="ahead"] .fp-head-acts .fp-btn');
+await page.waitForTimeout(200);
+const copiedAges = await page.evaluate(() => navigator.clipboard.readText());
+ok('Copy summary: an Age column, and the age with each month', /\| Year \| Age \| Assets/.test(copiedAges) && /\| Now \| 50 \|/.test(copiedAges) && /Debt-free \w{3} \d{4}, at \d+\./.test(copiedAges), copiedAges.slice(0, 600));
+ok('and what BoardAI reads', /Cash runs out in Nov 2026, at 50\./.test(await page.evaluate((i) => (fpAITarget(i) || {}).text || '', id)));
+await setPlan(Object.assign(await plan(), { retire: Object.assign({}, (await plan()).retire, { birth: '' }) }));
+await page.waitForTimeout(300);
+ahead = await page.innerText('.fp-projection');
+ok('without a birth month: as before, no ages', /Cash runs out Nov 2026$/m.test(ahead.split('\n').find(l => /Cash runs out/.test(l)) || '') && !(await page.isVisible('.fp-chart .fp-tick-age')) &&
+    (await page.evaluate(() => document.querySelectorAll('.fp-years thead th')[1].textContent)) !== 'Age', ahead.slice(0, 200));
+
+// Social Security estimated from pay, when no statement amount is given. Pay rising with
+// inflation is the same in today's dollars every year: $60,000 a year from 22 to 70.
+// The best 35 years average $5,000 a month: 90% of $1,286 and 32% of the $3,714 above
+// it is $1,157.40 + $1,188.48 = $2,345.88.
+const SSE = {
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }],
+    incomes: [{ id: 'job', name: 'Job', amount: 60000, every: 'year', growth: null, taxed: false },
+              { id: 'ss', type: 'ss', name: 'SS', birth: '1966-11', fraBenefit: null, claimYears: 67, claimMonths: 0, growth: 0, taxed: false }],
+    tax: { on: false }, assume: Object.assign({}, R0, { inflation: 2.5, years: 10 })
+};
+await setPlan(SSE);
+const est = (stop) => page.evaluate(([i, s]) => { const p = fpGet(i); return fpSSEstimate(p, p.incomes.find(l => l.id === 'ss'), s ? new Date(s[0], s[1], 1) : null); }, [id, stop]);
+let e1 = await est();
+ok('estimated from pay: $60,000 a year for 35 years is $5,000 a month, and $2,345.88 at full retirement age', Math.abs(e1.aime - 5000) < 1e-6 && Math.abs(e1.pia - 2345.88) < 1e-6 && e1.years === 35, JSON.stringify(e1));
+ok('the line uses it while the benefit is empty', await page.evaluate((i) => { const s = fpSSInfo(fpGet(i).incomes.find(l => l.id === 'ss')); return s.estimated && Math.abs(s.monthlyToday - 2345.88) < 1e-6; }, id));
+await setPlan(Object.assign({}, SSE, { incomes: [Object.assign({}, SSE.incomes[0], { amount: 300000 }), SSE.incomes[1]] }));
+e1 = await est();
+ok('pay above the wage base counts only to it: $184,500 a year → $4,369.46', Math.abs(e1.pia - (1157.4 + 0.32 * (7749 - 1286) + 0.15 * (184500 / 12 - 7749))) < 1e-6, String(e1.pia));
+await setPlan(Object.assign({}, SSE, { incomes: [SSE.incomes[0], Object.assign({}, SSE.incomes[1], { birth: '2000-11' })] }));
+e1 = await est([2026, 10]);
+// Born 2000, working from 22: 2022 to 2025 and ten months of 2026 — $290,000 over 420 months.
+ok('fewer than 35 years: the missing years count as nothing ($290,000 over 420 months, 90% of it)', Math.abs(e1.pia - 0.9 * 290000 / 420) < 1e-6 && e1.years === 5, JSON.stringify(e1));
+const e2 = await est([2036, 10]);
+ok('and stopping work later earns more', e2.pia > e1.pia);
+await setPlan(Object.assign({}, SSE, { incomes: [SSE.incomes[0], Object.assign({}, SSE.incomes[1], { workFrom: 30, pastPay: 30000 })] }));
+e1 = await est();
+// From 30: 1996 to 2025 at $30,000 (30 years); 2026, ten months of that and two at the new
+// pay ($35,000); 2027 to 2036 at $60,000. The best 35: ten at $60,000, 2026, and 24 at $30,000.
+ok('starting age and past pay: what the years before now are counted as', Math.abs(e1.aime - (10 * 60000 + 35000 + 24 * 30000) / 420) < 1e-6, JSON.stringify(e1));
+await setPlan(Object.assign({}, SSE, { incomes: [SSE.incomes[0], Object.assign({}, SSE.incomes[1], { fraBenefit: 2000 })] }));
+ok('a statement amount typed: used, not the estimate', await page.evaluate((i) => { const s = fpSSInfo(fpGet(i).incomes.find(l => l.id === 'ss')); return !s.estimated && s.monthlyToday === 2000; }, id));
+await setPlan(Object.assign({}, SSE, { incomes: SSE.incomes.concat([{ id: 'ss2', type: 'ss', name: 'SS 2', birth: '1968-05', fraBenefit: null, claimYears: 67, claimMonths: 0, growth: 0, taxed: false }]) }));
+ok('two Social Security lines: neither guesses whose pay is whose', (await est()) === null);
+await page.click('tr[data-id="ss"] .fp-more');
+await page.waitForTimeout(150);
+await page.check('tr.fp-income-detail[data-id="ss"] [data-f="payFrom"][value="job"]');
+await page.waitForTimeout(200);
+ok('the pay chosen in its details: kept, and estimated from', JSON.stringify((await plan()).incomes.find(l => l.id === 'ss').payFrom) === '["job"]' && Math.abs((await est()).pia - 2345.88) < 1e-6);
+ok('the details say so, and the benefit field shows it', /Estimated from pay: \$2,345\.88 a month at full retirement age, from 35 years/.test(await page.innerText('tr.fp-income-detail[data-id="ss"]')) &&
+    (await page.getAttribute('tr.fp-income-detail[data-id="ss"] [data-f="fraBenefit"]', 'placeholder')) === 'est. 2346');
+ok('and the estimate is not saved with the plan', !JSON.stringify(await page.evaluate((i) => toolCustomizations[i].financePlan, id)).includes('_est'));
+await page.fill('tr[data-id="job"] [data-f="amount"]', '72000');
+await page.waitForTimeout(200);
+ok('pay changed: the estimate follows ($6,000 a month: $1,157.40 + 32% of $4,714 = $2,665.88)', /Estimated from pay: \$2,665\.88/.test(await page.innerText('tr.fp-income-detail[data-id="ss"]')), await page.innerText('tr.fp-income-detail[data-id="ss"]'));
+// Stopping sooner, a smaller benefit: what is needed to stop now is more than with the
+// same benefit typed in.
+await setPlan(Object.assign({}, SSE, { incomes: [SSE.incomes[0], Object.assign({}, SSE.incomes[1], { birth: '1990-11', claimYears: 62 })],
+    retire: { on: false, birth: '', ageYears: 65, ageMonths: 0, until: 80, spending: 4000, buffer: 0 } }));
+const neededEst = (await needOf()).rows[0].needed;
+const own = await page.evaluate((i) => fpGet(i).incomes.find(l => l.id === 'ss')._est.pia, id);
+await setPlan(Object.assign({}, SSE, { incomes: [SSE.incomes[0], Object.assign({}, SSE.incomes[1], { birth: '1990-11', claimYears: 62, fraBenefit: own })],
+    retire: { on: false, birth: '', ageYears: 65, ageMonths: 0, until: 80, spending: 4000, buffer: 0 } }));
+const neededTyped = (await needOf()).rows[0].needed;
+ok('stopping now with the benefit estimated: more is needed than with the full-career figure typed', neededEst > neededTyped + 1000, neededEst + ' vs ' + neededTyped);
+
+// The four kinds of retirement account.
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'k', name: 'Old plan', kind: 'retirement', balance: 1000, rate: 0 }],
+    incomes: [], tax: { on: true, status: 'single', year: '' }, assume: R0 });
+ok('the kinds offer six retirement types; an account from before is a 401(k)', (await page.evaluate(() => Array.from(document.querySelectorAll('tr[data-id="k"] [data-f="kind"] option'))
+    .filter(o => o.value.startsWith('retirement')).map(o => o.textContent).join())) === '401(k),Roth 401(k),457(b),Roth 457(b),Traditional IRA,Roth IRA' &&
+    (await page.inputValue('tr[data-id="k"] [data-f="kind"]')) === 'retirement:401k:pretax');
+await page.selectOption('tr[data-id="k"] [data-f="kind"]', 'retirement:ira:roth');
+await page.waitForTimeout(150);
+let acct = (await plan()).accounts.find(a => a.id === 'k');
+ok('Roth IRA chosen: the plan type and the tax with it', acct.kind === 'retirement' && acct.planType === 'ira' && acct.tax === 'roth' && (await page.inputValue('tr[data-id="k"] [data-f="kind"]')) === 'retirement:ira:roth');
+await page.selectOption('tr[data-id="k"] [data-f="kind"]', 'retirement:401k:pretax');
+await page.waitForTimeout(150);
+acct = (await plan()).accounts.find(a => a.id === 'k');
+ok('and back to a 401(k)', acct.planType === '401k' && acct.tax === 'pretax');
+const minimum = await page.evaluate(() => ['401k:pretax', '401k:roth', 'ira:pretax', 'ira:roth'].map(t => { const [pt, tx] = t.split(':'); return fpIsPretax({ kind: 'retirement', planType: pt, tax: tx }); }).join());
+ok('minimum withdrawals and tax as drawn: the traditional ones only', minimum === 'true,false,true,false');
+// Left work at 55: a 401(k) has no early penalty; an IRA still does. Roth before 59½: said.
+const early = (acc) => page.evaluate(([i, a]) => { const p = fpGet(i); p.accounts = [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, Object.assign({ id: 'p', name: 'R', kind: 'retirement', balance: 300000, rate: 0 }, a)];
+    p.tax = { on: false }; p.retire = { on: true, birth: '1975-01', ageYears: 55, ageMonths: 0, until: 70, spending: 1000, buffer: 0 }; return fpProject(p, 0).milestones; }, [id, acc]);
+let m = await early({ planType: '401k', tax: 'pretax' });
+ok('a 401(k) left in the year of turning 55: no penalty said', m.penalty === null && m.rothEarly === null);
+m = await early({ planType: 'ira', tax: 'pretax' });
+ok('a traditional IRA drawn at 55: the penalty said', m.penalty !== null);
+m = await early({ planType: '401k', tax: 'pretax' });
+const at54 = await page.evaluate((i) => { const p = fpGet(i); p.accounts = [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'R', kind: 'retirement', balance: 300000, rate: 0 }];
+    p.tax = { on: false }; p.retire = { on: true, birth: '1975-01', ageYears: 54, ageMonths: 0, until: 70, spending: 1000, buffer: 0 }; return fpProject(p, 0).milestones.penalty; }, id);
+ok('but left at 54, it is', at54 !== null);
+m = await early({ planType: 'ira', tax: 'roth' });
+ok('a Roth IRA drawn at 55: earnings may be taxed and penalised, said; not the pre-tax penalty', m.rothEarly !== null && m.penalty === null);
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'Roth IRA', kind: 'retirement', balance: 300000, rate: 0, planType: 'ira', tax: 'roth' }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1975-01', ageYears: 55, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
+await page.waitForTimeout(150);
+ok('and the Retirement section says so', /Roth money is drawn in Jan 2030, at 55, before 59½: contributions come out free, but earnings may be taxed and have a 10% penalty/.test(await page.innerText('.fp-retire-out')),
+    await page.innerText('.fp-retire-out'));
+// The Roth IRA's limit by income: $160,000 single is half-way through $153,000–$168,000.
+const rothLim = (pay, status) => page.evaluate(([i, pay, st]) => { const p = fpGet(i); p.incomes = [{ id: 'j', name: 'Job', amount: pay, every: 'year', growth: 0, taxed: true }];
+    p.tax = { on: true, status: st, year: '' }; p.retire = Object.assign({}, p.retire, { birth: '' });
+    p.accounts = [{ id: 'r', name: 'Roth IRA', kind: 'retirement', balance: 0, rate: 0, monthly: 500, planType: 'ira', tax: 'roth' }]; return fpLimitCheck(p, p.accounts[0]); }, [id, pay, status]);
+let rl = await rothLim(100000, 'single');
+ok('a Roth IRA under the income range: the full $7,500', rl.limit === 7500 && !rl.over && rl.phase === null);
+rl = await rothLim(160000, 'single');
+ok('within it, cut in proportion and rounded up to $10: $7,500 × 8,000 ÷ 15,000 = $4,000 at $160,000', rl.rothLimit === 4000 && rl.over && rl.phase.magi === 160000, JSON.stringify(rl));
+rl = await rothLim(170000, 'single');
+ok('above it: none', rl.rothLimit === 0 && rl.over && /none, with income of \$170,000 above \$168,000/.test(await page.evaluate((c) => fpLimitText(c), rl)));
+rl = await rothLim(170000, 'married');
+ok('married filing jointly has its own range: $170,000 is under it', rl.limit === 7500 && rl.phase === null);
+const ira = { id: 'ira', name: 'IRA', kind: 'retirement', balance: 0, rate: 0, planType: 'ira', tax: 'pretax' };
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, ira],
+    incomes: [{ id: 'j', name: 'Job', amount: 5000, every: 'month', growth: 0, taxed: true, deductions: 300, intoAccount: 'ira', intoAmount: 200, match: 100 }], tax: { on: false }, assume: R0 });
+await page.click('tr[data-id="j"] .fp-more');
+await page.waitForTimeout(150);
+ok('an employer match into an IRA: said not to be one', /an IRA takes no employer match/i.test(await page.innerText('tr.fp-income-detail[data-id="j"]')));
+
+// Pay split between accounts: half into a Roth 401(k), half into a traditional one, and
+// the employer's match into the traditional one alone.
+const SPLIT = {
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'rk', name: 'Work Roth', kind: 'retirement', balance: 0, rate: 0, planType: '401k', tax: 'roth' },
+               { id: 'tk', name: 'Work 401(k)', kind: 'retirement', balance: 0, rate: 0, planType: '401k', tax: 'pretax' }],
+    incomes: [{ id: 'p', name: 'Pay', amount: 95000, every: 'year', growth: 0, taxed: true, deductions: 12000,
+        into: [{ id: 'r1', account: 'rk', amount: 6000, match: 0 }, { id: 'r2', account: 'tk', amount: 6000, match: 4000 }] }],
+    tax: { on: true, status: 'single', year: '', payroll: false }, assume: R0
+};
+await setPlan(SPLIT);
+await page.waitForTimeout(150);
+let sp = await page.evaluate((i) => { const r = fpProject(fpGet(i), 0); return { first: r.first, rows: r.rows[1] }; }, id);
+// Only the traditional $6,000 is untaxed: $89,000 less $16,100 is $72,900 — $1,240 + $4,560 + 22% of $22,500.
+ok('only what goes into the traditional account comes off taxed pay', Math.abs(sp.first.estimatedTax * 12 - (1240 + 4560 + 0.22 * 22500)) < 1e-6, String(sp.first.estimatedTax * 12));
+const bal = await page.evaluate((i) => { const p = fpGet(i); const n = fpPayrollNow(p); return [n.rk.own * 12, n.rk.match * 12, n.tk.own * 12, n.tk.match * 12].join(); }, id);
+ok('each account gets its part, and the match where it was sent', bal === '6000,0,6000,4000', bal);
+ok('the deductions count both parts once', Math.abs(sp.first.deductions * 12 - 12000) < 1e-6 && Math.abs(sp.first.payrollOwn * 12 - 12000) < 1e-6 && Math.abs(sp.first.payrollMatch * 12 - 4000) < 1e-6);
+await page.click('tr[data-id="p"] .fp-more');
+await page.waitForTimeout(150);
+const spDetail = 'tr.fp-income-detail[data-id="p"]';
+ok('the details: a row for each, and what each comes to, before or after tax', (await page.locator(spDetail + ' .fp-into-row:not(.fp-match-row)').count()) === 2 &&
+    /Into Work Roth: \$500 a month after tax/.test(await page.innerText(spDetail)) && /Into Work 401\(k\): \$833 a month \(\$500 yours, \$333 employer\) before tax/.test(await page.innerText(spDetail)),
+    await page.innerText(spDetail));
+await page.click(spDetail + ' .fp-btn:has-text("+ Another account")');
+await page.waitForTimeout(150);
+ok('+ Another account: a third row, its amount ready to type', (await page.locator(spDetail + ' .fp-into-row:not(.fp-match-row)').count()) === 3 &&
+    await page.evaluate(() => document.activeElement && document.activeElement.dataset.f === 'into.amount' && document.activeElement.dataset.row === 'r3'));
+await page.selectOption(spDetail + ' .fp-into-row[data-row="r3"] [data-f="into.account"]', 'tk');
+await page.fill(spDetail + ' .fp-into-row[data-row="r3"] [data-f="into.amount"]', '3000');
+await page.waitForTimeout(150);
+const third = (await plan()).incomes[0].into.find(r => r.id === 'r3');
+ok('typed into: kept with the line', third.account === 'tk' && third.amount === 3000);
+// $15,000 of your own pay into the two 401(k)s is within the one $24,500 limit.
+let lc = await page.evaluate((i) => { const p = fpGet(i); return fpLimitCheck(p, p.accounts.find(a => a.id === 'rk')); }, id);
+ok('a Roth and a traditional 401(k) share one limit: $15,000 between them, the match not counted', lc.yearly === 15000 && lc.limit === 24500 && !lc.over && lc.names.join() === 'Work Roth,Work 401(k)', JSON.stringify(lc));
+await page.fill(spDetail + ' .fp-into-row[data-row="r3"] [data-f="into.amount"]', '15000');
+await page.waitForTimeout(150);
+lc = await page.evaluate((i) => { const p = fpGet(i); return fpLimitCheck(p, p.accounts.find(a => a.id === 'tk')); }, id);
+ok('$27,000 between them is over it, though neither is alone', lc.over && lc.yearly === 27000, JSON.stringify(lc));
+ok('Ahead says so once, naming both', (await page.innerText('.fp-projection')).split('over the 2026 401(k) limit').length === 2 &&
+    /Work Roth and Work 401\(k\): \$27,000 a year goes in, over the 2026 401\(k\) limit of \$24,500/.test(await page.innerText('.fp-projection')));
+await page.click(spDetail + ' .fp-into-row[data-row="r3"] .fp-x');
+await page.waitForTimeout(150);
+ok('× takes a row out', (await plan()).incomes[0].into.length === 2);
+// IRAs share theirs: $5,000 in a traditional and $4,000 in a Roth is over $7,500.
+lc = await page.evaluate((i) => { const p = fpGet(i);
+    p.accounts = [{ id: 'ti', name: 'IRA', kind: 'retirement', balance: 0, rate: 0, monthly: 5000 / 12, planType: 'ira', tax: 'pretax' },
+                  { id: 'ri', name: 'Roth IRA', kind: 'retirement', balance: 0, rate: 0, monthly: 4000 / 12, planType: 'ira', tax: 'roth' }];
+    p.incomes = [{ id: 'j', name: 'Job', amount: 100000, every: 'year', growth: 0, taxed: true }];
+    return fpLimitCheck(p, p.accounts[0]); }, id);
+ok('a traditional and a Roth IRA share one limit: $9,000 between them is over $7,500', lc.over && Math.abs(lc.yearly - 9000) < 1e-6 && lc.limit === 7500 && lc.phase === null, JSON.stringify(lc));
+lc = await page.evaluate((i) => { const p = fpGet(i);
+    p.accounts = [{ id: 'ti', name: 'IRA', kind: 'retirement', balance: 0, rate: 0, monthly: 3000 / 12, planType: 'ira', tax: 'pretax' },
+                  { id: 'ri', name: 'Roth IRA', kind: 'retirement', balance: 0, rate: 0, monthly: 4500 / 12, planType: 'ira', tax: 'roth' }];
+    p.incomes = [{ id: 'j', name: 'Job', amount: 160000, every: 'year', growth: 0, taxed: true }];
+    return [fpLimitCheck(p, p.accounts[1]), fpLimitText(fpLimitCheck(p, p.accounts[1]))]; }, id);
+ok('within the IRA limit, but the Roth part over its income-cut limit ($4,500 against $4,000): said', lc[0].over && lc[0].rothLimit === 4000 &&
+    /\$7,500 a year goes in, within the 2026 IRA limit of \$7,500 [^;]*; the Roth part, \$4,500, is over the Roth IRA limit of \$4,000/.test(lc[1]), lc[1]);
+
+// Where the next dollar goes. $120,000 of pay; the employer adds 50% of what goes in, up to
+// 6% of pay — $600 a month in gets the whole $300.
+const ADV = {
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 2000, rate: 0 }, { id: 'k', name: 'Work 401(k)', kind: 'retirement', balance: 0, rate: 0 },
+               { id: 'cc', name: 'Card', kind: 'credit', balance: 4000, rate: 22, monthly: 100 }, { id: 'car', name: 'Car', kind: 'loan', balance: 9000, rate: 6, monthly: 300 }],
+    incomes: [{ id: 'p', name: 'Pay', amount: 120000, every: 'year', growth: 0, taxed: true, deductions: 4800, matchRate: 50, matchCap: 6, into: [{ id: 'r1', account: 'k', amount: 4800, match: null }] }],
+    expenses: [{ id: 'e', name: 'Costs', amount: 2600, every: 'month', growth: 0 }],
+    tax: { on: true, status: 'single', year: '', payroll: false }, assume: Object.assign({}, R0, { years: 5, returns: Object.assign({}, R0.returns, { investment: 7 }) })
+};
+await setPlan(ADV);
+await page.waitForTimeout(250);
+const steps = () => page.evaluate((i) => { const p = fpGet(i); return fpAdviceSteps(p, fpProject(p, 0)); }, id);
+let st = await steps();
+const step = (k) => st.find(s => s.key === k);
+let mo = await page.evaluate((i) => { const p = fpGet(i); return [fpMatchOf(p, p.incomes[0]), fpPayrollNow(p).k]; }, id);
+ok('the match by formula: $400 a month in gets $200 of the $300', Math.abs(mo[0].match - 200) < 1e-9 && Math.abs(mo[0].full - 300) < 1e-9 && Math.abs(mo[0].room - 600) < 1e-9 && Math.abs(mo[1].match - 200) < 1e-9, JSON.stringify(mo));
+ok('and the step says what gets the rest: $200 more a month', step('match').status === 'part' && Math.abs(step('match').monthly - 200) < 1e-9 && /Putting \$200 more a month into the 401\(k\) gets the rest/.test(step('match').text));
+// Spending: $2,600 and $400 of payments, $3,000 a month.
+ok('starter cash: $2,000 of the $3,000 a month of spending', step('starter').status === 'part' && Math.abs(step('starter').lump - 1000) < 1e-9, step('starter').text);
+ok('debt at 8% or more: the card first, not the car', step('debt').status === 'todo' && step('debt').debts.map(d => d.id).join() === 'cc' && step('debt').lump === 4000);
+ok('the emergency fund: six months is $18,000, $15,000 past the starter cash', step('fund').status === 'todo' && Math.abs(step('fund').lump - 15000) < 1e-9, step('fund').text);
+ok('an IRA: the whole $7,500 of room', step('ira').status === 'todo' && step('ira').lump === 7500);
+ok('the rest of the 401(k): $24,500 less the $4,800 going in', step('k401').status === 'part' && Math.abs(step('k401').monthly - (24500 - 4800) / 12) < 1e-9);
+ok('then the 6% car loan against the 7% assumed for investing: close, so it says paying down is certain', step('beyond').cheap.id === 'car' && /Close: paying it down is the certain return/.test(step('beyond').text));
+// $115,200 taxed, less $16,100: in the 22% bracket.
+ok('the tax rate on the next dollar now: 22%', /taxed at 22% now/.test(step('lean').text) && /Plan for retirement/.test(step('lean').text), step('lean').text);
+// A sum of $30,000: $1,000 starter, $4,000 card, $15,000 fund, $7,500 IRA, $2,500 left to invest.
+let sp2 = await page.evaluate((i) => { const p = fpGet(i); const pr = fpProject(p, 0); return fpAdviceSplit(p, fpAdviceSteps(p, pr), 30000, true).map(x => x.key + ':' + Math.round(x.amount)).join(); }, id);
+ok('a $30,000 sum, step by step: starter, the card, the fund, an IRA, the rest invested — no match or 401(k), which come from pay', sp2 === 'starter:1000,debt:4000,fund:15000,ira:7500,beyond:2500', sp2);
+const monthSplit = await page.evaluate((i) => { const p = fpGet(i); const pr = fpProject(p, 0); return [pr.first.surplus, fpAdviceSplit(p, fpAdviceSteps(p, pr), pr.first.surplus, false)]; }, id);
+ok('this month’s leftover, placed: all of it, starter cash first', Math.abs(monthSplit[1].reduce((s, x) => s + x.amount, 0) - monthSplit[0]) < 1e-6 && monthSplit[1][0].key === 'starter', JSON.stringify(monthSplit));
+ok('the section shows the steps and the split', (await page.locator('.fp-advice .fp-step').count()) === 9 && /Placing what is left over/.test(await page.innerText('.fp-advice')) &&
+    await page.evaluate(() => document.querySelector('.fp-step[data-step="debt"] .fp-step-mark').textContent === '○'));
+await page.fill('[data-a="advice"][data-k="lump"]', '30000');
+await page.waitForTimeout(200);
+ok('a sum typed: placed instead, and said to come from savings, not pay', /\$30,000 now/.test(await page.innerText('.fp-advice')) && /A sum cannot buy the employer match/.test(await page.innerText('.fp-advice')) &&
+    (await plan()).advice.lump === 30000);
+await page.fill('[data-a="advice"][data-k="debtRate"]', '5');
+await page.waitForTimeout(200);
+st = await steps();
+ok('debt above 5% first: the car joins the card', step('debt').debts.map(d => d.id).join() === 'cc,car');
+// Roth or traditional, with retirement planned: compared with the rate in the years pre-tax money is drawn.
+await setPlan(Object.assign({}, ADV, { retire: { on: true, birth: '1986-11', ageYears: 65, ageMonths: 0, until: 90, spending: 1500, buffer: 0 } }));
+st = await steps();
+ok('with retirement: today’s rate against retirement’s, and which way it leans', /taxed at 22% now, and about \d+% in retirement/.test(step('lean').text) && ['traditional', 'roth', 'split'].includes(step('lean').lean), step('lean').text);
+// The mix: 25 years to retirement is 90% stocks; ten years, 65%; then the lean.
+const mix = (birth, risk) => page.evaluate(([i, b, r]) => { const p = fpGet(i); p.retire = Object.assign({}, p.retire, { birth: b, ageYears: 65, ageMonths: 0 }); p.advice.risk = r; return fpAdviceMix(p); }, [id, birth, risk]);
+let mx = await mix('1986-11', 'middle');
+ok('25 years to retirement: 90% stocks', mx.stocks === 90 && Math.round(mx.years) === 25, JSON.stringify(mx));
+mx = await mix('1971-11', 'middle');
+// 50 + 40 × 10/25 = 66, to the nearest 5: 65. Expected (8 × 65 + 4 × 35) / 100 = 6.6%.
+ok('ten years: 65% stocks, expected 6.6% a year', mx.stocks === 65 && mx.ret === 6.6, JSON.stringify(mx));
+ok('bold leans 10 points more, cautious 15 less', (await mix('1971-11', 'bold')).stocks === 75 && (await mix('1971-11', 'cautious')).stocks === 50);
+ok('ten years into retirement: 40%', (await mix('1951-11', 'middle')).stocks === 40);
+await page.waitForTimeout(300);
+await page.click('.fp-advice .fp-btn:has-text("for investments")');
+await page.waitForTimeout(200);
+const rets = (await plan()).assume.returns;
+ok('“Use … for investments” sets the default return of investment and retirement accounts', rets.investment === rets.retirement && rets.investment === (await page.evaluate((i) => fpAdviceMix(fpGet(i)).ret, id)), JSON.stringify(rets));
+ok('the section folds like the rest', await page.evaluate(() => FP_SECTIONS.includes('advice') && !!document.querySelector('.fp-section[data-sec="advice"] .fp-fold')));
+
+// The match within the limit: as in the feedback, a formula that counts more than can go in.
+// $187,000 of pay, 45% up to 100%: $15,583 a month would be counted — far past the
+// $24,500 limit ($2,041.67 a month). With $1,862 a month in, the rest of the limit is the most.
+await setPlan({
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 50000, rate: 0 }, { id: 'k', name: '401(k)', kind: 'retirement', balance: 0, rate: 0 }],
+    incomes: [{ id: 'p', name: 'Pay', amount: 187000, every: 'year', growth: 0, taxed: true, deductions: 22344, matchRate: 45, matchCap: 100, into: [{ id: 'r1', account: 'k', amount: 22344, match: null }] }],
+    expenses: [{ id: 'e', name: 'Costs', amount: 3000, every: 'month', growth: 0 }], tax: { on: true, status: 'single', year: '', payroll: false }, assume: R0
+});
+await page.waitForTimeout(200);
+let mf = await page.evaluate((i) => { const p = fpGet(i); return fpMatchOf(p, p.incomes[0]); }, id);
+ok('the formula’s reach stops at the 401(k) limit: $2,041.67 a month, not $15,583', mf.limited && Math.abs(mf.reach - 24500 / 12) < 1e-6 && Math.abs(mf.room - 187000 / 12) < 1e-6 && mf.odd, JSON.stringify(mf));
+st = await steps();
+ok('so the step asks only for the $179.67 a month left to the limit, and the match that brings', Math.abs(step('match').monthly - (24500 - 22344) / 12) < 1e-6 &&
+    /Putting \$180 more a month into the 401\(k\), to your limit, gets \$81 more/.test(step('match').text) && /unusually high/.test(step('match').text), step('match').text);
+// The pay a match is worked from stops at $360,000: 6% of $30,000 a month, not of $50,000.
+mf = await page.evaluate((i) => { const p = fpGet(i); p.incomes[0].amount = 600000; p.incomes[0].matchCap = 6; return fpMatchOf(p, p.incomes[0]); }, id);
+ok('pay past $360,000 is not counted for the match', Math.abs(mf.room - 360000 / 12 * 0.06) < 1e-6 && !mf.odd, JSON.stringify(mf));
+// 415(c): yours and the employer's together, at most $72,000.
+const big = await page.evaluate((i) => { const p = fpGet(i); p.incomes[0].matchRate = null; p.incomes[0].into = [{ id: 'r1', account: 'k', amount: 24000, match: 50000 }]; return fpLimitCheck(p, p.accounts[1]); }, id);
+ok('a 401(k) over $72,000 with the employer’s money: said', big.over415 && big.total === 74000 && /with the employer’s, \$74,000, over the \$72,000 a 401\(k\) can take in a year/.test(await page.evaluate((c) => fpLimitText(c), big)));
+
+// An HSA: through pay, free of income and payroll tax; its own limit, the employer's money counted.
+const HSA = {
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'h', name: 'HSA', kind: 'hsa', balance: 0, rate: 0, hsaCover: 'self' }],
+    incomes: [{ id: 'p', name: 'Pay', amount: 95000, every: 'year', growth: 0, taxed: true, deductions: 3600, into: [{ id: 'r1', account: 'h', amount: 3600, match: 1000 }] }],
+    tax: { on: true, status: 'single', year: '' }, assume: R0
+};
+await setPlan(HSA);
+await page.waitForTimeout(150);
+first = await page.evaluate((i) => fpProject(fpGet(i), 0).first, id);
+// $91,400 less $16,100 is $75,300: $1,240 + $4,560 + 22% of $24,900. Payroll tax on $91,400.
+ok('HSA through pay: not taxed as income', Math.abs(first.estimatedTax * 12 - (1240 + 4560 + 0.22 * 24900)) < 1e-6, String(first.estimatedTax * 12));
+ok('nor for payroll tax', Math.abs(first.payrollTax * 12 - 91400 * 0.0765) < 1e-6, String(first.payrollTax * 12));
+let hc = await page.evaluate((i) => { const p = fpGet(i); return fpLimitCheck(p, p.accounts[1]); }, id);
+ok('its limit counts the employer’s money: $4,600 against $4,400 self-only, over', hc.key === 'hsa' && hc.yearly === 4600 && hc.limit === 4400 && hc.over, JSON.stringify(hc));
+await setPlan(Object.assign({}, HSA, { accounts: [HSA.accounts[0], Object.assign({}, HSA.accounts[1], { hsaCover: 'family' })], retire: { on: false, birth: '1970-01', ageYears: 65, ageMonths: 0, until: 95, spending: null, buffer: 6 } }));
+hc = await page.evaluate((i) => { const p = fpGet(i); return fpLimitCheck(p, p.accounts[1]); }, id);
+ok('family cover, and 55 or older: $8,750 and $1,000 more', hc.limit === 9750 && !hc.over, JSON.stringify(hc));
+// Paid in directly, of income tax only.
+const direct = await page.evaluate((i) => { const p = fpGet(i); p.incomes[0].into = []; p.incomes[0].deductions = 0; p.accounts[1].monthly = 300; return fpProject(p, 0).first; }, id);
+ok('paid into directly: off taxed income, but payroll tax on all the pay', Math.abs(direct.estimatedTax * 12 - (1240 + 4560 + 0.22 * (95000 - 3600 - 16100 - 50400))) < 1e-6 && Math.abs(direct.payrollTax * 12 - 95000 * 0.0765) < 1e-6,
+    direct.estimatedTax * 12 + ' / ' + direct.payrollTax * 12);
+// Drawn in retirement: untaxed for medical costs; otherwise taxed, with a penalty before 65.
+const hsaDraw = (medical) => page.evaluate(([i, m]) => { const p = fpGet(i);
+    p.accounts = [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'h', name: 'HSA', kind: 'hsa', balance: 100000, rate: 0, hsaMedical: m }];
+    p.incomes = []; p.tax = { on: true, status: 'single', year: '' }; p.retire = { on: true, birth: '1966-11', ageYears: 60, ageMonths: 0, until: 70, spending: 3000, buffer: 0 };
+    const r = fpProject(p, 0); return { tax: r.rows[1].withdrawTax, pen: r.milestones.hsaPenalty }; }, [id, medical]);
+let hd = await hsaDraw(true);
+ok('an HSA drawn for medical costs: no tax', hd.tax === 0 && hd.pen === null, JSON.stringify(hd));
+hd = await hsaDraw(false);
+ok('drawn for other things: taxed as income, and before 65 the 20% penalty said', hd.tax > 0 && hd.pen !== null, JSON.stringify(hd));
+await setPlan(HSA);
+st = await steps();
+ok('the next-dollar steps: an HSA after the emergency fund, with its room', st.map(s => s.key).join() === 'starter,match,debt,fund,hsa,lean,ira,k401,beyond' && step('hsa').status === 'done', st.map(s => s.key + ':' + s.status).join());
+await setPlan(Object.assign({}, HSA, { accounts: [HSA.accounts[0]], incomes: [{ id: 'p', name: 'Pay', amount: 95000, every: 'year', growth: 0, taxed: true }] }));
+st = await steps();
+ok('no HSA in the plan: the step says what one would do', step('hsa').status === 'skip' && /With a high-deductible health plan, an HSA comes next/.test(step('hsa').text));
+
+// A 457(b): a limit of its own beside the 401(k)'s, and no early penalty once the job is left.
+const two = await page.evaluate((i) => { const p = fpGet(i);
+    p.accounts = [{ id: 'k', name: '401(k)', kind: 'retirement', balance: 0, rate: 0, monthly: 24000 / 12 }, { id: 'g', name: '457(b)', kind: 'retirement', balance: 0, rate: 0, planType: '457', monthly: 24000 / 12 }];
+    return [fpLimitCheck(p, p.accounts[0]), fpLimitCheck(p, p.accounts[1])]; }, id);
+ok('$24,000 into a 401(k) and $24,000 into a 457(b): each within its own limit', !two[0].over && !two[1].over && two[1].key === '457' && Math.abs(two[0].yearly - 24000) < 1e-6 && Math.abs(two[1].yearly - 24000) < 1e-6, JSON.stringify(two.map(c => [c.key, c.yearly, c.over])));
+m = await early({ planType: '457', tax: 'pretax' });
+const at50 = await page.evaluate((i) => { const p = fpGet(i); p.accounts = [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'G', kind: 'retirement', balance: 300000, rate: 0, planType: '457' }];
+    p.tax = { on: false }; p.retire = { on: true, birth: '1975-01', ageYears: 50, ageMonths: 0, until: 70, spending: 1000, buffer: 0 }; return fpProject(p, 0).milestones.penalty; }, id);
+ok('a 457(b) drawn at 50, the job left: no early penalty', at50 === null);
+
+// The draw order: back to the usual one.
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'h', name: 'HSA', kind: 'hsa', balance: 10000, rate: 0 },
+        { id: 'r', name: 'Roth', kind: 'retirement', balance: 10000, rate: 0, tax: 'roth' }, { id: 'i', name: 'Brokerage', kind: 'investment', balance: 10000, rate: 0 }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1960-11', ageYears: 66, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
+await page.waitForTimeout(150);
+ok('the usual order: the HSA last, and nothing to reset', (await drawn()) === '1. Cash Cash | 2. Brokerage Investment | 3. Roth Roth 401(k) | 4. HSA HSA' && await page.isDisabled('.fp-draw-reset'), await drawn());
+await page.focus('.fp-draw tr[data-id="h"] .fp-grip');
+await page.keyboard.press('ArrowUp');
+await page.keyboard.press('ArrowUp');
+await page.waitForTimeout(150);
+ok('moved: the button offers the usual order back', (await drawn()).startsWith('1. Cash Cash | 2. HSA') && !(await page.isDisabled('.fp-draw-reset')) && (await page.innerText('.fp-draw-reset')) === 'Reset to the usual order', await drawn());
+await page.click('.fp-draw-reset');
+await page.waitForTimeout(150);
+ok('Reset to the usual order: as it was', (await drawn()) === '1. Cash Cash | 2. Brokerage Investment | 3. Roth Roth 401(k) | 4. HSA HSA' && await page.isDisabled('.fp-draw-reset'));
+
+// Before retirement: pay ends at 51, retirement at 55. Cash is drawn down first, then the
+// brokerage, $4,000 a month — and never overdrawn while there is anything to draw on.
+const GAP = {
+    accounts: [{ id: 'c', name: 'Checking', kind: 'cash', balance: 0, rate: 0 }, { id: 'b', name: 'Brokerage', kind: 'investment', balance: 500000, rate: 0 }],
+    incomes: [{ id: 'j', name: 'Job', amount: 5000, every: 'month', growth: 0, taxed: false, to: '2030-10' }],
+    expenses: [{ id: 'e', name: 'Costs', amount: 4000, every: 'month', growth: 0 }],
+    tax: { on: false }, assume: R0, retire: { on: true, birth: '1979-11', ageYears: 55, ageMonths: 0, until: 60, spending: 4000, buffer: 0 }
+};
+await setPlan(GAP);
+await page.waitForTimeout(200);
+rp = await rproj();
+ok('pay ending before retirement: cash never overdrawn while savings remain', rp.rows.every(r => r.cash > -0.01), rp.rows.map(r => Math.round(r.cash)).join());
+// $1,000 a month saved for 48 months, spent in 12; from Nov 2031 the brokerage pays.
+ok('savings drawn on from the month cash is spent: Nov 2031, at 52', rp.milestones.drawnEarly === 61, String(rp.milestones.drawnEarly));
+ok('a year of it: $48,000 out of the brokerage, month by month', Math.abs(rp.rows[6].withdrawn - 48000) < 0.01 && Math.abs(rp.rows[6].assets - (500000 - 48000)) < 0.01, rp.rows[6].withdrawn + ' / ' + rp.rows[6].assets);
+ok('Ahead says so', /Savings drawn on before retirement from Nov 2031, at 52/.test(await page.innerText('.fp-projection')));
+ok('and Retirement points at the gap', /Pay stops in Nov 2030, at 51, but retirement is set for Nov 2034, at 55: savings are drawn on in between/.test(await page.innerText('.fp-retire-out')),
+    await page.innerText('.fp-retire-out'));
+// Pre-tax money drawn in the gap: taxed in each year it is drawn, and the early penalty said.
+await setPlan(Object.assign({}, GAP, { accounts: [GAP.accounts[0], { id: 'k', name: 'IRA', kind: 'retirement', balance: 500000, rate: 0, planType: 'ira' }], tax: { on: true, status: 'single', year: '', payroll: false } }));
+rp = await rproj();
+ok('pre-tax money drawn before retirement: taxed year by year, not in one lump at retirement', rp.rows[6].withdrawTax > 0 && rp.rows[7].withdrawTax > 0 && Math.abs(rp.rows[6].withdrawTax - rp.rows[7].withdrawTax) < 1 &&
+    rp.rows.every(r => r.cash > -0.01) && rp.milestones.penalty !== null, rp.rows.map(r => Math.round(r.withdrawTax)).join());
+// With nothing to draw on, cash still runs short — and says savings ran out.
+await setPlan(Object.assign({}, GAP, { accounts: [GAP.accounts[0]] }));
+rp = await rproj();
+ok('nothing left to draw on: cash goes short, and that is when savings run out', rp.milestones.cashOut === 61 && rp.rows[6].cash < 0);
+
+// Health costs in retirement, when counted: $800 a month before 65, then Part B ($202.90)
+// and $300 beside it. Returns, inflation and medical inflation at nought.
+const HEALTH = {
+    accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'r', name: 'Roth', kind: 'retirement', balance: 1000000, rate: 0, tax: 'roth' }],
+    incomes: [], expenses: [], tax: { on: true, status: 'single', year: '' }, assume: R0,
+    retire: { on: true, birth: '1966-11', ageYears: 60, ageMonths: 0, until: 70, spending: 2000, buffer: 0, health: true, healthBefore: 800, healthAfter: 300, medInfl: 0 }
+};
+await setPlan(HEALTH);
+await page.waitForTimeout(200);
+rp = await rproj();
+ok('before 65: $800 a month of cover on top of spending', Math.abs(rp.rows[1].withdrawn - 12 * 2800) < 0.01, String(rp.rows[1].withdrawn));
+ok('from 65: Medicare Part B and what goes beside it, from Nov 2031', rp.milestones.medicare === 61 && Math.abs(rp.rows[6].withdrawn - 12 * (2000 + 300 + 202.9)) < 0.01 && rp.milestones.irmaa === null,
+    rp.milestones.medicare + ' ' + rp.rows[6].withdrawn);
+ok('Retirement says when Medicare starts', /Medicare from Nov 2031, at 65: Part B \$203 a month/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
+rp = await page.evaluate((i) => { const p = fpGet(i); p.tax.status = 'married'; return fpProject(p, 0); }, id);
+ok('married: Part B for two', Math.abs(rp.rows[6].withdrawn - 12 * (2000 + 300 + 2 * 202.9)) < 0.01, String(rp.rows[6].withdrawn));
+// Large pre-tax withdrawals: income over $109,000 two years on brings the surcharge.
+rp = await page.evaluate((i) => { const p = fpGet(i); p.accounts[1] = { id: 'r', name: 'IRA', kind: 'retirement', balance: 3000000, rate: 0, planType: 'ira' }; p.retire.spending = 12000; return fpProject(p, 0); }, id);
+ok('income over $109,000: the Part B and D surcharge, from income two years before', rp.milestones.irmaa === 61, String(rp.milestones.irmaa));
+await setPlan(Object.assign({}, HEALTH, { retire: Object.assign({}, HEALTH.retire, { health: false }) }));
+rp = await rproj();
+ok('not counted: spending as given, nothing added', Math.abs(rp.rows[1].withdrawn - 12 * 2000) < 0.01 && Math.abs(rp.rows[6].withdrawn - 12 * 2000) < 0.01);
+// An HSA takes nothing more once on Medicare: 65 in May 2027, six months of $100 first.
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'h', name: 'HSA', kind: 'hsa', balance: 0, rate: 0 }],
+    incomes: [{ id: 'p', name: 'Pay', amount: 5000, every: 'month', growth: 0, taxed: false, deductions: 100, into: [{ id: 'r1', account: 'h', amount: 100, match: 0 }] }],
+    tax: { on: false }, assume: Object.assign({}, R0, { years: 2 }), retire: { on: false, birth: '1962-05', ageYears: 67, ageMonths: 0, until: 90, spending: null, buffer: 6 } });
+rp = await rproj();
+ok('on Medicare, nothing more into the HSA: $600, then the $100 is take-home again', Math.abs(rp.rows[2].assets - (600 + 5000 * 24 - 600)) < 0.01, String(rp.rows[2].assets));
 
 // 6. Theirs: not in share links or HTML exports, kept in JSON backups.
 const privacy = await page.evaluate((i) => ({

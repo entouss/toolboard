@@ -44,4 +44,5 @@ the fields its form has never heard of is not safe to open a curriculum with, so
 that one failing means the tool does not ship, whatever else passes.
 
 `video.mjs` is not a test. It records the walkthrough on the guide page, and is run
-by hand.
+by hand. Nor is `finance-media.mjs`: it takes the pictures in the Finance Planning guide
+(`learn/assets/finance-*.png`) from the made-up example, with a server on 8777.

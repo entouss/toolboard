@@ -788,15 +788,22 @@ labels.
                 monthly,                // added a month, or a loan's payment where it has no details
                 compounding,            // investments: 'monthly' (default) or 'annual'
                 basis,                  // investments: cost basis; null = all of the balance (no gains)
-                tax, planType,          // retirement: 'pretax'|'roth', and '401k'|'ira' for its contribution limit
+                tax, planType,          // retirement: 'pretax'|'roth' and '401k'|'457'|'ira' — chosen together in Kind as
+                                        //   401(k), Roth 401(k), 457(b), Roth 457(b), Traditional IRA or Roth IRA; unset is a 401(k)
+                hsaCover, hsaMedical,   // kind 'hsa': 'self'|'family' for its limit; false: drawn for other than medical costs
                 loan: { amount, years, extra, closing,      // the Loan Calculator's fields
                         escrow } } ],                       // the plan's own: tax and insurance a month
   incomes:  [ { id, name, amount, every: 'month'|'year', growth, from: 'YYYY-MM', to: 'YYYY-MM', taxed,
                 deductions, taxes,       // flat amounts per `every`, as on a pay stub
-                intoAccount, intoAmount, match,       // part of the deductions saved into an account, and the employer's match
+                matchRate, matchCap,                        // the employer's formula: matchRate% of what goes into the
+                                                            //   401(k)s, up to matchCap% of pay — it replaces typed matches
+                into: [ { id, account, amount, match } ],   // parts of the deductions saved into accounts, each with
+                                                            //   the employer's match into it; a plan kept with one
+                                                            //   intoAccount / intoAmount / match is read as one row
                 wages } ],                            // false: not pay from work, so no payroll tax
             // a Social Security line instead: { id, type: 'ss', name, birth: 'YYYY-MM', fraBenefit,
-            //   claimYears, claimMonths, growth /* cost of living */, to, taxed, deductions, taxes }
+            //   claimYears, claimMonths, growth /* cost of living */, to, taxed, deductions, taxes,
+            //   payFrom: [incomeId], workFrom, pastPay }   // for the estimate when fraBenefit is null
   expenses: [ { id, name, amount, every, growth, from, to } ],   // null growth: inflation
   tax: { on: true, status: 'single', year: '',    // federal tax from toolboard_taxBrackets; '' = this year's
          payroll },                              // payroll tax; unset follows `on`
@@ -804,12 +811,26 @@ labels.
   assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000,
             returns: { cash: 2, investment: 7, … } },
   retire: { on: false, birth: 'YYYY-MM', ageYears: 65, ageMonths: 0, until: 95,
+            health: false, healthBefore, healthAfter, medInfl: 5,   // health costs added to spending, when ticked
             spending: null,              // a month in today's dollars; null = today's expenses
             buffer: 6 },                 // months of spending kept in cash
-  drawOrder: [ { id } ]                  // accounts drawn on in retirement, in order
+  drawOrder: [ { id } ],                 // accounts drawn on in retirement, in order
+  advice: { starter: 1, months: 6, debtRate: 8,   // Where the next dollar goes: its thresholds,
+            risk: 'middle', stocks: 8, bonds: 4,  //   the lean of the mix and the two returns,
+            lump: null }                          //   and a sum to place instead of the leftover
 }
 // a retirement account may say tax: 'pretax' (default) or 'roth'
 ```
+
+Before retirement, a month that leaves cash below nought is made up from savings in the
+draw order — taxed, and with the early penalties flagged, as in retirement (but no age-55
+exception, the job not taken to be left): `milestones.drawnEarly`. `fpPayGap` notices pay
+from work ending a year or more before the retirement date. Taxes typed on a line are paid
+as typed; the estimate for the rest is the tax on everything less the tax on those lines,
+so the rest lands in the brackets above them. With `retire.health`, retirement spending
+gains `healthBefore` until Medicare, then Part B for each person (two when married) with its
+surcharge, by the year's modified AGI two years before, and `healthAfter` — all rising by
+`medInfl`. Nothing more goes into an HSA from the Medicare age.
 
 With `retire.on` and a birth month (the plan's, or a Social Security line's), the plan
 runs to the age in `until` instead of `assume.years`. From the retirement month pay
@@ -824,15 +845,33 @@ its balance each January over the IRS Uniform Lifetime factor, a twelfth a month
 cash. Pre-tax money drawn before 59½ is said, not penalised. `fpRetireMax` finds the
 most spending that still lasts, by halving.
 
+Ages: wherever the plan shows a month or a year — Ahead's facts, subtitle, year table,
+chart and year lists, a loan's payoff, From and Until, Copy summary and what BoardAI
+reads — it adds the age then, counted by the month (`fpAgeAt`) from the household's
+birth month (`fpBirthOf`: Retirement's, or the first Social Security line's). Without
+one, nothing changes. A Social Security line's own dates carry its claiming age.
+
+Where the next dollar goes (`fpAdviceSteps`): the usual order — starter cash, the full
+employer match (from the formula, worked from pay up to `compCap` and only as far as the
+401(k) limit lets in: `fpMatchOf` gives `reach` and `best`), debt at `debtRate` or more, the
+emergency fund, an HSA, Roth or
+traditional (the federal rate on the next $1,000 now, against the average in the retired
+years pre-tax money is drawn: `fpMarginal`, from each row's `ordinary` and `benefits`), an
+IRA, the rest of the 401(k), then cheaper debt against investing. `fpAdviceSplit` places this
+month's leftover (or `lump`) along them; a sum skips the match and the 401(k), which come only
+from pay. `fpAdviceMix` gives a stocks share by years to retirement — 90% from 25 years out,
+down to 50% at retirement and 30% twenty years on — leaned by `risk`.
+
 `fpNeededToStop` turns it round: for each year, the savings that would be needed at
 its start to stop working then and last to `until` — whether or not `retire.on`, as
 long as there is a birth month. Savings are what can be drawn on (cash, investments,
 retirement and other accounts; not property). Stopping work stops every line of pay
 from work (`wages` not false) from that year, even one with a `to` of its own; a
 pension or rent goes on to its end, and Social Security from its claiming age. The
-working years run once with
-`fpProject(plan, 0, { stopT: Infinity, snapshots: true })`, keeping the balances each
-year; each year's figure is then found from that snapshot with `{ stopT, from, lite }`
+plan runs once as Ahead shows it —
+`fpProject(plan, 0, { stopT: Infinity, snapshots: true })` working throughout, or with
+`stopT` unset when `retire.on`, so that after the retirement date the savings are the
+ones being drawn down — keeping the balances each year; each year's figure is then found from that snapshot with `{ stopT, from, lite }`
 runs, the savings scaled up or down in the shares the accounts hold, halving until it
 just lasts. The earliest year whose own savings last is where it says you could stop.
 It is worked out a moment after typing stops (`fpNeededFor`, cached on the widget by
@@ -843,7 +882,14 @@ year (`fpFullRetirementMonths`), the benefit at that age (`fraBenefit`, today's 
 from the ssa.gov statement) cut by 5/9 of 1% a month for the first 36 months claimed
 early and 5/12 of 1% beyond, or raised 2/3 of 1% a month for waiting, to 70
 (`fpClaimFactor`). It is paid from the month the claiming age is reached and rises by
-`growth`, the cost of living, inflation when empty. The part of it that is taxable comes
+`growth`, the cost of living, inflation when empty. With `fraBenefit` empty the benefit
+is estimated from pay (`fpSSEstimate`), as the SSA works it out: each year's earnings up
+to the wage base, the best 35 averaged a month, and the year's bend points. The pay that
+counts is `payFrom`, or — with one Social Security line — every line of pay from work;
+years before now are `pastPay` (or today's pay) from age `workFrom` (22); later ones are
+the pay lines as long as they run, in today's dollars. `fpGet` puts the estimate on the
+line as `_est`, and `fpSet` leaves it out of what is saved. What is needed to stop
+working uses the benefit as it would be with work stopping that year. The part of it that is taxable comes
 from the IRS worksheet (`fpSSTaxable`): half the benefits plus the other income against
 the year's two amounts, which are not moved with inflation; typed taxes on it still win.
 The ages, the adjustments and the start of minimum withdrawals are all read from the
@@ -859,7 +905,9 @@ wage base, Medicare on all of it, the surtax on the household's pay above the
 threshold). Brackets, the deduction and the wage base move up with inflation; the
 Social Security amounts and the surtax threshold do not. A retirement account's
 contributions from pay and of its own are checked against the year's limit for its plan
-type (`fpLimitCheck`), with catch-up from the household's birth year, and said when over.
+type (`fpLimitCheck`), with catch-up from the household's birth year, and said when over. The limit
+(`fpLimitGroup`: 401(k), 457(b), IRA, HSA) is the person's across every account of the type — a 401(k) and a Roth 401(k) share one, a
+traditional and a Roth IRA another — and only pay into a traditional account comes off taxed pay.
 
 Of an income line's deductions, `intoAmount` goes into the asset account `intoAccount`
 (a 401(k), say) and `match` is what the employer adds to it, both in the line's own
@@ -918,9 +966,10 @@ to someone else, and `financePlan` is one.
   - `capGains: { single: [{ from, rate }], married: […] }` — long-term gains brackets, by where taxable income reaches
   - `payroll: { ssRate, wageBase, medicare, surtax, surtaxSingle, surtaxMarried }`
   - `ssTax: { single: { half, most }, married: { … } }` — the 50% and 85% amounts for Social Security
-  - `limits: { k401, k401CatchUp, k401CatchUp6063, ira, iraCatchUp }`
-  - `withdraw: { earlyYears, earlyMonths, penalty, rmdStart: [{ from, age }], rmdTable: [{ age, divisor }] }` — `from` is a birth year
-  - `socialSecurity: { fra: [{ from, years, months }], earliest, latest, early, earlyMonths, earlyMore, delayed }` — per cent a month; the built-in fractions (5/9, 5/12, 2/3) are kept exact
+  - `limits: { k401, k401CatchUp, k401CatchUp6063, ira, iraCatchUp, rothSingleFrom, rothSingleTo, rothMarriedFrom, rothMarriedTo, total415, compCap, hsaSelf, hsaFamily, hsaCatchUp }` — a 457(b) has the 401(k)'s amounts as a limit of its own; `total415` caps a 401(k)'s year with the employer's money; `compCap` the pay a match is worked from — the Roth IRA's limit shrinks over its income range, rounded up to $10 (at least $200), to none above it
+  - `withdraw: { earlyYears, earlyMonths, penalty, sepAge, hsaAge, hsaPenalty, rmdStart: [{ from, age }], rmdTable: [{ age, divisor }] }` — `from` is a birth year; a 401(k) left in the year of turning `sepAge` or later is not flagged for the penalty
+  - `medicare: { age, partB, irmaa: { single: [{ from, b, d }], married: […] } }` — Part B a month for each person from `age`, and the Part B and D surcharges above each income (modified AGI two years before; the thresholds move up with inflation)
+  - `socialSecurity: { fra: [{ from, years, months }], earliest, latest, early, earlyMonths, earlyMore, delayed, bend1, bend2, pct1, pct2, pct3 }` — per cent a month; the built-in fractions (5/9, 5/12, 2/3) are kept exact; the bend points and percentages are the benefit formula
 
   Kept as typed. `taxRulesFor(year)` gives the planner a year's rules cleaned up, every unusable one the built-in, cached on the stored string. A part missing from a saved year (one saved before these were kept) is the built-in. Unset or unreadable means the built-in year, so an exported board's calculator still works. Not on a board, so not in board undo, exports or share links
 - `toolboard_boardManagerView` — `grid` or `list`: whether the Boards popup shows cards or one row a board. Cards when unset or unreadable; the same choice for every board

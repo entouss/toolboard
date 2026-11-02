@@ -13,7 +13,7 @@ const filter = process.argv[2] || '';
 
 // Suites that are not run as part of the sweep: media builders, and anything
 // needing a second port.
-const SKIP = new Set(['run.mjs', 'curr-lib.mjs', 'cdoc-lib.mjs', 'cursor.mjs', 'video.mjs']);
+const SKIP = new Set(['run.mjs', 'curr-lib.mjs', 'cdoc-lib.mjs', 'cursor.mjs', 'video.mjs', 'finance-media.mjs']);
 
 const suites = fs.readdirSync(HERE)
     .filter((f) => f.endsWith('.mjs') && !SKIP.has(f))

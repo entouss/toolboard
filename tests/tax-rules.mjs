@@ -34,7 +34,7 @@ ok('saved brackets kept as they were', await page.evaluate(() => taxTableLoad().
 ok('and the rest of the year is the built-in rules', await page.evaluate(() => { const y = taxTableLoad().years['2026'];
     return y.payroll.wageBase === 184500 && y.limits.k401 === 24500 && y.withdraw.rmdStart.length === 2 && y.socialSecurity.fra.length === 13; }));
 ok('the tool is Tax & Retirement Rules', await page.evaluate(() => PluginRegistry.getTool('tax-brackets').name === 'Tax & Retirement Rules'));
-ok('six tabs, on income tax to start', (await page.locator(TB + ' .tb-tab').allInnerTexts()).join() === 'Income tax,Capital gains,Payroll,Social Security,Contributions,Withdrawals' &&
+ok('six tabs, on income tax to start', (await page.locator(TB + ' .tb-tab').allInnerTexts()).join() === 'Income tax,Capital gains,Payroll,Social Security,Contributions,Withdrawals,Medicare' &&
     (await page.getAttribute(TB + ' .tb-tab-on', 'data-tab')) === 'income' && (await page.locator(TB + ' .tb-status tbody tr').count()) === 3);
 await page.evaluate(() => localStorage.removeItem('toolboard_taxBrackets'));
 await page.evaluate(() => taxTableChanged(null));
@@ -90,6 +90,14 @@ ok('the 85% amount below the 50% one: said, and the planner keeps the built-in p
 await fill(TB + ' [data-path="ssTax.single.most"]', 34000);
 await fill(TB + ' [data-path="socialSecurity.delayed"]', 0.5);
 ok('editing one field leaves the exact fractions beside it alone', (await stored()).years['2026'].socialSecurity.early === 5 / 9 && await page.evaluate(() => fpClaimFactor(67 * 12, 70 * 12) === 1.18));
+ok('the benefit formula: 90% to $1,286, 32% to $7,749, 15% above', (await page.inputValue(TB + ' [data-path="socialSecurity.bend1"]')) === '1286' &&
+    (await page.inputValue(TB + ' [data-path="socialSecurity.bend2"]')) === '7749' && (await page.inputValue(TB + ' [data-path="socialSecurity.pct3"]')) === '15');
+await fill(TB + ' [data-path="socialSecurity.bend2"]', 1000);
+ok('the second amount below the first: said, and the built-in pair used', /The second earnings amount has to be above the first\./.test(await problems()) &&
+    await page.evaluate(() => taxRulesFor('').socialSecurity.bend2 === 7749));
+await fill(TB + ' [data-path="socialSecurity.bend2"]', 8000);
+ok('changed: the planner’s estimate uses it', await page.evaluate(() => taxRulesFor('').socialSecurity.bend2 === 8000));
+await fill(TB + ' [data-path="socialSecurity.bend2"]', 7749);
 await fill(TB + ' table[data-path="socialSecurity.fra"] tbody tr:nth-child(13) [data-k="years"]', 68);
 ok('a full retirement age changed: the planner’s too', await page.evaluate(() => fpFullRetirementMonths(1965) === 68 * 12 && fpFullRetirementMonths(1930) === 65 * 12));
 
@@ -97,6 +105,16 @@ ok('a full retirement age changed: the planner’s too', await page.evaluate(() 
 await tab('limits');
 ok('contribution limits: 401(k), catch-ups and the IRA, as announced', (await page.inputValue(TB + ' [data-path="limits.k401"]')) === '24500' && (await page.inputValue(TB + ' [data-path="limits.k401CatchUp6063"]')) === '11250' &&
     (await page.inputValue(TB + ' [data-path="limits.ira"]')) === '7500' && (await page.inputValue(TB + ' [data-path="limits.iraCatchUp"]')) === '1100');
+
+await fill(TB + ' [data-path="limits.rothSingleTo"]', 150000);
+ok('the Roth IRA income range ending below its start: said', /Single: the Roth IRA range has to end above where it starts\./.test(await problems()));
+await fill(TB + ' [data-path="limits.rothSingleTo"]', 168000);
+ok('the Roth IRA ranges, as announced for 2026', (await page.inputValue(TB + ' [data-path="limits.rothSingleFrom"]')) === '153000' &&
+    (await page.inputValue(TB + ' [data-path="limits.rothMarriedTo"]')) === '252000' && (await problems()) === '');
+
+ok('the 401(k) total, the pay a match counts and the HSA limits, as announced for 2026', (await page.inputValue(TB + ' [data-path="limits.total415"]')) === '72000' &&
+    (await page.inputValue(TB + ' [data-path="limits.compCap"]')) === '360000' && (await page.inputValue(TB + ' [data-path="limits.hsaFamily"]')) === '8750' &&
+    (await page.inputValue(TB + ' [data-path="limits.hsaCatchUp"]')) === '1000');
 
 // 6. Withdrawals.
 await tab('withdraw');
@@ -106,6 +124,8 @@ ok('minimum withdrawals from 73, and from 75 for those born from 1960', (await p
     (await page.inputValue(TB + ' table[data-path="withdraw.rmdStart"] tbody tr:nth-child(2) [data-k="age"]')) === '75');
 ok('the Uniform Lifetime table: 72 to 120', (await page.locator(TB + ' table[data-path="withdraw.rmdTable"] tbody tr').count()) === 49 &&
     (await page.inputValue(TB + ' table[data-path="withdraw.rmdTable"] tbody tr:nth-child(4) [data-k="divisor"]')) === '24.6');
+ok('an HSA spent otherwise before 65: a 20% penalty', (await page.inputValue(TB + ' [data-path="withdraw.hsaPenalty"]')) === '20' && await page.evaluate(() => taxRulesFor('').withdraw.hsaAge === 65));
+ok('a 401(k) left at 55 or later: no penalty', (await page.inputValue(TB + ' [data-path="withdraw.sepAge"]')) === '55' && await page.evaluate(() => taxRulesFor('').withdraw.sepAge === 55));
 await fill(TB + ' [data-path="withdraw.earlyYears"]', 62);
 await fill(TB + ' [data-path="withdraw.earlyMonths"]', 0);
 ok('the early age changed: the planner’s, in months', await page.evaluate(() => taxRulesFor('').withdraw.early === 62 * 12));
@@ -113,6 +133,16 @@ await page.click(TB + ' table[data-path="withdraw.rmdTable"] tbody tr:nth-child(
 await page.waitForTimeout(100);
 ok('a divisor taken out: said', /A divisor is missing for age 91\./.test(await problems()), await problems());
 ok('and the planner uses the age below it meanwhile', await page.evaluate(() => fpRmdFactor(91) === 12.2 && fpRmdFactor(92) === 10.8));
+
+// Medicare.
+await tab('medicare');
+ok('Medicare: from 65, Part B $202.90, and the surcharge tiers for each status', (await page.inputValue(TB + ' [data-path="medicare.age"]')) === '65' &&
+    (await page.inputValue(TB + ' [data-path="medicare.partB"]')) === '202.9' && (await page.locator(TB + ' table[data-path="medicare.irmaa.single"] tbody tr').count()) === 5 &&
+    (await page.inputValue(TB + ' table[data-path="medicare.irmaa.married"] tbody tr:nth-child(1) [data-k="from"]')) === '218000');
+await fill(TB + ' [data-path="medicare.partB"]', 210);
+ok('a premium changed: the planner reads it', await page.evaluate(() => taxRulesFor('').medicare.partB === 210));
+await fill(TB + ' [data-path="medicare.partB"]', 202.9);
+await tab('withdraw');
 
 // 7. The year, as a whole.
 await page.click(TB + ' .tb-reset');
