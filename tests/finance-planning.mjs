@@ -514,8 +514,8 @@ await page.evaluate((i) => { fpSet(i, fpDefaultPlan()); fpRender(document.queryS
 await page.click('.fp-empty .fp-btn');
 await page.waitForTimeout(300);
 const secs = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-section[data-sec]')).map(s => s.dataset.sec + (s.classList.contains('fp-folded') ? '-' : '+')).join());
-ok('nine sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,advice+,assumptions+,ahead+' &&
-    (await page.locator('.fp-section .fp-fold').count()) === 9, await secs());
+ok('ten sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,goals+,retirement+,month+,advice+,assumptions+,ahead+' &&
+    (await page.locator('.fp-section .fp-fold').count()) === 10, await secs());
 await page.fill(row('Savings') + ' [data-f="balance"]', '15500');
 await page.click('.fp-section[data-sec="summary"] .fp-fold');
 await page.waitForTimeout(150);
@@ -526,16 +526,16 @@ ok('kept with the tool, beside the plan and not in it', await page.evaluate((i) 
     !('fpFolded' in toolCustomizations[i].financePlan), id));
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,advice-,assumptions-,ahead-' &&
+ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,goals-,retirement-,month-,advice-,assumptions-,ahead-' &&
     (await page.innerText('.fp-fold-all')) === 'Show all' && !(await page.isVisible('.fp-chart')) && !(await page.isVisible(row('Savings'))));
 await page.waitForTimeout(700);
 await page.reload();
 await page.waitForSelector('.fp-widget .fp-section', { timeout: 25000 });
 await page.waitForTimeout(300);
-ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,retirement-,month-,advice-,assumptions-,ahead-');
+ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,goals-,retirement-,month-,advice-,assumptions-,ahead-');
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,retirement+,month+,advice+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
+ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,goals+,retirement+,month+,advice+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
 await page.click('.fp-section[data-sec="income"] .fp-fold');
 await page.selectOption(row('Car loan') + ' [data-f="kind"]', 'credit');
 await page.waitForTimeout(200);
@@ -1101,7 +1101,7 @@ let sp2 = await page.evaluate((i) => { const p = fpGet(i); const pr = fpProject(
 ok('a $30,000 sum, step by step: starter, the card, the fund, an IRA, the rest invested — no match or 401(k), which come from pay', sp2 === 'starter:1000,debt:4000,fund:15000,ira:7500,beyond:2500', sp2);
 const monthSplit = await page.evaluate((i) => { const p = fpGet(i); const pr = fpProject(p, 0); return [pr.first.surplus, fpAdviceSplit(p, fpAdviceSteps(p, pr), pr.first.surplus, false)]; }, id);
 ok('this month’s leftover, placed: all of it, starter cash first', Math.abs(monthSplit[1].reduce((s, x) => s + x.amount, 0) - monthSplit[0]) < 1e-6 && monthSplit[1][0].key === 'starter', JSON.stringify(monthSplit));
-ok('the section shows the steps and the split', (await page.locator('.fp-advice .fp-step').count()) === 9 && /Placing what is left over/.test(await page.innerText('.fp-advice')) &&
+ok('the section shows the steps and the split', (await page.locator('.fp-advice .fp-step').count()) === 10 && /Placing what is left over/.test(await page.innerText('.fp-advice')) &&
     await page.evaluate(() => document.querySelector('.fp-step[data-step="debt"] .fp-step-mark').textContent === '○'));
 await page.fill('[data-a="advice"][data-k="lump"]', '30000');
 await page.waitForTimeout(200);
@@ -1184,7 +1184,7 @@ hd = await hsaDraw(false);
 ok('drawn for other things: taxed as income, and before 65 the 20% penalty said', hd.tax > 0 && hd.pen !== null, JSON.stringify(hd));
 await setPlan(HSA);
 st = await steps();
-ok('the next-dollar steps: an HSA after the emergency fund, with its room', st.map(s => s.key).join() === 'starter,match,debt,fund,hsa,lean,ira,k401,beyond' && step('hsa').status === 'done', st.map(s => s.key + ':' + s.status).join());
+ok('the next-dollar steps: goals, then an HSA, after the emergency fund, with its room', st.map(s => s.key).join() === 'starter,match,debt,fund,goals,hsa,lean,ira,k401,beyond' && step('hsa').status === 'done', st.map(s => s.key + ':' + s.status).join());
 await setPlan(Object.assign({}, HSA, { accounts: [HSA.accounts[0]], incomes: [{ id: 'p', name: 'Pay', amount: 95000, every: 'year', growth: 0, taxed: true }] }));
 st = await steps();
 ok('no HSA in the plan: the step says what one would do', step('hsa').status === 'skip' && /With a high-deductible health plan, an HSA comes next/.test(step('hsa').text));

@@ -783,7 +783,7 @@ labels.
 
 ```js
 {
-  accounts: [ { id, name, kind: 'cash'|'investment'|'retirement'|'property'|'other'|'loan'|'credit',
+  accounts: [ { id, name, kind: 'cash'|'investment'|'retirement'|'hsa'|'education'|'property'|'other'|'loan'|'credit',
                 balance, rate,          // null rate: the default for its kind, below
                 monthly,                // added a month, or a loan's payment where it has no details
                 compounding,            // investments: 'monthly' (default) or 'annual'
@@ -805,6 +805,12 @@ labels.
             //   claimYears, claimMonths, growth /* cost of living */, to, taxed, deductions, taxes,
             //   payFrom: [incomeId], workFrom, pastPay }   // for the estimate when fraBenefit is null
   expenses: [ { id, name, amount, every, growth, from, to } ],   // null growth: inflation
+  goals: [ { id, name, cost,             // in today's dollars
+             every: 'total'|'year',    // the cost in all, or a year
+             years,                    // payments, one at the start of each year: 1–20
+             from: 'YYYY-MM',          // the first payment
+             growth,                   // null: inflation
+             account } ],              // paid from it first; '' = cash, then savings
   tax: { on: true, status: 'single', year: '',    // federal tax from toolboard_taxBrackets; '' = this year's
          payroll },                              // payroll tax; unset follows `on`
   surplusTo: '',                         // account id; '' the first cash account
@@ -832,6 +838,18 @@ gains `healthBefore` until Medicare, then Part B for each person (two when marri
 surcharge, by the year's modified AGI two years before, and `healthAfter` — all rising by
 `medInfl`. Nothing more goes into an HSA from the Medicare age.
 
+Goals (`fpGoalPayments`) are paid in their months whether working or retired — unlike
+Expenses, which give way to `retire.spending`. Each payment is the cost a year (or the
+cost over `years`) grown by `growth` from today, taken out of the month's money like an
+expense; then as much as its `account` holds is drawn from it back into cash (taxed as any
+draw from that account is; a 529 untaxed), and what is still short is made up as any
+shortfall is. Draws for a goal from its own account do not set `drawnEarly`. A 529
+(`kind: 'education'`) is not in `drawOrder` and takes no `monthly` after the last goal
+paid from it. `milestones.goals[id]` keeps `{ first, last, count, today, due, fromOwn,
+drawn, held, left, retired, own }`. `fpGoalSaving` finds, by halving, what more a month
+into the goal's account (`fpProject`'s `extra`, run to `endT`) would cover it; it is
+worked out after typing stops, as `fpNeededFor` is (`fpLater`).
+
 With `retire.on` and a birth month (the plan's, or a Social Security line's), the plan
 runs to the age in `until` instead of `assume.years`. From the retirement month pay
 stops — Social Security and lines with a `to` of their own go on — and so do
@@ -854,7 +872,7 @@ one, nothing changes. A Social Security line's own dates carry its claiming age.
 Where the next dollar goes (`fpAdviceSteps`): the usual order — starter cash, the full
 employer match (from the formula, worked from pay up to `compCap` and only as far as the
 401(k) limit lets in: `fpMatchOf` gives `reach` and `best`), debt at `debtRate` or more, the
-emergency fund, an HSA, Roth or
+emergency fund, goals short of their account (what a month more covers them), an HSA, Roth or
 traditional (the federal rate on the next $1,000 now, against the average in the retired
 years pre-tax money is drawn: `fpMarginal`, from each row's `ordinary` and `benefits`), an
 IRA, the rest of the 401(k), then cheaper debt against investing. `fpAdviceSplit` places this
@@ -876,6 +894,16 @@ runs, the savings scaled up or down in the shares the accounts hold, halving unt
 just lasts. The earliest year whose own savings last is where it says you could stop.
 It is worked out a moment after typing stops (`fpNeededFor`, cached on the widget by
 the plan, the rules and the month); about 0.3 s for a 55-year plan.
+
+A year taken apart: Ahead's main run is `fpProject(plan, 0, { detail: true })`, which keeps
+`detail[k]` beside `rows[k]` — row 0 this month, every other row the twelve months to it —
+with each income, expense, loan payment, escrow, contribution and goal by id; deductions
+and each tax; retirement spending and its health parts; what was drawn from each account
+(`rmd` the forced part) and the tax on it; what was left over and what withdrawals put
+back into cash; and each account's `start` and `end` with what went in (`added`) and what
+it earned (`growth`; a loan's interest, negative). Amounts are in dollars of the time, so
+start + in − drawn + growth = end for each account and for net worth. The year picked
+(`widget._yearT`, a way of looking, not kept) opens `fpYearDetailHtml` under the chart.
 
 A Social Security line is worked out as the SSA does: full retirement age from the birth
 year (`fpFullRetirementMonths`), the benefit at that age (`fraBenefit`, today's dollars,

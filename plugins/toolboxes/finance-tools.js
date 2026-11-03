@@ -183,7 +183,30 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-chart .fp-assets-label { fill: #009E73; }
 .fp-chart .fp-liab-label { fill: #D55E00; }
 .fp-chart .fp-hit { fill: transparent; }
-.fp-chart .fp-hit:hover { fill: var(--text-muted); opacity: 0.08; }
+.fp-chart .fp-hit { cursor: pointer; }
+.fp-chart .fp-hit:hover, .fp-chart .fp-hit:focus { fill: var(--text-muted); opacity: 0.08; outline: none; }
+.fp-chart .fp-hit-on, .fp-chart .fp-hit-on:hover, .fp-chart .fp-hit-on:focus { fill: var(--text-muted); opacity: 0.18; }
+.fp-year-row { cursor: pointer; }
+.fp-year-row:hover td { background: var(--bg-secondary); }
+.fp-year-on td { background: var(--bg-secondary); font-weight: 600; }
+.fp-yd-hint { font-size: 11px; color: var(--text-muted); margin: 2px 0 6px; }
+.fp-yd { border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; margin: 6px 0 10px; font-size: 12px; background: var(--bg-primary); }
+.fp-yd-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 6px; }
+.fp-yd-head h5 { margin: 0; font-size: 13px; }
+.fp-yd-head h5:focus { outline: 2px solid var(--accent-color, #0072B2); outline-offset: 2px; }
+.fp-yd-nav { margin-left: auto; display: inline-flex; gap: 4px; align-items: center; }
+.fp-yd-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; }
+@media (max-width: 720px) { .fp-yd-grid { grid-template-columns: minmax(0, 1fr); } }
+.fp-yd-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.fp-yd-table caption { text-align: left; font-weight: 600; padding: 2px 0 4px; }
+.fp-yd-table th, .fp-yd-table td { padding: 2px 4px; border: none; border-bottom: 1px solid var(--border-light); font-weight: normal; text-align: left; }
+.fp-yd-table td { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fp-yd-table thead th { color: var(--text-muted); font-size: 11px; text-align: right; }
+.fp-yd-table thead th:first-child { text-align: left; }
+.fp-yd-total th, .fp-yd-total td { font-weight: 600; border-bottom-color: var(--border-color); }
+.fp-yd-scroll { overflow-x: auto; }
+.fp-yd-block ul { margin: 2px 0 8px; padding-left: 18px; color: var(--text-secondary); }
+.fp-yd-block li { margin: 1px 0; }
 .fp-legend .fp-key-net { background: #0072B2; height: 3px; }
 .fp-legend .fp-key-assets { background: #009E73; height: 2px; }
 .fp-legend .fp-key-liab { background: #D55E00; height: 2px; }
@@ -196,6 +219,11 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-legend .fp-key-needed { height: 0; border-top: 2px dashed var(--text-secondary); background: none; }
 .fp-legend .fp-key-have { background: #CC79A7; height: 2px; }
 .fp-stale { opacity: 0.5; }
+.fp-chart .fp-goal-mark { fill: #B8860B; stroke: var(--bg-tertiary); stroke-width: 2; }
+.fp-legend .fp-key-goal { background: #B8860B; width: 8px; height: 8px; transform: rotate(45deg); }
+.fp-goals-out { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px; }
+.fp-goals-out b { color: var(--text-primary); }
+.fp-goal-working { opacity: 0.85; }
 .fp-steps { list-style: none; padding: 0; margin: 4px 0 8px; display: flex; flex-direction: column; gap: 6px; }
 .fp-step { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; }
 .fp-step-mark { flex: none; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border-color); color: var(--text-secondary); }
@@ -1483,18 +1511,19 @@ const FP_KINDS = {
     investment: { label: 'Investment', side: 'asset', rate: 7, color: '#0072B2', tool: 'dynamic-investment-calculator' },
     retirement: { label: 'Retirement', side: 'asset', rate: 7, color: '#009E73', tool: 'dynamic-investment-calculator' },
     hsa: { label: 'HSA', side: 'asset', rate: 7, color: '#6A3D9A', tool: 'dynamic-investment-calculator' },
+    education: { label: 'Education (529)', side: 'asset', rate: 6, color: '#B8860B', tool: 'dynamic-investment-calculator' },
     property: { label: 'Property', side: 'asset', rate: 3, color: '#E69F00' },
     other: { label: 'Other asset', side: 'asset', rate: 0, color: '#CC79A7' },
     loan: { label: 'Loan', side: 'liability', rate: 6.5, color: '#D55E00', tool: 'loan-calculator' },
     credit: { label: 'Credit card', side: 'liability', rate: 22, color: '#A6461A' }
 };
 // The kinds whose returns are uncertain enough to be shown as a range.
-const FP_MARKET = ['investment', 'retirement', 'hsa'];
+const FP_MARKET = ['investment', 'retirement', 'hsa', 'education'];
 
 function fpDefaultPlan() {
     const returns = {};
     Object.keys(FP_KINDS).forEach(k => { returns[k] = FP_KINDS[k].rate; });
-    return { accounts: [], incomes: [], expenses: [], tax: { on: true, status: 'single', year: '' }, surplusTo: '',
+    return { accounts: [], incomes: [], expenses: [], goals: [], tax: { on: true, status: 'single', year: '' }, surplusTo: '',
         assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000, returns: returns },
         retire: { on: false, birth: '', ageYears: 65, ageMonths: 0, until: 95, spending: null, buffer: 6, health: false, healthBefore: null, healthAfter: null, medInfl: 5 }, drawOrder: [],
         // Where the next dollar goes: the thresholds its steps use, and how much risk.
@@ -1519,7 +1548,7 @@ function fpToolId(el) {
 function fpGet(toolId) {
     const saved = (typeof toolCustomizations !== 'undefined' && toolCustomizations[toolId] && toolCustomizations[toolId].financePlan) || {};
     const plan = fpDefaultPlan();
-    ['accounts', 'incomes', 'expenses'].forEach(k => { if (Array.isArray(saved[k])) plan[k] = saved[k].filter(x => x && typeof x === 'object').map(x => Object.assign({}, x)); });
+    ['accounts', 'incomes', 'expenses', 'goals'].forEach(k => { if (Array.isArray(saved[k])) plan[k] = saved[k].filter(x => x && typeof x === 'object').map(x => Object.assign({}, x)); });
     if (saved.tax) plan.tax = Object.assign(plan.tax, saved.tax);
     if (typeof saved.surplusTo === 'string') plan.surplusTo = saved.surplusTo;
     if (saved.retire) plan.retire = Object.assign(plan.retire, saved.retire);
@@ -1965,7 +1994,7 @@ function fpEntries(list) { return (list || []).filter(x => x && !fpIsSection(x))
 /** The plan with only its entries, for the sums. */
 function fpCalc(plan) {
     if (!plan || plan._calc) return plan;
-    return Object.assign({}, plan, { accounts: fpEntries(plan.accounts), incomes: fpEntries(plan.incomes), expenses: fpEntries(plan.expenses), _calc: true });
+    return Object.assign({}, plan, { accounts: fpEntries(plan.accounts), incomes: fpEntries(plan.incomes), expenses: fpEntries(plan.expenses), goals: fpEntries(plan.goals || []), _calc: true });
 }
 
 /** Each section of a list with its entries, in order; the unsectioned first, under null. */
@@ -1998,6 +2027,10 @@ function fpSectionTotal(plan, list, entries) {
         if (inn) bits.push(fpMoney(inn) + '/mo in');
         if (paid) bits.push(fpMoney(paid) + '/mo paid');
         return { text: bits.join(' · ') || 'Nothing in it yet', held: held, owed: owed, monthlyIn: inn, monthlyPaid: paid };
+    }
+    if (list === 'goals') {
+        const total = entries.reduce((s, g) => s + fpGoalToday(g), 0);
+        return { text: entries.length ? fpMoney(total) + ' in today’s dollars' : 'Nothing in it yet', today: total };
     }
     const ym = fpYm(new Date());
     const running = entries.filter(l => fpActive(l, ym));
@@ -2212,11 +2245,93 @@ function fpRetireSpending(plan) {
     return fpEntries(plan.expenses).filter(l => fpActive(l, ym)).reduce((s, l) => s + fpMonthly(l), 0);
 }
 
+// ---- Goals -------------------------------------------------------------------------------
+//
+// A big cost ahead — college, a car, a wedding, a new roof — as a line of its own rather
+// than an expense: expenses give way to the spending figure once retired, a goal is paid
+// whenever it falls. Its cost is in today's dollars, a year at a time or in all, over one
+// year or several, paid at the start of each; it rises by its own rate (inflation where
+// none is given) to when it is paid. It comes from the account chosen for it — a 529, a
+// savings account — and what that cannot cover, from cash and then savings in the
+// withdrawal order, as any shortfall is.
+
+/** The accounts a goal can be paid from: what is held, not property. */
+function fpCanPayGoal(a) {
+    return (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset' && a.kind !== 'property';
+}
+
+/** The account a goal is paid from, or null for cash and then savings. */
+function fpGoalAccount(plan, g) {
+    return g.account ? fpEntries(plan.accounts).find(a => a.id === g.account && fpCanPayGoal(a)) || null : null;
+}
+
+/** How many payments a goal makes: one a year, 1 to 20. */
+function fpGoalYears(g) {
+    return Math.max(1, Math.min(20, Math.round(fpNum(g.years, 1))));
+}
+
+/** A goal's whole cost, in today's dollars. */
+function fpGoalToday(g) {
+    const cost = Math.max(0, fpNum(g.cost, 0));
+    return g.every === 'year' ? cost * fpGoalYears(g) : cost;
+}
+
+/** A goal's payments, [{ t, amount, today }], by the projection's month count from
+ *  `start` (1: this month): in dollars then, and in today's. Those already past are left
+ *  out. */
+function fpGoalPayments(plan, g, start) {
+    const cost = Math.max(0, fpNum(g.cost, 0));
+    const m = /^(\d{4})-(\d{2})$/.exec(g.from || '');
+    if (!cost || !m) return [];
+    const n = fpGoalYears(g);
+    const each = g.every === 'year' ? cost : cost / n;
+    const rate = fpNum(g.growth, fpNum(plan.assume.inflation, 0)) / 100;
+    const t0 = (+m[1] - start.getFullYear()) * 12 + (+m[2] - 1 - start.getMonth()) + 1;
+    const out = [];
+    for (let k = 0; k < n; k++) {
+        const t = t0 + 12 * k;
+        if (t >= 1) out.push({ t: t, amount: each * Math.pow(1 + rate, (t - 1) / 12), today: each });
+    }
+    return out;
+}
+
+/**
+ * For each goal paid from an account of its own (not the one the month's leftover goes
+ * to), what more a month into that account from now would cover it in full: 0 when it is
+ * covered already. Found by halving the gap, the plan run to the goal's last payment.
+ */
+function fpGoalSaving(plan) {
+    plan = fpCalc(plan);
+    const out = {};
+    const into = fpSurplusAccount(plan);
+    const now = new Date(), start = new Date(now.getFullYear(), now.getMonth(), 1);
+    plan.goals.forEach(g => {
+        const acct = fpGoalAccount(plan, g);
+        const pays = fpGoalPayments(plan, g, start);
+        if (!acct || acct.id === into || !pays.length) return;
+        const endT = pays[pays.length - 1].t;
+        const short = (x) => {
+            const extra = {};
+            extra[acct.id] = x;
+            const o = fpProject(plan, 0, { lite: true, endT: endT, extra: x ? extra : null }).goals[g.id];
+            return o ? o.due - o.fromOwn : 0;
+        };
+        const s0 = short(0);
+        if (s0 < 1) { out[g.id] = 0; return; }
+        let lo = 0, hi = Math.max(10, s0);
+        if (short(hi) >= 1) { out[g.id] = null; return; }
+        while (hi - lo > Math.max(1, hi * 0.001)) { const mid = (lo + hi) / 2; if (short(mid) < 1) hi = mid; else lo = mid; }
+        out[g.id] = Math.ceil(hi);
+    });
+    return out;
+}
+
 /** The accounts drawn from, in order: as the person put them, then any not placed, cash
- *  first, then investments, then pre-tax, then Roth. Property is not drawn from. */
+ *  first, then investments, then pre-tax, then Roth. Property is not drawn from, and nor
+ *  is a 529: it is spent only on the goals paid from it. */
 function fpDrawOrder(plan) {
     const rank = (a) => a.kind === 'cash' ? 0 : a.kind === 'investment' ? 1 : a.kind === 'other' ? 2 : a.kind === 'hsa' ? 5 : fpIsPretax(a) ? 3 : 4;
-    const drawable = fpEntries(plan.accounts).filter(a => (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset' && a.kind !== 'property');
+    const drawable = fpEntries(plan.accounts).filter(a => (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset' && a.kind !== 'property' && a.kind !== 'education');
     const placed = (plan.drawOrder || []).map(x => drawable.find(a => a.id === x.id)).filter(Boolean);
     const rest = drawable.filter(a => !placed.includes(a)).sort((a, b) => rank(a) - rank(b));
     return placed.concat(rest);
@@ -2236,7 +2351,13 @@ function fpYm(date) {
  *              every line of pay from work stops then, even one with an end of its own
  *   snapshots  keep the balances at the start of each year, as `snaps`
  *   from       start from one of those, at its month, rather than from today
- *   lite       only whether the money lasts: { runsOut }, stopping when it does not
+ *   lite       only whether the money lasts: { runsOut, goals }, stopping when it does not
+ *   endT       stop after this month (with lite: run on to it even if the money runs out)
+ *   extra      more a month into accounts, by id, to endT — for what would cover a goal
+ *   detail     keep what made up each row, as `detail` (fpYearDetailHtml): row 0 is this
+ *              month, each other row the twelve months to it — every line's money in and
+ *              out, and each account's balance at the start and end with what went in, what
+ *              was drawn and what it earned (or, owed, its interest), in dollars of the time
  */
 function fpProject(plan, shift, opts) {
     plan = fpCalc(plan);
@@ -2273,6 +2394,21 @@ function fpProject(plan, shift, opts) {
     const yearStart = {}, yearAdded = {};
     plan.accounts.forEach(a => { bal[a.id] = fpBalanceOf(plan, a); yearStart[a.id] = bal[a.id]; yearAdded[a.id] = 0; });
     const into = fpSurplusAccount(plan);
+    const extra = opts.extra || {};
+    // Goals by the month each payment falls in, and what came of each. A 529 takes nothing
+    // more after the last goal paid from it.
+    const goalDue = {}, goalOut = {}, eduLast = {};
+    (plan.goals || []).forEach(g => {
+        const pays = fpGoalPayments(plan, g, start);
+        if (!pays.length) return;
+        const acct = fpGoalAccount(plan, g);
+        pays.forEach(p => { (goalDue[p.t] = goalDue[p.t] || []).push({ g: g, acct: acct, amount: p.amount }); });
+        if (acct && acct.kind === 'education') eduLast[acct.id] = Math.max(eduLast[acct.id] || 0, pays[pays.length - 1].t);
+        // due and fromOwn in dollars then; held: in its account at the first payment;
+        // drawn: what savings made up before retirement; left: in its account after.
+        goalOut[g.id] = { first: pays[0].t, last: pays[pays.length - 1].t, count: pays.length, today: pays.reduce((s, p) => s + p.today, 0),
+            due: 0, fromOwn: 0, drawn: 0, held: null, left: null, retired: false, own: !!acct && acct.id !== into };
+    });
     let loose = 0; // left over with nowhere to go: no account to put it in
     const side = (a) => (FP_KINDS[a.kind] || FP_KINDS.other).side;
     const totals = () => {
@@ -2292,13 +2428,20 @@ function fpProject(plan, shift, opts) {
     const owedAtStart = t0.liabilities > 0;
     const target = fpNum(plan.assume.target, 0);
     const ms = { debtFree: null, target: t0.net >= target && target > 0 ? 0 : null, cashOut: null, growing: [],
-        retire: null, rmd: null, runsOut: null, penalty: null, rothEarly: null, hsaPenalty: null, drawnEarly: null, medicare: null, irmaa: null };
+        retire: null, rmd: null, runsOut: null, penalty: null, rothEarly: null, hsaPenalty: null, drawnEarly: null, medicare: null, irmaa: null, goals: goalOut };
     // Work left in the year of turning 55 (the rules' age) or later: a 401(k) pays no early
     // penalty from then. IRAs keep the early age.
     const leftWork = !retOk ? null : opts.stopT !== undefined && isFinite(opts.stopT) ? new Date(start.getFullYear(), start.getMonth() + opts.stopT - 1, 1) : ret.date;
     const leftAt55 = !!leftWork && leftWork.getFullYear() - ret.birthYear >= ret.sepAge;
     let first = null;
     const snaps = opts.snapshots ? [] : null;
+    // What made up each row: this month into row 0 as well as row 1.
+    const det = opts.detail ? [] : null;
+    let dRows = [];
+    const dNew = () => ({ income: {}, deductions: 0, payrollOwn: 0, match: 0, fedTax: 0, payrollTax: 0, typedTax: 0, withdrawTax: 0,
+        expenses: {}, spending: 0, healthBefore: 0, healthAfter: 0, partB: 0, irmaa: 0, payments: {}, escrow: {}, goals: {},
+        added: {}, contrib: {}, drawn: {}, rmd: {}, leftover: 0, puts: 0, growth: {}, start: {}, end: {}, looseStart: 0, looseEnd: 0, months: 0 });
+    const dAdd = (part, key, v) => { if (!det || !v) return; dRows.forEach(b => { if (key === null) b[part] += v; else b[part][key] = (b[part][key] || 0) + v; }); };
     let tFrom = 1;
     if (opts.from) {
         const s = opts.from;
@@ -2307,6 +2450,13 @@ function fpProject(plan, shift, opts) {
         tFrom = s.t + 1;
     }
     for (let t = tFrom; t <= years * 12; t++) {
+        if (det) {
+            const k = Math.ceil(t / 12);
+            if (!det[k]) { det[k] = dNew(); det[k].start = Object.assign({}, bal); det[k].looseStart = loose; }
+            if (t === 1) { det[0] = dNew(); det[0].start = Object.assign({}, bal); det[0].looseStart = loose; }
+            dRows = t === 1 ? [det[0], det[k]] : [det[k]];
+            dRows.forEach(b => { b.months++; });
+        }
         if (snaps && (t - 1) % 12 === 0) snaps.push({ t: t - 1, bal: Object.assign({}, bal), basis: Object.assign({}, basis), yearStart: Object.assign({}, yearStart),
             yearAdded: Object.assign({}, yearAdded), loose: loose });
         const date = new Date(start.getFullYear(), start.getMonth() + t - 1, 1);
@@ -2329,6 +2479,7 @@ function fpProject(plan, shift, opts) {
             const g = Math.pow(1 + fpNum(l.growth, infl * 100) / 100, yrs);
             const v = fpMonthly(l) * g;
             income += v;
+            dAdd('income', l.id, v);
             // What goes into an account is part of the deductions; typed as more than
             // them, the deductions are at least that much.
             let own = 0, pretaxOwn = 0, hsaOwn = 0, hsaStopped = 0;
@@ -2358,23 +2509,28 @@ function fpProject(plan, shift, opts) {
         });
         if (retired) {
             expenses = spend0 * Math.pow(1 + infl, yrs);
+            dAdd('spending', null, expenses);
             // Health cover: before Medicare, and from it — Part B with its surcharge, by the
             // income two years before, the thresholds moving up with inflation.
             const k = Math.floor((t - 1) / 12);
             const magi = k >= 2 && magiYear[k - 2] !== undefined ? magiYear[k - 2] : health.magiNow;
             const mi = Math.pow(1 + health.medInfl, yrs);
             if (ageM !== null && health.on) {
-                if (!onMedicare) expenses += health.before * mi;
+                if (!onMedicare) { expenses += health.before * mi; dAdd('healthBefore', null, health.before * mi); }
                 else {
                     const tier = health.irmaa.filter(r => magi > r.from * index0(yrs)).pop();
                     if (tier && ms.irmaa === null) ms.irmaa = t;
                     expenses += (health.after + health.persons * (health.partB + (tier ? tier.b + tier.d : 0))) * mi;
+                    dAdd('healthAfter', null, health.after * mi); dAdd('partB', null, health.persons * health.partB * mi); dAdd('irmaa', null, tier ? health.persons * (tier.b + tier.d) * mi : 0);
                     if (ms.medicare === null) ms.medicare = t;
                 }
             }
         }
         else plan.expenses.forEach(l => {
-            if (fpActive(l, ym)) expenses += fpMonthly(l) * Math.pow(1 + fpNum(l.growth, infl * 100) / 100, yrs);
+            if (!fpActive(l, ym)) return;
+            const v = fpMonthly(l) * Math.pow(1 + fpNum(l.growth, infl * 100) / 100, yrs);
+            expenses += v;
+            dAdd('expenses', l.id, v);
         });
         const index = Math.pow(1 + infl, yrs);
         // Paid into an HSA directly, while working: taken off taxed income, as on the return.
@@ -2384,17 +2540,25 @@ function fpProject(plan, shift, opts) {
         const estimated = (fpFederalTax(taxInfo, (taxed + typedOrd) * 12, (benefits + typedBen) * 12, 0, index) - fpFederalTax(taxInfo, typedOrd * 12, typedBen * 12, 0, index)) / 12;
         const payrollTax = fpPayrollTax(taxInfo, wages, index) / 12;
         const tax = estimated + payrollTax + typedTax;
+        dAdd('fedTax', null, estimated); dAdd('payrollTax', null, payrollTax); dAdd('typedTax', null, typedTax);
+        dAdd('deductions', null, deductions); dAdd('payrollOwn', null, payrollOwn); dAdd('match', null, payrollMatch);
+        if (det) Object.keys(payroll).forEach(k => dAdd('added', k, payroll[k]));
         plan.accounts.forEach(a => {
             const yearly = (fpRateOf(plan, a) + (FP_MARKET.includes(a.kind) ? shift : 0)) / 100;
             const r = yearly / 12;
-            const m = (retired && side(a) !== 'liability') || (a.kind === 'hsa' && onMedicare) ? 0 : fpMonthlyOf(plan, a);
+            let m = (retired && side(a) !== 'liability') || (a.kind === 'hsa' && onMedicare) || (eduLast[a.id] !== undefined && t > eduLast[a.id]) ? 0 : fpMonthlyOf(plan, a);
+            if (extra[a.id] && side(a) !== 'liability') m += extra[a.id];
             if (side(a) === 'liability') {
                 escrow += fpEscrowOf(a) * Math.pow(1 + infl, yrs);
+                dAdd('escrow', a.id, fpEscrowOf(a) * Math.pow(1 + infl, yrs));
                 if (bal[a.id] <= 0) return;
                 const interest = bal[a.id] * r;
                 const pay = Math.min(m, bal[a.id] + interest);
+                const was = bal[a.id];
                 bal[a.id] += interest - pay;
                 if (bal[a.id] < 0.005) bal[a.id] = 0;
+                // Owed, interest is growth the wrong way, and a payment is money in.
+                dAdd('growth', a.id, -(bal[a.id] - was + pay)); dAdd('added', a.id, pay); dAdd('payments', a.id, pay);
                 payments += pay;
                 if (pay < interest && !ms.growing.includes(a.id)) ms.growing.push(a.id);
             } else if (a.compounding === 'annual') {
@@ -2405,70 +2569,93 @@ function fpProject(plan, shift, opts) {
                 yearAdded[a.id] += m + (payroll[a.id] || 0);
                 if (basis[a.id] !== undefined) basis[a.id] += m + (payroll[a.id] || 0);
                 contributions += m;
+                dAdd('added', a.id, m); dAdd('contrib', a.id, m);
                 if (t % 12 === 0) {
                     const base = bal[a.id] - yearAdded[a.id];
+                    if (base > 0) dAdd('growth', a.id, base * yearly);
                     bal[a.id] = (base > 0 ? base * (1 + yearly) : base) + yearAdded[a.id];
                     yearStart[a.id] = bal[a.id];
                     yearAdded[a.id] = 0;
                 }
             } else {
-                if (bal[a.id] > 0) bal[a.id] *= 1 + r;
+                if (bal[a.id] > 0) { dAdd('growth', a.id, bal[a.id] * r); bal[a.id] *= 1 + r; }
                 bal[a.id] += m + (payroll[a.id] || 0);
                 if (basis[a.id] !== undefined) basis[a.id] += m + (payroll[a.id] || 0);
                 contributions += m;
+                dAdd('added', a.id, m); dAdd('contrib', a.id, m);
             }
         });
-        const surplus = income - deductions - tax - expenses - payments - escrow - contributions;
+        // A goal falling this month is paid out of the month's money, like an expense.
+        const dueNow = goalDue[t] || [];
+        const goalCost = dueNow.reduce((s, d) => s + d.amount, 0);
+        const surplus = income - deductions - tax - expenses - payments - escrow - contributions - goalCost;
+        dueNow.forEach(d => dAdd('goals', d.g.id, d.amount));
+        dAdd('leftover', null, surplus);
         if (into) { bal[into] += surplus; yearAdded[into] += surplus; if (basis[into] !== undefined && surplus > 0) basis[into] += surplus; } else loose += surplus;
         let withdrawn = 0, withdrawTax = 0, monthOrd = taxed + typedOrd, monthGains = 0;
+        const age = ageM;
+        const put = (v) => { if (into) { bal[into] += v; yearAdded[into] += v; } else loose += v; dAdd('puts', null, v); };
+        // Pre-tax money is income, and the gain in what is drawn from an investment
+        // account is taxed at the capital-gains rates: what more tax they bring, on top
+        // of what is already taxed this month.
+        let pretaxSoFar = 0, gainsSoFar = 0;
+        const fedNow = (ord, gain) => fpFederalTax(taxInfo, (taxed + typedOrd + pretaxSoFar + ord) * 12, (benefits + typedBen) * 12, (gainsSoFar + gain) * 12, index) / 12;
+        const extraTax = (ord, gain) => fedNow(ord || 0, gain || 0) - fedNow(0, 0);
+        const fromPretax = {};
+        const take = (a, net) => {
+            // Enough to have `net` left once its tax is paid, if the account holds it. An
+            // HSA spent on other than medical costs is taxed as pre-tax money is.
+            const hsaTaxed = a.kind === 'hsa' && a.hsaMedical === false;
+            const pre = fpIsPretax(a) || hsaTaxed;
+            const share = !pre && basis[a.id] !== undefined && bal[a.id] > 0 ? Math.max(0, 1 - basis[a.id] / bal[a.id]) : 0;
+            const taxOf = (g) => pre ? extraTax(g, 0) : share ? extraTax(0, g * share) : 0;
+            let g = net;
+            if (pre || share) for (let k = 0; k < 6; k++) g = net + taxOf(g);
+            g = Math.min(g, Math.max(0, bal[a.id]));
+            const tx = taxOf(g);
+            bal[a.id] -= g;
+            if (pre) {
+                pretaxSoFar += g;
+                fromPretax[a.id] = (fromPretax[a.id] || 0) + g;
+                // Before retirement, the job is not taken to be left: no age-55 exception.
+                const left55 = retired && a.planType !== 'ira' && leftAt55;
+                if (hsaTaxed) { if (g > 0 && age !== null && age < W.hsaAge * 12 && ms.hsaPenalty === null) ms.hsaPenalty = t; }
+                else if (g > 0 && age !== null && age < W.early && ms.penalty === null && !(a.planType === '457' && retired) && !left55) ms.penalty = t;
+            } else if (a.kind === 'retirement') {
+                // Roth money before 59½: contributions come out free; earnings may not.
+                const left55 = retired && a.planType !== 'ira' && leftAt55;
+                if (g > 0 && age !== null && age < W.early && ms.rothEarly === null && !(a.planType === '457' && retired) && !left55) ms.rothEarly = t;
+            } else if (basis[a.id] !== undefined) {
+                basis[a.id] = Math.max(0, basis[a.id] - g * (1 - share));
+                gainsSoFar += g * share;
+            }
+            withdrawn += g; withdrawTax += tx;
+            dAdd('drawn', a.id, g); dAdd('withdrawTax', null, tx);
+            put(g - tx);
+            return g - tx;
+        };
+        // A goal's payment comes first from its own account, as far as that goes: back
+        // into cash, which paid it. A 529's comes out untaxed.
+        dueNow.forEach(d => {
+            const o = goalOut[d.g.id];
+            o.due += d.amount;
+            if (retired) o.retired = true;
+            if (!o.own) return;
+            if (o.held === null) o.held = Math.max(0, bal[d.acct.id]);
+            d.got = take(d.acct, d.amount);
+            o.fromOwn += d.got;
+        });
+        const goalWithdrawn = withdrawn;
         // Before retirement, cash running short is made up from savings, in the same order:
         // cash is kept at nought, not overdrawn while there is anything to draw on.
         const short = !retired && cashOf() < -0.005;
+        let shortNet = 0;
         if (retired || short) {
-            const age = ageM;
-            const put = (v) => { if (into) { bal[into] += v; yearAdded[into] += v; } else loose += v; };
-            // Pre-tax money is income, and the gain in what is drawn from an investment
-            // account is taxed at the capital-gains rates: what more tax they bring, on top
-            // of what is already taxed this month.
-            let pretaxSoFar = 0, gainsSoFar = 0;
-            const fedNow = (ord, gain) => fpFederalTax(taxInfo, (taxed + typedOrd + pretaxSoFar + ord) * 12, (benefits + typedBen) * 12, (gainsSoFar + gain) * 12, index) / 12;
-            const extraTax = (ord, gain) => fedNow(ord || 0, gain || 0) - fedNow(0, 0);
-            const fromPretax = {};
-            const take = (a, net) => {
-                // Enough to have `net` left once its tax is paid, if the account holds it. An
-                // HSA spent on other than medical costs is taxed as pre-tax money is.
-                const hsaTaxed = a.kind === 'hsa' && a.hsaMedical === false;
-                const pre = fpIsPretax(a) || hsaTaxed;
-                const share = !pre && basis[a.id] !== undefined && bal[a.id] > 0 ? Math.max(0, 1 - basis[a.id] / bal[a.id]) : 0;
-                const taxOf = (g) => pre ? extraTax(g, 0) : share ? extraTax(0, g * share) : 0;
-                let g = net;
-                if (pre || share) for (let k = 0; k < 6; k++) g = net + taxOf(g);
-                g = Math.min(g, Math.max(0, bal[a.id]));
-                const tx = taxOf(g);
-                bal[a.id] -= g;
-                if (pre) {
-                    pretaxSoFar += g;
-                    fromPretax[a.id] = (fromPretax[a.id] || 0) + g;
-                    // Before retirement, the job is not taken to be left: no age-55 exception.
-                    const left55 = retired && a.planType !== 'ira' && leftAt55;
-                    if (hsaTaxed) { if (g > 0 && age !== null && age < W.hsaAge * 12 && ms.hsaPenalty === null) ms.hsaPenalty = t; }
-                    else if (g > 0 && age !== null && age < W.early && ms.penalty === null && !(a.planType === '457' && retired) && !left55) ms.penalty = t;
-                } else if (a.kind === 'retirement') {
-                    // Roth money before 59½: contributions come out free; earnings may not.
-                    const left55 = retired && a.planType !== 'ira' && leftAt55;
-                    if (g > 0 && age !== null && age < W.early && ms.rothEarly === null && !(a.planType === '457' && retired) && !left55) ms.rothEarly = t;
-                } else if (basis[a.id] !== undefined) {
-                    basis[a.id] = Math.max(0, basis[a.id] - g * (1 - share));
-                    gainsSoFar += g * share;
-                }
-                withdrawn += g; withdrawTax += tx;
-                put(g - tx);
-                return g - tx;
-            };
             let need = retired ? buffer * expenses - cashOf() : -cashOf();
             order.forEach(a => {
                 if (need <= 0.005 || a.id === into || bal[a.id] <= 0) return;
-                need -= take(a, need);
+                const got = take(a, need);
+                need -= got; shortNet += got;
             });
             // The minimum a pre-tax account must pay out: worked out each January from the
             // balance then and the age reached that year, paid a twelfth a month.
@@ -2483,25 +2670,36 @@ function fpProject(plan, shift, opts) {
                             const g = Math.min(owed, bal[a.id]);
                             const tx = extraTax(g, 0);
                             bal[a.id] -= g; pretaxSoFar += g; withdrawn += g; withdrawTax += tx;
+                            dAdd('drawn', a.id, g); dAdd('rmd', a.id, g); dAdd('withdrawTax', null, tx);
                             put(g - tx);
                         }
                     });
                 }
             }
-            monthOrd = taxed + typedOrd + pretaxSoFar;
-            monthGains = gainsSoFar;
-            if (!retired && withdrawn > 0 && ms.drawnEarly === null) ms.drawnEarly = t;
+            if (!retired && withdrawn > goalWithdrawn && ms.drawnEarly === null) ms.drawnEarly = t;
             if (retired && ms.runsOut === null && cashOf() < -0.005) {
                 ms.runsOut = t;
-                if (opts.lite) return { runsOut: t };
+                if (opts.lite && !opts.endT) return { runsOut: t, goals: goalOut };
             }
         }
+        monthOrd = taxed + typedOrd + pretaxSoFar;
+        monthGains = gainsSoFar;
+        // What of the goals' payments savings made up, before retirement; and what is
+        // left in a goal's account after its last.
+        let rest = shortNet;
+        dueNow.forEach(d => {
+            const o = goalOut[d.g.id];
+            if (!retired && rest > 0) { const part = Math.min(rest, Math.max(0, d.amount - (d.got || 0))); o.drawn += part; rest -= part; }
+            if (t === o.last && o.own) o.left = Math.max(0, bal[d.acct.id]);
+        });
+        if (opts.endT && t >= opts.endT) break;
         if (opts.lite) continue;
+        if (det) dRows.forEach(b => { b.end = Object.assign({}, bal); b.looseEnd = loose; });
         yearWithdrawn += withdrawn; yearWithdrawTax += withdrawTax; yearOrd += monthOrd; yearBen += benefits + typedBen; yearGains += monthGains;
         // The year's modified AGI, for the Medicare surcharge two years on.
         if (t % 12 === 0) magiYear[t / 12 - 1] = yearOrd + yearGains + fpSSTaxable(health.ssTax, yearBen, yearOrd + yearGains);
         if (!first) first = { income: income, deductions: deductions, tax: tax, typedTax: typedTax, estimatedTax: estimated, payrollTax: payrollTax, takeHome: income - deductions - tax,
-            expenses: expenses, payments: payments, escrow: escrow, contributions: contributions, surplus: surplus, payrollOwn: payrollOwn, payrollMatch: payrollMatch };
+            goals: goalCost, expenses: expenses, payments: payments, escrow: escrow, contributions: contributions, surplus: surplus, payrollOwn: payrollOwn, payrollMatch: payrollMatch };
         const tot = totals();
         if (owedAtStart && ms.debtFree === null && plan.accounts.every(a => side(a) !== 'liability' || bal[a.id] <= 0)) ms.debtFree = t;
         if (ms.target === null && target > 0 && real(tot.net, t) >= target) ms.target = t;
@@ -2514,8 +2712,8 @@ function fpProject(plan, shift, opts) {
             yearWithdrawn = 0; yearWithdrawTax = 0; yearOrd = 0; yearBen = 0; yearGains = 0;
         }
     }
-    if (opts.lite) return { runsOut: null };
-    return { snaps: snaps, rows: rows, first: first || { income: 0, deductions: 0, tax: 0, typedTax: 0, estimatedTax: 0, payrollTax: 0, takeHome: 0, expenses: 0, payments: 0, escrow: 0, contributions: 0, surplus: 0, payrollOwn: 0, payrollMatch: 0 }, milestones: ms, start: start, into: into, retire: retOk ? ret : null };
+    if (opts.lite) return { runsOut: null, goals: goalOut };
+    return { snaps: snaps, detail: det, rows: rows, first: first || { goals: 0, income: 0, deductions: 0, tax: 0, typedTax: 0, estimatedTax: 0, payrollTax: 0, takeHome: 0, expenses: 0, payments: 0, escrow: 0, contributions: 0, surplus: 0, payrollOwn: 0, payrollMatch: 0 }, milestones: ms, start: start, into: into, retire: retOk ? ret : null };
 }
 
 /** Health cover in retirement, as the projection uses it: a month in today's dollars
@@ -2645,17 +2843,30 @@ function fpNeededToStop(plan) {
  * Returns { value, stale }, value null until there is one.
  */
 function fpNeededFor(widget, plan) {
+    return fpLater(widget, '_needed', plan, fpNeededToStop);
+}
+
+/** fpGoalSaving the same way — and at once, with nothing to work out. */
+function fpGoalSavingFor(widget, plan) {
+    const into = fpSurplusAccount(plan);
+    if (!fpEntries(plan.goals).some(g => { const a = fpGoalAccount(plan, g); return a && a.id !== into; })) return { value: {}, stale: false };
+    return fpLater(widget, '_goalSave', plan, fpGoalSaving);
+}
+
+/** Work that runs the plan many times, done a moment after typing stops and kept on the
+ *  widget, under `slot`, until the plan, the rules or the month change. */
+function fpLater(widget, slot, plan, compute) {
     let raw = null;
     try { raw = localStorage.getItem(TAX_TABLE_KEY); } catch (e) { raw = null; }
     const keyOf = (pl) => JSON.stringify(pl) + '|' + raw + '|' + fpYm(new Date());
     const key = keyOf(plan);
-    const had = widget._needed;
+    const had = widget[slot];
     if (had && had.key === key) return { value: had.value, stale: false };
-    clearTimeout(widget._neededTimer);
-    widget._neededTimer = setTimeout(() => {
+    clearTimeout(widget[slot + 'Timer']);
+    widget[slot + 'Timer'] = setTimeout(() => {
         if (!widget.isConnected) return;
         const now = fpGet(fpToolId(widget));
-        widget._needed = { key: keyOf(now), value: fpNeededToStop(now) };
+        widget[slot] = { key: keyOf(now), value: compute(now) };
         fpRenderDerived(widget, now);
     }, 300);
     return { value: had ? had.value : null, stale: true };
@@ -2712,7 +2923,7 @@ function fpMarginal(plan, proj) {
 }
 
 /** The steps, each { key, title, status: 'done'|'part'|'todo'|'skip', text, monthly, lump }. */
-function fpAdviceSteps(plan, proj) {
+function fpAdviceSteps(plan, proj, goalSave) {
     plan = fpCalc(plan);
     const a = plan.advice || {};
     const f = proj.first;
@@ -2755,6 +2966,20 @@ function fpAdviceSteps(plan, proj) {
     push({ key: 'fund', title: 'Emergency fund', status: cash >= fund ? 'done' : cash >= starter ? 'part' : 'todo', lump: Math.max(0, fund - Math.max(cash, starter)),
         text: cash >= fund ? fpMoney(cash) + ' in cash is ' + (cash / Math.max(1, spend)).toFixed(1) + ' months of spending: enough.'
             : fpMoney(cash) + ' in cash is ' + (cash / Math.max(1, spend)).toFixed(1) + ' months of spending; ' + fpNum(a.months, 6) + ' months is ' + fpMoney(fund) + ': ' + fpMoney(fund - cash) + ' to go.' });
+    // 4¼. Goals ahead: set aside for them, so they are not paid by drawing on savings.
+    const goals = fpEntries(plan.goals).map(g => ({ g: g, o: proj.milestones.goals && proj.milestones.goals[g.id] })).filter(x => x.o);
+    const saving = (goalSave && goalSave.value) || {};
+    const shortOf = (x) => x.o.own ? x.o.due - x.o.fromOwn : x.o.retired ? 0 : x.o.drawn;
+    const short = goals.filter(x => shortOf(x) >= 1);
+    const goalMonthly = short.reduce((s, x) => s + (saving[x.g.id] || 0), 0);
+    const nm = (x) => escapeHtml(x.g.name || 'A goal');
+    push({ key: 'goals', title: 'Goals ahead', status: !goals.length ? 'skip' : !short.length ? 'done' : short.length < goals.length ? 'part' : 'todo', monthly: goalMonthly,
+        goals: short.filter(x => saving[x.g.id] > 0).map(x => ({ name: x.g.name || 'a goal', monthly: saving[x.g.id] })),
+        text: !goals.length ? 'No goals in the plan. College, a car or a new roof ahead? Add it in Goals, with the account it is paid from, to see what to set aside a month.'
+            : !short.length ? 'Each goal is covered: ' + goals.map(x => nm(x) + ' (' + fpMoney(x.o.due) + ')').join(', ') + '.'
+            : short.map(x => nm(x) + ' is short ' + fpMoney(shortOf(x)) + (saving[x.g.id] > 0 ? ': ' + fpMoney(saving[x.g.id]) + ' a month more into ' + escapeHtml((fpGoalAccount(plan, x.g) || {}).name || 'its account') + ' covers it'
+                : !x.o.own ? ': choose an account to pay it from, in Goals, to see what a month covers it' : '')).join('; ') + '.' +
+                (short.some(x => /college|universit|school|tuition|educat/i.test(x.g.name || '')) && !fpEntries(plan.accounts).some(a => a.kind === 'education') ? ' For school, a 529 grows and is spent untaxed.' : '') });
     // 4½. An HSA, with a high-deductible health plan: untaxed in, untaxed out for medical costs.
     const hsas = fpEntries(plan.accounts).filter(x => x.kind === 'hsa');
     const hsaRoom = (() => {
@@ -2827,6 +3052,7 @@ function fpAdviceSplit(plan, steps, amount, lump) {
     if (!lump) take('match', 'More into the 401(k), for the full match', by.match.monthly || 0);
     (by.debt.debts || []).forEach(d => take('debt', 'Pay down ' + (d.name || fpKindLabel(d)), fpBalanceOf(plan, d)));
     take('fund', 'The emergency fund', by.fund.lump || 0);
+    if (!lump && by.goals) (by.goals.goals || []).forEach(g => take('goals', 'Toward ' + g.name, g.monthly));
     take('hsa', 'An HSA', lump ? by.hsa.lump || 0 : by.hsa.monthly || 0);
     take('ira', 'An IRA', lump ? by.ira.lump || 0 : by.ira.monthly || 0);
     if (!lump) take('k401', 'More into the 401(k)', by.k401.monthly || 0);
@@ -2850,8 +3076,8 @@ function fpAdviceMix(plan, proj) {
     return { years: years, stocks: stocks, bonds: 100 - stocks, ret: Math.round((sr * stocks + br * (100 - stocks)) / 10) / 10, sr: sr, br: br };
 }
 
-function fpAdviceHtml(plan, proj, low, high) {
-    const steps = fpAdviceSteps(plan, proj);
+function fpAdviceHtml(plan, proj, low, high, goalSave) {
+    const steps = fpAdviceSteps(plan, proj, goalSave);
     const mark = { done: '✓', part: '◐', todo: '○', skip: '–', info: 'i' };
     const label = { done: 'Done', part: 'Part way', todo: 'To do', skip: 'Not in the plan', info: 'To weigh' };
     let n = 0;
@@ -2957,7 +3183,7 @@ function fpRender(widget) {
     widget._open = widget._open || new Set();
     // Which entries sit under a folded section: drawn, but out of sight.
     const under = {};
-    ['accounts', 'incomes', 'expenses'].forEach(list => fpSectionsOf(plan[list]).forEach(g => {
+    ['accounts', 'incomes', 'expenses', 'goals'].forEach(list => fpSectionsOf(plan[list]).forEach(g => {
         if (g.section && g.section.folded) g.entries.forEach(x => { under[x.id] = true; });
     }));
     const secRow = (s, list, cols) => '<tr data-id="' + attr(s.id) + '" data-list="' + list + '" class="fp-movable fp-sec-row' + (s.folded ? ' fp-sec-folded' : '') + '"' +
@@ -3008,6 +3234,19 @@ function fpRender(widget) {
             (isIncome ? '<td><label class="fp-check" title="Counted in the federal estimate, unless its taxes are typed"><input class="fp-in" type="checkbox" data-f="taxed"' + (l.taxed !== false ? ' checked' : '') + '> Taxed</label></td>' : '<td></td>') +
             '<td class="fp-acts"><button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>' +
         (isIncome && widget._open.has(l.id) && !under[l.id] ? fpIncomeDetailsRow(plan, l) : '')).join('');
+    const payFrom = fpEntries(plan.accounts).filter(fpCanPayGoal);
+    const goalRows = plan.goals.map(g => fpIsSection(g) ? secRow(g, 'goals', 8) :
+        '<tr data-id="' + attr(g.id) + '" data-list="goals" class="fp-movable fp-goal' + (under[g.id] ? ' fp-under-folded' : '') + '" ondragover="fpDragOver(event, this)" ondragleave="fpDragLeave(this)" ondrop="fpDrop(event, this)">' +
+            '<td><div class="fp-name-cell">' + fpGrip(g.name || 'goal') + '<input class="fp-in" data-f="name" value="' + attr(g.name) + '" placeholder="Name" aria-label="Name"></div></td>' +
+            '<td><input class="fp-in fp-num" type="number" data-f="cost" value="' + attr(g.cost) + '" placeholder="0" aria-label="Cost, in today’s dollars" title="In today’s dollars: it rises by its growth to when it is paid"></td>' +
+            '<td><select class="fp-in" data-f="every" aria-label="A year or in all"><option value="total"' + (g.every !== 'year' ? ' selected' : '') + '>in all</option><option value="year"' + (g.every === 'year' ? ' selected' : '') + '>/ year</option></select></td>' +
+            '<td><input class="fp-in fp-num fp-small" type="number" min="1" max="20" step="1" data-f="years" value="' + attr(g.years) + '" placeholder="1" aria-label="Over how many years" title="Paid at the start of each year: 4 for college, 1 for a one-off"></td>' +
+            '<td><input class="fp-in fp-num" type="number" step="0.1" data-f="growth" value="' + attr(g.growth) + '" placeholder="' + fpNum(plan.assume.inflation, 0) + '" aria-label="Its cost grows per cent a year" title="Its price rises this much a year; empty means inflation. College costs have tended to rise faster, about 5% a year."></td>' +
+            '<td><input class="fp-in fp-date" type="month" data-f="from" value="' + attr(g.from) + '" aria-label="When the first payment falls" title="When the first payment falls"></td>' +
+            '<td><select class="fp-in" data-f="account" aria-label="Paid from"><option value="">Cash, then savings</option>' +
+                payFrom.map(a => '<option value="' + attr(a.id) + '"' + (g.account === a.id ? ' selected' : '') + '>' + escapeHtml(a.name || fpKindLabel(a)) + '</option>').join('') + '</select></td>' +
+            '<td class="fp-acts"><button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>').join('');
+    const goalHead = '<thead><tr><th>Name</th><th>Cost today</th><th></th><th>Years</th><th>Grows %/yr</th><th>From</th><th>Paid from</th><th></th></tr></thead>';
     const flowHead = '<thead><tr><th>Name</th><th>Amount</th><th></th><th>Grows %/yr</th><th>From</th><th>Until</th><th></th><th></th></tr></thead>';
     const incomeHead = '<thead><tr><th>Name</th><th>Amount</th><th></th><th>Deductions</th><th>Taxes</th><th>Grows %/yr</th><th>From</th><th>Until</th><th></th><th></th></tr></thead>';
     const returns = Object.keys(FP_KINDS).map(k => '<label>' + FP_KINDS[k].label + ' <input class="fp-in fp-num fp-small" type="number" step="0.1" data-a="return" data-k="' + k + '" value="' + attr(plan.assume.returns[k]) + '"> %</label>').join('');
@@ -3043,6 +3282,10 @@ function fpRender(widget) {
         sec('expenses', 'Expenses', '<button type="button" class="fp-btn" onclick="fpAddSection(this, \'expenses\')" title="A heading to group what follows under, with its totals">+ Section</button>' +
             '<button type="button" class="fp-btn" onclick="fpAdd(this, \'expenses\')">+ Expense</button>',
             '<table class="fp-table">' + flowHead + '<tbody>' + flowRows('expenses', false) + '</tbody></table>') +
+        sec('goals', 'Goals', '<button type="button" class="fp-btn" onclick="fpAddSection(this, \'goals\')" title="A heading to group what follows under, with its totals">+ Section</button>' +
+            '<button type="button" class="fp-btn" onclick="fpAdd(this, \'goals\')">+ Goal</button>',
+            (fpEntries(plan.goals).length ? '' : '<div class="fp-note">Big costs ahead — college, a car, a wedding, a new roof — in today’s dollars. Unlike an expense, a goal is paid when it falls, retired or not.</div>') +
+            '<table class="fp-table fp-goals">' + goalHead + '<tbody>' + goalRows + '</tbody></table><ul class="fp-goals-out"></ul>') +
         sec('retirement', 'Retirement', '', fpRetireFields(plan, attr, under)) +
         sec('month', 'A month, now', '', '<div class="fp-month"></div>') +
         sec('advice', 'Where the next dollar goes', '', fpAdviceFields(plan, attr) + '<div class="fp-advice"></div>') +
@@ -3090,6 +3333,7 @@ function fpDetailsRow(plan, a) {
                 '<label class="fp-check" title="Spent on medical costs, an HSA comes out untaxed. Otherwise it is taxed as income, with a penalty before 65."><input class="fp-in" type="checkbox" data-f="hsaMedical"' +
                     (a.hsaMedical !== false ? ' checked' : '') + '> Drawn for medical costs (untaxed)</label>' +
                 '<span class="fp-note">Pay into it through payroll is free of income and payroll tax; paid in directly, of income tax. No minimum withdrawals; drawn last by default.</span>' : '') +
+            (a.kind === 'education' ? '<span class="fp-note">A 529: it grows untaxed, and comes out untaxed for school costs. The plan spends it only on the goals paid from it (Goals), not in the withdrawal order, and stops adding to it after the last of them. No federal limit a year; many states give a deduction for what goes in.</span>' : '') +
             (a.kind === 'investment' ? '<label title="What was paid in. What is drawn is part basis, part gain, in proportion, and the gain is taxed at the capital-gains rates. Empty: all of it is basis, so nothing drawn is taxed.">Cost basis ' +
                 '<input class="fp-in fp-num" type="number" data-f="basis" value="' + attr(a.basis) + '" placeholder="' + Math.round(fpBalanceOf(plan, a)) + '"></label>' : '') +
             '<span class="fp-note">Starting amount, monthly contribution and annual return are the row’s own; years are the plan’s.</span>';
@@ -3184,7 +3428,8 @@ function fpRefreshIncomeDetails(widget, plan) {
 /** The From and Until months of incomes and expenses, with the age then in their hints. */
 function fpRefreshAgeHints(widget, plan) {
     widget.querySelectorAll('tr.fp-movable input.fp-date[data-f="from"], tr.fp-movable input.fp-date[data-f="to"]').forEach(el => {
-        const base = el.dataset.f === 'from' ? 'From (empty: now)' : 'Until (empty: no end)';
+        const goal = el.closest('tr').dataset.list === 'goals';
+        const base = goal ? 'When the first payment falls' : el.dataset.f === 'from' ? 'From (empty: now)' : 'Until (empty: no end)';
         const m = /^(\d{4})-(\d{2})$/.exec(el.value || '');
         const age = m ? fpAgeAt(plan, new Date(+m[1], +m[2] - 1, 1)) : null;
         el.title = base + (age === null ? '' : ' — at ' + age);
@@ -3192,7 +3437,7 @@ function fpRefreshAgeHints(widget, plan) {
 }
 
 function fpRefreshSections(widget, plan) {
-    ['accounts', 'incomes', 'expenses'].forEach(list => fpSectionsOf(plan[list]).forEach(g => {
+    ['accounts', 'incomes', 'expenses', 'goals'].forEach(list => fpSectionsOf(plan[list]).forEach(g => {
         if (!g.section) return;
         const el = widget.querySelector('tr.fp-sec-row[data-list="' + list + '"][data-id="' + CSS.escape(g.section.id) + '"] .fp-sec-total');
         if (el) el.textContent = fpSectionTotal(plan, list, g.entries).text;
@@ -3422,6 +3667,39 @@ function fpRenderRetire(widget, plan, proj, low, high) {
 }
 
 /** Everything worked out from the fields: the rollup, this month, the projection. */
+/** What comes of a goal, in words: when, what it costs then, and how it is paid —
+ *  covered by its account, or short and what a month more would cover it. `save` is
+ *  fpGoalSavingFor's { value, stale }. */
+function fpGoalText(plan, proj, g, save, html) {
+    const b = (s) => html ? '<b>' + s + '</b>' : s;
+    const bad = (s) => html ? '<span class="fp-neg">' + s + '</span>' : s;
+    const name = b(html ? escapeHtml(g.name || 'A goal') : (g.name || 'A goal'));
+    if (!(fpNum(g.cost, 0) > 0)) return name + ': give it a cost.';
+    if (!/^\d{4}-\d{2}$/.test(g.from || '')) return name + ': give it the month its first payment falls.';
+    const o = proj.milestones.goals && proj.milestones.goals[g.id];
+    if (!o) return name + ': its payments are past.';
+    const d0 = fpMonthAt(proj.start, o.first), d1 = fpMonthAt(proj.start, o.last);
+    const plain = (s) => s;
+    const when = o.count > 1 ? fpWhen(plan, d0, plain) + ' to ' + fpWhen(plan, d1, plain) + ' (' + o.count + ' payments)' : fpWhen(plan, d0, plain);
+    let text = name + ', ' + when + ': ' + fpMoney(o.today) + ' in today’s dollars, ' + b(fpMoney(o.due)) + ' then.';
+    const acct = fpGoalAccount(plan, g);
+    const acctName = acct ? (html ? escapeHtml(acct.name || fpKindLabel(acct)) : (acct.name || fpKindLabel(acct))) : '';
+    if (o.own) {
+        const short = o.due - o.fromOwn;
+        if (short < 1) text += ' ' + acctName + ' covers it, with ' + fpMoney(o.held) + ' in it by then' + (o.left > 1 ? ' and ' + fpMoney(o.left) + ' left after' : '') + '.';
+        else {
+            const x = save && save.value ? save.value[g.id] : undefined;
+            text += ' ' + acctName + ' covers ' + fpMoney(o.fromOwn) + ' of it: ' + bad('short ' + fpMoney(short)) + ', paid from ' + (o.retired ? 'savings' : o.drawn > 1 ? 'cash and savings' : 'cash') + ' instead.' +
+                (x ? ' ' + b(fpMoney(x) + ' a month') + ' more into ' + acctName + ' from now would cover it.' : x === null ? ' More a month into ' + acctName + ' would not cover it in time.' : save && save.stale ? ' Working out what a month more would cover it…' : '');
+        }
+    } else if (o.retired) text += ' Paid in retirement, from cash and then savings in the withdrawal order.';
+    else if (o.drawn > 1) text += ' ' + bad('Cash falls short: ' + fpMoney(o.drawn) + ' of it is drawn from savings.') + ' Choose an account to pay it from, to see what to set aside a month.';
+    else text += ' Paid from ' + (acct ? acctName : 'cash') + ', which covers it.';
+    if (/college|universit|school|tuition|educat/i.test(g.name || '') && !fpEntries(plan.accounts).some(a => a.kind === 'education'))
+        text += ' A 529 grows untaxed and is spent untaxed on school: add one in Accounts and pay this from it.';
+    return text;
+}
+
 function fpRenderDerived(widget, plan) {
     const toolId = fpToolId(widget);
     plan = plan || fpGet(toolId);
@@ -3430,7 +3708,7 @@ function fpRenderDerived(widget, plan) {
     fpRefreshIncomeDetails(widget, plan);
     fpRefreshAgeHints(widget, plan);
     const roll = fpRollup(plan);
-    const proj = fpProject(plan, 0);
+    const proj = fpProject(plan, 0, { detail: true });
     const spread = Math.max(0, fpNum(plan.assume.spread, 0));
     const hasMarket = fpEntries(plan.accounts).some(a => FP_MARKET.includes(a.kind));
     const low = spread && hasMarket ? fpProject(plan, -spread) : null;
@@ -3463,6 +3741,7 @@ function fpRenderDerived(widget, plan) {
                 f.payrollTax ? fpMoney(f.payrollTax) + ' payroll (Social Security and Medicare) estimated' : ''].filter(Boolean).join(', ') + '">− taxes <b>' + fpMoney(f.tax) + '</b></span>' : '') +
             '<span>= take-home <b>' + fpMoney(f.takeHome) + '</b></span>' +
             '<span>− expenses <b>' + fpMoney(f.expenses) + '</b></span>' +
+            (f.goals ? '<span>− goals <b>' + fpMoney(f.goals) + '</b></span>' : '') +
             '<span>− loan payments <b>' + fpMoney(f.payments) + '</b></span>' +
             (f.escrow ? '<span title="Property tax and insurance paid with the loans">− escrow <b>' + fpMoney(f.escrow) + '</b></span>' : '') +
             '<span>− added to accounts <b>' + fpMoney(f.contributions) + '</b></span>' +
@@ -3498,6 +3777,10 @@ function fpRenderDerived(widget, plan) {
         // A Social Security line's own age: the one it is claimed at.
         if (s && s.start > new Date()) facts.push((escapeHtml(l.name) || 'Social Security') + ' starts <b>' + s.start.toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) + '</b>, at ' + fpAgeText(s.claim));
     });
+    fpEntries(plan.goals).forEach(g => {
+        const o = ms.goals[g.id];
+        if (o) facts.push(escapeHtml(g.name || 'A goal') + ' ' + when(o.first) + ': ' + fpMoney(o.due) + (o.own && o.due - o.fromOwn >= 1 ? ' <span class="fp-neg">(short ' + fpMoney(o.due - o.fromOwn) + ')</span>' : ''));
+    });
     if (ms.cashOut !== null) facts.push('<span class="fp-neg">' + (ms.drawnEarly !== null && (ms.retire === null || ms.cashOut < ms.retire) ? 'Savings run out ' : 'Cash runs out ') + when(ms.cashOut) + '</span>');
     ms.growing.forEach(id => { const a = plan.accounts.find(x => x.id === id); if (a) facts.push('<span class="fp-neg">' + escapeHtml(a.name || 'A loan') + ': the payment does not cover the interest</span>'); });
     const limitSaid = {};
@@ -3521,6 +3804,11 @@ function fpRenderDerived(widget, plan) {
     const shown = proj.rows.slice(span.a, span.b + 1);
     const cut = (x) => x ? Object.assign({}, x, { rows: x.rows.slice(span.a, span.b + 1) }) : x;
     const yearLabel = (r) => r.t === 0 ? 'Now' : String(r.year);
+    // The year picked on the chart or in the table, while it is among those shown.
+    if (widget._yearT !== undefined && widget._yearT !== null && !shown.some(r => r.t === widget._yearT)) widget._yearT = null;
+    const pick = widget._yearT === undefined ? null : widget._yearT;
+    widget._shownT = shown.map(r => r.t);
+    const pickI = pick === null ? -1 : proj.rows.findIndex(r => r.t === pick);
     const yearAge = (r) => yearLabel(r) + (r.age === null || r.age === undefined ? '' : ' · ' + r.age);
     const range = proj.rows.length > 2 ? '<div class="fp-range"><label>Years <select class="fp-range-from" onchange="fpChartRange(this)" aria-label="From year">' +
             proj.rows.slice(0, -1).map((r, i) => '<option value="' + r.year + '"' + (i === span.a ? ' selected' : '') + '>' + yearAge(r) + '</option>').join('') + '</select></label>' +
@@ -3535,7 +3823,8 @@ function fpRenderDerived(widget, plan) {
         // A short range, every year; a long one, the first five and every fifth after.
         shown.filter((r, j) => shown.length <= 16 || j === 0 || r.t / 12 <= 5 || (r.t / 12) % 5 === 0 || j === shown.length - 1).map(r => {
             const i = proj.rows.indexOf(r);
-            return '<tr><td>' + yearLabel(r) + '</td>' + (A ? '<td>' + (r.age == null ? '' : r.age) + '</td>' : '') + '<td>' + fpMoney(r.assets) + '</td><td>' + fpMoney(r.liabilities) + '</td><td><b>' + fpMoney(r.net) + '</b></td>' +
+            return '<tr class="fp-year-row' + (r.t === pick ? ' fp-year-on' : '') + '" data-t="' + r.t + '" onclick="fpPickYear(this)" title="What made up ' + (r.t === 0 ? 'this month' : 'this year') + '">' +
+                '<td>' + yearLabel(r) + '</td>' + (A ? '<td>' + (r.age == null ? '' : r.age) + '</td>' : '') + '<td>' + fpMoney(r.assets) + '</td><td>' + fpMoney(r.liabilities) + '</td><td><b>' + fpMoney(r.net) + '</b></td>' +
                 (low ? '<td class="fp-muted">' + fpMoney(low.rows[i].net, true) + ' – ' + fpMoney(high.rows[i].net, true) + '</td>' : '') +
                 '<td class="' + (r.cash < 0 ? 'fp-neg' : '') + '">' + fpMoney(r.cash) + '</td>' +
                 (N ? (needAt[r.t] ? '<td class="fp-need-have' + stale + '">' + fpMoney(needAt[r.t].have) + '</td><td class="fp-need' + (needAt[r.t].enough ? ' fp-pos' : '') + stale + '">' +
@@ -3543,18 +3832,215 @@ function fpRenderDerived(widget, plan) {
                 (R ? '<td>' + (r.withdrawn ? fpMoney(r.withdrawn) : '') + '</td><td>' + (r.withdrawTax ? fpMoney(r.withdrawTax) : '') + '</td>' : '') + '</tr>';
         }).join('') + '</tbody></table>';
     fpRenderRetire(widget, plan, proj, low, high);
+    const goalSave = fpGoalSavingFor(widget, plan);
+    const goalsBox = widget.querySelector('.fp-goals-out');
+    if (goalsBox) goalsBox.innerHTML = fpEntries(plan.goals).map(g => '<li data-goal="' + escapeHtml(g.id) + '"' + (goalSave.stale ? ' class="fp-goal-working"' : '') + '>' + fpGoalText(plan, proj, g, goalSave, true) + '</li>').join('');
     const adviceBox = widget.querySelector('.fp-advice');
-    if (adviceBox) adviceBox.innerHTML = fpAdviceHtml(plan, proj, low, high);
+    if (adviceBox) adviceBox.innerHTML = fpAdviceHtml(plan, proj, low, high, goalSave);
     widget.querySelector('.fp-projection').innerHTML = '<div class="fp-ahead-sub">' + (proj.rows.length - 1) + ' years' + (proj.retire ? ', to age ' + proj.retire.until : last.age != null ? ', to age ' + last.age : '') +
         (plan.assume.real ? ', in today’s money' : '') + '</div>' +
         (facts.length ? '<div class="fp-facts">' + facts.map(f => '<span class="fp-fact">' + f + '</span>').join('') + '</div>' : '') +
-        range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, stale: !!stale } : null) +
+        range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, stale: !!stale } : null,
+        fpEntries(plan.goals).filter(g => ms.goals[g.id]).map(g => ({ t: ms.goals[g.id].first, name: g.name || 'A goal', due: ms.goals[g.id].due, when: fpWhen(plan, fpMonthAt(proj.start, ms.goals[g.id].first)) })), pick) +
+        (pickI >= 0 ? fpYearDetailHtml(plan, proj, pickI, low, high, needAt[pick] || null) : '<div class="fp-yd-hint">Click a year on the chart, or in the table, for what made it up.</div>') +
         '<div class="fp-years-head">In ' + last.year + (last.age != null ? ', at ' + last.age : '') + ': net worth <b>' + fpMoney(last.net) + '</b>' + (low ? ' (' + fpMoney(low.rows[low.rows.length - 1].net) + ' to ' + fpMoney(high.rows[high.rows.length - 1].net) + ' at returns ±' + spread + '%)' : '') + '</div>' +
         table;
 }
 
+// ---- A year, taken apart --------------------------------------------------------------------
+//
+// Picking a year on the chart, or in the year table, opens what made it up: the money in and
+// out, line by line; each account from the start of the year to its end, with what went in,
+// what was drawn and what it earned; what happened that year; and the assumptions it was
+// worked out with. Row 0 is this month; every other row, the twelve months to it. Amounts
+// are in dollars of the time, so that they add up; today's money is beside them.
+
+/** The picked year's breakdown. `i` is its row; `needRow` its Needed to stop, if worked out. */
+function fpYearDetailHtml(plan, proj, i, low, high, needRow) {
+    const r = proj.rows[i], d = proj.detail && proj.detail[i];
+    if (!r || !d) return '';
+    plan = fpCalc(plan);
+    const esc = (s) => escapeHtml(String(s));
+    const m = (v) => fpMoney(v);
+    const signed = (v) => Math.abs(v) < 0.5 ? '—' : (v > 0 ? '+' : '') + fpMoney(v);
+    const infl = fpNum(plan.assume.inflation, 0) / 100;
+    const tA = i === 0 ? 1 : r.t - 11, tB = i === 0 ? 1 : r.t;
+    const idx = Math.pow(1 + infl, (i === 0 ? 0 : r.t) / 12);
+    const monthOf = (t) => fpMonthAt(proj.start, t).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+    const span = i === 0 ? 'This month, ' + monthOf(1) : monthOf(tA) + ' to ' + monthOf(tB);
+    const ms = proj.milestones;
+    const retired = i === 0 ? proj.retire && ms.retire === 1 : !!r.retired;
+    const acc = (id) => plan.accounts.find(a => a.id === id);
+    const accName = (a) => esc(a.name || fpKindLabel(a));
+    const lineOf = (list, id) => (plan[list] || []).find(x => x.id === id);
+    const sum = (o) => Object.keys(o).reduce((s, k) => s + o[k], 0);
+    const row = (label, v, cls, title) => Math.abs(v) < 0.5 ? '' : '<tr' + (cls ? ' class="' + cls + '"' : '') + (title ? ' title="' + esc(title) + '"' : '') + '><th scope="row">' + label + '</th><td>' + m(v) + '</td></tr>';
+    const total = (label, v, cls) => '<tr class="fp-yd-total' + (cls ? ' ' + cls : '') + '"><th scope="row">' + label + '</th><td>' + m(v) + '</td></tr>';
+
+    // Money in and out.
+    const income = sum(d.income);
+    let flow = Object.keys(d.income).map(id => { const l = lineOf('incomes', id); return row(l ? esc(l.name || (l.type === 'ss' ? 'Social Security' : 'Income')) : 'Income', d.income[id]); }).join('') +
+        total('Income', income);
+    const outs = [];
+    if (d.deductions) outs.push(row('Deductions', d.deductions, '', d.payrollOwn ? m(d.payrollOwn) + ' of it into accounts — saved, not spent' : ''));
+    outs.push(row('Federal income tax, estimated', d.fedTax), row('Payroll tax (Social Security and Medicare)', d.payrollTax), row('Taxes as typed', d.typedTax));
+    Object.keys(d.expenses).forEach(id => { const l = lineOf('expenses', id); outs.push(row(l ? esc(l.name || 'Expense') : 'Expense', d.expenses[id])); });
+    outs.push(row('Spending in retirement', d.spending), row('Health cover before Medicare', d.healthBefore), row('Medicare Part B', d.partB),
+        row('Medicare surcharge (IRMAA)', d.irmaa, 'fp-neg'), row('Health costs beside Medicare', d.healthAfter));
+    Object.keys(d.payments).forEach(id => { const a = acc(id); outs.push(row('Payment: ' + (a ? accName(a) : 'loan'), d.payments[id])); });
+    Object.keys(d.escrow).forEach(id => { const a = acc(id); outs.push(row('Escrow: ' + (a ? accName(a) : 'loan'), d.escrow[id])); });
+    Object.keys(d.contrib).forEach(id => { const a = acc(id); outs.push(row('Added to ' + (a ? accName(a) : 'an account'), d.contrib[id])); });
+    Object.keys(d.goals).forEach(id => { const g = lineOf('goals', id); outs.push(row('Goal: ' + (g ? esc(g.name || 'A goal') : 'a goal'), d.goals[id])); });
+    const outTotal = income - d.leftover;
+    flow += outs.join('') + total('Going out', outTotal) + total(d.leftover < 0 ? 'Short' : 'Left over', Math.abs(d.leftover), d.leftover < 0 ? 'fp-neg' : 'fp-pos');
+    const drawnIds = Object.keys(d.drawn);
+    let draws = '';
+    if (drawnIds.length) {
+        draws = drawnIds.map(id => { const a = acc(id); return row('From ' + (a ? accName(a) : 'an account') + (d.rmd[id] ? ' <span class="fp-muted">(' + m(d.rmd[id]) + ' the required minimum)</span>' : ''), d.drawn[id]); }).join('') +
+            row('Tax on what was drawn', d.withdrawTax) + total('Into cash', d.puts);
+        draws = '<table class="fp-yd-table"><caption>Drawn from savings</caption><tbody>' + draws + '</tbody></table>';
+    }
+
+    // Accounts, start to end.
+    const into = proj.into;
+    const accRows = [];
+    let tot = { s: 0, a: 0, dr: 0, g: 0, e: 0 };
+    plan.accounts.forEach(a => {
+        const liab = (FP_KINDS[a.kind] || FP_KINDS.other).side === 'liability';
+        const sign = liab ? -1 : 1;
+        const s = sign * Math.max(liab ? 0 : -Infinity, d.start[a.id] || 0), e = sign * Math.max(liab ? 0 : -Infinity, d.end[a.id] || 0);
+        const added = (d.added[a.id] || 0) + (a.id === into ? d.leftover + d.puts : 0);
+        const dr = d.drawn[a.id] || 0, g = d.growth[a.id] || 0;
+        if ([s, e, added, dr, g].every(v => Math.abs(v) < 0.5)) return;
+        tot.s += s; tot.a += added; tot.dr += dr; tot.g += g; tot.e += e;
+        accRows.push('<tr><th scope="row">' + accName(a) + ' <span class="fp-muted">' + esc(fpKindLabel(a)) + '</span></th><td>' + m(s) + '</td><td>' + signed(added) + '</td><td>' + (dr >= 0.5 ? '−' + m(dr) : '—') + '</td><td>' + signed(g) + '</td><td><b>' + m(e) + '</b></td></tr>');
+    });
+    if (!into && (Math.abs(d.looseStart) >= 0.5 || Math.abs(d.looseEnd) >= 0.5)) {
+        const added = d.leftover + d.puts;
+        tot.s += d.looseStart; tot.a += added; tot.e += d.looseEnd;
+        accRows.push('<tr><th scope="row">Left over <span class="fp-muted">no cash account</span></th><td>' + m(d.looseStart) + '</td><td>' + signed(added) + '</td><td>—</td><td>—</td><td><b>' + m(d.looseEnd) + '</b></td></tr>');
+    }
+    const accounts = '<div class="fp-yd-scroll"><table class="fp-yd-table fp-yd-accounts"><caption>Accounts</caption><thead><tr><th>Account</th><th>Start</th>' +
+        '<th title="Contributions, pay saved into it, the employer’s match, what is left over (cash), withdrawals landing in cash; for a loan, what was paid">In</th>' +
+        '<th title="Drawn out of it">Drawn</th><th title="Returns earned; for a loan, interest charged">Growth</th><th>End</th></tr></thead><tbody>' + accRows.join('') +
+        '<tr class="fp-yd-total"><th scope="row">Net worth</th><td>' + m(tot.s) + '</td><td>' + signed(tot.a) + '</td><td>' + (tot.dr >= 0.5 ? '−' + m(tot.dr) : '—') + '</td><td>' + signed(tot.g) + '</td><td><b>' + m(tot.e) + '</b></td></tr></tbody></table></div>';
+
+    // What happened.
+    const inWin = (t) => t !== null && t !== undefined && t >= tA && t <= tB;
+    const ev = [];
+    const neg = (s) => '<span class="fp-neg">' + s + '</span>';
+    if (inWin(ms.retire) && proj.retire) ev.push('Retirement starts, ' + fpWhen(plan, fpMonthAt(proj.start, ms.retire)) + '.');
+    fpEntries(plan.incomes).filter(l => l.type === 'ss').forEach(l => {
+        const s = fpSSInfo(l);
+        if (!s) return;
+        const t = (s.start.getFullYear() - proj.start.getFullYear()) * 12 + s.start.getMonth() - proj.start.getMonth() + 1;
+        if (inWin(t)) ev.push(esc(l.name || 'Social Security') + ' starts, at ' + fpAgeText(s.claim) + '.');
+    });
+    if (inWin(ms.medicare)) ev.push('Medicare starts: Part B instead of health cover bought on its own.');
+    if (inWin(ms.irmaa)) ev.push(neg('The Medicare surcharge first applies, from income two years before.'));
+    if (inWin(ms.rmd)) ev.push('Required minimum withdrawals begin, from age ' + (proj.retire ? proj.retire.rmdAge : '') + '.');
+    if (inWin(ms.debtFree)) ev.push('Debt-free.');
+    if (inWin(ms.target) && fpNum(plan.assume.target, 0) > 0) ev.push('Net worth reaches the ' + m(plan.assume.target) + ' goal.');
+    Object.keys(d.goals).forEach(id => { const g = lineOf('goals', id); ev.push('Goal paid: ' + (g ? esc(g.name || 'A goal') : 'a goal') + ', ' + m(d.goals[id]) + '.'); });
+    if (inWin(ms.drawnEarly)) ev.push(neg('Savings are drawn on before retirement.'));
+    if (inWin(ms.penalty)) ev.push(neg('Pre-tax money drawn before 59½: a 10% penalty may apply.'));
+    if (inWin(ms.rothEarly)) ev.push(neg('Roth money drawn before 59½: its earnings may be taxed and penalised.'));
+    if (inWin(ms.hsaPenalty)) ev.push(neg('HSA money spent on other than medical costs before 65: taxed, with a penalty.'));
+    if (inWin(ms.cashOut)) ev.push(neg('Cash runs out.'));
+    if (inWin(ms.runsOut)) ev.push(neg('Savings run out.'));
+    if (needRow) ev.push('To stop working at the start of ' + needRow.year + ': ' + (isFinite(needRow.needed) ? m(needRow.needed) : 'out of reach') + ' needed, ' + m(needRow.have) + ' to draw on' +
+        (plan.assume.real ? ' (today’s money)' : '') + (needRow.enough ? ' — enough.' : '.'));
+
+    // The assumptions it was worked out with.
+    const as = [];
+    as.push('Inflation ' + fpNum(plan.assume.inflation, 0) + '% a year' + (idx > 1.0005 ? ': prices ' + idx.toFixed(2) + '× today’s. In today’s money, divide what is here by ' + idx.toFixed(2) + '.' : '.'));
+    const spread = Math.max(0, fpNum(plan.assume.spread, 0));
+    const rates = plan.accounts.filter(a => Math.abs(d.start[a.id] || 0) >= 0.5 || Math.abs(d.end[a.id] || 0) >= 0.5).map(a =>
+        accName(a) + ' ' + fpRateOf(plan, a) + '%' + (low && FP_MARKET.includes(a.kind) ? ' ±' + spread : ''));
+    if (rates.length) as.push('Rates a year: ' + rates.join(', ') + '.');
+    const grows = [];
+    Object.keys(d.income).forEach(id => { const l = lineOf('incomes', id); if (l) grows.push(esc(l.name || 'Income') + ' ' + fpNum(l.growth, fpNum(plan.assume.inflation, 0)) + '%' + (l.type === 'ss' ? ' (cost of living)' : '')); });
+    Object.keys(d.expenses).forEach(id => { const l = lineOf('expenses', id); if (l) grows.push(esc(l.name || 'Expense') + ' ' + fpNum(l.growth, fpNum(plan.assume.inflation, 0)) + '%'); });
+    Object.keys(d.goals).forEach(id => { const g = lineOf('goals', id); if (g) grows.push(esc(g.name || 'A goal') + ' ' + fpNum(g.growth, fpNum(plan.assume.inflation, 0)) + '%'); });
+    if (grows.length) as.push('Growing a year: ' + grows.join(', ') + '.');
+    const info = fpTaxInfo(plan);
+    const ti = i === 0 ? 1 : r.index || 1;
+    if (info && info.federal) {
+        let top = '';
+        if (i > 0 && info.brackets.length) {
+            const taxable = Math.max(0, r.ordinary - info.deduction * ti);
+            const b = info.brackets.filter(x => taxable > x.min * ti).pop();
+            if (b) top = '; ' + m(r.ordinary) + ' of ordinary income, the top of it taxed at ' + Math.round(b.rate * 100) + '%';
+        }
+        as.push('Federal tax: the ' + esc(info.year) + ' rules, ' + esc((TAX_STATUSES[info.status] || '').toLowerCase()) + ', its thresholds moved up with inflation — standard deduction ' + m(info.deduction * ti) + top + '.');
+    } else as.push('Federal income tax is not estimated.');
+    if (info && info.payroll) as.push('Payroll tax: ' + info.pay.ssRate + '% Social Security on pay up to ' + m(info.pay.wageBase * ti) + ', ' + info.pay.medicare + '% Medicare.');
+    if (proj.retire) {
+        const ret = proj.retire, h = fpHealthOf(plan);
+        as.push('Retirement at ' + fpAgeText(ret.atMonths) + ' (' + monthOf((ret.date.getFullYear() - proj.start.getFullYear()) * 12 + ret.date.getMonth() - proj.start.getMonth() + 1) + '), lasting to ' + ret.until +
+            '; spending ' + m(fpRetireSpending(plan)) + ' a month in today’s dollars' + (retired ? ', ' + m(fpRetireSpending(plan) * idx) + ' then' : '') +
+            '; cash kept at ' + Math.max(0, fpNum(plan.retire.buffer, 6)) + ' months of spending.');
+        if (h.on) as.push('Health cover: ' + m(h.before) + ' a month before Medicare at ' + h.age + ', ' + m(h.after) + ' beside it, rising ' + Math.round(h.medInfl * 1000) / 10 + '% a year.');
+        as.push('Withdrawals: penalty-free from 59½ (55 for a 401(k) left in or after the year of turning 55); required minimums from ' + ret.rmdAge + '.');
+    }
+    if (low && high && i > 0) as.push('The range: investment returns ' + spread + '% lower or higher — net worth ' + m(low.rows[i].net) + ' to ' + m(high.rows[i].net) + (plan.assume.real ? ' in today’s money' : '') + '.');
+
+    return '<div class="fp-yd" data-t="' + r.t + '">' +
+        '<div class="fp-yd-head"><h5 tabindex="-1">' + (i === 0 ? 'Now' : r.year) + (r.age != null ? ' · age ' + r.age : '') + ' · ' + (retired ? 'retired' : 'working') + '</h5>' +
+            '<span class="fp-muted">' + span + ', in dollars of the time' + (plan.assume.real && idx > 1.0005 ? ' — net worth ' + m(r.net) + ' in today’s money' : '') + '</span>' +
+            '<span class="fp-yd-nav"><button type="button" class="fp-btn" data-dir="-1" onclick="fpYearStep(this, -1)" aria-label="The year before">‹</button>' +
+            '<button type="button" class="fp-btn" data-dir="1" onclick="fpYearStep(this, 1)" aria-label="The year after">›</button>' +
+            '<button type="button" class="fp-x" onclick="fpYearClose(this)" title="Close" aria-label="Close">×</button></span></div>' +
+        '<div class="fp-yd-grid">' +
+            '<div><table class="fp-yd-table"><caption>Money in and out</caption><tbody>' + flow + '</tbody></table>' + draws + '</div>' +
+            '<div>' + accounts +
+                (ev.length ? '<div class="fp-yd-block"><b>What happened</b><ul>' + ev.map(e => '<li>' + e + '</li>').join('') + '</ul></div>' : '') +
+                '<div class="fp-yd-block"><b>Worked out with</b><ul>' + as.map(e => '<li>' + e + '</li>').join('') + '</ul></div></div>' +
+        '</div></div>';
+}
+
+/** A year on the chart or in the table: open what made it up, or close it if open. */
+function fpPickYear(el) {
+    const widget = fpWidget(el);
+    if (!widget) return;
+    const t = Number(el.dataset.t);
+    widget._yearT = widget._yearT === t ? null : t;
+    fpRenderDerived(widget);
+}
+
+function fpYearKey(e, el) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    const widget = fpWidget(el);
+    fpPickYear(el);
+    const h = widget && widget.querySelector('.fp-yd h5');
+    if (h) h.focus();
+    else { const again = widget && widget.querySelector('.fp-chart .fp-hit[data-t="' + el.dataset.t + '"]'); if (again) again.focus(); }
+}
+
+/** The year before or after, among those shown. */
+function fpYearStep(btn, dir) {
+    const widget = fpWidget(btn);
+    const ts = widget._shownT || [];
+    const k = ts.indexOf(widget._yearT);
+    if (k < 0 || k + dir < 0 || k + dir >= ts.length) return;
+    widget._yearT = ts[k + dir];
+    fpRenderDerived(widget);
+    const again = widget.querySelector('.fp-yd-nav [data-dir="' + dir + '"]');
+    if (again) again.focus();
+}
+
+function fpYearClose(btn) {
+    const widget = fpWidget(btn);
+    const t = widget._yearT;
+    widget._yearT = null;
+    fpRenderDerived(widget);
+    const slice = widget.querySelector('.fp-chart .fp-hit[data-t="' + t + '"]');
+    if (slice) slice.focus();
+}
+
 /** Net worth, assets and liabilities over the years, with the range as a band. */
-function fpChart(proj, low, high, need) {
+function fpChart(proj, low, high, need, goals, pick) {
     const rows = proj.rows;
     if (rows.length < 2) return '';
     const ages = rows.some(r => r.age !== null && r.age !== undefined);
@@ -3626,10 +4112,18 @@ function fpChart(proj, low, high, need) {
     // A strip per year to hover, wider than the point it answers for.
     const hits = rows.map((r, i) => {
         const w = (W - L - R) / Math.max(1, rows.length - 1);
-        return '<rect class="fp-hit" x="' + (x(i) - w / 2).toFixed(1) + '" y="' + T + '" width="' + w.toFixed(1) + '" height="' + (H - T - B) + '"><title>' +
+        return '<rect class="fp-hit' + (r.t === pick ? ' fp-hit-on' : '') + '" data-t="' + r.t + '" tabindex="0" role="button" aria-pressed="' + (r.t === pick) + '" onclick="fpPickYear(this)" onkeydown="fpYearKey(event, this)"' +
+            ' x="' + (x(i) - w / 2).toFixed(1) + '" y="' + T + '" width="' + w.toFixed(1) + '" height="' + (H - T - B) + '"><title>' +
             (r.t === 0 ? 'Now' : r.year) + (r.age != null ? ', age ' + r.age : '') + ' — net worth ' + fpMoney(r.net) + (low ? ' (' + fpMoney(low.rows[i].net) + ' to ' + fpMoney(high.rows[i].net) + ')' : '') +
             ', assets ' + fpMoney(r.assets) + ', liabilities ' + fpMoney(r.liabilities) +
-            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') : '') + '</title></rect>';
+            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') : '') + '. Click for what made it up.</title></rect>';
+    }).join('');
+    // Each goal, a mark on $0 where its first payment falls, between the years either side.
+    const t0 = rows[0].t, t1 = rows[rows.length - 1].t;
+    const shownGoals = (goals || []).filter(g => g.t - 1 >= t0 && g.t - 1 <= t1);
+    const goalSvg = shownGoals.map(g => {
+        const gx = L + ((g.t - 1 - t0) / Math.max(1, t1 - t0)) * (W - L - R), gy = y(0);
+        return '<path class="fp-goal-mark" d="M' + gx.toFixed(1) + ' ' + (gy - 7).toFixed(1) + ' l5 7 l-5 7 l-5 -7 Z"><title>' + escapeHtml(g.name) + ', ' + g.when + ': ' + fpMoney(g.due) + '</title></path>';
     }).join('');
     return '<svg class="fp-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Net worth, assets and liabilities, ' + (rows[0].t === 0 ? 'now' : rows[0].year) + ' to ' + rows[rows.length - 1].year + '">' +
         grid + ticks + band +
@@ -3637,11 +4131,12 @@ function fpChart(proj, low, high, need) {
         '<path class="fp-line fp-liab" d="' + line(r => -r.liabilities) + '"/>' +
         '<path class="fp-line fp-net" d="' + line(r => r.net) + '"/>' +
         needSvg + labels +
-        hits + '</svg>' +
+        hits + goalSvg + '</svg>' +
         '<div class="fp-legend"><span><i class="fp-key-net"></i>Net worth</span><span><i class="fp-key-assets"></i>Assets</span><span><i class="fp-key-liab"></i>Liabilities (below zero)</span>' +
         (low ? '<span><i class="fp-key-band"></i>Range of net worth</span>' : '') +
         (showHave ? '<span><i class="fp-key-have"></i>Savings to draw on (not property)</span>' : '') +
-        (need ? '<span><i class="fp-key-needed"></i>Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '') + '</span>' : '') + '</div>';
+        (need ? '<span><i class="fp-key-needed"></i>Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '') + '</span>' : '') +
+        (shownGoals.length ? '<span><i class="fp-key-goal"></i>A goal’s first payment</span>' : '') + '</div>';
 }
 
 /** The years Tax Brackets has, with this year's (or the latest) as the default — the
@@ -3797,7 +4292,7 @@ function fpDragEnd(grip) {
 
 // ---- Folding sections away ---------------------------------------------------------------
 
-const FP_SECTIONS = ['summary', 'accounts', 'income', 'expenses', 'retirement', 'month', 'advice', 'assumptions', 'ahead'];
+const FP_SECTIONS = ['summary', 'accounts', 'income', 'expenses', 'goals', 'retirement', 'month', 'advice', 'assumptions', 'ahead'];
 
 function fpFoldedOf(widget) {
     const toolId = fpToolId(widget);
@@ -3933,7 +4428,7 @@ function fpOnInput(el) {
         } else if (f === 'kind' && /^retirement:/.test(val)) {
             const parts = val.split(':');
             item.kind = 'retirement'; item.planType = parts[1]; item.tax = parts[2];
-        } else item[f] = ['balance', 'rate', 'monthly', 'amount', 'growth', 'deductions', 'taxes', 'intoAmount', 'match', 'fraBenefit', 'claimYears', 'claimMonths', 'basis', 'workFrom', 'pastPay', 'matchRate', 'matchCap'].includes(f) ? num(val) : val;
+        } else item[f] = ['balance', 'rate', 'monthly', 'amount', 'growth', 'deductions', 'taxes', 'intoAmount', 'match', 'fraBenefit', 'claimYears', 'claimMonths', 'basis', 'workFrom', 'pastPay', 'matchRate', 'matchCap', 'cost', 'years'].includes(f) ? num(val) : val;
     }
     fpSet(toolId, plan);
     // A new account for pay to go into: the details' warnings with it, drawn again.
@@ -3950,6 +4445,7 @@ function fpAdd(btn, list) {
     const plan = fpGet(toolId);
     const id = fpNewId(list.slice(0, 1));
     if (list === 'accounts') plan.accounts.push({ id: id, name: '', kind: fpEntries(plan.accounts).some(a => a.kind === 'cash') ? 'investment' : 'cash', balance: null, rate: null, monthly: null });
+    else if (list === 'goals') plan.goals.push({ id: id, name: '', cost: null, every: 'total', years: 1, growth: null, from: '', account: '' });
     else plan[list].push({ id: id, name: '', amount: null, every: 'month', growth: null, from: '', to: '', taxed: list === 'incomes' });
     fpSet(toolId, plan);
     fpRender(widget);
@@ -4036,6 +4532,7 @@ function fpRemove(btn) {
     const plan = fpGet(toolId);
     plan[tr.dataset.list] = plan[tr.dataset.list].filter(x => x.id !== tr.dataset.id);
     if (plan.surplusTo === tr.dataset.id) plan.surplusTo = '';
+    plan.goals.forEach(g => { if (g.account === tr.dataset.id) g.account = ''; });
     plan.incomes.forEach(l => { if (fpIntoRows(l).some(r => r.account === tr.dataset.id)) fpSetInto(l, fpIntoRows(l).map(r => r.account === tr.dataset.id ? Object.assign({}, r, { account: '' }) : r)); });
     fpSet(toolId, plan);
     fpRender(widget);
@@ -4181,7 +4678,7 @@ function fpSummaryText(plan) {
         '| | |', '|---|---:|', '| Assets | ' + fpMoney(roll.assets) + ' |', '| Liabilities | ' + fpMoney(roll.liabilities) + ' |', '| **Net worth** | **' + fpMoney(roll.net) + '** |', ''];
     Object.keys(FP_KINDS).filter(k => roll.by[k]).forEach(k => out.push('- ' + FP_KINDS[k].label + ': ' + fpMoney(roll.by[k])));
     const named = [];
-    [['accounts', 'Accounts'], ['incomes', 'Income'], ['expenses', 'Expenses']].forEach(([list, title]) => fpSectionsOf(plan[list]).forEach(g => {
+    [['accounts', 'Accounts'], ['incomes', 'Income'], ['expenses', 'Expenses'], ['goals', 'Goals']].forEach(([list, title]) => fpSectionsOf(plan[list]).forEach(g => {
         if (g.section) named.push('- ' + title + ' — ' + (g.section.name || 'Untitled section') + ': ' + fpSectionTotal(plan, list, g.entries).text);
     }));
     if (named.length) out.push('', '### Sections', '', ...named);
@@ -4194,6 +4691,10 @@ function fpSummaryText(plan) {
     out.push('', '### Ahead' + (plan.assume.real ? ' (today’s money)' : ''), '', '| Year |' + (ageCol ? ' Age |' : '') + ' Assets | Liabilities | Net worth |', '|---|' + (ageCol ? '---:|' : '') + '---:|---:|---:|');
     proj.rows.filter((r, i) => i === 0 || (r.t / 12) % 5 === 0 || i === proj.rows.length - 1).forEach((r, i) =>
         out.push('| ' + (r.t === 0 ? 'Now' : r.year) + ' |' + (ageCol ? ' ' + (r.age == null ? '' : r.age) + ' |' : '') + ' ' + fpMoney(r.assets) + ' | ' + fpMoney(r.liabilities) + ' | ' + fpMoney(r.net) + ' |'));
+    if (fpEntries(plan.goals).length) {
+        const save = { value: fpGoalSaving(plan) };
+        out.push('', '### Goals', '', ...fpEntries(plan.goals).map(g => '- ' + fpGoalText(plan, proj, g, save, false)));
+    }
     if (proj.milestones.debtFree !== null) out.push('', 'Debt-free ' + fpWhen(plan, fpMonthAt(proj.start, proj.milestones.debtFree)) + '.');
     const need = fpNeededToStop(plan);
     if (need && need.rows) out.push('', fpNeededText(need, false) + ' (savings, not property; to last to ' + need.until + ').');
@@ -4260,9 +4761,9 @@ function fpAIFacts(plan, proj) {
     const said = {};
     fpEntries(plan.accounts).forEach(a => { const c = fpLimitCheck(plan, a); if (c && c.over && !said[c.key]) { said[c.key] = true; out.push(fpLimitText(c) + '.'); } });
     // Where the next dollar goes: the steps not yet done, and Roth or traditional.
-    fpAdviceSteps(plan, proj).forEach(s => {
+    fpAdviceSteps(plan, proj, { value: fpGoalSaving(plan) }).forEach(s => {
         if (s.key === 'lean' && s.lean) out.push('Roth or traditional: ' + s.text.replace(/<[^>]+>/g, ''));
-        else if ((s.status === 'todo' || s.status === 'part') && ['match', 'debt', 'fund'].includes(s.key)) out.push(s.title + ': ' + s.text.replace(/<[^>]+>/g, ''));
+        else if ((s.status === 'todo' || s.status === 'part') && ['match', 'debt', 'fund', 'goals'].includes(s.key)) out.push(s.title + ': ' + s.text.replace(/<[^>]+>/g, ''));
     });
     const twice = {};
     fpEntries(plan.incomes).forEach(l => fpIntoOf(plan, l).forEach(r => {
@@ -4313,6 +4814,11 @@ function fpAITarget(toolId) {
         if (l.to) bits.push('until ' + l.to);
         lines.push('- ' + fpAIName(l, 'Income') + inSec(incSec, l) + ': ' + bits.join(', '));
     });
+    if (calc.goals.length) {
+        lines.push('', 'Goals (big costs ahead, paid when they fall, retired or not):');
+        const save = { value: fpGoalSaving(plan) };
+        calc.goals.forEach(g => lines.push('- ' + fpGoalText(plan, proj, Object.assign({}, g, { name: fpAIName(g, 'A goal') }), save, false)));
+    }
     lines.push('', 'Expenses (a month now):');
     if (!calc.expenses.length) lines.push('- none');
     calc.expenses.forEach(l => lines.push('- ' + fpAIName(l, 'Expense') + inSec(expSec, l) + ': ' + fpMoney(fpMonthly(l)) + ', grows ' + fpNum(l.growth, fpNum(plan.assume.inflation, 0)) + '% a year' +
