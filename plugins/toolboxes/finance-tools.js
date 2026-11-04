@@ -165,6 +165,7 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-returns span { font-size: 11px; color: var(--text-muted); }
 .fp-facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 6px; }
 .fp-years-head { margin: 6px 0 4px; }
+.fp-years-foot { margin: 4px 0 0; font-size: 12px; }
 .fp-chart { width: 100%; height: auto; display: block; }
 .fp-range { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 6px 0 4px; font-size: 12px; color: var(--text-secondary); }
 .calc-widget .fp-range label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: var(--text-secondary); }
@@ -1525,7 +1526,7 @@ function fpDefaultPlan() {
     Object.keys(FP_KINDS).forEach(k => { returns[k] = FP_KINDS[k].rate; });
     return { accounts: [], incomes: [], expenses: [], goals: [], tax: { on: true, status: 'single', year: '' }, surplusTo: '',
         assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000, returns: returns },
-        retire: { on: false, birth: '', ageYears: 65, ageMonths: 0, until: 95, spending: null, buffer: 6, health: false, healthBefore: null, healthAfter: null, medInfl: 5 }, drawOrder: [],
+        retire: { on: false, birth: '', ageYears: 65, ageMonths: 0, until: 95, spending: null, buffer: 6, avoidPenalty: true, health: false, healthBefore: null, healthAfter: null, medInfl: 5 }, drawOrder: [],
         // Where the next dollar goes: the thresholds its steps use, and how much risk.
         advice: { starter: 1, months: 6, debtRate: 8, risk: 'middle', stocks: 8, bonds: 4, lump: null } };
 }
@@ -2220,6 +2221,10 @@ function fpIsPretax(a) {
     return a.kind === 'retirement' && a.tax !== 'roth';
 }
 
+function fpIsRoth(a) {
+    return a.kind === 'retirement' && a.tax === 'roth';
+}
+
 /** When retirement starts and how long the plan runs, from the birth month — the plan's
  *  own, or the first Social Security line's — or null when it is off or cannot be told. */
 function fpRetireInfo(plan) {
@@ -2373,7 +2378,7 @@ function fpProject(plan, shift, opts) {
     const years = Math.max(1, Math.min(80, retOk ? Math.ceil(toEnd / 12) : Math.round(fpNum(plan.assume.years, 30))));
     const taxInfo = fpTaxInfo(plan);
     const basis = {};
-    plan.accounts.forEach(a => { if (a.kind === 'investment') basis[a.id] = fpBasisOf(plan, a); });
+    plan.accounts.forEach(a => { if (a.kind === 'investment' || fpIsRoth(a)) basis[a.id] = fpBasisOf(plan, a); });
     const spend0 = retOk ? fpRetireSpending(plan) : 0;
     // The order savings are drawn on: in retirement, and before it when cash runs short.
     const order = fpDrawOrder(plan);
@@ -2388,7 +2393,11 @@ function fpProject(plan, shift, opts) {
     const pretax = retOk ? plan.accounts.filter(fpIsPretax) : [];
     const buffer = retOk ? Math.max(0, fpNum(plan.retire.buffer, 6)) : 0;
     const rmdYear = {};
-    let yearWithdrawn = 0, yearWithdrawTax = 0, yearOrd = 0, yearBen = 0, yearGains = 0;
+    let yearWithdrawn = 0, yearWithdrawTax = 0, yearPenalty = 0, yearOrd = 0, yearBen = 0, yearGains = 0;
+    // What goals have drawn so far this calendar year: paid once, not a monthly rate.
+    let lumpOrd = 0, lumpGains = 0;
+    // Penalised draws penalty-free money first while it matters, unless told not to.
+    const avoidPenalty = !plan.retire || plan.retire.avoidPenalty !== false;
     const index0 = (yrs) => Math.pow(1 + infl, yrs);
     const bal = {};
     const yearStart = {}, yearAdded = {};
@@ -2423,12 +2432,14 @@ function fpProject(plan, shift, opts) {
     const real = (v, t) => plan.assume.real ? v / Math.pow(1 + infl, t / 12) : v;
     const cashOf = () => into ? bal[into] : loose;
     const t0 = totals();
-    const rows = [{ t: 0, year: start.getFullYear(), assets: t0.assets, liabilities: t0.liabilities, net: t0.net, cash: cashOf(), withdrawn: 0, withdrawTax: 0,
+    const rows = [{ t: 0, year: start.getFullYear(), assets: t0.assets, liabilities: t0.liabilities, net: t0.net, cash: cashOf(), withdrawn: 0, withdrawTax: 0, withdrawPenalty: 0,
         age: fpAgeAt(plan, start) }];
     const owedAtStart = t0.liabilities > 0;
     const target = fpNum(plan.assume.target, 0);
     const ms = { debtFree: null, target: t0.net >= target && target > 0 ? 0 : null, cashOut: null, growing: [],
-        retire: null, rmd: null, runsOut: null, penalty: null, rothEarly: null, hsaPenalty: null, drawnEarly: null, medicare: null, irmaa: null, goals: goalOut };
+        retire: null, rmd: null, runsOut: null, penalty: null, rothEarly: null, hsaPenalty: null, drawnEarly: null, medicare: null, irmaa: null, goals: goalOut,
+        // What early-withdrawal penalties came to, in dollars of the time: pre-tax, Roth earnings, HSA.
+        penalties: { pretax: 0, roth: 0, hsa: 0 } };
     // Work left in the year of turning 55 (the rules' age) or later: a 401(k) pays no early
     // penalty from then. IRAs keep the early age.
     const leftWork = !retOk ? null : opts.stopT !== undefined && isFinite(opts.stopT) ? new Date(start.getFullYear(), start.getMonth() + opts.stopT - 1, 1) : ret.date;
@@ -2440,13 +2451,13 @@ function fpProject(plan, shift, opts) {
     let dRows = [];
     const dNew = () => ({ income: {}, deductions: 0, payrollOwn: 0, match: 0, fedTax: 0, payrollTax: 0, typedTax: 0, withdrawTax: 0,
         expenses: {}, spending: 0, healthBefore: 0, healthAfter: 0, partB: 0, irmaa: 0, payments: {}, escrow: {}, goals: {},
-        added: {}, contrib: {}, drawn: {}, rmd: {}, leftover: 0, puts: 0, growth: {}, start: {}, end: {}, looseStart: 0, looseEnd: 0, months: 0 });
+        added: {}, contrib: {}, drawn: {}, penalty: {}, rmd: {}, leftover: 0, puts: 0, growth: {}, start: {}, end: {}, looseStart: 0, looseEnd: 0, months: 0 });
     const dAdd = (part, key, v) => { if (!det || !v) return; dRows.forEach(b => { if (key === null) b[part] += v; else b[part][key] = (b[part][key] || 0) + v; }); };
     let tFrom = 1;
     if (opts.from) {
         const s = opts.from;
         Object.assign(bal, s.bal); Object.assign(basis, s.basis); Object.assign(yearStart, s.yearStart); Object.assign(yearAdded, s.yearAdded);
-        loose = s.loose;
+        loose = s.loose; lumpOrd = s.lumpOrd; lumpGains = s.lumpGains;
         tFrom = s.t + 1;
     }
     for (let t = tFrom; t <= years * 12; t++) {
@@ -2458,7 +2469,7 @@ function fpProject(plan, shift, opts) {
             dRows.forEach(b => { b.months++; });
         }
         if (snaps && (t - 1) % 12 === 0) snaps.push({ t: t - 1, bal: Object.assign({}, bal), basis: Object.assign({}, basis), yearStart: Object.assign({}, yearStart),
-            yearAdded: Object.assign({}, yearAdded), loose: loose });
+            yearAdded: Object.assign({}, yearAdded), loose: loose, lumpOrd: lumpOrd, lumpGains: lumpGains });
         const date = new Date(start.getFullYear(), start.getMonth() + t - 1, 1);
         const ym = fpYm(date);
         const yrs = (t - 1) / 12;
@@ -2592,47 +2603,79 @@ function fpProject(plan, shift, opts) {
         dueNow.forEach(d => dAdd('goals', d.g.id, d.amount));
         dAdd('leftover', null, surplus);
         if (into) { bal[into] += surplus; yearAdded[into] += surplus; if (basis[into] !== undefined && surplus > 0) basis[into] += surplus; } else loose += surplus;
-        let withdrawn = 0, withdrawTax = 0, monthOrd = taxed + typedOrd, monthGains = 0;
+        let withdrawn = 0, withdrawTax = 0, withdrawPenalty = 0, monthOrd = taxed + typedOrd, monthGains = 0;
         const age = ageM;
         const put = (v) => { if (into) { bal[into] += v; yearAdded[into] += v; } else loose += v; dAdd('puts', null, v); };
         // Pre-tax money is income, and the gain in what is drawn from an investment
         // account is taxed at the capital-gains rates: what more tax they bring, on top
         // of what is already taxed this month.
-        let pretaxSoFar = 0, gainsSoFar = 0;
-        const fedNow = (ord, gain) => fpFederalTax(taxInfo, (taxed + typedOrd + pretaxSoFar + ord) * 12, (benefits + typedBen) * 12, (gainsSoFar + gain) * 12, index) / 12;
-        const extraTax = (ord, gain) => fedNow(ord || 0, gain || 0) - fedNow(0, 0);
+        // The month's income is a rate, twelve times over; a goal's payment falls once, so what
+        // it draws goes on top of the year's income as it stands, and stays there to December.
+        if (date.getMonth() === 0) { lumpOrd = 0; lumpGains = 0; }
+        let pretaxSoFar = 0, gainsSoFar = 0, lumpOrdNow = 0, lumpGainsNow = 0;
+        const fedYear = (ord, gain, oneOrd, oneGain) => fpFederalTax(taxInfo, (taxed + typedOrd + pretaxSoFar + ord) * 12 + lumpOrd + oneOrd, (benefits + typedBen) * 12, (gainsSoFar + gain) * 12 + lumpGains + oneGain, index);
+        const extraTax = (ord, gain) => (fedYear(ord || 0, gain || 0, 0, 0) - fedYear(0, 0, 0, 0)) / 12;
+        const lumpTax = (ord, gain) => fedYear(0, 0, ord || 0, gain || 0) - fedYear(0, 0, 0, 0);
         const fromPretax = {};
-        const take = (a, net) => {
-            // Enough to have `net` left once its tax is paid, if the account holds it. An
-            // HSA spent on other than medical costs is taxed as pre-tax money is.
+        // The early-withdrawal penalty on an account this month, as a fraction: before 59½ on
+        // pre-tax money and Roth earnings — not from a 401(k) or 403(b) left in or after the
+        // year of turning 55, nor a 457(b) once work stops — and before 65 on an HSA spent on
+        // other than medical costs. Without a birth month there is no age to go by: none.
+        const penaltyOf = (a) => {
+            if (age === null) return 0;
+            if (a.kind === 'hsa') return a.hsaMedical === false && age < W.hsaAge * 12 ? W.hsaPenalty / 100 : 0;
+            if (a.kind !== 'retirement' || age >= W.early) return 0;
+            // Before retirement, the job is not taken to be left: no age-55 exception.
+            if (retired && a.planType === '457') return 0;
+            if (retired && a.planType !== 'ira' && leftAt55) return 0;
+            return W.penalty / 100;
+        };
+        // What can come out of an account this month without a penalty: all of it, a Roth's
+        // contributions (they come out first), or none.
+        const freeOf = (a) => !penaltyOf(a) ? Infinity : fpIsRoth(a) ? Math.max(0, basis[a.id] || 0) : 0;
+        const take = (a, net, cap, lump) => {
+            // Enough to have `net` left once its tax and any penalty are paid, if the account
+            // holds it. An HSA spent on other than medical costs is taxed as pre-tax money is.
+            // `lump`: this month only, for a goal, and taxed as that.
             const hsaTaxed = a.kind === 'hsa' && a.hsaMedical === false;
             const pre = fpIsPretax(a) || hsaTaxed;
-            const share = !pre && basis[a.id] !== undefined && bal[a.id] > 0 ? Math.max(0, 1 - basis[a.id] / bal[a.id]) : 0;
-            const taxOf = (g) => pre ? extraTax(g, 0) : share ? extraTax(0, g * share) : 0;
+            const roth = fpIsRoth(a);
+            const rate = penaltyOf(a);
+            // A Roth's contributions come out first and free; its earnings drawn early are
+            // taxed as income and penalised. After 59½ all of it is untaxed.
+            const earn = (g) => roth && rate ? Math.max(0, g - Math.max(0, basis[a.id] || 0)) : 0;
+            const share = !pre && !roth && basis[a.id] !== undefined && bal[a.id] > 0 ? Math.max(0, 1 - basis[a.id] / bal[a.id]) : 0;
+            const more = lump ? lumpTax : extraTax;
+            const taxOf = (g) => pre ? more(g, 0) : roth ? (earn(g) ? more(earn(g), 0) : 0) : share ? more(0, g * share) : 0;
+            const addOrd = (v) => { if (lump) { lumpOrd += v; lumpOrdNow += v; } else pretaxSoFar += v; };
+            const penOf = (g) => rate * (pre ? g : roth ? earn(g) : 0);
             let g = net;
-            if (pre || share) for (let k = 0; k < 6; k++) g = net + taxOf(g);
-            g = Math.min(g, Math.max(0, bal[a.id]));
-            const tx = taxOf(g);
+            // Found by going round until it settles: the tax and penalty on what is drawn,
+            // drawn too.
+            if (pre || share || rate) for (let k = 0; k < 40; k++) { const next = net + taxOf(g) + penOf(g); if (Math.abs(next - g) < 1e-7) { g = next; break; } g = next; }
+            g = Math.min(g, Math.max(0, bal[a.id]), cap === undefined ? Infinity : cap);
+            if (g <= 0) return 0;
+            const tx = taxOf(g), pen = penOf(g);
             bal[a.id] -= g;
             if (pre) {
-                pretaxSoFar += g;
+                addOrd(g);
                 fromPretax[a.id] = (fromPretax[a.id] || 0) + g;
-                // Before retirement, the job is not taken to be left: no age-55 exception.
-                const left55 = retired && a.planType !== 'ira' && leftAt55;
-                if (hsaTaxed) { if (g > 0 && age !== null && age < W.hsaAge * 12 && ms.hsaPenalty === null) ms.hsaPenalty = t; }
-                else if (g > 0 && age !== null && age < W.early && ms.penalty === null && !(a.planType === '457' && retired) && !left55) ms.penalty = t;
-            } else if (a.kind === 'retirement') {
-                // Roth money before 59½: contributions come out free; earnings may not.
-                const left55 = retired && a.planType !== 'ira' && leftAt55;
-                if (g > 0 && age !== null && age < W.early && ms.rothEarly === null && !(a.planType === '457' && retired) && !left55) ms.rothEarly = t;
+                if (pen > 0) {
+                    if (hsaTaxed) { ms.penalties.hsa += pen; if (ms.hsaPenalty === null) ms.hsaPenalty = t; }
+                    else { ms.penalties.pretax += pen; if (ms.penalty === null) ms.penalty = t; }
+                }
+            } else if (roth) {
+                const e = earn(g);
+                if (e > 0) { addOrd(e); ms.penalties.roth += pen; if (ms.rothEarly === null) ms.rothEarly = t; }
+                if (basis[a.id] !== undefined) basis[a.id] = Math.max(0, basis[a.id] - (g - e));
             } else if (basis[a.id] !== undefined) {
                 basis[a.id] = Math.max(0, basis[a.id] - g * (1 - share));
-                gainsSoFar += g * share;
+                if (lump) { lumpGains += g * share; lumpGainsNow += g * share; } else gainsSoFar += g * share;
             }
-            withdrawn += g; withdrawTax += tx;
-            dAdd('drawn', a.id, g); dAdd('withdrawTax', null, tx);
-            put(g - tx);
-            return g - tx;
+            withdrawn += g; withdrawTax += tx; withdrawPenalty += pen;
+            dAdd('drawn', a.id, g); dAdd('withdrawTax', null, tx); dAdd('penalty', a.id, pen);
+            put(g - tx - pen);
+            return g - tx - pen;
         };
         // A goal's payment comes first from its own account, as far as that goes: back
         // into cash, which paid it. A 529's comes out untaxed.
@@ -2642,9 +2685,11 @@ function fpProject(plan, shift, opts) {
             if (retired) o.retired = true;
             if (!o.own) return;
             if (o.held === null) o.held = Math.max(0, bal[d.acct.id]);
-            d.got = take(d.acct, d.amount);
+            d.got = take(d.acct, d.amount, undefined, true);
             o.fromOwn += d.got;
         });
+        // What of the goals' payments their own accounts did not cover, for savings to make up.
+        let lumpLeft = dueNow.reduce((s, d) => s + d.amount - (d.got || 0), 0);
         const goalWithdrawn = withdrawn;
         // Before retirement, cash running short is made up from savings, in the same order:
         // cash is kept at nought, not overdrawn while there is anything to draw on.
@@ -2652,11 +2697,18 @@ function fpProject(plan, shift, opts) {
         let shortNet = 0;
         if (retired || short) {
             let need = retired ? buffer * expenses - cashOf() : -cashOf();
-            order.forEach(a => {
+            // With penalties avoided, a first pass takes only what comes out free, in the order
+            // given; the second, whatever is still needed.
+            (avoidPenalty ? [true, false] : [false]).forEach(free => order.forEach(a => {
                 if (need <= 0.005 || a.id === into || bal[a.id] <= 0) return;
-                const got = take(a, need);
+                if (lumpLeft > 0.005) {
+                    const got = take(a, Math.min(need, lumpLeft), free ? freeOf(a) : undefined, true);
+                    lumpLeft -= got; need -= got; shortNet += got;
+                }
+                if (need <= 0.005 || bal[a.id] <= 0) return;
+                const got = take(a, need, free ? freeOf(a) : undefined);
                 need -= got; shortNet += got;
-            });
+            }));
             // The minimum a pre-tax account must pay out: worked out each January from the
             // balance then and the age reached that year, paid a twelfth a month.
             if (retired && age >= ret.rmdAge * 12 - 11) {
@@ -2682,8 +2734,8 @@ function fpProject(plan, shift, opts) {
                 if (opts.lite && !opts.endT) return { runsOut: t, goals: goalOut };
             }
         }
-        monthOrd = taxed + typedOrd + pretaxSoFar;
-        monthGains = gainsSoFar;
+        monthOrd = taxed + typedOrd + pretaxSoFar + lumpOrdNow;
+        monthGains = gainsSoFar + lumpGainsNow;
         // What of the goals' payments savings made up, before retirement; and what is
         // left in a goal's account after its last.
         let rest = shortNet;
@@ -2695,7 +2747,7 @@ function fpProject(plan, shift, opts) {
         if (opts.endT && t >= opts.endT) break;
         if (opts.lite) continue;
         if (det) dRows.forEach(b => { b.end = Object.assign({}, bal); b.looseEnd = loose; });
-        yearWithdrawn += withdrawn; yearWithdrawTax += withdrawTax; yearOrd += monthOrd; yearBen += benefits + typedBen; yearGains += monthGains;
+        yearWithdrawn += withdrawn; yearWithdrawTax += withdrawTax; yearPenalty += withdrawPenalty; yearOrd += monthOrd; yearBen += benefits + typedBen; yearGains += monthGains;
         // The year's modified AGI, for the Medicare surcharge two years on.
         if (t % 12 === 0) magiYear[t / 12 - 1] = yearOrd + yearGains + fpSSTaxable(health.ssTax, yearBen, yearOrd + yearGains);
         if (!first) first = { income: income, deductions: deductions, tax: tax, typedTax: typedTax, estimatedTax: estimated, payrollTax: payrollTax, takeHome: income - deductions - tax,
@@ -2703,13 +2755,13 @@ function fpProject(plan, shift, opts) {
         const tot = totals();
         if (owedAtStart && ms.debtFree === null && plan.accounts.every(a => side(a) !== 'liability' || bal[a.id] <= 0)) ms.debtFree = t;
         if (ms.target === null && target > 0 && real(tot.net, t) >= target) ms.target = t;
-        if (ms.cashOut === null && cashOf() < 0) ms.cashOut = t;
+        if (ms.cashOut === null && cashOf() < -0.005) ms.cashOut = t;
         if (t % 12 === 0) {
             rows.push({ t: t, year: start.getFullYear() + t / 12, assets: real(tot.assets, t), liabilities: real(tot.liabilities, t), net: real(tot.net, t), cash: real(cashOf(), t),
-                withdrawn: real(yearWithdrawn, t), withdrawTax: real(yearWithdrawTax, t), age: fpAgeAt(plan, date),
+                withdrawn: real(yearWithdrawn, t), withdrawTax: real(yearWithdrawTax, t), withdrawPenalty: real(yearPenalty, t), age: fpAgeAt(plan, date),
                 // The year's taxed ordinary income and Social Security, as paid then — for the tax rate on the next dollar.
                 ordinary: yearOrd, benefits: yearBen, index: Math.pow(1 + infl, (t - 12) / 12), retired: retired });
-            yearWithdrawn = 0; yearWithdrawTax = 0; yearOrd = 0; yearBen = 0; yearGains = 0;
+            yearWithdrawn = 0; yearWithdrawTax = 0; yearPenalty = 0; yearOrd = 0; yearBen = 0; yearGains = 0;
         }
     }
     if (opts.lite) return { runsOut: null, goals: goalOut };
@@ -3328,6 +3380,8 @@ function fpDetailsRow(plan, a) {
                 '457:roth': 'A Roth 457(b): after tax, drawn untaxed; a limit of its own beside a 401(k)’s; no early penalty once the job is left.',
                 'ira:pretax': 'A traditional IRA: taxed as it is drawn, with minimum withdrawals from 73 or 75; no employer match; the IRA limit.',
                 'ira:roth': 'A Roth IRA: drawn untaxed, no minimum withdrawals; no employer match; the IRA limit, which shrinks with income.' })[fpRetKey(a)] + '</span>' : '') +
+            (fpIsRoth(a) ? '<label title="What was paid in. Drawn early, contributions come out first and free; earnings are taxed and penalised. Empty: all of today’s balance is contributions, and only growth from here is earnings.">Contributions ' +
+                '<input class="fp-in fp-num" type="number" data-f="basis" value="' + attr(a.basis) + '" placeholder="' + Math.round(fpBalanceOf(plan, a)) + '"></label>' : '') +
             (a.kind === 'hsa' ? '<label title="Which limit applies">Cover <select class="fp-in" data-f="hsaCover"><option value="self"' + (a.hsaCover !== 'family' ? ' selected' : '') + '>Self-only</option>' +
                 '<option value="family"' + (a.hsaCover === 'family' ? ' selected' : '') + '>Family</option></select></label>' +
                 '<label class="fp-check" title="Spent on medical costs, an HSA comes out untaxed. Otherwise it is taxed as income, with a penalty before 65."><input class="fp-in" type="checkbox" data-f="hsaMedical"' +
@@ -3580,7 +3634,9 @@ function fpRetireFields(plan, attr, under) {
                 const same = usual === order.map(a => a.id).join();
                 return '<button type="button" class="fp-btn fp-draw-reset" onclick="fpResetDrawOrder(this)"' + (same ? ' disabled' : '') +
                     ' title="Cash first, then investments, other assets, pre-tax accounts, Roth, and the HSA last">' + (same ? 'The usual order' : 'Reset to the usual order') + '</button>';
-            })() : '') +
+            })() +
+            '<div class="fp-assume"><label class="fp-check" title="While a withdrawal would be penalised, accounts that would not be — and a Roth’s contributions — are drawn first, in the order above. Off: the order above as it stands, penalties and all."><input class="fp-in" type="checkbox" data-a="retire" data-k="avoidPenalty"' +
+                (r.avoidPenalty !== false ? ' checked' : '') + '> Draw penalty-free money first until ' + fpAgeShort(taxRulesFor('').withdraw.early) + '</label></div>' : '') +
         '<div class="fp-retire-out"></div>';
 }
 
@@ -3598,9 +3654,9 @@ function fpRetireLines(plan, proj) {
     if (gap) lines.push('Pay stops in ' + fpWhen(plan, gap) + ', before retirement in ' + fpWhen(plan, ret.date) + ': savings are drawn on in between.');
     if (ms.medicare !== null) lines.push('Medicare from ' + fpWhen(plan, fpMonthAt(proj.start, ms.medicare)) + (ms.irmaa !== null ? '; the income-related surcharge from ' + fpMonthText(proj.start, ms.irmaa) : '') + '.');
     if (ms.rmd !== null) lines.push('Minimum withdrawals from pre-tax accounts from ' + fpMonthText(proj.start, ms.rmd) + ', at ' + ret.rmdAge + '.');
-    if (ms.penalty !== null) lines.push('Pre-tax money is drawn before ' + fpAgeShort(ret.early) + ', in ' + fpWhen(plan, fpMonthAt(proj.start, ms.penalty)) + ': a ' + ret.penalty + '% penalty may apply.');
-    if (ms.hsaPenalty !== null) lines.push('HSA money is spent on other than medical costs before ' + ret.hsaAge + ', in ' + fpWhen(plan, fpMonthAt(proj.start, ms.hsaPenalty)) + ': it is taxed, with a ' + ret.hsaPenalty + '% penalty.');
-    if (ms.rothEarly !== null) lines.push('Roth money is drawn before ' + fpAgeShort(ret.early) + ', in ' + fpWhen(plan, fpMonthAt(proj.start, ms.rothEarly)) + ': contributions come out free, but earnings may be taxed and have a ' + ret.penalty + '% penalty.');
+    if (ms.penalty !== null) lines.push('Pre-tax money is drawn before ' + fpAgeShort(ret.early) + ', from ' + fpWhen(plan, fpMonthAt(proj.start, ms.penalty)) + ': a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.pretax) + ' in all as paid.');
+    if (ms.hsaPenalty !== null) lines.push('HSA money is spent on other than medical costs before ' + ret.hsaAge + ', from ' + fpWhen(plan, fpMonthAt(proj.start, ms.hsaPenalty)) + ': taxed, with a ' + ret.hsaPenalty + '% penalty, ' + fpMoney(ms.penalties.hsa) + ' in all as paid.');
+    if (ms.rothEarly !== null) lines.push('Roth earnings are drawn before ' + fpAgeShort(ret.early) + ', from ' + fpWhen(plan, fpMonthAt(proj.start, ms.rothEarly)) + ': taxed, with a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.roth) + ' in all as paid.');
     const best = fpRetireMax(plan, 0);
     if (best !== null) lines.push('The most that could be spent and still last to ' + ret.until + ': ' + fpMoney(best) + ' a month in today’s dollars.');
     return lines;
@@ -3635,10 +3691,10 @@ function fpRenderRetire(widget, plan, proj, low, high) {
             (ms.irmaa !== null ? ', more from ' + fpMonthText(proj.start, ms.irmaa).replace(/^\w+ /, '') + ', when income two years before is over ' + fpMoney(h.irmaa[0].from) : ''));
     }
     if (ms.rmd !== null) bits.push('Minimum withdrawals from <b>' + fpMonthText(proj.start, ms.rmd).replace(/^\w+ /, '') + '</b> (age ' + ret.rmdAge + ')');
-    if (ms.hsaPenalty !== null) bits.push('<span class="fp-neg">HSA money is spent on other than medical costs in ' + fpWhen(plan, fpMonthAt(proj.start, ms.hsaPenalty)) + ', before ' + ret.hsaAge + ': taxed, with a ' + ret.hsaPenalty + '% penalty</span>');
-    if (ms.rothEarly !== null) bits.push('<span class="fp-neg">Roth money is drawn in ' + fpWhen(plan, fpMonthAt(proj.start, ms.rothEarly)) + ', before ' + fpAgeShort(ret.early) +
-        ': contributions come out free, but earnings may be taxed and have a ' + ret.penalty + '% penalty</span>');
-    if (ms.penalty !== null) bits.push('<span class="fp-neg">Pre-tax money is drawn in ' + fpWhen(plan, fpMonthAt(proj.start, ms.penalty)) + ', before ' + fpAgeShort(ret.early) + ': a ' + ret.penalty + '% penalty may apply</span>');
+    if (ms.hsaPenalty !== null) bits.push('<span class="fp-neg">HSA money is spent on other than medical costs from ' + fpWhen(plan, fpMonthAt(proj.start, ms.hsaPenalty)) + ', before ' + ret.hsaAge + ': taxed, with a ' + ret.hsaPenalty + '% penalty, ' + fpMoney(ms.penalties.hsa) + ' in all as paid</span>');
+    if (ms.rothEarly !== null) bits.push('<span class="fp-neg">Roth earnings are drawn from ' + fpWhen(plan, fpMonthAt(proj.start, ms.rothEarly)) + ', before ' + fpAgeShort(ret.early) +
+        ': taxed, with a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.roth) + ' in all as paid</span>');
+    if (ms.penalty !== null) bits.push('<span class="fp-neg">Pre-tax money is drawn from ' + fpWhen(plan, fpMonthAt(proj.start, ms.penalty)) + ', before ' + fpAgeShort(ret.early) + ': a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.pretax) + ' in all as paid</span>');
     const need = widget._needed && widget._needed.value;
     if (need && need.rows) bits.push('<span' + (need.earliest === null ? ' class="fp-neg"' : '') + '>' + fpNeededText(need, true) + '</span>');
     // Drawn again for the same plan (once the needed figures are in, say): the most that
@@ -3768,6 +3824,9 @@ function fpRenderDerived(widget, plan) {
     if (ms.debtFree !== null) facts.push('Debt-free ' + when(ms.debtFree));
     else if (roll.liabilities > 0) facts.push('<span class="fp-neg">Still owing after ' + (proj.rows.length - 1) + ' years</span>');
     if (ms.drawnEarly !== null) facts.push('<span class="fp-neg">Savings drawn on before retirement from ' + when(ms.drawnEarly) + '</span>');
+    const penaltyAll = proj.rows.reduce((s, r) => s + (r.withdrawPenalty || 0), 0);
+    const penaltyFrom = [ms.penalty, ms.rothEarly, ms.hsaPenalty].filter(x => x !== null);
+    if (penaltyFrom.length) facts.push('<span class="fp-neg">Early-withdrawal penalties: ' + fpMoney(penaltyAll) + ', from ' + when(Math.min(...penaltyFrom)) + '</span>');
     if (proj.retire && ms.retire !== null) facts.push('Retire ' + when(ms.retire));
     if (proj.retire && ms.runsOut !== null) facts.push('<span class="fp-neg">Savings run out ' + when(ms.runsOut) + '</span>');
     if (fpNum(plan.assume.target, 0) > 0) facts.push(ms.target === 0 ? 'Past the ' + fpMoney(plan.assume.target) + ' goal already'
@@ -3815,22 +3874,34 @@ function fpRenderDerived(widget, plan) {
         '<label>to <select class="fp-range-to" onchange="fpChartRange(this)" aria-label="To year">' +
             proj.rows.slice(1).map((r, i) => '<option value="' + r.year + '"' + (i + 1 === span.b ? ' selected' : '') + '>' + yearAge(r) + '</option>').join('') + '</select></label>' +
         '<button type="button" class="fp-btn fp-range-all" onclick="fpChartRange(this, true)"' + (span.all ? ' disabled' : '') + '>All years</button></div>' : '';
+    const penaltyYears = shown.filter(r => r.withdrawPenalty >= 0.5);
+    const P = penaltyYears.length > 0;
+    // A year's penalty by account, in the money the table is in.
+    const penaltySplit = (r) => {
+        const by = (proj.detail[proj.rows.indexOf(r)] || {}).penalty || {};
+        const all = Object.keys(by).reduce((s, k) => s + by[k], 0);
+        return Object.keys(by).filter(k => by[k] > 0).map(k => { const a = plan.accounts.find(x => x.id === k); return (a ? a.name || fpKindLabel(a) : 'An account') + ' ' + fpMoney(by[k] / all * r.withdrawPenalty); }).join(', ');
+    };
     const table = '<table class="fp-table fp-years"><thead><tr><th>Year</th>' + (A ? '<th>Age</th>' : '') + '<th>Assets</th><th>Liabilities</th><th>Net worth</th>' + (low ? '<th>Range</th>' : '') +
         '<th title="The account what is left over each month goes to">' + escapeHtml(pot) + '</th>' +
         (N ? '<th title="Savings that can be drawn on: cash, investments, retirement and other accounts — not property">Can draw on</th>' +
             '<th title="What savings would need to be at the start of the year to stop working then and still last to ' + need.until + '">Needed to stop</th>' : '') +
-        (R ? '<th title="Drawn from savings that year">Withdrawn</th><th title="Federal tax on the pre-tax money drawn, and on the gains in investments drawn">Tax on it</th>' : '') + '</tr></thead><tbody>' +
-        // A short range, every year; a long one, the first five and every fifth after.
-        shown.filter((r, j) => shown.length <= 16 || j === 0 || r.t / 12 <= 5 || (r.t / 12) % 5 === 0 || j === shown.length - 1).map(r => {
+        (R ? '<th title="Drawn from savings that year">Withdrawn</th><th title="Federal tax on the pre-tax money drawn, and on the gains in investments drawn">Tax on it</th>' : '') +
+        (P ? '<th title="Early-withdrawal penalties on what was drawn">Penalty</th>' : '') + '</tr></thead><tbody>' +
+        // A short range, every year; a long one, the first five, every fifth after, and any
+        // year with a penalty, which would otherwise go unseen.
+        shown.filter((r, j) => shown.length <= 16 || j === 0 || r.t / 12 <= 5 || (r.t / 12) % 5 === 0 || j === shown.length - 1 || r.withdrawPenalty >= 0.5).map(r => {
             const i = proj.rows.indexOf(r);
             return '<tr class="fp-year-row' + (r.t === pick ? ' fp-year-on' : '') + '" data-t="' + r.t + '" onclick="fpPickYear(this)" title="What made up ' + (r.t === 0 ? 'this month' : 'this year') + '">' +
                 '<td>' + yearLabel(r) + '</td>' + (A ? '<td>' + (r.age == null ? '' : r.age) + '</td>' : '') + '<td>' + fpMoney(r.assets) + '</td><td>' + fpMoney(r.liabilities) + '</td><td><b>' + fpMoney(r.net) + '</b></td>' +
                 (low ? '<td class="fp-muted">' + fpMoney(low.rows[i].net, true) + ' – ' + fpMoney(high.rows[i].net, true) + '</td>' : '') +
-                '<td class="' + (r.cash < 0 ? 'fp-neg' : '') + '">' + fpMoney(r.cash) + '</td>' +
+                '<td class="' + (r.cash < -0.005 ? 'fp-neg' : '') + '">' + fpMoney(r.cash) + '</td>' +
                 (N ? (needAt[r.t] ? '<td class="fp-need-have' + stale + '">' + fpMoney(needAt[r.t].have) + '</td><td class="fp-need' + (needAt[r.t].enough ? ' fp-pos' : '') + stale + '">' +
                     (needAt[r.t].needed === Infinity ? 'out of reach' : fpMoney(needAt[r.t].needed)) + '</td>' : '<td></td><td></td>') : '') +
-                (R ? '<td>' + (r.withdrawn ? fpMoney(r.withdrawn) : '') + '</td><td>' + (r.withdrawTax ? fpMoney(r.withdrawTax) : '') + '</td>' : '') + '</tr>';
-        }).join('') + '</tbody></table>';
+                (R ? '<td>' + (r.withdrawn ? fpMoney(r.withdrawn) : '') + '</td><td>' + (r.withdrawTax ? fpMoney(r.withdrawTax) : '') + '</td>' : '') +
+                (P ? (r.withdrawPenalty >= 0.5 ? '<td class="fp-neg" title="' + escapeHtml(penaltySplit(r)) + '">' + fpMoney(r.withdrawPenalty) + '</td>' : '<td></td>') : '') + '</tr>';
+        }).join('') + '</tbody></table>' +
+        (P ? '<div class="fp-years-foot fp-neg">Early-withdrawal penalties: <b>' + fpMoney(penaltyYears.reduce((s, r) => s + r.withdrawPenalty, 0)) + '</b> over ' + penaltyYears.length + (penaltyYears.length === 1 ? ' year' : ' years') + '</div>' : '');
     fpRenderRetire(widget, plan, proj, low, high);
     const goalSave = fpGoalSavingFor(widget, plan);
     const goalsBox = widget.querySelector('.fp-goals-out');
@@ -3897,7 +3968,9 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow) {
     let draws = '';
     if (drawnIds.length) {
         draws = drawnIds.map(id => { const a = acc(id); return row('From ' + (a ? accName(a) : 'an account') + (d.rmd[id] ? ' <span class="fp-muted">(' + m(d.rmd[id]) + ' the required minimum)</span>' : ''), d.drawn[id]); }).join('') +
-            row('Tax on what was drawn', d.withdrawTax) + total('Into cash', d.puts);
+            row('Tax on what was drawn', d.withdrawTax) +
+            Object.keys(d.penalty).map(id => { const a = acc(id); return row('Early-withdrawal penalty: ' + (a ? accName(a) : 'an account'), d.penalty[id], 'fp-neg'); }).join('') +
+            total('Into cash', d.puts);
         draws = '<table class="fp-yd-table"><caption>Drawn from savings</caption><tbody>' + draws + '</tbody></table>';
     }
 
@@ -3943,9 +4016,10 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow) {
     if (inWin(ms.target) && fpNum(plan.assume.target, 0) > 0) ev.push('Net worth reaches the ' + m(plan.assume.target) + ' goal.');
     Object.keys(d.goals).forEach(id => { const g = lineOf('goals', id); ev.push('Goal paid: ' + (g ? esc(g.name || 'A goal') : 'a goal') + ', ' + m(d.goals[id]) + '.'); });
     if (inWin(ms.drawnEarly)) ev.push(neg('Savings are drawn on before retirement.'));
-    if (inWin(ms.penalty)) ev.push(neg('Pre-tax money drawn before 59½: a 10% penalty may apply.'));
-    if (inWin(ms.rothEarly)) ev.push(neg('Roth money drawn before 59½: its earnings may be taxed and penalised.'));
-    if (inWin(ms.hsaPenalty)) ev.push(neg('HSA money spent on other than medical costs before 65: taxed, with a penalty.'));
+    const W = taxRulesFor('').withdraw;
+    if (inWin(ms.penalty)) ev.push(neg('Pre-tax money is first drawn before ' + fpAgeShort(W.early) + ': a ' + W.penalty + '% penalty.'));
+    if (inWin(ms.rothEarly)) ev.push(neg('Roth earnings are first drawn before ' + fpAgeShort(W.early) + ': taxed, with a ' + W.penalty + '% penalty.'));
+    if (inWin(ms.hsaPenalty)) ev.push(neg('HSA money is first spent on other than medical costs before ' + W.hsaAge + ': taxed, with a ' + W.hsaPenalty + '% penalty.'));
     if (inWin(ms.cashOut)) ev.push(neg('Cash runs out.'));
     if (inWin(ms.runsOut)) ev.push(neg('Savings run out.'));
     if (needRow) ev.push('To stop working at the start of ' + needRow.year + ': ' + (isFinite(needRow.needed) ? m(needRow.needed) : 'out of reach') + ' needed, ' + m(needRow.have) + ' to draw on' +
@@ -3981,7 +4055,8 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow) {
             '; spending ' + m(fpRetireSpending(plan)) + ' a month in today’s dollars' + (retired ? ', ' + m(fpRetireSpending(plan) * idx) + ' then' : '') +
             '; cash kept at ' + Math.max(0, fpNum(plan.retire.buffer, 6)) + ' months of spending.');
         if (h.on) as.push('Health cover: ' + m(h.before) + ' a month before Medicare at ' + h.age + ', ' + m(h.after) + ' beside it, rising ' + Math.round(h.medInfl * 1000) / 10 + '% a year.');
-        as.push('Withdrawals: penalty-free from 59½ (55 for a 401(k) left in or after the year of turning 55); required minimums from ' + ret.rmdAge + '.');
+        as.push('Withdrawals: a ' + W.penalty + '% penalty before ' + fpAgeShort(W.early) + ' on pre-tax money and Roth earnings — not from a 401(k) left in or after the year of turning ' + W.sepAge + ', nor a 457(b) once work stops; ' +
+            W.hsaPenalty + '% on an HSA spent on other than medical costs before ' + W.hsaAge + '; ' + (plan.retire.avoidPenalty !== false ? 'penalty-free money drawn first' : 'drawn in the order given') + '; required minimums from ' + ret.rmdAge + '.');
     }
     if (low && high && i > 0) as.push('The range: investment returns ' + spread + '% lower or higher — net worth ' + m(low.rows[i].net) + ' to ' + m(high.rows[i].net) + (plan.assume.real ? ' in today’s money' : '') + '.');
 
@@ -4403,7 +4478,7 @@ function fpOnInput(el) {
         else if (a === 'surplusTo') plan.surplusTo = val;
         else if (a === 'real') plan.assume.real = val;
         else if (a === 'retireOn') plan.retire.on = val;
-        else if (a === 'retire') plan.retire[el.dataset.k] = el.dataset.k === 'birth' || el.dataset.k === 'health' ? val : num(val);
+        else if (a === 'retire') plan.retire[el.dataset.k] = ['birth', 'health', 'avoidPenalty'].includes(el.dataset.k) ? val : num(val);
         else if (a === 'advice') plan.advice[el.dataset.k] = el.dataset.k === 'risk' ? val : num(val);
         else plan.assume[a] = num(val);
     } else {
@@ -4564,9 +4639,11 @@ function fpSample(btn) {
 
 /**
  * A link may open the planner on the made-up example — `#tool/finance-planning?example=1`,
- * as the guide's “Try it” does — with a birth month, retirement and Social Security added,
- * so every part of it has something to show. Only a planner with nothing in it yet is
- * filled: a link never overwrites someone's plan.
+ * as the guide's “Try it” does — with more added to it: a birth month, retirement and Social
+ * Security, pay going into accounts with a match, a Roth, an IRA, an HSA and a 529, and big
+ * costs ahead, one of them paid early enough to be penalised. So every part of the planner has
+ * something to show. Only a planner with nothing in it yet is filled: a link never overwrites
+ * someone's plan.
  */
 function fpApplyHashParams(toolId, params) {
     if (!params || !params.example) return;
@@ -4578,6 +4655,25 @@ function fpApplyHashParams(toolId, params) {
     const p = fpGet(toolId);
     p.retire = Object.assign({}, p.retire, { on: true, birth: '1985-11', ageYears: 65, ageMonths: 0, until: 95, health: true, healthAfter: 250 });
     p.incomes.push({ id: fpNewId('ss'), type: 'ss', name: 'Social Security', birth: '1985-11', fraBenefit: null, claimYears: 67, claimMonths: 0, every: 'month', growth: null, to: '', taxed: true });
+    const account = (name) => p.accounts.find(a => a.name === name);
+    const roth = { id: fpNewId('a'), name: 'Roth IRA', kind: 'retirement', planType: 'ira', tax: 'roth', balance: 30000, basis: 18000, rate: null, monthly: 300 };
+    const rollover = { id: fpNewId('a'), name: 'Rollover IRA', kind: 'retirement', planType: 'ira', tax: 'pretax', balance: 25000, rate: null, monthly: null };
+    const hsa = { id: fpNewId('a'), name: 'HSA', kind: 'hsa', balance: 6000, hsaCover: 'self', rate: null, monthly: null };
+    const college = { id: fpNewId('a'), name: 'College 529', kind: 'education', balance: 12000, rate: null, monthly: 250 };
+    p.accounts.splice(p.accounts.indexOf(account('401(k)')) + 1, 0, roth, rollover, hsa, college);
+    account('Brokerage').basis = 30000;
+    account('401(k)').monthly = null;
+    Object.assign(p.incomes[0], { amount: 130000, deductions: 10800, matchRate: 50, matchCap: 6, into: [
+        { id: fpNewId('r'), account: account('401(k)').id, amount: 7800, match: null },
+        { id: fpNewId('r'), account: hsa.id, amount: 3000, match: null }
+    ] });
+    p.expenses.push({ id: fpNewId('e'), name: 'Childcare', amount: 900, every: 'month', growth: null, from: '', to: '2031-08' });
+    p.goals = [
+        { id: fpNewId('s'), type: 'section', name: 'Big costs', folded: false },
+        { id: fpNewId('g'), name: 'Kid’s college', cost: 28000, every: 'year', years: 4, from: '2038-09', growth: 5, account: college.id },
+        { id: fpNewId('g'), name: 'New car', cost: 35000, every: 'total', years: null, from: '2030-06', growth: null, account: '' },
+        { id: fpNewId('g'), name: 'New roof', cost: 18000, every: 'total', years: null, from: '2033-04', growth: null, account: rollover.id }
+    ];
     fpSet(toolId, p);
     fpRender(widget);
 }
@@ -4755,6 +4851,8 @@ function fpAIFacts(plan, proj) {
         out.push('Debt payments with escrow take ' + Math.round((f.payments + f.escrow) / f.income * 100) + '% of gross income.');
     }
     const ms = proj.milestones;
+    const penaltyPaid = ms.penalties.pretax + ms.penalties.roth + ms.penalties.hsa;
+    if (penaltyPaid > 0.5) out.push('Early-withdrawal penalties come to ' + fpMoney(penaltyPaid) + ' as paid.');
     if (ms.drawnEarly !== null) out.push('Savings are drawn on before retirement, from ' + fpWhen(plan, fpMonthAt(proj.start, ms.drawnEarly)) + '.');
     if (ms.cashOut !== null) out.push('Cash runs out in ' + fpWhen(plan, fpMonthAt(proj.start, ms.cashOut)) + '.');
     ms.growing.forEach(id => { const a = plan.accounts.find(x => x.id === id); if (a) out.push(fpAIName(a, 'A loan') + ': the payment does not cover the interest, so it grows.'); });

@@ -458,7 +458,7 @@ ok('born 1951: paid out from the start — at 75 this year, a twelfth of 1/24.6;
 await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'IRA', kind: 'retirement', balance: 300000, rate: 0, planType: 'ira' }],
     tax: { on: false }, assume: R0, retire: { on: true, birth: '1975-01', ageYears: 55, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
 await page.waitForTimeout(150);
-ok('pre-tax money drawn at 55: a 10% penalty may apply', /drawn in Jan 2030, at 55, before 59½: a 10% penalty may apply/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
+ok('pre-tax money drawn at 55: a 10% penalty, charged', /drawn from Jan 2030, at 55, before 59½: a 10% penalty, \$\d/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
 
 // The order money is drawn in, and changing it.
 await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'r', name: 'Roth', kind: 'retirement', balance: 10000, rate: 0, tax: 'roth' },
@@ -807,12 +807,13 @@ nd = await needOf();
 ok('Social Security later on lowers what is needed: 240 months at $3,000 less 96 at $700', Math.abs(nd.rows[0].needed - (720000 - 96 * 700)) < 400, String(nd.rows[0].needed));
 // Pre-tax savings: each $3,000 drawn has tax to pay as well. A year's $36,000 takes G
 // drawn where G less the tax on it is $36,000: G − ($1,240 + 12% of G − $28,500) = $36,000,
-// so G = $38,431.82 — ten years of it.
+// so G = $38,431.82. Stopping at 50, the 10% penalty comes off too until 59½: G = $43,359.
+// 9½ years of that and half a year of the other.
 const PRE = Object.assign({}, NEED, { accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'k', name: 'IRA', kind: 'retirement', balance: 100000, rate: 0 }],
     tax: { on: true, status: 'single', year: '', payroll: false } });
 await setPlan(PRE);
 nd = await needOf();
-ok('pre-tax savings need enough more to pay their tax: $384,318 to stop now', Math.abs(nd.rows[0].needed - 384318.18) < 250, String(nd.rows[0].needed));
+ok('pre-tax savings need enough more to pay their tax and penalty: $431,126 to stop now', Math.abs(nd.rows[0].needed - (9.5 * 33820 / 0.78 + 0.5 * 38431.82)) < 250, String(nd.rows[0].needed));
 await setPlan(Object.assign({}, PRE, { accounts: [PRE.accounts[0], Object.assign({}, PRE.accounts[1], { tax: 'roth' })] }));
 nd = await needOf();
 ok('Roth savings do not: $360,000', Math.abs(nd.rows[0].needed - 360000) < 200, String(nd.rows[0].needed));
@@ -986,11 +987,13 @@ const at54 = await page.evaluate((i) => { const p = fpGet(i); p.accounts = [{ id
     p.tax = { on: false }; p.retire = { on: true, birth: '1975-01', ageYears: 54, ageMonths: 0, until: 70, spending: 1000, buffer: 0 }; return fpProject(p, 0).milestones.penalty; }, id);
 ok('but left at 54, it is', at54 !== null);
 m = await early({ planType: 'ira', tax: 'roth' });
-ok('a Roth IRA drawn at 55: earnings may be taxed and penalised, said; not the pre-tax penalty', m.rothEarly !== null && m.penalty === null);
-await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'Roth IRA', kind: 'retirement', balance: 300000, rate: 0, planType: 'ira', tax: 'roth' }],
+ok('a Roth IRA that is all contributions, drawn at 55: nothing to penalise', m.rothEarly === null && m.penalty === null);
+m = await early({ planType: 'ira', tax: 'roth', basis: 20000 });
+ok('with earnings in it: they are penalised once contributions are out; not the pre-tax penalty', m.rothEarly !== null && m.penalty === null);
+await setPlan({ accounts: [{ id: 'c', name: 'Cash', kind: 'cash', balance: 0, rate: 0 }, { id: 'p', name: 'Roth IRA', kind: 'retirement', balance: 300000, basis: 20000, rate: 0, planType: 'ira', tax: 'roth' }],
     tax: { on: false }, assume: R0, retire: { on: true, birth: '1975-01', ageYears: 55, ageMonths: 0, until: 70, spending: 1000, buffer: 0 } });
 await page.waitForTimeout(150);
-ok('and the Retirement section says so', /Roth money is drawn in Jan 2030, at 55, before 59½: contributions come out free, but earnings may be taxed and have a 10% penalty/.test(await page.innerText('.fp-retire-out')),
+ok('and the Retirement section says so', /Roth earnings are drawn from Sep 2031, at 56, before 59½: taxed, with a 10% penalty, \$\d/.test(await page.innerText('.fp-retire-out')),
     await page.innerText('.fp-retire-out'));
 // The Roth IRA's limit by income: $160,000 single is half-way through $153,000–$168,000.
 const rothLim = (pay, status) => page.evaluate(([i, pay, st]) => { const p = fpGet(i); p.incomes = [{ id: 'j', name: 'Job', amount: pay, every: 'year', growth: 0, taxed: true }];

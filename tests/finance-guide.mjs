@@ -22,17 +22,25 @@ await page.waitForTimeout(400);
 const id = await page.evaluate(() => document.querySelector('.fp-widget').closest('.tool').dataset.tool);
 const plan = () => page.evaluate((i) => fpGet(i), id);
 let p = await plan();
-ok('?example=1: the made-up example, with a birth month, retirement and Social Security', p.accounts.length === 7 && p.retire.on && p.retire.birth === '1985-11' &&
+ok('?example=1: the made-up example, with a birth month, retirement and Social Security', p.accounts.length === 11 && p.retire.on && p.retire.birth === '1985-11' &&
     p.incomes.some(l => l.type === 'ss' && l.fraBenefit === null), JSON.stringify(p.incomes.map(l => l.name)));
 ok('so every part has something to show: ages, the Social Security estimate, when you could stop', /Could stop working in \d{4}, at \d+/.test(await page.innerText('.fp-projection')) &&
     /, at \d+/.test(await page.innerText('.fp-projection')));
+const shown = await page.evaluate((i) => { const r = fpProject(fpGet(i), 0, {}); const m = r.milestones; const k = fpGet(i).incomes[0];
+    return { goals: fpGet(i).goals.filter(g => g.type !== 'section').length, section: fpGet(i).goals.some(g => g.type === 'section'), kinds: fpGet(i).accounts.map(a => a.kind + (a.tax ? ':' + a.tax : '')),
+        match: k.matchRate, into: k.into.length, penalty: m.penalties.pretax, early: m.drawnEarly, cashOut: m.cashOut, runsOut: m.runsOut, college: Object.values(m.goals).find(g => g.count === 4) }; }, id);
+ok('the newer parts too: goals in a section, a 529, an HSA, a Roth and an IRA, pay into accounts with a match', shown.goals === 3 && shown.section && shown.match === 50 && shown.into === 2 &&
+    ['education', 'hsa', 'retirement:roth', 'retirement:pretax'].every(k => shown.kinds.includes(k)), JSON.stringify(shown));
+ok('a penalty to show, and a goal its account falls short of', shown.penalty > 0 && shown.college.fromOwn < shown.college.due);
+ok('and a plan that holds together: no early draws, no cash out, money to the end', shown.early === null && shown.cashOut === null && shown.runsOut === null, JSON.stringify(shown));
+ok('within the limits, with money left over each month', !/over the|limit exceeded/i.test(await page.innerText('[data-sec="accounts"]')) && /\$\d+ a month left over/.test(await page.innerText('[data-sec="advice"]')));
 await page.fill('.fp-accounts tr:first-child [data-f="name"]', 'Everyday');
 await page.waitForTimeout(150);
 await page.goto('http://localhost:8777/index.html#tool/finance-planning?example=1');
 await page.waitForSelector('.fp-widget .fp-accounts tbody tr', { timeout: 25000 });
 await page.waitForTimeout(400);
 p = await plan();
-ok('opened again on a plan in use: left as it is', p.accounts[0].name === 'Everyday' && p.accounts.length === 7, p.accounts[0].name);
+ok('opened again on a plan in use: left as it is', p.accounts[0].name === 'Everyday' && p.accounts.length === 11, p.accounts[0].name);
 
 // 2. The ? on the planner.
 const tool = '.tool[data-tool="' + id + '"]';

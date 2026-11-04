@@ -787,7 +787,7 @@ labels.
                 balance, rate,          // null rate: the default for its kind, below
                 monthly,                // added a month, or a loan's payment where it has no details
                 compounding,            // investments: 'monthly' (default) or 'annual'
-                basis,                  // investments: cost basis; null = all of the balance (no gains)
+                basis,                  // investments: cost basis; a Roth: contributions; null = all of the balance
                 tax, planType,          // retirement: 'pretax'|'roth' and '401k'|'457'|'ira' — chosen together in Kind as
                                         //   401(k), Roth 401(k), 457(b), Roth 457(b), Traditional IRA or Roth IRA; unset is a 401(k)
                 hsaCover, hsaMedical,   // kind 'hsa': 'self'|'family' for its limit; false: drawn for other than medical costs
@@ -819,7 +819,8 @@ labels.
   retire: { on: false, birth: 'YYYY-MM', ageYears: 65, ageMonths: 0, until: 95,
             health: false, healthBefore, healthAfter, medInfl: 5,   // health costs added to spending, when ticked
             spending: null,              // a month in today's dollars; null = today's expenses
-            buffer: 6 },                 // months of spending kept in cash
+            buffer: 6,                   // months of spending kept in cash
+            avoidPenalty: true },        // false: drawOrder as it stands, penalties and all
   drawOrder: [ { id } ],                 // accounts drawn on in retirement, in order
   advice: { starter: 1, months: 6, debtRate: 8,   // Where the next dollar goes: its thresholds,
             risk: 'middle', stocks: 8, bonds: 4,  //   the lean of the mix and the two returns,
@@ -829,8 +830,8 @@ labels.
 ```
 
 Before retirement, a month that leaves cash below nought is made up from savings in the
-draw order — taxed, and with the early penalties flagged, as in retirement (but no age-55
-exception, the job not taken to be left): `milestones.drawnEarly`. `fpPayGap` notices pay
+draw order — taxed and penalised as in retirement (but no age-55 or 457 exception, the job
+not taken to be left): `milestones.drawnEarly`. `fpPayGap` notices pay
 from work ending a year or more before the retirement date. Taxes typed on a line are paid
 as typed; the estimate for the rest is the tax on everything less the tax on those lines,
 so the rest lands in the brackets above them. With `retire.health`, retirement spending
@@ -860,8 +861,19 @@ investments, then pre-tax, then Roth, unless reordered; never property). Pre-tax
 counts as income for the federal estimate, and enough more is drawn to pay that tax.
 From 73 (75 for those born in 1960 or later) each pre-tax account pays out at least
 its balance each January over the IRS Uniform Lifetime factor, a twelfth a month, into
-cash. Pre-tax money drawn before 59½ is said, not penalised. `fpRetireMax` finds the
-most spending that still lasts, by halving.
+cash. `fpRetireMax` finds the most spending that still lasts, by halving.
+
+Early-withdrawal penalties are charged, by the rules' `withdraw` (`penaltyOf` in
+`fpProject`): `penalty`% before `early` on pre-tax money and Roth earnings — not from a
+401(k) when retirement came in or after the year of turning `sepAge`, nor a 457 once
+retired — and `hsaPenalty`% before `hsaAge` on an HSA with `hsaMedical` false. Without a
+birth month, none. A Roth's `basis` comes out first and free, and rises with what goes in;
+earnings drawn early are ordinary income too. Enough more is drawn to pay tax and penalty
+(`take`, going round until it settles). With `avoidPenalty`, each month's draw takes a
+first pass through `drawOrder` for only what comes out free, then a second for the rest.
+Each row has `withdrawPenalty`; `detail[k].penalty` is by account; `milestones.penalty`,
+`rothEarly` and `hsaPenalty` are the first month charged, and `milestones.penalties` the
+totals `{ pretax, roth, hsa }` in dollars of the time.
 
 Ages: wherever the plan shows a month or a year — Ahead's facts, subtitle, year table,
 chart and year lists, a loan's payoff, From and Until, Copy summary and what BoardAI

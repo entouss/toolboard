@@ -143,6 +143,29 @@ ok('the on-device model reads it too', /Goals \(big costs ahead/.test(ai) && /Ki
 await page.evaluate((i) => { const p = fpGet(i); p.accounts.push({ id: 'e9', name: '529', kind: 'education', balance: 1000 }); fpSet(i, p); }, id);
 const w = await page.evaluate(() => { const w = document.querySelector('.fp-widget'); w._open = new Set(['e9']); fpRender(w); return w.querySelector('tr.fp-detail[data-id="e9"]').innerText; });
 ok('a 529 account, with what it is for', /grows untaxed, and comes out untaxed for school costs/.test(w), w);
+
+// A goal's draw is taxed once, on top of the year's income; a month's draw is a rate.
+const lump = (extra, goals) => page.evaluate(([i, x, goals]) => {
+    const base = fpDefaultPlan();
+    base.assume.inflation = 0; base.assume.spread = 0;
+    base.tax = { on: true, payroll: false, status: 'single', year: '' };
+    base.retire = Object.assign(base.retire, { birth: '1960-01' });
+    const p = Object.assign(base, { incomes: [{ id: 'i1', name: 'Pay', amount: 6000, every: 'month', taxed: true }], expenses: [], goals: goals }, x);
+    const r = fpProject(p, 0, { detail: true });
+    const k = r.rows.findIndex(row => row.withdrawn > 0);
+    const info = fpTaxInfo(p);
+    return { drawn: r.rows[k].withdrawn, tax: r.rows[k].withdrawTax, penalty: r.rows[k].withdrawPenalty,
+        at: (function () { const f = (ord, gain) => fpFederalTax(info, ord, 0, gain, 1); const d = r.rows[k].withdrawn; return { ord: f(72000 + d, 0) - f(72000, 0), gain: f(72000, d / 2) - f(72000, 0) }; })() };
+}, [id, extra, goals]);
+const roof = [{ id: 'g9', name: 'Roof', cost: 20000, every: 'total', years: 1, from: '2027-04', account: 'r' }];
+let L = await lump({ accounts: [{ id: 'c', name: 'Checking', kind: 'cash', balance: 500, rate: 0 }, { id: 'r', name: 'IRA', kind: 'retirement', planType: 'ira', tax: 'pretax', balance: 200000, rate: 0 }] }, roof);
+ok('a goal from pre-tax money: taxed as one sum on top of the year’s pay', near(L.tax, L.at.ord, 1) && near(L.drawn - L.tax, 20000, 1), JSON.stringify(L));
+L = await lump({ accounts: [{ id: 'c', name: 'Checking', kind: 'cash', balance: 500, rate: 0 }, { id: 'r', name: 'Brokerage', kind: 'investment', balance: 200000, basis: 100000, rate: 0 }] }, roof);
+ok('from an investment account: its gain likewise, at the capital-gains rates', near(L.tax, L.at.gain, 1) && near(L.drawn - L.tax, 20000, 1), JSON.stringify(L));
+L = await lump({ accounts: [{ id: 'c', name: 'Checking', kind: 'cash', balance: 500, rate: 0 }, { id: 'r', name: 'IRA', kind: 'retirement', planType: 'ira', tax: 'pretax', balance: 200000, rate: 0 }] },
+    [Object.assign({}, roof[0], { cost: 80000, account: '' })]);
+ok('paid from cash and made up from savings: the same', L.drawn > 0 && near(L.tax, L.at.ord, 1), JSON.stringify(L));
+
 ok('no page errors', errors.length === 0, JSON.stringify(errors));
 
 console.log('  (all ' + count + ' assertions reached)');
