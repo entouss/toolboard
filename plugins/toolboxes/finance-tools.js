@@ -153,6 +153,9 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-table.fp-draw { width: auto; min-width: 360px; }
 .fp-draw-n { color: var(--text-muted); margin: 0 4px 0 2px; }
 .fp-retire-out { margin-top: 6px; }
+.fp-retire-age { display: contents; }
+.calc-widget.fp-widget .fp-assume select[data-k="from"] { width: auto; padding: 3px 5px; font-size: 12px; }
+.fp-retire-age[hidden] { display: none; }
 .fp-retire-max { margin-top: 4px; }
 .fp-flow { display: flex; flex-wrap: wrap; gap: 4px 14px; font-variant-numeric: tabular-nums; }
 .fp-into { margin-top: 6px; color: var(--text-secondary); }
@@ -1537,7 +1540,7 @@ function fpDefaultPlan() {
     Object.keys(FP_KINDS).forEach(k => { returns[k] = FP_KINDS[k].rate; });
     return { accounts: [], incomes: [], expenses: [], goals: [], tax: { on: true, status: 'single', year: '' }, surplusTo: '',
         assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000, returns: returns },
-        retire: { on: false, birth: '', ageYears: 65, ageMonths: 0, until: 95, spending: null, buffer: 6, avoidPenalty: true, health: false, healthBefore: null, healthAfter: null, medInfl: 5 }, drawOrder: [],
+        retire: { on: false, birth: '', from: 'age', ageYears: 65, ageMonths: 0, until: 95, spending: null, buffer: 6, avoidPenalty: true, health: false, healthBefore: null, healthAfter: null, medInfl: 5 }, drawOrder: [],
         // Where the next dollar goes: the thresholds its steps use, and how much risk.
         advice: { starter: 1, months: 6, debtRate: 8, risk: 'middle', stocks: 8, bonds: 4, lump: null } };
 }
@@ -2238,8 +2241,20 @@ function fpIsRoth(a) {
     return a.kind === 'retirement' && a.tax === 'roth';
 }
 
+/** The job that ends last, `line`, for a retirement that goes by it — or, where a job has no
+ *  end, that job as `open`. Part-time or bridge work holds nothing back; a pension or rent
+ *  is not a job. */
+function fpLastJob(plan) {
+    const jobs = fpEntries(plan.incomes).filter(l => l.type !== 'ss' && l.wages !== false && !l.bridge && fpNum(l.amount, 0) > 0);
+    const open = jobs.find(l => !l.to);
+    if (open || !jobs.length) return { line: null, open: open || null };
+    return { line: jobs.reduce((a, b) => b.to > a.to ? b : a), open: null };
+}
+
 /** When retirement starts and how long the plan runs, from the birth month — the plan's
- *  own, or the first Social Security line's — or null when it is off or cannot be told. */
+ *  own, or the first Social Security line's — or null when it is off or cannot be told.
+ *  It starts at the age given or, told to go by the job, the month after the last one ends;
+ *  a job with no end falls back on the age. */
 function fpRetireInfo(plan) {
     const r = plan.retire || {};
     if (!r.on) return null;
@@ -2248,10 +2263,12 @@ function fpRetireInfo(plan) {
     const m = /^(\d{4})-(\d{2})$/.exec(birth || '');
     if (!m) return { missing: 'birth' };
     const by = +m[1], bm = +m[2] - 1;
-    const at = Math.round(fpNum(r.ageYears, 65) * 12 + fpNum(r.ageMonths, 0));
+    const job = r.from === 'job' ? fpLastJob(plan) : null;
+    const ended = job && job.line ? job.line.to.split('-').map(Number) : null;
+    const at = ended ? ended[0] * 12 + ended[1] - (by * 12 + bm) : Math.round(fpNum(r.ageYears, 65) * 12 + fpNum(r.ageMonths, 0));
     const until = Math.max(Math.ceil(at / 12) + 1, Math.round(fpNum(r.until, 95)));
     const date = new Date(by, bm + at, 1);
-    return { birthYear: by, birthMonth: bm, birth: birth, atMonths: at, date: date, ym: fpYm(date), until: until, end: new Date(by, bm + until * 12, 1),
+    return { birthYear: by, birthMonth: bm, birth: birth, atMonths: at, job: job, date: date, ym: fpYm(date), until: until, end: new Date(by, bm + until * 12, 1),
         rmdAge: fpRmdAge(by), early: taxRulesFor('').withdraw.early, penalty: taxRulesFor('').withdraw.penalty, sepAge: taxRulesFor('').withdraw.sepAge, hsaAge: taxRulesFor('').withdraw.hsaAge, hsaPenalty: taxRulesFor('').withdraw.hsaPenalty, ageAt: (d) => (d.getFullYear() * 12 + d.getMonth()) - (by * 12 + bm) };
 }
 
@@ -2457,6 +2474,17 @@ function fpProject(plan, shift, opts) {
     // penalty from then. IRAs keep the early age.
     const leftWork = !retOk ? null : opts.stopT !== undefined && isFinite(opts.stopT) ? new Date(start.getFullYear(), start.getMonth() + opts.stopT - 1, 1) : ret.date;
     const leftAt55 = !!leftWork && leftWork.getFullYear() - ret.birthYear >= ret.sepAge;
+    // A 401(k) or 403(b) goes by the job paying into it, where the plan says when that ends:
+    // the month after the last line into it, or work stopping if that is sooner.
+    const leftJob = {};
+    plan.accounts.filter(a => a.kind === 'retirement' && a.planType !== 'ira' && a.planType !== '457').forEach(a => {
+        const lines = fpEntries(plan.incomes).filter(l => l.type !== 'ss' && fpIntoRows(l).some(r => r.account === a.id));
+        if (!lines.length || lines.some(l => !l.to)) return;
+        const [y, m] = lines.reduce((x, l) => l.to > x ? l.to : x, '').split('-').map(Number);
+        let left = new Date(y, m, 1);
+        if (opts.stopT !== undefined && isFinite(opts.stopT)) left = new Date(Math.min(left, new Date(start.getFullYear(), start.getMonth() + opts.stopT - 1, 1)));
+        leftJob[a.id] = left;
+    });
     let first = null;
     const snaps = opts.snapshots ? [] : null;
     // What made up each row: this month into row 0 as well as row 1.
@@ -2640,7 +2668,9 @@ function fpProject(plan, shift, opts) {
             if (a.kind !== 'retirement' || age >= W.early) return 0;
             // Before retirement, the job is not taken to be left: no age-55 exception.
             if (retired && a.planType === '457') return 0;
-            if (retired && a.planType !== 'ira' && leftAt55) return 0;
+            const left = leftJob[a.id];
+            if (left) { if (birthB && date >= left && left.getFullYear() - birthB.y >= W.sepAge) return 0; }
+            else if (retired && a.planType !== 'ira' && leftAt55) return 0;
             return W.penalty / 100;
         };
         // What can come out of an account this month without a penalty: all of it, a Roth's
@@ -2812,6 +2842,15 @@ function fpPayGap(plan, ret) {
         }
     }
     return null;
+}
+
+/** The gap closed: retirement from here goes by the last job. */
+function fpRetireByJob(btn) {
+    const widget = fpWidget(btn), toolId = fpToolId(btn);
+    const plan = fpGet(toolId);
+    plan.retire.from = 'job';
+    fpSet(toolId, plan);
+    fpRender(widget);
 }
 
 /**
@@ -3131,7 +3170,8 @@ function fpAdviceMix(plan, proj) {
     const a = plan.advice || {};
     const birth = fpBirthOf(plan);
     if (!birth) return null;
-    const retAge = fpNum((plan.retire || {}).ageYears, 65) + fpNum((plan.retire || {}).ageMonths, 0) / 12;
+    const ret = fpRetireInfo(plan);
+    const retAge = ret && !ret.missing ? ret.atMonths / 12 : fpNum((plan.retire || {}).ageYears, 65) + fpNum((plan.retire || {}).ageMonths, 0) / 12;
     const now = new Date();
     const age = (now.getFullYear() * 12 + now.getMonth() - (birth.y * 12 + birth.m)) / 12;
     const years = retAge - age;
@@ -3552,6 +3592,8 @@ function fpIncomeDetailsRow(plan, l) {
         '<div class="fp-detail-fields">' +
         '<label class="fp-check" title="Pay from a job has Social Security and Medicare tax taken from it; a pension, rent or interest does not"><input class="fp-in" type="checkbox" data-f="wages"' +
             (l.wages !== false ? ' checked' : '') + '> Pay from work (payroll tax)</label>' +
+        '<label class="fp-check" title="Work that carries on after retirement until its own end date, or fills the time until then. Retiring when the last job ends takes no account of it."><input class="fp-in" type="checkbox" data-f="bridge"' +
+            (l.bridge ? ' checked' : '') + '> Part-time or bridge work: doesn’t hold back retirement</label>' +
         '</div><div class="fp-detail-sum"></div></td></tr>';
 }
 
@@ -3625,8 +3667,10 @@ function fpRetireFields(plan, attr, under) {
     return head +
         '<div class="fp-assume">' +
             '<label>Born <input class="fp-in fp-date" type="month" data-a="retire" data-k="birth" value="' + attr(r.birth) + '"' + (ss ? ' title="Empty: ' + ss.birth + ', from Social Security"' : '') + '></label>' +
-            '<label>Retire at age <input class="fp-in fp-num fp-small" type="number" min="40" max="80" data-a="retire" data-k="ageYears" value="' + attr(r.ageYears) + '" placeholder="65"></label>' +
-            '<label>and <input class="fp-in fp-num fp-small" type="number" min="0" max="11" data-a="retire" data-k="ageMonths" value="' + attr(r.ageMonths) + '" placeholder="0"> months</label>' +
+            '<label title="At an age you give, or the month after the last pay from work ends. A job with no end date falls back on the age.">Retire <select class="fp-in" data-a="retire" data-k="from">' +
+                '<option value="age"' + (r.from !== 'job' ? ' selected' : '') + '>at age</option><option value="job"' + (r.from === 'job' ? ' selected' : '') + '>when the last job ends</option></select></label>' +
+            '<span class="fp-retire-age"><label><input class="fp-in fp-num fp-small" type="number" min="40" max="80" data-a="retire" data-k="ageYears" aria-label="Retirement age" value="' + attr(r.ageYears) + '" placeholder="65"></label>' +
+            '<label>and <input class="fp-in fp-num fp-small" type="number" min="0" max="11" data-a="retire" data-k="ageMonths" value="' + attr(r.ageMonths) + '" placeholder="0"> months</label></span>' +
             '<label>Last to age <input class="fp-in fp-num fp-small" type="number" min="60" max="115" data-a="retire" data-k="until" value="' + attr(r.until) + '" placeholder="95"></label>' +
         '</div><div class="fp-assume">' +
             '<label title="In today’s dollars; it rises with inflation. Empty: today’s expenses.">Spending in retirement <input class="fp-in fp-num" type="number" data-a="retire" data-k="spending" value="' + attr(r.spending) + '" placeholder="' + Math.round(fpRetireSpending(Object.assign({}, plan, { retire: Object.assign({}, r, { spending: null }) }))) + '"> / month</label>' +
@@ -3658,7 +3702,7 @@ function fpRetireLines(plan, proj) {
     const ret = proj.retire;
     if (!ret) return [];
     const ms = proj.milestones, mon = (d) => d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-    const lines = ['Retire ' + mon(ret.date) + ' at ' + fpAgeText(ret.atMonths) + ', spending ' + fpMoney(fpRetireSpending(plan)) + ' a month in today’s dollars, keeping ' +
+    const lines = ['Retire ' + mon(ret.date) + ' at ' + fpAgeText(ret.atMonths) + (ret.job && ret.job.line ? ', when ' + (ret.job.line.name || 'the last job') + ' ends' : '') + ', spending ' + fpMoney(fpRetireSpending(plan)) + ' a month in today’s dollars, keeping ' +
         fpNum(plan.retire.buffer, 6) + ' months of it in cash.'];
     if (ms.runsOut === null) lines.push('The money lasts to ' + ret.until + '.');
     else { const d = new Date(proj.start.getFullYear(), proj.start.getMonth() + ms.runsOut - 1, 1); lines.push('The money runs out at ' + Math.floor(ret.ageAt(d) / 12) + ', in ' + mon(d) + '.'); }
@@ -3685,7 +3729,11 @@ function fpRenderRetire(widget, plan, proj, low, high) {
     if (ret.missing) { out.innerHTML = '<span class="fp-note">A birth month — here, or on a Social Security line — is all it needs to know when.</span>'; return; }
     const ms = proj.milestones;
     const mon = (d) => d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-    const bits = ['Retire <b>' + mon(ret.date) + '</b> at <b>' + fpAgeText(ret.atMonths) + '</b>'];
+    const byJob = ret.job && ret.job.line;
+    const ageBox = widget.querySelector('.fp-retire-age');
+    if (ageBox) ageBox.hidden = !!byJob;
+    const bits = ['Retire <b>' + mon(ret.date) + '</b> at <b>' + fpAgeText(ret.atMonths) + '</b>' + (byJob ? ', when ' + escapeHtml(byJob.name || 'the last job') + ' ends' : '')];
+    if (ret.job && !byJob) bits.push('<span class="fp-muted">' + (ret.job.open ? escapeHtml(ret.job.open.name || 'A job') + ' has no end date' : 'No job in Income') + ', so the age above is used</span>');
     if (ms.runsOut === null) bits.push('<span class="fp-pos">The money lasts to <b>' + ret.until + '</b></span>');
     else {
         const d = new Date(proj.start.getFullYear(), proj.start.getMonth() + ms.runsOut - 1, 1);
@@ -3697,7 +3745,8 @@ function fpRenderRetire(widget, plan, proj, low, high) {
         bits.push('<span class="fp-muted">at returns ±' + fpNum(plan.assume.spread, 0) + '%: ' + said(lo) + ' / ' + said(hi) + '</span>');
     }
     const gap = fpPayGap(plan, ret);
-    if (gap) bits.push('<span class="fp-neg">Pay stops in <b>' + fpWhen(plan, gap) + '</b>, but retirement is set for ' + fpWhen(plan, ret.date) + ': savings are drawn on in between.</span>');
+    if (gap) bits.push('<span class="fp-neg">Pay stops in <b>' + fpWhen(plan, gap) + '</b>, but retirement is set for ' + fpWhen(plan, ret.date) + ': savings are drawn on in between.</span>' +
+        (plan.retire.from !== 'job' && fpLastJob(plan).line ? ' <button type="button" class="fp-btn" onclick="fpRetireByJob(this)">Retire when the last job ends</button>' : ''));
     if (ms.medicare !== null) {
         const h = fpHealthOf(plan);
         bits.push('Medicare from <b>' + fpWhen(plan, fpMonthAt(proj.start, ms.medicare)) + '</b>: Part B ' + fpMoney(h.partB * h.persons) + ' a month' + (h.persons > 1 ? ' for two' : '') + ' in today’s money' +
@@ -4577,7 +4626,7 @@ function fpOnInput(el) {
         else if (a === 'surplusTo') plan.surplusTo = val;
         else if (a === 'real') plan.assume.real = val;
         else if (a === 'retireOn') plan.retire.on = val;
-        else if (a === 'retire') plan.retire[el.dataset.k] = ['birth', 'health', 'avoidPenalty'].includes(el.dataset.k) ? val : num(val);
+        else if (a === 'retire') plan.retire[el.dataset.k] = ['birth', 'from', 'health', 'avoidPenalty'].includes(el.dataset.k) ? val : num(val);
         else if (a === 'advice') plan.advice[el.dataset.k] = el.dataset.k === 'risk' ? val : num(val);
         else plan.assume[a] = num(val);
     } else {
@@ -4609,7 +4658,7 @@ function fpOnInput(el) {
     if (el.dataset.f === 'into.account') { fpRender(widget); return; }
     // A new kind changes what the row offers (its link, its placeholder): drawn again.
     // So does the tax year (the rules named), and federal tax on or off (payroll tax follows it).
-    if (el.dataset.f === 'kind' || el.dataset.f === 'tax' || el.dataset.f === 'planType' || el.dataset.f === 'hsaCover' || ['retireOn', 'taxYear', 'taxOn'].includes(el.dataset.a)) { fpRender(widget); return; }
+    if (el.dataset.f === 'kind' || el.dataset.f === 'tax' || el.dataset.f === 'planType' || el.dataset.f === 'hsaCover' || el.dataset.k === 'from' || ['retireOn', 'taxYear', 'taxOn'].includes(el.dataset.a)) { fpRender(widget); return; }
     // Read back, so a Social Security estimate follows the pay or the birth month typed.
     fpRenderDerived(widget, fpGet(toolId));
 }
@@ -4752,7 +4801,7 @@ function fpApplyHashParams(toolId, params) {
     if (plan.accounts.length || plan.incomes.length || plan.expenses.length) return;
     fpSample(widget);
     const p = fpGet(toolId);
-    p.retire = Object.assign({}, p.retire, { on: true, birth: '1985-11', ageYears: 65, ageMonths: 0, until: 95, health: true, healthAfter: 250 });
+    p.retire = Object.assign({}, p.retire, { on: true, from: 'job', birth: '1985-11', ageYears: 65, ageMonths: 0, until: 95, health: true, healthAfter: 250 });
     p.incomes.push({ id: fpNewId('ss'), type: 'ss', name: 'Social Security', birth: '1985-11', fraBenefit: null, claimYears: 67, claimMonths: 0, every: 'month', growth: null, to: '', taxed: true });
     const account = (name) => p.accounts.find(a => a.name === name);
     const roth = { id: fpNewId('a'), name: 'Roth IRA', kind: 'retirement', planType: 'ira', tax: 'roth', balance: 30000, basis: 18000, rate: null, monthly: 300 };
@@ -4764,7 +4813,7 @@ function fpApplyHashParams(toolId, params) {
     account('401(k)').monthly = null;
     const into = (k401) => [{ id: fpNewId('r'), account: account('401(k)').id, amount: k401, match: null }, { id: fpNewId('r'), account: hsa.id, amount: 3000, match: null }];
     Object.assign(p.incomes[0], { amount: 130000, deductions: 10800, matchRate: 50, matchCap: 6, to: '2032-05', into: into(7800) });
-    p.incomes.splice(1, 0, { id: fpNewId('i'), name: 'New job', amount: 145000, every: 'year', growth: 3, from: '2032-06', to: '', taxed: true, deductions: 11700, matchRate: 50, matchCap: 6, into: into(8700) });
+    p.incomes.splice(1, 0, { id: fpNewId('i'), name: 'New job', amount: 145000, every: 'year', growth: 3, from: '2032-06', to: '2050-10', taxed: true, deductions: 11700, matchRate: 50, matchCap: 6, into: into(8700) });
     p.expenses.push({ id: fpNewId('e'), name: 'Childcare', amount: 900, every: 'month', growth: null, from: '', to: '2031-08' });
     p.goals = [
         { id: fpNewId('s'), type: 'section', name: 'Big costs', folded: false },
@@ -5148,7 +5197,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,

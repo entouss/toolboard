@@ -800,7 +800,8 @@ labels.
                 into: [ { id, account, amount, match } ],   // parts of the deductions saved into accounts, each with
                                                             //   the employer's match into it; a plan kept with one
                                                             //   intoAccount / intoAmount / match is read as one row
-                wages } ],                            // false: not pay from work, so no payroll tax
+                wages,                                // false: not pay from work, so no payroll tax
+                bridge } ],                           // true: part-time or bridge work, not the job retirement goes by
             // a Social Security line instead: { id, type: 'ss', name, birth: 'YYYY-MM', fraBenefit,
             //   claimYears, claimMonths, growth /* cost of living */, to, taxed, deductions, taxes,
             //   payFrom: [incomeId], workFrom, pastPay }   // for the estimate when fraBenefit is null
@@ -817,6 +818,7 @@ labels.
   assume: { years: 30, inflation: 2.5, real: true, spread: 2, target: 1000000,
             returns: { cash: 2, investment: 7, … } },
   retire: { on: false, birth: 'YYYY-MM', ageYears: 65, ageMonths: 0, until: 95,
+            from: 'age',                 // 'job': the month after the last job's `to`; a job with no `to` falls back on the age
             health: false, healthBefore, healthAfter, medInfl: 5,   // health costs added to spending, when ticked
             spending: null,              // a month in today's dollars; null = today's expenses
             buffer: 6,                   // months of spending kept in cash

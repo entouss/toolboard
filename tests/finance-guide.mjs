@@ -31,6 +31,7 @@ const shown = await page.evaluate((i) => { const r = fpProject(fpGet(i), 0, {});
         match: k.matchRate, into: k.into.length, penalty: m.penalties.pretax, early: m.drawnEarly, cashOut: m.cashOut, runsOut: m.runsOut, college: Object.values(m.goals).find(g => g.count === 4) }; }, id);
 ok('the newer parts too: goals in a section, a 529, an HSA, a Roth and an IRA, pay into accounts with a match', shown.goals === 3 && shown.section && shown.match === 50 && shown.into === 2 &&
     ['education', 'hsa', 'retirement:roth', 'retirement:pretax'].every(k => shown.kinds.includes(k)), JSON.stringify(shown));
+ok('it retires when the last job ends, in the month its age would have given', await page.evaluate((i) => { const p = fpGet(i); const r = fpRetireInfo(p); return p.retire.from === 'job' && r.ym === '2050-11' && r.atMonths === 780; }, id));
 ok('a penalty to show, and a goal its account falls short of', shown.penalty > 0 && shown.college.fromOwn < shown.college.due);
 ok('and a plan that holds together: no early draws, no cash out, money to the end', shown.early === null && shown.cashOut === null && shown.runsOut === null, JSON.stringify(shown));
 ok('within the limits, with money left over each month', !/over the|limit exceeded/i.test(await page.innerText('[data-sec="accounts"]')) && /\$\d+ a month left over/.test(await page.innerText('[data-sec="advice"]')));
