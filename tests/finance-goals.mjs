@@ -42,7 +42,7 @@ ok('what came of it: due, nothing drawn from savings', near(r.ms.goals.g1.due, 2
 let out = await page.innerText('.fp-goals-out');
 ok('the readout: when, the cost, and cash covers it', /New car, Nov 2027: \$20,000 in today’s dollars, \$20,000 then\. Paid from cash, which covers it\./.test(out), out);
 ok('Ahead names it', /New car Nov 2027: \$20,000/.test(await page.innerText('.fp-facts')));
-ok('the chart marks it', await page.locator('.fp-chart .fp-goal-mark').count() === 1 && /New car, Nov 2027: \$20,000/.test(await page.locator('.fp-chart .fp-goal-mark title').textContent()));
+ok('the chart marks it', await page.locator('.fp-chart .fp-mark-goal').count() === 1 && /New car, Nov 2027: \$20,000/.test(await page.locator('.fp-chart .fp-mark-goal title').textContent()));
 
 // 2. College over four years from a 529, its cost rising 5% a year.
 const T0 = 23; // September 2028, from November 2026

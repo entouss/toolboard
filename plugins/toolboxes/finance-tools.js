@@ -220,8 +220,19 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-legend .fp-key-needed { height: 0; border-top: 2px dashed var(--text-secondary); background: none; }
 .fp-legend .fp-key-have { background: #CC79A7; height: 2px; }
 .fp-stale { opacity: 0.5; }
-.fp-chart .fp-goal-mark { fill: #B8860B; stroke: var(--bg-tertiary); stroke-width: 2; }
-.fp-legend .fp-key-goal { background: #B8860B; width: 8px; height: 8px; transform: rotate(45deg); }
+.fp-chart .fp-mark { cursor: pointer; }
+.fp-chart .fp-mark:focus { outline: none; }
+.fp-chart .fp-mark:focus .fp-mark-hit, .fp-chart .fp-mark:hover .fp-mark-hit { fill: var(--border-color); }
+.fp-mark-hit { fill: transparent; }
+.fp-mark-goal { fill: #B8860B; }
+.fp-mark-retire { fill: #0072B2; }
+.fp-mark-job, .fp-mark-paynew, .fp-mark-payend { fill: #7B4FA3; }
+.fp-mark-ss, .fp-mark-debt { fill: #009E73; }
+.fp-mark-medicare { fill: #0E8F8F; }
+.fp-mark-target { fill: #E69F00; }
+.fp-mark-rmd { fill: var(--text-secondary); }
+.fp-mark-penalty, .fp-mark-out { fill: #c0392b; }
+.fp-key-mark { width: 12px; height: 12px; margin-right: 4px; vertical-align: -2px; fill-rule: evenodd; }
 .fp-goals-out { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px; }
 .fp-goals-out b { color: var(--text-primary); }
 .fp-goal-working { opacity: 0.85; }
@@ -1918,7 +1929,9 @@ function fpSSEstimate(plan, line, stopDate) {
     if (!pay.length && pastTyped === null) return null;
     const infl = fpNum((plan.assume || {}).inflation, 0) / 100;
     const now = new Date(), y0 = now.getFullYear(), m0 = now.getMonth();
-    const payNow = pay.reduce((s, l) => s + fpMonthly(l), 0) * 12;
+    // Pay today, for the years behind: a job yet to start was not paid then.
+    const running = pay.filter(l => fpActive(l, fpYm(now)));
+    const payNow = (running.length ? running : pay).reduce((s, l) => s + fpMonthly(l), 0) * 12;
     const past = pastTyped === null ? payNow : pastTyped;
     const from = Math.round(fpNum(line.workFrom, 22));
     const r = plan.retire && plan.retire.on && fpBirthOf(plan) ? fpRetireInfo(Object.assign({}, plan, { incomes: incomes, accounts: fpEntries(plan.accounts || []), expenses: [] })) : null;
@@ -3912,7 +3925,7 @@ function fpRenderDerived(widget, plan) {
         (plan.assume.real ? ', in today’s money' : '') + '</div>' +
         (facts.length ? '<div class="fp-facts">' + facts.map(f => '<span class="fp-fact">' + f + '</span>').join('') + '</div>' : '') +
         range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, stale: !!stale } : null,
-        fpEntries(plan.goals).filter(g => ms.goals[g.id]).map(g => ({ t: ms.goals[g.id].first, name: g.name || 'A goal', due: ms.goals[g.id].due, when: fpWhen(plan, fpMonthAt(proj.start, ms.goals[g.id].first)) })), pick) +
+        fpChartMarks(plan, proj), pick) +
         (pickI >= 0 ? fpYearDetailHtml(plan, proj, pickI, low, high, needAt[pick] || null) : '<div class="fp-yd-hint">Click a year on the chart, or in the table, for what made it up.</div>') +
         '<div class="fp-years-head">In ' + last.year + (last.age != null ? ', at ' + last.age : '') + ': net worth <b>' + fpMoney(last.net) + '</b>' + (low ? ' (' + fpMoney(low.rows[low.rows.length - 1].net) + ' to ' + fpMoney(high.rows[high.rows.length - 1].net) + ' at returns ±' + spread + '%)' : '') + '</div>' +
         table;
@@ -4009,6 +4022,7 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow) {
         const t = (s.start.getFullYear() - proj.start.getFullYear()) * 12 + s.start.getMonth() - proj.start.getMonth() + 1;
         if (inWin(t)) ev.push(esc(l.name || 'Social Security') + ' starts, at ' + fpAgeText(s.claim) + '.');
     });
+    fpPayChanges(plan, proj).filter(c => inWin(c.t)).forEach(c => ev.push(esc(c.text) + ', ' + fpWhen(plan, fpMonthAt(proj.start, c.t)) + '.'));
     if (inWin(ms.medicare)) ev.push('Medicare starts: Part B instead of health cover bought on its own.');
     if (inWin(ms.irmaa)) ev.push(neg('The Medicare surcharge first applies, from income two years before.'));
     if (inWin(ms.rmd)) ev.push('Required minimum withdrawals begin, from age ' + (proj.retire ? proj.retire.rmdAge : '') + '.');
@@ -4115,11 +4129,24 @@ function fpYearClose(btn) {
 }
 
 /** Net worth, assets and liabilities over the years, with the range as a band. */
-function fpChart(proj, low, high, need, goals, pick) {
+function fpChart(proj, low, high, need, marks, pick) {
     const rows = proj.rows;
     if (rows.length < 2) return '';
     const ages = rows.some(r => r.age !== null && r.age !== undefined);
-    const W = 640, H = ages ? 210 : 200, L = 52, R = 96, T = 10, B = ages ? 32 : 22;
+    // What happens when, in a strip of its own above the years: where it falls between the
+    // years either side, and a row further down where it would sit on the one before.
+    const W = 640, L = 52, R = 96, T = 10;
+    const t0 = rows[0].t, t1 = rows[rows.length - 1].t;
+    const lastX = [];
+    const shown = (marks || []).filter(m => m.t - 1 >= t0 && m.t - 1 <= t1).sort((a, b) => a.t - b.t).map(m => {
+        const mx = L + ((m.t - 1 - t0) / Math.max(1, t1 - t0)) * (W - L - R);
+        let row = lastX.findIndex(v => mx - v >= FP_MARK_GAP);
+        if (row < 0) row = lastX.length;
+        lastX[row] = mx;
+        return Object.assign({}, m, { x: mx, row: row });
+    });
+    const strip = lastX.length ? lastX.length * FP_MARK_ROW + 4 : 0;
+    const H = (ages ? 210 : 200) + strip, B = (ages ? 32 : 22) + strip;
     const vals = [];
     rows.forEach((r, i) => { vals.push(r.assets, -r.liabilities, r.net); if (low) vals.push(low.rows[i].net, high.rows[i].net); });
     // What would be needed to stop working, and the savings it is set against: savings
@@ -4193,12 +4220,13 @@ function fpChart(proj, low, high, need, goals, pick) {
             ', assets ' + fpMoney(r.assets) + ', liabilities ' + fpMoney(r.liabilities) +
             (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') : '') + '. Click for what made it up.</title></rect>';
     }).join('');
-    // Each goal, a mark on $0 where its first payment falls, between the years either side.
-    const t0 = rows[0].t, t1 = rows[rows.length - 1].t;
-    const shownGoals = (goals || []).filter(g => g.t - 1 >= t0 && g.t - 1 <= t1);
-    const goalSvg = shownGoals.map(g => {
-        const gx = L + ((g.t - 1 - t0) / Math.max(1, t1 - t0)) * (W - L - R), gy = y(0);
-        return '<path class="fp-goal-mark" d="M' + gx.toFixed(1) + ' ' + (gy - 7).toFixed(1) + ' l5 7 l-5 7 l-5 -7 Z"><title>' + escapeHtml(g.name) + ', ' + g.when + ': ' + fpMoney(g.due) + '</title></path>';
+    // A mark opens the year it falls in, as that year's strip does.
+    const markSvg = shown.map(m => {
+        const year = rows.find(r => r.t >= m.t) || rows[rows.length - 1];
+        const my = H - (ages ? 32 : 22) - strip + 4 + (m.row + 0.5) * FP_MARK_ROW;
+        return '<g class="fp-mark fp-mark-' + m.kind + '" data-t="' + year.t + '" tabindex="0" role="button" aria-label="' + escapeHtml(m.text) + '" onclick="fpPickYear(this)" onkeydown="fpYearKey(event, this)"' +
+            ' transform="translate(' + m.x.toFixed(1) + ' ' + my.toFixed(1) + ')"><title>' + escapeHtml(m.text) + '</title><rect class="fp-mark-hit" x="-7" y="-7" width="14" height="14" rx="3"/>' +
+            '<path fill-rule="evenodd" d="' + FP_MARKS[m.kind].d + '"/></g>';
     }).join('');
     return '<svg class="fp-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Net worth, assets and liabilities, ' + (rows[0].t === 0 ? 'now' : rows[0].year) + ' to ' + rows[rows.length - 1].year + '">' +
         grid + ticks + band +
@@ -4206,12 +4234,83 @@ function fpChart(proj, low, high, need, goals, pick) {
         '<path class="fp-line fp-liab" d="' + line(r => -r.liabilities) + '"/>' +
         '<path class="fp-line fp-net" d="' + line(r => r.net) + '"/>' +
         needSvg + labels +
-        hits + goalSvg + '</svg>' +
+        hits + markSvg + '</svg>' +
         '<div class="fp-legend"><span><i class="fp-key-net"></i>Net worth</span><span><i class="fp-key-assets"></i>Assets</span><span><i class="fp-key-liab"></i>Liabilities (below zero)</span>' +
         (low ? '<span><i class="fp-key-band"></i>Range of net worth</span>' : '') +
         (showHave ? '<span><i class="fp-key-have"></i>Savings to draw on (not property)</span>' : '') +
         (need ? '<span><i class="fp-key-needed"></i>Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '') + '</span>' : '') +
-        (shownGoals.length ? '<span><i class="fp-key-goal"></i>A goal’s first payment</span>' : '') + '</div>';
+        Object.keys(FP_MARKS).filter(k => shown.some(m => m.kind === k)).map(k => '<span><svg class="fp-key-mark fp-mark-' + k + '" viewBox="-7 -7 14 14" aria-hidden="true"><path d="' + FP_MARKS[k].d + '"/></svg>' + FP_MARKS[k].label + '</span>').join('') + '</div>';
+}
+
+// ---- What happens when, on the chart ----------------------------------------------------------
+
+// Each a shape of its own, not only a colour, drawn about the middle of a 14-square box.
+const FP_MARKS = {
+    retire: { label: 'Retirement', d: 'M-3 6V-6H5L2.5-3 5 0H-1.5V6Z' },
+    job: { label: 'Job change', d: 'M-6-2H6V5H-6ZM-2.5-2V-4.5H2.5V-2H1V-3H-1V-2Z' },
+    paynew: { label: 'New pay', d: 'M0-5.5 6 4.5H-6Z' },
+    payend: { label: 'Pay ends', d: 'M0 5.5-6-4.5H6Z' },
+    ss: { label: 'Social Security starts', d: 'M0-5.5a5.5 5.5 0 1 0 .01 0Z' },
+    medicare: { label: 'Medicare starts', d: 'M-2-6H2V-2H6V2H2V6H-2V2H-6V-2H-2Z' },
+    debt: { label: 'Debt-free', d: 'M-6 0-3.5-2.5-1.5-.5 3.5-5.5 6-3-1.5 4.5Z' },
+    target: { label: 'Net-worth goal reached', d: 'M0-6 1.8-1.9H6L2.6.8 3.8 5.2 0 2.6-3.8 5.2-2.6.8-6-1.9H-1.8Z' },
+    rmd: { label: 'Minimum withdrawals start', d: 'M-2-6H2V0H5L0 6-5 0H-2Z' },
+    penalty: { label: 'First early-withdrawal penalty', d: 'M0-6 6.5 5.5H-6.5ZM-.8-2V2H.8V-2ZM-.8 3V4.4H.8V3Z' },
+    out: { label: 'Cash or savings run out', d: 'M-5-3-3-5 0-2 3-5 5-3 2 0 5 3 3 5 0 2-3 5-5 3-2 0Z' },
+    goal: { label: 'A goal’s first payment', d: 'M0-6 5 0 0 6-5 0Z' }
+};
+const FP_MARK_GAP = 13, FP_MARK_ROW = 14;
+
+/** The month of a projection a date in `YYYY-MM` falls in (1 is the first). */
+function fpMonthOf(proj, ym) {
+    const [y, m] = ym.split('-').map(Number);
+    return (y - proj.start.getFullYear()) * 12 + m - 1 - proj.start.getMonth() + 1;
+}
+
+/**
+ * Pay starting and stopping, from the dates on pay lines — a pension or rent is not pay, and
+ * the planner knows nothing of jobs as such. One line ending and another starting within
+ * three months of it is a job change; either alone is new pay, or pay ending. Pay that
+ * runs out as retirement comes is the retirement.
+ */
+function fpPayChanges(plan, proj) {
+    const pay = fpEntries(plan.incomes).filter(l => l.type !== 'ss' && l.wages !== false && fpNum(l.amount, 0) > 0);
+    const name = (l) => l.name || 'Pay';
+    const starts = pay.filter(l => l.from && fpMonthOf(proj, l.from) > 1).map(l => ({ l: l, t: fpMonthOf(proj, l.from) }));
+    const out = [];
+    pay.filter(l => l.to && fpMonthOf(proj, l.to) >= 1).forEach(l => {
+        const t = fpMonthOf(proj, l.to) + 1;
+        const next = starts.find(s => s.l !== l && !s.used && Math.abs(s.t - t) <= 3);
+        if (next) { next.used = true; out.push({ kind: 'job', t: next.t, text: 'Job change: ' + name(l) + ' to ' + name(next.l) }); return; }
+        if (proj.milestones.retire === null || Math.abs(proj.milestones.retire - t) > 3) out.push({ kind: 'payend', t: t, text: name(l) + ' ends' });
+    });
+    starts.filter(s => !s.used).forEach(s => out.push({ kind: 'paynew', t: s.t, text: name(s.l) + ' starts' }));
+    return out;
+}
+
+/** What the chart marks, each `{ kind, t, text }`: `t` the month, and nothing already past. */
+function fpChartMarks(plan, proj) {
+    const ms = proj.milestones, out = [];
+    const add = (kind, t, text, after) => { if (t !== null && t > 0) out.push({ kind: kind, t: t, text: text + ', ' + fpWhen(plan, fpMonthAt(proj.start, t)) + (after || '') }); };
+    if (proj.retire) add('retire', ms.retire, 'Retirement');
+    fpPayChanges(plan, proj).forEach(c => add(c.kind, c.t, c.text));
+    fpEntries(plan.incomes).filter(l => l.type === 'ss').forEach(l => {
+        const s = fpSSInfo(l);
+        if (s) add('ss', fpMonthOf(proj, s.startYm), (l.name || 'Social Security') + ' starts');
+    });
+    add('medicare', ms.medicare, 'Medicare starts');
+    add('debt', ms.debtFree, 'Debt-free');
+    if (fpNum(plan.assume.target, 0) > 0) add('target', ms.target, fpMoney(plan.assume.target) + ' net worth');
+    add('rmd', ms.rmd, 'Required minimum withdrawals start');
+    const penalties = [ms.penalty, ms.rothEarly, ms.hsaPenalty].filter(t => t !== null);
+    if (penalties.length) add('penalty', Math.min(...penalties), 'First early-withdrawal penalty');
+    add('out', ms.cashOut, 'Cash runs out');
+    if (ms.runsOut !== ms.cashOut) add('out', ms.runsOut, 'Savings run out');
+    fpEntries(plan.goals).forEach(g => {
+        const o = ms.goals[g.id];
+        if (o) add('goal', o.first, g.name || 'A goal', ': ' + fpMoney(o.due));
+    });
+    return out;
 }
 
 /** The years Tax Brackets has, with this year's (or the latest) as the default — the
@@ -4640,8 +4739,8 @@ function fpSample(btn) {
 /**
  * A link may open the planner on the made-up example — `#tool/finance-planning?example=1`,
  * as the guide's “Try it” does — with more added to it: a birth month, retirement and Social
- * Security, pay going into accounts with a match, a Roth, an IRA, an HSA and a 529, and big
- * costs ahead, one of them paid early enough to be penalised. So every part of the planner has
+ * Security, pay going into accounts with a match, a change of job, a Roth, an IRA, an HSA and a
+ * 529, and big costs ahead, one of them paid early enough to be penalised. So every part of it has
  * something to show. Only a planner with nothing in it yet is filled: a link never overwrites
  * someone's plan.
  */
@@ -4663,10 +4762,9 @@ function fpApplyHashParams(toolId, params) {
     p.accounts.splice(p.accounts.indexOf(account('401(k)')) + 1, 0, roth, rollover, hsa, college);
     account('Brokerage').basis = 30000;
     account('401(k)').monthly = null;
-    Object.assign(p.incomes[0], { amount: 130000, deductions: 10800, matchRate: 50, matchCap: 6, into: [
-        { id: fpNewId('r'), account: account('401(k)').id, amount: 7800, match: null },
-        { id: fpNewId('r'), account: hsa.id, amount: 3000, match: null }
-    ] });
+    const into = (k401) => [{ id: fpNewId('r'), account: account('401(k)').id, amount: k401, match: null }, { id: fpNewId('r'), account: hsa.id, amount: 3000, match: null }];
+    Object.assign(p.incomes[0], { amount: 130000, deductions: 10800, matchRate: 50, matchCap: 6, to: '2032-05', into: into(7800) });
+    p.incomes.splice(1, 0, { id: fpNewId('i'), name: 'New job', amount: 145000, every: 'year', growth: 3, from: '2032-06', to: '', taxed: true, deductions: 11700, matchRate: 50, matchCap: 6, into: into(8700) });
     p.expenses.push({ id: fpNewId('e'), name: 'Childcare', amount: 900, every: 'month', growth: null, from: '', to: '2031-08' });
     p.goals = [
         { id: fpNewId('s'), type: 'section', name: 'Big costs', folded: false },

@@ -33,7 +33,7 @@ The router splits the query off, decodes it, and hands it to the tool named by t
 PluginRegistry.registerTool({ id: 'curriculum-explorer', hashParams: 'currApplyHashParams', … });
 ```
 
-Finance Planning takes `?example=1` (`fpApplyHashParams`): an empty planner is filled with the made-up example its guide shows — the “Fill in a made-up example” button's plan, with retirement, Social Security, pay into accounts with a match, a Roth, an IRA, an HSA, a 529 and goals added; one already in use is left alone.
+Finance Planning takes `?example=1` (`fpApplyHashParams`): an empty planner is filled with the made-up example its guide shows — the “Fill in a made-up example” button's plan, with retirement, Social Security, pay into accounts with a match, a job change, a Roth, an IRA, an HSA, a 529 and goals added; one already in use is left alone.
 
 `applyToolHashParams` calls `window[hashParams](instanceId, params)` once the tool exists — for a tool the link created, after `onReady`; for one already on the board, right after it is maximized. So the same link works whether or not the visitor has the tool already.
 
