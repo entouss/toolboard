@@ -119,6 +119,9 @@
 .fp-grip { flex: 0 0 16px; width: 16px; border: none; background: none; padding: 0; cursor: grab; color: var(--text-muted); font-size: 11px; }
 .fp-grip:focus-visible { outline: 2px solid #3498db; border-radius: 2px; }
 tr.fp-movable.fp-dragging { opacity: 0.4; }
+.calc-widget.fp-widget input.fp-on { flex: 0 0 13px; width: 13px; height: 13px; margin: 0 3px 0 1px; padding: 0; cursor: pointer; }
+tr.fp-line-off td { opacity: 0.55; }
+tr.fp-line-off input[data-f="name"] { text-decoration: line-through; }
 tr.fp-under-folded { display: none; }
 tr.fp-sec-row td { padding-top: 8px; border-bottom: 1px solid var(--border-color); }
 .fp-sec-head { display: flex; align-items: center; gap: 4px; }
@@ -1570,8 +1573,8 @@ function fpGet(toolId) {
     if (saved.advice) plan.advice = Object.assign(plan.advice, saved.advice);
     if (Array.isArray(saved.drawOrder)) plan.drawOrder = saved.drawOrder.filter(x => x && typeof x.id === 'string').map(x => ({ id: x.id }));
     // Every account that can be drawn from, in the order given and then the usual one —
-    // so moving one is moving it in the whole list.
-    plan.drawOrder = fpDrawOrder(plan).map(a => ({ id: a.id }));
+    // so moving one is moving it in the whole list. One turned off keeps its place.
+    plan.drawOrder = fpDrawOrder(plan, true).map(a => ({ id: a.id }));
     if (saved.assume) {
         const r = Object.assign({}, plan.assume.returns, saved.assume.returns || {});
         plan.assume = Object.assign(plan.assume, saved.assume, { returns: r });
@@ -1716,8 +1719,13 @@ function fpBirthYear(plan) {
 
 /** The household's birth month, { y, m } (m from 0) — Retirement's, or the first Social
  *  Security line's — or null. Every age the plan shows is counted from it. */
+function fpBirthLine(plan) {
+    const has = (l) => l.type === 'ss' && l.birth;
+    return fpEntries((plan && plan.incomes) || []).find(has) || fpAllEntries((plan && plan.incomes) || []).find(has);
+}
+
 function fpBirthOf(plan) {
-    const ss = fpEntries((plan && plan.incomes) || []).find(l => l.type === 'ss' && l.birth);
+    const ss = fpBirthLine(plan);
     const m = /^(\d{4})-(\d{2})$/.exec(((plan && plan.retire) || {}).birth || (ss ? ss.birth : '') || '');
     return m ? { y: +m[1], m: +m[2] - 1 } : null;
 }
@@ -1937,7 +1945,7 @@ function fpSSEstimate(plan, line, stopDate) {
     const payNow = (running.length ? running : pay).reduce((s, l) => s + fpMonthly(l), 0) * 12;
     const past = pastTyped === null ? payNow : pastTyped;
     const from = Math.round(fpNum(line.workFrom, 22));
-    const r = plan.retire && plan.retire.on && fpBirthOf(plan) ? fpRetireInfo(Object.assign({}, plan, { incomes: incomes, accounts: fpEntries(plan.accounts || []), expenses: [] })) : null;
+    const r = plan.retire && plan.retire.on && fpBirthOf(plan) ? fpRetireInfo(Object.assign({}, plan, { incomes: fpAllEntries(plan.incomes), accounts: fpEntries(plan.accounts || []), expenses: [] })) : null;
     const retDate = r && !r.missing ? r.date : null;
     const years = [];
     for (let Y = by + from; Y <= by + 70; Y++) {
@@ -2006,12 +2014,32 @@ function fpAgeText(months) {
 
 function fpIsSection(x) { return !!x && x.type === 'section'; }
 
-function fpEntries(list) { return (list || []).filter(x => x && !fpIsSection(x)); }
+function fpEntries(list) { return (list || []).filter(x => x && !fpIsSection(x) && !x.off); }
+/** The same with the lines turned off: what the tables show, not what the plan counts. */
+function fpAllEntries(list) { return (list || []).filter(x => x && !fpIsSection(x)); }
 
 /** The plan with only its entries, for the sums. */
 function fpCalc(plan) {
     if (!plan || plan._calc) return plan;
-    return Object.assign({}, plan, { accounts: fpEntries(plan.accounts), incomes: fpEntries(plan.incomes), expenses: fpEntries(plan.expenses), goals: fpEntries(plan.goals || []), _calc: true });
+    // A Social Security line turned off still says when you were born.
+    const ss = fpBirthLine(plan);
+    const retire = ss && ss.off && plan.retire && !plan.retire.birth ? Object.assign({}, plan.retire, { birth: ss.birth }) : plan.retire;
+    return Object.assign({}, plan, { accounts: fpEntries(plan.accounts), incomes: fpEntries(plan.incomes).map(l => fpLiveLine(plan, l)), expenses: fpEntries(plan.expenses), goals: fpEntries(plan.goals || []), retire: retire, _calc: true });
+}
+
+/** A pay line as it counts: what it sends to an account turned off stays in take-home, so
+ *  it comes off the deductions too. The line as saved keeps it, for the account coming back. */
+function fpLiveLine(plan, line) {
+    const off = fpAllEntries(plan.accounts).filter(a => a.off).map(a => a.id);
+    const rows = line.type === 'ss' ? [] : fpIntoRows(line);
+    const gone = rows.filter(r => off.includes(r.account));
+    if (!gone.length) return line;
+    return Object.assign({}, line, { deductions: Math.max(0, fpNum(line.deductions, 0) - gone.reduce((s, r) => s + Math.max(0, fpNum(r.amount, 0)), 0)), into: rows.filter(r => !gone.includes(r)) });
+}
+
+/** The lines turned off, by name, for what is read away from the tables. */
+function fpOffNames(plan) {
+    return ['accounts', 'incomes', 'expenses', 'goals'].reduce((out, k) => out.concat(fpAllEntries(plan[k]).filter(x => x.off).map(x => x.name || 'Unnamed')), []);
 }
 
 /** Each section of a list with its entries, in order; the unsectioned first, under null. */
@@ -2028,6 +2056,7 @@ function fpSectionsOf(list) {
  *  what goes in and is paid a month. Income and expenses: a month and a year, of the
  *  lines running now. */
 function fpSectionTotal(plan, list, entries) {
+    entries = entries.filter(x => !x.off).map(x => list === 'incomes' ? fpLiveLine(plan, x) : x);
     if (list === 'accounts') {
         let held = 0, owed = 0, inn = 0, paid = 0;
         const fromPay = fpPayrollNow(plan);
@@ -2258,7 +2287,7 @@ function fpLastJob(plan) {
 function fpRetireInfo(plan) {
     const r = plan.retire || {};
     if (!r.on) return null;
-    const ss = fpEntries(plan.incomes).find(l => l.type === 'ss' && l.birth);
+    const ss = fpBirthLine(plan);
     const birth = r.birth || (ss ? ss.birth : '');
     const m = /^(\d{4})-(\d{2})$/.exec(birth || '');
     if (!m) return { missing: 'birth' };
@@ -2364,9 +2393,9 @@ function fpGoalSaving(plan) {
 /** The accounts drawn from, in order: as the person put them, then any not placed, cash
  *  first, then investments, then pre-tax, then Roth. Property is not drawn from, and nor
  *  is a 529: it is spent only on the goals paid from it. */
-function fpDrawOrder(plan) {
+function fpDrawOrder(plan, withOff) {
     const rank = (a) => a.kind === 'cash' ? 0 : a.kind === 'investment' ? 1 : a.kind === 'other' ? 2 : a.kind === 'hsa' ? 5 : fpIsPretax(a) ? 3 : 4;
-    const drawable = fpEntries(plan.accounts).filter(a => (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset' && a.kind !== 'property' && a.kind !== 'education');
+    const drawable = (withOff ? fpAllEntries : fpEntries)(plan.accounts).filter(a => (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset' && a.kind !== 'property' && a.kind !== 'education');
     const placed = (plan.drawOrder || []).map(x => drawable.find(a => a.id === x.id)).filter(Boolean);
     const rest = drawable.filter(a => !placed.includes(a)).sort((a, b) => rank(a) - rank(b));
     return placed.concat(rest);
@@ -3226,7 +3255,7 @@ function fpResetDrawOrder(btn) {
     const widget = fpWidget(btn), toolId = fpToolId(btn);
     const plan = fpGet(toolId);
     plan.drawOrder = [];
-    plan.drawOrder = fpDrawOrder(plan).map(a => ({ id: a.id }));
+    plan.drawOrder = fpDrawOrder(plan, true).map(a => ({ id: a.id }));
     fpSet(toolId, plan);
     fpRender(widget);
 }
@@ -3304,9 +3333,9 @@ function fpRender(widget) {
         const liability = kind.side === 'liability';
         const detailed = kind.tool === 'loan-calculator' || kind.tool === 'dynamic-investment-calculator';
         const open = detailed && widget._open.has(a.id);
-        const main = '<tr data-id="' + attr(a.id) + '" data-list="accounts" class="fp-acc fp-movable' + (open ? ' fp-open' : '') + (under[a.id] ? ' fp-under-folded' : '') + '"' +
+        const main = '<tr data-id="' + attr(a.id) + '" data-list="accounts" class="fp-acc fp-movable' + (a.off ? ' fp-line-off' : '') + (open ? ' fp-open' : '') + (under[a.id] ? ' fp-under-folded' : '') + '"' +
                 ' ondragover="fpDragOver(event, this)" ondragleave="fpDragLeave(this)" ondrop="fpDrop(event, this)">' +
-            '<td><div class="fp-name-cell">' + fpGrip(a.name || kind.label) + (detailed ? '<button type="button" class="fp-more" onclick="fpToggleDetails(this)" aria-expanded="' + open + '" title="' +
+            '<td><div class="fp-name-cell">' + fpGrip(a.name || kind.label) + fpOnBox(a, kind.label) + (detailed ? '<button type="button" class="fp-more" onclick="fpToggleDetails(this)" aria-expanded="' + open + '" title="' +
                 (open ? 'Hide' : 'Show') + ' everything the ' + escapeHtml((PluginRegistry.getTool(kind.tool) || {}).name || 'calculator') + ' takes">' + (open ? '▾' : '▸') + '</button>' : '<span class="fp-more-gap"></span>') +
                 '<input class="fp-in fp-name" data-f="name" value="' + attr(a.name) + '" placeholder="Name" aria-label="Account name"></div></td>' +
             '<td><select class="fp-in" data-f="kind" aria-label="Kind">' + kindOptions(a) + '</select></td>' +
@@ -3318,8 +3347,8 @@ function fpRender(widget) {
         return main + (open && !under[a.id] ? fpDetailsRow(plan, a) : '');
     }).join('');
     const flowRows = (list, isIncome) => plan[list].map(l => fpIsSection(l) ? secRow(l, list, isIncome ? 10 : 8) :
-        '<tr data-id="' + attr(l.id) + '" data-list="' + list + '" class="fp-movable' + (under[l.id] ? ' fp-under-folded' : '') + '" ondragover="fpDragOver(event, this)" ondragleave="fpDragLeave(this)" ondrop="fpDrop(event, this)">' +
-            '<td><div class="fp-name-cell">' + fpGrip(l.name || (isIncome ? 'income' : 'expense')) +
+        '<tr data-id="' + attr(l.id) + '" data-list="' + list + '" class="fp-movable' + (l.off ? ' fp-line-off' : '') + (under[l.id] ? ' fp-under-folded' : '') + '" ondragover="fpDragOver(event, this)" ondragleave="fpDragLeave(this)" ondrop="fpDrop(event, this)">' +
+            '<td><div class="fp-name-cell">' + fpGrip(l.name || (isIncome ? 'income' : 'expense')) + fpOnBox(l, isIncome ? 'income' : 'expense') +
                 (isIncome ? '<button type="button" class="fp-more" onclick="fpToggleDetails(this)" aria-expanded="' + widget._open.has(l.id) + '" title="' +
                     (widget._open.has(l.id) ? 'Hide' : 'Show') + (l.type === 'ss' ? ' the benefit and when it is claimed' : ' what goes from it into an account') + '">' + (widget._open.has(l.id) ? '▾' : '▸') + '</button>' : '') +
                 '<input class="fp-in" data-f="name" value="' + attr(l.name) + '" placeholder="Name" aria-label="Name"></div></td>' +
@@ -3339,17 +3368,17 @@ function fpRender(widget) {
             (isIncome ? '<td><label class="fp-check" title="Counted in the federal estimate, unless its taxes are typed"><input class="fp-in" type="checkbox" data-f="taxed"' + (l.taxed !== false ? ' checked' : '') + '> Taxed</label></td>' : '<td></td>') +
             '<td class="fp-acts"><button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>' +
         (isIncome && widget._open.has(l.id) && !under[l.id] ? fpIncomeDetailsRow(plan, l) : '')).join('');
-    const payFrom = fpEntries(plan.accounts).filter(fpCanPayGoal);
+    const payFrom = fpAllEntries(plan.accounts).filter(fpCanPayGoal);
     const goalRows = plan.goals.map(g => fpIsSection(g) ? secRow(g, 'goals', 8) :
-        '<tr data-id="' + attr(g.id) + '" data-list="goals" class="fp-movable fp-goal' + (under[g.id] ? ' fp-under-folded' : '') + '" ondragover="fpDragOver(event, this)" ondragleave="fpDragLeave(this)" ondrop="fpDrop(event, this)">' +
-            '<td><div class="fp-name-cell">' + fpGrip(g.name || 'goal') + '<input class="fp-in" data-f="name" value="' + attr(g.name) + '" placeholder="Name" aria-label="Name"></div></td>' +
+        '<tr data-id="' + attr(g.id) + '" data-list="goals" class="fp-movable fp-goal' + (g.off ? ' fp-line-off' : '') + (under[g.id] ? ' fp-under-folded' : '') + '" ondragover="fpDragOver(event, this)" ondragleave="fpDragLeave(this)" ondrop="fpDrop(event, this)">' +
+            '<td><div class="fp-name-cell">' + fpGrip(g.name || 'goal') + fpOnBox(g, 'goal') + '<input class="fp-in" data-f="name" value="' + attr(g.name) + '" placeholder="Name" aria-label="Name"></div></td>' +
             '<td><input class="fp-in fp-num" type="number" data-f="cost" value="' + attr(g.cost) + '" placeholder="0" aria-label="Cost, in today’s dollars" title="In today’s dollars: it rises by its growth to when it is paid"></td>' +
             '<td><select class="fp-in" data-f="every" aria-label="A year or in all"><option value="total"' + (g.every !== 'year' ? ' selected' : '') + '>in all</option><option value="year"' + (g.every === 'year' ? ' selected' : '') + '>/ year</option></select></td>' +
             '<td><input class="fp-in fp-num fp-small" type="number" min="1" max="20" step="1" data-f="years" value="' + attr(g.years) + '" placeholder="1" aria-label="Over how many years" title="Paid at the start of each year: 4 for college, 1 for a one-off"></td>' +
             '<td><input class="fp-in fp-num" type="number" step="0.1" data-f="growth" value="' + attr(g.growth) + '" placeholder="' + fpNum(plan.assume.inflation, 0) + '" aria-label="Its cost grows per cent a year" title="Its price rises this much a year; empty means inflation. College costs have tended to rise faster, about 5% a year."></td>' +
             '<td><input class="fp-in fp-date" type="month" data-f="from" value="' + attr(g.from) + '" aria-label="When the first payment falls" title="When the first payment falls"></td>' +
             '<td><select class="fp-in" data-f="account" aria-label="Paid from"><option value="">Cash, then savings</option>' +
-                payFrom.map(a => '<option value="' + attr(a.id) + '"' + (g.account === a.id ? ' selected' : '') + '>' + escapeHtml(a.name || fpKindLabel(a)) + '</option>').join('') + '</select></td>' +
+                payFrom.map(a => '<option value="' + attr(a.id) + '"' + (g.account === a.id ? ' selected' : '') + '>' + escapeHtml(a.name || fpKindLabel(a)) + (a.off ? ' (off)' : '') + '</option>').join('') + '</select></td>' +
             '<td class="fp-acts"><button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>').join('');
     const goalHead = '<thead><tr><th>Name</th><th>Cost today</th><th></th><th>Years</th><th>Grows %/yr</th><th>From</th><th>Paid from</th><th></th></tr></thead>';
     const flowHead = '<thead><tr><th>Name</th><th>Amount</th><th></th><th>Grows %/yr</th><th>From</th><th>Until</th><th></th><th></th></tr></thead>';
@@ -3547,7 +3576,8 @@ function fpRefreshSections(widget, plan) {
     ['accounts', 'incomes', 'expenses', 'goals'].forEach(list => fpSectionsOf(plan[list]).forEach(g => {
         if (!g.section) return;
         const el = widget.querySelector('tr.fp-sec-row[data-list="' + list + '"][data-id="' + CSS.escape(g.section.id) + '"] .fp-sec-total');
-        if (el) el.textContent = fpSectionTotal(plan, list, g.entries).text;
+        const off = g.entries.filter(x => x.off).length;
+        if (el) el.textContent = off === g.entries.length && off ? off + ' off' : fpSectionTotal(plan, list, g.entries).text + (off ? ' · ' + off + ' off' : '');
     }));
 }
 
@@ -3575,12 +3605,12 @@ function fpIncomeDetailsRow(plan, l) {
             '</div><div class="fp-detail-fields fp-ss-est">' + fpSSEstimateFields(plan, l) + '</div><div class="fp-detail-sum"></div></td></tr>';
     }
     const per = l.every === 'year' ? '/ year' : '/ month';
-    const targets = fpEntries(plan.accounts).filter(a => (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset');
+    const targets = fpAllEntries(plan.accounts).filter(a => (FP_KINDS[a.kind] || FP_KINDS.other).side === 'asset');
     const rows = fpIntoRows(l);
     const row = (r, i) => '<div class="fp-into-row" data-row="' + attr(r.id) + '">' +
         '<label>' + (i ? 'and' : 'Of the deductions,') + ' <input class="fp-in fp-num" type="number" data-f="into.amount" data-row="' + attr(r.id) + '" value="' + attr(r.amount) + '" placeholder="0" aria-label="Your part"> ' + per + ' goes into</label>' +
         '<select class="fp-in" data-f="into.account" data-row="' + attr(r.id) + '" aria-label="Into which account"><option value="">— no account —</option>' +
-            targets.map(a => '<option value="' + attr(a.id) + '"' + (a.id === r.account ? ' selected' : '') + '>' + escapeHtml(a.name || fpKindLabel(a)) + (a.kind === 'retirement' && a.name !== fpKindLabel(a) ? ' (' + fpKindLabel(a) + ')' : '') + '</option>').join('') + '</select>' +
+            targets.map(a => '<option value="' + attr(a.id) + '"' + (a.id === r.account ? ' selected' : '') + '>' + escapeHtml(a.name || fpKindLabel(a)) + (a.kind === 'retirement' && a.name !== fpKindLabel(a) ? ' (' + fpKindLabel(a) + ')' : '') + (a.off ? ' (off)' : '') + '</option>').join('') + '</select>' +
         '<label>employer adds <input class="fp-in fp-num" type="number" data-f="into.match" data-row="' + attr(r.id) + '" value="' + attr(r.match) + '" placeholder="0" aria-label="Employer’s part"> ' + per + '</label>' +
         '<button type="button" class="fp-x" onclick="fpRemoveInto(this)" title="Remove this account">×</button></div>';
     return '<tr class="fp-detail fp-income-detail" data-id="' + attr(l.id) + '" data-list="incomes"><td colspan="10"><div class="fp-detail-fields fp-into">' +
@@ -3601,10 +3631,10 @@ function fpIncomeDetailsRow(plan, l) {
 function fpSSEstimateFields(plan, l) {
     const attr = (v) => escapeHtml(v === null || v === undefined ? '' : String(v));
     const counted = fpSSPayOf(plan, l).map(x => x.id);
-    const pay = fpEntries(plan.incomes).filter(x => x.type !== 'ss');
+    const pay = fpAllEntries(plan.incomes).filter(x => x.type !== 'ss');
     return '<span class="fp-note">With the benefit left empty, it is estimated from pay:</span>' +
         (pay.length ? '<span class="fp-ss-pay">Pay that counts ' + pay.map(x => '<label class="fp-check"><input class="fp-in" type="checkbox" data-f="payFrom" value="' + attr(x.id) + '"' +
-            (counted.includes(x.id) ? ' checked' : '') + '> ' + escapeHtml(x.name || 'Income') + '</label>').join('') + '</span>' : '<span class="fp-note">no pay in the plan yet.</span>') +
+            (counted.includes(x.id) || (Array.isArray(l.payFrom) && l.payFrom.includes(x.id)) ? ' checked' : '') + '> ' + escapeHtml(x.name || 'Income') + (x.off ? ' (off)' : '') + '</label>').join('') + '</span>' : '<span class="fp-note">no pay in the plan yet.</span>') +
         '<label>Started work at age <input class="fp-in fp-num fp-small" type="number" min="14" max="70" data-f="workFrom" value="' + attr(l.workFrom) + '" placeholder="22"></label>' +
         '<label title="What was earned a year before now, on average, in today’s dollars. Empty: as now.">Past pay <input class="fp-in fp-num" type="number" data-f="pastPay" value="' + attr(l.pastPay) + '" placeholder="' +
             Math.round(fpSSPayOf(plan, l).reduce((s, x) => s + fpMonthly(x), 0) * 12) + '"> / year</label>';
@@ -3638,6 +3668,8 @@ function fpIncomeDetailSummary(plan, l) {
     let own = 0;
     rows.forEach(r => {
         own += r.account ? r.own : 0;
+        const off = !r.account && fpAllEntries(plan.accounts).find(a => a.id === r.accountId && a.off);
+        if (off) { bits.push('<span class="fp-note">' + named(off) + ' is off: ' + fpMoney(r.own) + ' a month stays in take-home.</span>'); return; }
         if (!r.account) { if (r.own || r.match) bits.push('<span class="fp-neg">Choose an account for ' + fpMoney(r.own + r.match) + ' a month to go into; until then it is spent like the other deductions.</span>'); return; }
         const a = r.account;
         bits.push('<span>Into ' + named(a) + ': <b>' + fpMoney(r.own + r.match) + '</b> a month' + (r.match ? ' (' + fpMoney(r.own) + ' yours, ' + fpMoney(r.match) + ' employer)' : '') +
@@ -3802,6 +3834,8 @@ function fpGoalText(plan, proj, g, save, html) {
     let text = name + ', ' + when + ': ' + fpMoney(o.today) + ' in today’s dollars, ' + b(fpMoney(o.due)) + ' then.';
     const acct = fpGoalAccount(plan, g);
     const acctName = acct ? (html ? escapeHtml(acct.name || fpKindLabel(acct)) : (acct.name || fpKindLabel(acct))) : '';
+    const offAcct = !acct && g.account ? fpAllEntries(plan.accounts).find(a => a.id === g.account && a.off) : null;
+    if (offAcct) { const n = offAcct.name || fpKindLabel(offAcct); text += ' ' + (html ? escapeHtml(n) : n) + ' is off.'; }
     if (o.own) {
         const short = o.due - o.fromOwn;
         if (short < 1) text += ' ' + acctName + ' covers it, with ' + fpMoney(o.held) + ' in it by then' + (o.left > 1 ? ' and ' + fpMoney(o.left) + ' left after' : '') + '.';
@@ -3866,7 +3900,7 @@ function fpRenderDerived(widget, plan) {
             '<span class="' + (f.surplus < 0 ? 'fp-neg' : 'fp-pos') + '">= ' + (f.surplus < 0 ? 'short ' : 'left over ') + '<b>' + fpMoney(Math.abs(f.surplus)) + '</b></span>' +
         '</div>' +
         '<div class="fp-into">' + (f.surplus < 0 ? 'Taken from' : 'Goes to') + ' <select class="fp-in" data-a="surplusTo" aria-label="Where what is left over goes">' +
-            '<option value="">' + (into && !plan.surplusTo ? 'First cash account (' + escapeHtml(into.name || 'Cash') + ')' : 'First cash account') + '</option>' +
+            '<option value="">' + (into && !surplusTargets.some(a => a.id === plan.surplusTo) ? 'First cash account (' + escapeHtml(into.name || 'Cash') + ')' : 'First cash account') + '</option>' +
             surplusTargets.map(a => '<option value="' + escapeHtml(a.id) + '"' + (plan.surplusTo === a.id ? ' selected' : '') + '>' + escapeHtml(a.name || FP_KINDS[a.kind].label) + '</option>').join('') +
         '</select>' + (!proj.into ? ' <span class="fp-note">No cash account yet: it is counted on its own.</span>' : '') + '</div>';
     if (f.payrollOwn || f.payrollMatch) {
@@ -4385,6 +4419,25 @@ function fpGrip(name) {
         ' onkeydown="fpGripKey(event, this)" aria-label="Move ' + escapeHtml(String(name)) + ': ↑ or ↓" title="Drag to move, or ↑ and ↓">☰</button>';
 }
 
+/** A line's box: unticked, the plan goes on as if the line were not there, and it stays
+ *  where it is, as it was, for when it is ticked again. */
+function fpOnBox(x, label) {
+    return '<input type="checkbox" class="fp-on"' + (x.off ? '' : ' checked') + ' onchange="fpToggleLine(this)" aria-label="Count ' + escapeHtml(x.name || label) + ' in the plan" title="Untick to leave this line out of the plan, without removing it">';
+}
+
+function fpToggleLine(box) {
+    const widget = fpWidget(box), toolId = fpToolId(box), tr = box.closest('tr');
+    const list = tr.dataset.list, id = tr.dataset.id;
+    const plan = fpGet(toolId);
+    const item = plan[list].find(x => x.id === id);
+    if (!item) return;
+    if (box.checked) delete item.off; else item.off = true;
+    fpSet(toolId, plan);
+    fpRender(widget);
+    const again = widget.querySelector('tr[data-list="' + list + '"][data-id="' + CSS.escape(id) + '"] .fp-on');
+    if (again) again.focus();
+}
+
 function fpMoveItem(widget, list, id, to) {
     const toolId = fpToolId(widget);
     const plan = fpGet(toolId);
@@ -4443,8 +4496,11 @@ function fpGripKey(e, btn) {
         if (e.key === 'ArrowUp' && k > 0) fpMoveSection(widget, list, id, ids[k - 1]);
         else if (e.key === 'ArrowDown' && k < ids.length - 1) fpMoveSection(widget, list, id, ids[k + 2] || null);
     } else {
-        const at = items.findIndex(a => a.id === id);
-        fpMoveItem(widget, list, id, at + (e.key === 'ArrowUp' ? -1 : 1));
+        const step = e.key === 'ArrowUp' ? -1 : 1;
+        let to = items.findIndex(a => a.id === id) + step;
+        // The withdrawal order holds accounts turned off, out of sight: a step goes past them.
+        while (list === 'drawOrder' && items[to] && !widget.querySelector('tr[data-list="drawOrder"][data-id="' + CSS.escape(items[to].id) + '"]')) to += step;
+        fpMoveItem(widget, list, id, to);
     }
     const again = widget.querySelector('tr.fp-movable[data-list="' + list + '"][data-id="' + CSS.escape(id) + '"] .fp-grip');
     if (again) again.focus();
@@ -4925,6 +4981,7 @@ function fpSummaryText(plan) {
         if (g.section) named.push('- ' + title + ' — ' + (g.section.name || 'Untitled section') + ': ' + fpSectionTotal(plan, list, g.entries).text);
     }));
     if (named.length) out.push('', '### Sections', '', ...named);
+    if (fpOffNames(plan).length) out.push('', 'Left out for now: ' + fpOffNames(plan).join(', ') + '.');
     const f = proj.first;
     out.push('', '### A month, now', '', 'Income ' + fpMoney(f.income) + (f.deductions ? ', deductions ' + fpMoney(f.deductions) : '') +
         (plan.tax.on || f.tax ? ', taxes ' + fpMoney(f.tax) + (f.payrollTax ? ' (' + fpMoney(f.payrollTax) + ' of it payroll tax)' : '') : '') + ', take-home ' + fpMoney(f.takeHome) +
@@ -5032,6 +5089,7 @@ function fpAITarget(toolId) {
     const accSec = sectionOf('accounts'), incSec = sectionOf('incomes'), expSec = sectionOf('expenses');
     const inSec = (map, x) => map[x.id] ? ' [section: ' + map[x.id] + ']' : '';
     lines.push('Finance plan as of ' + new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) + '. Amounts in dollars.');
+    if (fpOffNames(plan).length) lines.push('Left out for now, and not in anything below: ' + fpOffNames(plan).map(n => fpAIName({ name: n }, 'Unnamed')).join(', ') + '.');
     lines.push('', 'Accounts:');
     if (!calc.accounts.length) lines.push('- none');
     calc.accounts.forEach(a => {
@@ -5197,7 +5255,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,

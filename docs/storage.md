@@ -829,6 +829,9 @@ labels.
             lump: null }                          //   and a sum to place instead of the leftover
 }
 // a retirement account may say tax: 'pretax' (default) or 'roth'
+// any account, income, expense or goal may say off: true — kept and shown, counted nowhere.
+// What points at it stays pointing at it: fpEntries() and fpCalc() leave it out, fpAllEntries()
+// has it, and pay into an account that is off comes off that line's deductions in fpLiveLine().
 ```
 
 Before retirement, a month that leaves cash below nought is made up from savings in the
