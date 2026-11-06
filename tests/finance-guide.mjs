@@ -17,9 +17,10 @@ await page.clock.install({ time: new Date(2026, 10, 1, 10, 0, 0) });
 
 // 1. The example link.
 await page.goto('http://localhost:8777/index.html#tool/finance-planning?example=1');
-await page.waitForSelector('.fp-widget .fp-accounts tbody tr', { timeout: 25000 });
+await page.waitForSelector('.fp-widget .fp-accounts tbody tr', { state: 'attached', timeout: 25000 });
 await page.waitForTimeout(400);
 const id = await page.evaluate(() => document.querySelector('.fp-widget').closest('.tool').dataset.tool);
+await page.evaluate((i) => setToolMode(i, 'split'), id);
 const plan = () => page.evaluate((i) => fpGet(i), id);
 let p = await plan();
 ok('?example=1: the made-up example, with a birth month, retirement and Social Security', p.accounts.length === 11 && p.retire.on && p.retire.birth === '1985-11' &&
@@ -38,7 +39,7 @@ ok('within the limits, with money left over each month', !/over the|limit exceed
 await page.fill('.fp-accounts tr:first-child [data-f="name"]', 'Everyday');
 await page.waitForTimeout(150);
 await page.goto('http://localhost:8777/index.html#tool/finance-planning?example=1');
-await page.waitForSelector('.fp-widget .fp-accounts tbody tr', { timeout: 25000 });
+await page.waitForSelector('.fp-widget .fp-accounts tbody tr', { state: 'attached', timeout: 25000 });
 await page.waitForTimeout(400);
 p = await plan();
 ok('opened again on a plan in use: left as it is', p.accounts[0].name === 'Everyday' && p.accounts.length === 11, p.accounts[0].name);

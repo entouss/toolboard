@@ -74,7 +74,11 @@
 .tb-grid input[data-k="divisor"] { width: 72px; }
 
 /* Finance Planning */
-.fp-widget { font-size: 12px; }
+.fp-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; box-sizing: border-box; padding: 10px; }
+.fp-widget .authoring-source { flex: 1 1 60%; min-width: 0; overflow: auto; }
+.fp-widget .authoring-result { flex: 1 1 40%; min-width: 0; overflow: auto; }
+.tool.authoring-split .fp-widget .authoring-source { padding-right: 10px; }
+.tool.authoring-split .fp-widget .authoring-result { padding-left: 10px; }
 .fp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
 .fp-card { background: var(--bg-secondary); border-radius: 4px; padding: 8px 10px; }
 .fp-card-label { font-size: 11px; color: var(--text-muted); }
@@ -88,7 +92,8 @@
 .fp-bar-seg { display: block; height: 100%; border-radius: 2px; min-width: 3px; }
 .fp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
 .fp-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
-.fp-empty { padding: 10px; margin: 8px 0; background: var(--bg-secondary); border-radius: 4px; color: var(--text-secondary); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.fp-empty, .fp-view-empty { padding: 10px; margin: 8px 0; background: var(--bg-secondary); border-radius: 4px; color: var(--text-secondary); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tool:not(.authoring-render) .fp-view-empty { display: none; }
 .fp-section { margin-top: 14px; }
 .fp-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .fp-section-head h4 { margin: 0; font-size: 13px; flex: 1; }
@@ -3410,9 +3415,9 @@ function fpRender(widget) {
             '<span class="fp-head-acts">' + (actions || '') + '</span></div>' +
         '<div class="fp-body">' + body + '</div></section>';
     const allFolded = FP_SECTIONS.every(k => folded.has(k));
-    widget.innerHTML =
-        '<div class="fp-top"><button type="button" class="fp-btn fp-fold-all" onclick="fpFoldAll(this)">' + (allFolded ? 'Show all' : 'Hide all') + '</button></div>' +
-        sec('summary', 'Summary', '', '<div class="fp-rollup"></div>') +
+    fpPanes(widget);
+    widget.querySelector('.fp-head').innerHTML = '<div class="fp-top"><button type="button" class="fp-btn fp-fold-all" onclick="fpFoldAll(this)">' + (allFolded ? 'Show all' : 'Hide all') + '</button></div>';
+    widget.querySelector('.authoring-source').innerHTML =
         (empty ? '<div class="fp-empty">Start by adding what you have and owe, then what comes in and goes out. ' +
             '<button type="button" class="fp-btn" onclick="fpSample(this)">Fill in a made-up example</button></div>' : '') +
         sec('accounts', 'Accounts', '<button type="button" class="fp-btn" onclick="fpAddSection(this, \'accounts\')" title="A heading to group what follows under, with its totals">+ Section</button>' +
@@ -3437,7 +3442,6 @@ function fpRender(widget) {
             (fpEntries(plan.goals).length ? '' : '<div class="fp-note">Big costs ahead — college, a car, a wedding, a new roof — in today’s dollars. Unlike an expense, a goal is paid when it falls, retired or not.</div>') +
             '<table class="fp-table fp-goals">' + goalHead + '<tbody>' + goalRows + '</tbody></table><ul class="fp-goals-out"></ul>') +
         sec('retirement', 'Retirement', '', fpRetireFields(plan, attr, under)) +
-        sec('month', 'A month, now', '', '<div class="fp-month"></div>') +
         sec('advice', 'Where the next dollar goes', '', fpAdviceFields(plan, attr) + '<div class="fp-advice"></div>') +
         sec('assumptions', 'Assumptions', '', '<div class="fp-assume">' +
             '<label>Years ahead <input class="fp-in fp-num fp-small" type="number" min="1" max="60" data-a="years" value="' + attr(plan.assume.years) + '"></label>' +
@@ -3445,11 +3449,17 @@ function fpRender(widget) {
             '<label>Range ± <input class="fp-in fp-num fp-small" type="number" step="0.5" min="0" data-a="spread" value="' + attr(plan.assume.spread) + '"> % on investments</label>' +
             '<label>Goal <input class="fp-in fp-num" type="number" step="10000" data-a="target" value="' + attr(plan.assume.target) + '"> net worth</label>' +
             '<label class="fp-check"><input class="fp-in" type="checkbox" data-a="real"' + (plan.assume.real ? ' checked' : '') + '> In today’s money</label>' +
-            '</div><div class="fp-assume fp-returns"><span>Default rates:</span>' + returns + '</div>') +
+            '</div><div class="fp-assume fp-returns"><span>Default rates:</span>' + returns + '</div>');
+    widget.querySelector('.authoring-result').innerHTML =
+        (empty ? '<div class="fp-view-empty">Nothing to show yet: what you have and owe, what comes in and goes out, go in Edit. <button type="button" class="fp-btn" onclick="fpGoEdit(this)">Edit</button></div>' : '') +
+        sec('summary', 'Summary', '', '<div class="fp-rollup"></div>') +
+        sec('month', 'A month, now', '', '<div class="fp-month"></div>') +
         sec('ahead', 'Ahead', '<button type="button" class="fp-btn" onclick="fpCopySummary(this)" title="The rollup and the projection, as Markdown">Copy summary</button>',
             '<div class="fp-projection"></div>');
     widget.querySelectorAll('.fp-in').forEach(el => el.addEventListener(el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input', () => fpOnInput(el)));
     fpRenderDerived(widget, plan);
+    // A new plan has nothing yet to view: it opens where it is filled in.
+    if (empty && !(toolCustomizations[toolId] || {}).viewMode) setToolMode(toolId, 'edit');
 }
 
 /**
@@ -4833,6 +4843,25 @@ function fpRemove(btn) {
     fpRender(widget);
 }
 
+/** What goes in beside what it comes to, as the note's panes are. They stay put and what is
+ *  in them is drawn again, so a redraw keeps each pane's scroll and the divider's place. */
+const FP_PANES = '<div class="fp-head"></div><div class="authoring-split"><div class="authoring-source"></div><div class="authoring-resizer"></div>' +
+    '<div class="authoring-result" ondblclick="fpResultDblClick(event)"></div></div>';
+
+function fpPanes(widget) {
+    if (!widget.querySelector('.authoring-split')) widget.innerHTML = FP_PANES;
+}
+
+/** A double-click on the result goes to Edit, as a note's does; but the chart, the years
+ *  and a year taken apart are clicked anyway, and a second click is not a request to leave. */
+function fpResultDblClick(e) {
+    if (e.target.closest('.fp-chart, .fp-year-row, .fp-yd, .fp-range')) e.stopPropagation();
+}
+
+function fpGoEdit(btn) {
+    setToolMode(fpToolId(btn), 'edit');
+}
+
 function fpDupButton() {
     return '<button type="button" class="fp-dup" onclick="fpDuplicate(this)" title="Duplicate" aria-label="Duplicate this line"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">' +
         '<rect x="1" y="1" width="8.5" height="8.5" rx="1"/><path d="M12.5 4.5v8h-8"/></svg></button>';
@@ -4930,6 +4959,7 @@ function fpApplyHashParams(toolId, params) {
     ];
     fpSet(toolId, p);
     fpRender(widget);
+    setToolMode(toolId, 'render');
 }
 
 // ---- The calculators, for a moment ---------------------------------------------------------
@@ -5306,7 +5336,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,
@@ -5399,9 +5429,22 @@ PluginRegistry.registerTool({
     toolbox: 'finance',
     tags: ['finance', 'net worth', 'budget', 'planning', 'projection', 'accounts', 'retirement'],
     title: 'Finance Planning',
-    content: '<div class="calc-widget fp-widget"></div>',
+    content: '<div class="calc-widget fp-widget">' + FP_PANES + '</div>',
     // The page written about it, opened from the ? in its header.
     guide: 'learn/tools/finance-planning.html',
+    // What goes in, what it comes to, or the two side by side — as a note has them: it opens
+    // on what it comes to, and goes back there when you look away. The one difference is a
+    // new plan, which opens on Edit (fpRender), having nothing yet to view.
+    authoring: {
+        modes: ['edit', 'split', 'render'],
+        defaultMode: 'render',
+        titles: {
+            edit: 'What goes into the plan',
+            render: 'What it comes to: the summary, a month now and Ahead'
+        },
+        source: '.authoring-source',
+        result: '.authoring-result'
+    },
     // ?example=1 fills an empty planner with the made-up example.
     hashParams: 'fpApplyHashParams',
     // ✨ where Chrome's own model can run — on the device, so a person's figures stay

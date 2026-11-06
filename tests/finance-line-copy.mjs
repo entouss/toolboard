@@ -15,6 +15,7 @@ await page.clock.install({ time: new Date(2026, 10, 1, 10, 0, 0) });
 await page.goto('http://localhost:8777/index.html#tool/finance-planning');
 await page.waitForSelector('.fp-widget .fp-empty', { timeout: 25000 });
 const id = await page.evaluate(() => document.querySelector('.fp-widget').closest('.tool').dataset.tool);
+await page.evaluate((i) => setToolMode(i, 'split'), id);
 const near = (a, b, tol) => Math.abs(a - b) <= (tol === undefined ? 0.5 : tol);
 const get = () => page.evaluate((i) => fpGet(i), id);
 const load = (extra) => page.evaluate(([i, x]) => {

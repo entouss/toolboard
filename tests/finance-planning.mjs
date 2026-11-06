@@ -20,6 +20,7 @@ await page.clock.install({ time: new Date(2026, 10, 1, 10, 0, 0) });
 await page.goto('http://localhost:8777/index.html#tool/finance-planning');
 await page.waitForSelector('.fp-widget .fp-empty', { timeout: 25000 });
 const id = await page.evaluate(() => document.querySelector('.fp-widget').closest('.tool').dataset.tool);
+await page.evaluate((i) => setToolMode(i, 'split'), id);
 const plan = () => page.evaluate((i) => fpGet(i), id);
 const setPlan = (p) => page.evaluate(([i, p]) => { fpSet(i, Object.assign(fpDefaultPlan(), p)); fpRender(document.querySelector('.fp-widget')); }, [id, p]);
 const row = (name) => '.fp-widget tr:has(input[data-f="name"][value="' + name + '"])';
@@ -514,7 +515,7 @@ await page.evaluate((i) => { fpSet(i, fpDefaultPlan()); fpRender(document.queryS
 await page.click('.fp-empty .fp-btn');
 await page.waitForTimeout(300);
 const secs = () => page.evaluate(() => Array.from(document.querySelectorAll('.fp-section[data-sec]')).map(s => s.dataset.sec + (s.classList.contains('fp-folded') ? '-' : '+')).join());
-ok('ten sections, each with a fold at its heading, all open to begin with', (await secs()) === 'summary+,accounts+,income+,expenses+,goals+,retirement+,month+,advice+,assumptions+,ahead+' &&
+ok('ten sections, each with a fold at its heading, all open to begin with', (await secs()) === 'accounts+,income+,expenses+,goals+,retirement+,advice+,assumptions+,summary+,month+,ahead+' &&
     (await page.locator('.fp-section .fp-fold').count()) === 10, await secs());
 await page.fill(row('Savings') + ' [data-f="balance"]', '15500');
 await page.click('.fp-section[data-sec="summary"] .fp-fold');
@@ -526,16 +527,16 @@ ok('kept with the tool, beside the plan and not in it', await page.evaluate((i) 
     !('fpFolded' in toolCustomizations[i].financePlan), id));
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'summary-,accounts-,income-,expenses-,goals-,retirement-,month-,advice-,assumptions-,ahead-' &&
+ok('Hide all: every section to its heading, and the button offers them back', (await secs()) === 'accounts-,income-,expenses-,goals-,retirement-,advice-,assumptions-,summary-,month-,ahead-' &&
     (await page.innerText('.fp-fold-all')) === 'Show all' && !(await page.isVisible('.fp-chart')) && !(await page.isVisible(row('Savings'))));
 await page.waitForTimeout(700);
 await page.reload();
 await page.waitForSelector('.fp-widget .fp-section', { timeout: 25000 });
 await page.waitForTimeout(300);
-ok('a reload keeps them folded', (await secs()) === 'summary-,accounts-,income-,expenses-,goals-,retirement-,month-,advice-,assumptions-,ahead-');
+ok('a reload keeps them folded', (await secs()) === 'accounts-,income-,expenses-,goals-,retirement-,advice-,assumptions-,summary-,month-,ahead-');
 await page.click('.fp-fold-all');
 await page.waitForTimeout(150);
-ok('Show all: everything back', (await secs()) === 'summary+,accounts+,income+,expenses+,goals+,retirement+,month+,advice+,assumptions+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
+ok('Show all: everything back', (await secs()) === 'accounts+,income+,expenses+,goals+,retirement+,advice+,assumptions+,summary+,month+,ahead+' && (await page.innerText('.fp-fold-all')) === 'Hide all');
 await page.click('.fp-section[data-sec="income"] .fp-fold');
 await page.selectOption(row('Car loan') + ' [data-f="kind"]', 'credit');
 await page.waitForTimeout(200);

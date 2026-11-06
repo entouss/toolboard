@@ -18,6 +18,7 @@ await page.clock.install({ time: new Date(2026, 10, 1, 10, 0, 0) });
 await page.goto('http://localhost:8777/index.html#tool/finance-planning');
 await page.waitForSelector('.fp-widget .fp-empty', { timeout: 25000 });
 const id = await page.evaluate(() => document.querySelector('.fp-widget').closest('.tool').dataset.tool);
+await page.evaluate((i) => setToolMode(i, 'split'), id);
 const setPlan = (p) => page.evaluate(([i, p]) => {
     const base = fpDefaultPlan();
     base.tax = { on: false, payroll: false, status: 'single', year: '' };

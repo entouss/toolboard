@@ -38,6 +38,7 @@ await page.goto('http://localhost:8777/index.html#tool/finance-planning');
 await page.waitForSelector('.fp-widget', { timeout: 25000 });
 await page.waitForTimeout(1500);
 const id = await page.evaluate(() => document.querySelector('.fp-widget').closest('.tool').dataset.tool);
+await page.evaluate((i) => setToolMode(i, 'split'), id);
 const T = '.tool[data-tool="' + id + '"] ';
 const P = '#boardAIPopup ';
 const items = () => page.evaluate(() => Array.from(document.querySelectorAll('#boardAIPopup .bai-item')).map(b => b.dataset.ai));
