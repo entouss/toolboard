@@ -209,6 +209,7 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-yd-head h5 { margin: 0; font-size: 13px; }
 .fp-yd-head h5:focus { outline: 2px solid var(--accent-color, #0072B2); outline-offset: 2px; }
 .fp-yd-nav { margin-left: auto; display: inline-flex; gap: 4px; align-items: center; }
+.fp-yd-spend { margin: 0 0 8px; font-weight: 600; }
 .fp-yd-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; }
 @media (max-width: 720px) { .fp-yd-grid { grid-template-columns: minmax(0, 1fr); } }
 .fp-yd-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
@@ -3162,6 +3163,18 @@ function fpLastToText(need, html) {
     return start + now + later + ', in today’s money,' + extras;
 }
 
+/** The most that could be spent with work stopped at month `t`, as a year's row ends, for its
+ *  breakdown and, `short`, its place on the chart. Worked out here, so only for the year picked. */
+function fpYearSpendText(need, t, short) {
+    if (!need || !need.rows) return '';
+    if (!need.rows.some(r => r.t === t)) return short ? 'no spending figure for the plan’s last year' : 'No spending figure for the plan’s last year.';
+    const can = need.spendAt(t), until = need.until;
+    if (short) return can ? 'could spend up to ' + fpMoney(can) + ' a month to last to ' + until : 'nothing to spend and last to ' + until;
+    const when = 'With work stopped ' + (t === 0 ? 'now' : 'in ' + fpMonthAt(need.start, t + 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }));
+    return can ? when + ', you could spend up to ' + fpMoney(can) + ' a month in today’s money and last to ' + until + ', on top of health costs, goals and loans.' :
+        when + ', there would be nothing to spend, beyond health costs, goals and loans, and last to ' + until + '.';
+}
+
 /** What a month comes to at the plan's end, part by part. */
 function fpTailParts(tail) {
     return [['living costs', tail.living], ['health', tail.health], ['loans', tail.loans], ['goals', tail.goals]].filter(p => p[1] >= 0.5).map(p => p[0] + ' ' + fpMoney(p[1])).join(', ');
@@ -4180,9 +4193,10 @@ function fpRenderDerived(widget, plan) {
     widget.querySelector('.fp-projection').innerHTML = '<div class="fp-ahead-sub">' + (proj.rows.length - 1) + ' years' + (proj.retire ? ', to age ' + proj.retire.until : last.age != null ? ', to age ' + last.age : '') +
         (plan.assume.real ? ', in today’s money' : '') + '</div>' +
         (facts.length ? '<div class="fp-facts">' + facts.map(f => '<span class="fp-fact">' + f + '</span>').join('') + '</div>' : '') +
-        range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, foreverT: need.foreverAt === null ? null : need.rows[need.foreverAt].t, stale: !!stale } : null,
+        range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, foreverT: need.foreverAt === null ? null : need.rows[need.foreverAt].t, stale: !!stale,
+            pickTip: pickI >= 0 ? fpYearSpendText(need, pick, true) + (stale ? ' (updating)' : '') : '' } : null,
         fpChartMarks(plan, proj), pick) +
-        (pickI >= 0 ? fpYearDetailHtml(plan, proj, pickI, low, high, needAt[pick] || null, N ? need : null) : '<div class="fp-yd-hint">Click a year on the chart, or in the table, for what made it up.</div>') +
+        (pickI >= 0 ? fpYearDetailHtml(plan, proj, pickI, low, high, needAt[pick] || null, N ? need : null, stale) : '<div class="fp-yd-hint">Click a year on the chart, or in the table, for what made it up.</div>') +
         '<div class="fp-years-head">In ' + last.year + (last.age != null ? ', at ' + last.age : '') + ': net worth <b>' + fpMoney(last.net) + '</b>' + (low ? ' (' + fpMoney(low.rows[low.rows.length - 1].net) + ' to ' + fpMoney(high.rows[high.rows.length - 1].net) + ' at returns ±' + spread + '%)' : '') + '</div>' +
         table;
 }
@@ -4196,7 +4210,7 @@ function fpRenderDerived(widget, plan) {
 // are in dollars of the time, so that they add up; today's money is beside them.
 
 /** The picked year's breakdown. `i` is its row; `needRow` its Needed to stop, if worked out, from `need`. */
-function fpYearDetailHtml(plan, proj, i, low, high, needRow, need) {
+function fpYearDetailHtml(plan, proj, i, low, high, needRow, need, stale) {
     const r = proj.rows[i], d = proj.detail && proj.detail[i];
     if (!r || !d) return '';
     plan = fpCalc(plan);
@@ -4295,11 +4309,6 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow, need) {
     if (needRow) ev.push('To stop working at the start of ' + needRow.year + ': ' + (isFinite(needRow.needed) ? m(needRow.needed) : 'out of reach') + ' needed, ' + m(needRow.have) + ' to draw on' +
         (plan.assume.real ? ' (today’s money)' : '') + (needRow.enough ? ' — enough.' : '.'));
     if (needRow) ev.push('To last forever from then: ' + (isFinite(needRow.forever) ? m(needRow.forever) : 'out of reach') + (needRow.enoughForever ? ' — enough.' : '.'));
-    if (needRow && need) {
-        const can = need.spendAt(needRow.t);
-        ev.push(!can ? 'With work stopped from the start of ' + needRow.year + ', there would be nothing to spend, beyond health costs, goals and loans, and last to ' + need.until + '.' :
-            'With work stopped from the start of ' + needRow.year + ', you could spend up to ' + fpMoney(can) + ' a month in today’s money and last to ' + need.until + ', on top of health costs, goals and loans.');
-    }
 
     // The assumptions it was worked out with.
     const as = [];
@@ -4342,6 +4351,7 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow, need) {
             '<span class="fp-yd-nav"><button type="button" class="fp-btn" data-dir="-1" onclick="fpYearStep(this, -1)" aria-label="The year before">‹</button>' +
             '<button type="button" class="fp-btn" data-dir="1" onclick="fpYearStep(this, 1)" aria-label="The year after">›</button>' +
             '<button type="button" class="fp-x" onclick="fpYearClose(this)" title="Close" aria-label="Close">×</button></span></div>' +
+        (need ? '<div class="fp-yd-spend' + (stale || '') + '">' + fpYearSpendText(need, r.t, false) + '</div>' : '') +
         '<div class="fp-yd-grid">' +
             '<div><table class="fp-yd-table"><caption>Money in and out</caption><tbody>' + flow + '</tbody></table>' + draws + '</div>' +
             '<div>' + accounts +
@@ -4486,7 +4496,7 @@ function fpChart(proj, low, high, need, marks, pick) {
             ' x="' + (x(i) - w / 2).toFixed(1) + '" y="' + T + '" width="' + w.toFixed(1) + '" height="' + (H - T - B) + '"><title>' +
             (r.t === 0 ? 'Now' : r.year) + (r.age != null ? ', age ' + r.age : '') + ' — net worth ' + fpMoney(r.net) + (low ? ' (' + fpMoney(low.rows[i].net) + ' to ' + fpMoney(high.rows[i].net) + ')' : '') +
             ', assets ' + fpMoney(r.assets) + ', liabilities ' + fpMoney(r.liabilities) +
-            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') + ', to last forever ' + (isFinite(nd[i].forever) ? fpMoney(nd[i].forever) : 'out of reach') : '') + '. Click for what made it up.</title></rect>';
+            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') + ', to last forever ' + (isFinite(nd[i].forever) ? fpMoney(nd[i].forever) : 'out of reach') : '') + (need && r.t === pick && need.pickTip ? ', ' + need.pickTip : '') + '. Click for what made it up.</title></rect>';
     }).join('');
     // A mark opens the year it falls in, as that year's strip does.
     const markSvg = shown.map(m => {
@@ -5495,7 +5505,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpForeverText, fpLastToText, fpTailParts, fpTailText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpForeverText, fpLastToText, fpYearSpendText, fpTailParts, fpTailText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,
