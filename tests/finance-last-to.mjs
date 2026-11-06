@@ -72,12 +72,13 @@ await page.waitForSelector('.fp-projection .fp-last-to:not(.fp-stale)', { timeou
 ok('the facts give it', /To last to 95: up to \$[\d,]+ a month stopping now, or up to \$[\d,]+ a month retiring at/.test(await page.innerText('.fp-projection .fp-facts')));
 await page.locator('.fp-year-row').nth(3).click();
 const detail = await page.innerText('.fp-projection');
-ok('a picked year gives stopping then', /With work stopped in [A-Z][a-z]{2} \d{4}, you could spend up to \$[\d,]+ a month in today’s money and last to 95/.test(detail));
+ok('a picked year gives stopping then', /With work stopped in [A-Z][a-z]{2} \d{4}, at \d+, you could spend up to \$[\d,]+ a month in today’s money and last to 95/.test(detail));
 const pickedT = await page.getAttribute('.fp-yd', 'data-t');
 const money = (s) => (s.match(/spend up to (\$[\d,]+)/) || [])[1];
 const tip = (t) => page.textContent('.fp-chart .fp-hit[data-t="' + t + '"] title');
 const spendLine = await page.innerText('.fp-yd-spend');
 ok('it comes first, straight under the heading', await page.evaluate(() => document.querySelector('.fp-yd-head').nextElementSibling.classList.contains('fp-yd-spend')));
+ok('What happened gives the same month and age', /To stop working in [A-Z][a-z]{2} \d{4}, at \d+: /.test(detail) && !/at the start of/.test(detail), detail.slice(0, 400));
 ok('and not again in What happened', (detail.match(/With work stopped/g) || []).length === 1);
 ok('the year’s tooltip gives the same figure', money(await tip(pickedT)) === money(spendLine) && /could spend up to \$[\d,]+ a month to last to 95, currently set at \$5,200 a month\. Click/.test(await tip(pickedT)), await tip(pickedT));
 ok('the year’s line sets it beside what is set', /on top of health costs, goals and loans; currently set at \$5,200 a month\.$/.test(spendLine.trim()), spendLine);
@@ -104,7 +105,7 @@ ok('the plan’s last year has a note, not a figure', /^No spending figure for t
 const lastT = await page.getAttribute('.fp-yd', 'data-t');
 ok('its tooltip too', /no spending figure for the plan’s last year\. Click/.test(await tip(lastT)), await tip(lastT));
 const words2 = await page.evaluate(() => { const n = { rows: [{ t: 12 }], until: 95, start: new Date(2026, 10, 1), spendAt: () => null }; return [fpYearSpendText(n, 12, false), fpYearSpendText(n, 12, true)]; });
-ok('nothing to spend, in both, and the month is the one after the year’s row ends', /^With work stopped in Nov 2027, there would be nothing to spend/.test(words2[0]) && words2[1] === 'nothing to spend and last to 95', words2.join(' | '));
+ok('nothing to spend, in both, and the month is the one after the year’s row ends', /^With work stopped in Nov 2027(, at \d+)?, there would be nothing to spend/.test(words2[0]) && words2[1] === 'nothing to spend and last to 95', words2.join(' | '));
 const summary = await page.evaluate(() => fpSummaryText(fpGet(fpToolId(document.querySelector('.fp-widget')))));
 ok('the summary has it', /To last to 95: up to \$.*currently set at \$5,200 a month/.test(summary));
 const typedNone = await page.evaluate((p) => { const q = mk(p); q.retire.spending = null; return fpNeededToStop(q).spend.set; }, plan());

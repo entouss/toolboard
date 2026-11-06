@@ -69,6 +69,47 @@ rich.accounts[1].balance = 500000;
 n = await need(rich);
 ok('more than is needed: enough, and the same figure', n.earliest === 0 && near(n.rows[0].needed, 120000, 100), String(n.rows[0].needed));
 
+// 6. The Medicare surcharge follows the income of each year, not today's pay. The same money
+// and spending, stopping now: what was earned until now makes no difference from 65.
+const earner = (pay) => ({ tax: { on: true, payroll: false, status: 'single', year: '' },
+    accounts: [{ id: 'c', name: 'Checking', kind: 'cash', balance: 20000, rate: 0 },
+        { id: 'k', name: 'IRA', kind: 'retirement', planType: 'ira', balance: 3000000, rate: 5 }],
+    incomes: [{ id: 'i', name: 'Pay', amount: pay, every: 'month', taxed: true }],
+    expenses: [{ id: 'e', name: 'Living', amount: 4000, every: 'month' }],
+    retire: { on: true, from: 'age', birth: '1966-11', ageYears: 62, ageMonths: 0, until: 90, spending: 4000, buffer: 6, health: true } });
+const high = (await need(earner(40000))).rows[0].needed, low = (await need(earner(4000))).rows[0].needed;
+ok('a high earner stopping now pays no surcharge on a small income later', near(high, low, low * 0.002), JSON.stringify([high, low]));
+
+// A small income today, large withdrawals later: the surcharge comes, and the plan run in
+// full, retired now with what is needed, agrees that it lasts.
+const drawn = earner(2000);
+drawn.retire = Object.assign(drawn.retire, { ageYears: 60, spending: 16000 });
+const needs = (await need(drawn)).rows[0].needed;
+const lasting = (total) => page.evaluate(([p, total]) => {
+    const base = fpDefaultPlan();
+    const plan = Object.assign(base, JSON.parse(JSON.stringify(p)), { retire: Object.assign(base.retire, p.retire) });
+    plan.accounts[1].balance = total - plan.accounts[0].balance;
+    const r = fpProject(plan, 0);
+    return { runsOut: r.milestones.runsOut, irmaa: r.milestones.irmaa };
+}, [drawn, total]);
+const enough = await lasting(needs * 1.005), short2 = await lasting(needs * 0.98);
+ok('large withdrawals: the surcharge is in the full plan', enough.irmaa !== null, JSON.stringify(enough));
+ok('and what is needed covers it, in the full plan', enough.runsOut === null, JSON.stringify([needs, enough]));
+ok('without being far too much', short2.runsOut !== null, JSON.stringify([needs, short2]));
+
+// Stopping at 64 after years of high pay that had not started today: the surcharge at 65 goes
+// by that pay, carried over from the years before the stop.
+const later = earner(40000);
+later.incomes[0].from = '2028-01';
+later.retire.ageYears = 66;
+const carried = await page.evaluate((p) => {
+    const base = fpDefaultPlan();
+    const plan = Object.assign(base, JSON.parse(JSON.stringify(p)), { retire: Object.assign(base.retire, p.retire) });
+    const s = fpProject(plan, 0, { snapshots: true }).snaps[4];
+    return fpProject(plan, 0, { stopT: s.t + 1, from: s }).milestones.irmaa;
+}, later);
+ok('the years before stopping count towards the surcharge after it', carried === 61, String(carried));
+
 ok('no page errors', errors.length === 0, JSON.stringify(errors));
 console.log('  (all ' + count + ' assertions reached)');
 await browser.close();

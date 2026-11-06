@@ -26,6 +26,8 @@ const box = await page.evaluate(() => {
 await page.screenshot({ path: path.join(OUT, 'finance-planning.png'), clip: box });
 await shot('.fp-section[data-sec="retirement"]', 'finance-retirement.png');
 await mode('render');
+// The lines of what is needed come when the bar has finished.
+await page.waitForFunction(() => /Could stop working/.test(document.querySelector('.fp-section[data-sec="ahead"]').innerText) && !document.querySelector('.fp-progress'), null, { timeout: 30000 });
 await shot('.fp-section[data-sec="ahead"]', 'finance-ahead.png');
 await mode('edit');
 // The example with a credit card, for the debt step.
