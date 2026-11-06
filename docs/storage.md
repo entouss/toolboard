@@ -907,7 +907,11 @@ plan runs once as Ahead shows it —
 `fpProject(plan, 0, { stopT: Infinity, snapshots: true })` working throughout, or with
 `stopT` unset when `retire.on`, so that after the retirement date the savings are the
 ones being drawn down — keeping the balances each year; each year's figure is then found from that snapshot with `{ stopT, from, lite }`
-runs, the savings scaled up or down in the shares the accounts hold, halving until it
+runs, the savings scaled down in the shares the accounts hold, or topped up beyond what
+is held in the shares they hold at the start of the plan (less the account taking the
+leftover) — so a plan down to its cash is not taken to need a pot earning a cash rate. What
+the plan has overdrawn by then does not count against it, and a year overdrawn is never
+enough — halving until it
 just lasts. The earliest year whose own savings last is where it says you could stop.
 It is worked out a moment after typing stops (`fpNeededFor`, cached on the widget by
 the plan, the rules and the month); about 0.3 s for a 55-year plan.

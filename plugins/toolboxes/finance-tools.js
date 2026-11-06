@@ -2930,11 +2930,25 @@ function fpNeededToStop(plan) {
         const pos = draw.filter(id => s.bal[id] > 0);
         const looseUp = !into && s.loose > 0;
         const posSum = pos.reduce((x, id) => x + s.bal[id], 0) + (looseUp ? s.loose : 0);
-        const fixed = have - posSum; // what is overdrawn stays as it is
+        // What is needed from here on: anything the plan has overdrawn by now is its own
+        // shortfall, not a debt to clear first. Short of what is held, the accounts are scaled
+        // down; beyond it, the rest goes in as savings stand today. Were it to go where the
+        // money is that year, a plan down to its cash would need a pot earning a cash rate.
+        const s0 = base.snaps[0];
+        const mix = draw.filter(id => id !== into && s0.bal[id] > 0);
+        const mixSum = mix.reduce((x, id) => x + s0.bal[id], 0);
         const at = (total) => {
             const f = Object.assign({}, s, { bal: Object.assign({}, s.bal), basis: Object.assign({}, s.basis) });
-            const want = Math.max(0, total - fixed);
-            if (posSum > 0) {
+            draw.concat(into || []).forEach(id => { if (f.bal[id] < 0) f.bal[id] = 0; });
+            if (f.loose < 0) f.loose = 0;
+            const want = Math.max(0, total);
+            if (want > posSum && mixSum > 0) {
+                mix.forEach(id => {
+                    const v = (want - posSum) * s0.bal[id] / mixSum;
+                    f.bal[id] += v;
+                    if (f.basis[id] !== undefined) f.basis[id] += v * s0.basis[id] / s0.bal[id];
+                });
+            } else if (posSum > 0) {
                 const m = want / posSum;
                 pos.forEach(id => { f.bal[id] = s.bal[id] * m; if (f.basis[id] !== undefined) f.basis[id] = s.basis[id] * m; });
                 if (looseUp) f.loose = s.loose * m;
@@ -2949,9 +2963,9 @@ function fpNeededToStop(plan) {
         const pk = fpEstimated && !own ? Object.assign(fpWithEstimates(p, stopDate), { _calc: true }) : p;
         const lasts = (total) => fpProject(pk, 0, { stopT: s.t + 1, from: at(total), lite: true }).runsOut === null;
         let needed;
-        if (lasts(Math.max(0, fixed))) needed = Math.max(0, fixed);
+        if (lasts(0)) needed = 0;
         else {
-            let lo = Math.max(0, fixed), hi = Math.max(have, lo + 50000);
+            let lo = 0, hi = Math.max(have, 50000);
             while (!lasts(hi) && hi < 1e10) { lo = hi; hi *= 2; }
             if (hi >= 1e10) needed = Infinity;
             else {
@@ -2963,7 +2977,7 @@ function fpNeededToStop(plan) {
         return { t: s.t, year: base.start.getFullYear() + k, age: Math.floor(ret.ageAt(date) / 12), have: real(have, s.t), needed: needed === Infinity ? Infinity : real(needed, s.t),
             // Whether the plan's own savings last, run as they are — not compared with the
             // needed figure, which is found to within a few dollars.
-            enough: have >= needed || lasts(have) };
+            enough: have >= 0 && (have >= needed || lasts(have)) };
     });
     const earliest = rows.findIndex(r => r.enough);
     return { rows: rows, earliest: earliest < 0 ? null : earliest, until: ret.until, start: base.start };
