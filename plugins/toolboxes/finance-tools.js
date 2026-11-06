@@ -227,6 +227,10 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-legend .fp-key-band { background: #0072B2; opacity: 0.25; }
 .fp-chart .fp-needed { stroke: var(--text-secondary); stroke-dasharray: 5 4; stroke-width: 2; }
 .fp-chart .fp-have { stroke: #CC79A7; }
+.fp-chart .fp-forever { stroke: #E69F00; stroke-dasharray: 1 4; stroke-linecap: round; stroke-width: 2.5; }
+.fp-chart .fp-forever-label { fill: #E69F00; }
+.fp-chart .fp-forever-dot { fill: #E69F00; stroke: var(--bg-tertiary); stroke-width: 2; }
+.fp-legend .fp-key-forever { height: 0; border-top: 2px dotted #E69F00; background: none; }
 .fp-chart .fp-needed-label { fill: var(--text-secondary); }
 .fp-chart .fp-have-label { fill: #CC79A7; }
 .fp-chart .fp-stop-dot { fill: var(--text-secondary); stroke: var(--bg-tertiary); stroke-width: 2; }
@@ -2423,6 +2427,10 @@ function fpYm(date) {
  *   snapshots  keep the balances at the start of each year, as `snaps`
  *   from       start from one of those, at its month, rather than from today
  *   lite       only whether the money lasts: { runsOut, goals }, stopping when it does not
+ *   tail       with lite: a sum of (bal, loose), given back as `tail` { from, to }, its value
+ *              at the start and end of the plan's last twelve months — for what would last
+ *              forever, so minimum withdrawals are left out: they move money, and at the
+ *              ages near the plan's end would read as savings shrinking, however large
  *   endT       stop after this month (with lite: run on to it even if the money runs out)
  *   extra      more a month into accounts, by id, to endT — for what would cover a goal
  *   detail     keep what made up each row, as `detail` (fpYearDetailHtml): row 0 is this
@@ -2537,6 +2545,7 @@ function fpProject(plan, shift, opts) {
         loose = s.loose; lumpOrd = s.lumpOrd; lumpGains = s.lumpGains;
         tFrom = s.t + 1;
     }
+    const tail = opts.tail ? { from: opts.tail(bal, loose), to: null } : null;
     for (let t = tFrom; t <= years * 12; t++) {
         if (det) {
             const k = Math.ceil(t / 12);
@@ -2790,7 +2799,7 @@ function fpProject(plan, shift, opts) {
             }));
             // The minimum a pre-tax account must pay out: worked out each January from the
             // balance then and the age reached that year, paid a twelfth a month.
-            if (retired && age >= ret.rmdAge * 12 - 11) {
+            if (retired && !opts.tail && age >= ret.rmdAge * 12 - 11) {
                 const ageThisYear = date.getFullYear() - ret.birthYear;
                 if (ageThisYear >= ret.rmdAge) {
                     if (ms.rmd === null) ms.rmd = t;
@@ -2824,6 +2833,7 @@ function fpProject(plan, shift, opts) {
             if (t === o.last && o.own) o.left = Math.max(0, bal[d.acct.id]);
         });
         if (opts.endT && t >= opts.endT) break;
+        if (tail && t === years * 12 - 12) tail.from = opts.tail(bal, loose);
         if (opts.lite) continue;
         if (det) dRows.forEach(b => { b.end = Object.assign({}, bal); b.looseEnd = loose; });
         yearWithdrawn += withdrawn; yearWithdrawTax += withdrawTax; yearPenalty += withdrawPenalty; yearOrd += monthOrd; yearBen += benefits + typedBen; yearGains += monthGains;
@@ -2843,7 +2853,8 @@ function fpProject(plan, shift, opts) {
             yearWithdrawn = 0; yearWithdrawTax = 0; yearPenalty = 0; yearOrd = 0; yearBen = 0; yearGains = 0;
         }
     }
-    if (opts.lite) return { runsOut: null, goals: goalOut };
+    if (tail) tail.to = opts.tail(bal, loose);
+    if (opts.lite) return { runsOut: null, goals: goalOut, tail: tail };
     return { snaps: snaps, detail: det, rows: rows, first: first || { goals: 0, income: 0, deductions: 0, tax: 0, typedTax: 0, estimatedTax: 0, payrollTax: 0, takeHome: 0, expenses: 0, payments: 0, escrow: 0, contributions: 0, surplus: 0, payrollOwn: 0, payrollMatch: 0 }, milestones: ms, start: start, into: into, retire: retOk ? ret : null };
 }
 
@@ -2915,8 +2926,11 @@ function fpRetireMax(plan, shift) {
  * The plan is run once as Ahead shows it, keeping the balances at the start of each year. Each
  * year's figure is then found from there by trying more or less — spread over the
  * accounts in the shares they hold then — halving the gap until it just lasts.
- * Returns { rows: [{ t, year, age, have, needed }], earliest } (amounts in today's money
- * when the plan is), or { missing } without a birth month.
+ * `forever` is the same with no age to reach: the least that never runs out and, by the
+ * plan's last year, keeps its buying power, so that it could go on past it. It settles
+ * where needed falls away, and is Infinity if what the money earns never outruns inflation.
+ * Returns { rows: [{ t, year, age, have, needed, forever, enough, enoughForever }], earliest,
+ * foreverAt } (amounts in today's money when the plan is), or { missing } without a birth month.
  */
 function fpNeededToStop(plan) {
     const p = fpCalc(Object.assign({}, plan, { retire: Object.assign({}, plan.retire, { on: true }) }));
@@ -2932,6 +2946,7 @@ function fpNeededToStop(plan) {
     const fpEstimated = p.incomes.some(l => l.type === 'ss' && fpNum(l.fraBenefit, null) === null);
     const infl = fpNum(p.assume.inflation, 0) / 100;
     const real = (v, t) => p.assume.real ? v / Math.pow(1 + infl, t / 12) : v;
+    let lastForever = 0;
     const rows = base.snaps.map((s, k) => {
         const have = draw.reduce((sum, id) => sum + s.bal[id], 0) + (into ? 0 : s.loose);
         const pos = draw.filter(id => s.bal[id] > 0);
@@ -2980,14 +2995,64 @@ function fpNeededToStop(plan) {
                 needed = hi;
             }
         }
+        // To last forever: never running out, and by the plan's last year no longer losing
+        // buying power, when what is drawn is what would go on being drawn. All of it is in
+        // today's mix: late on the plan's money may sit in cash, which would never hold.
+        const pot = (bal, loose) => draw.reduce((sum, id) => sum + bal[id], 0) + (into ? 0 : loose);
+        const inMix = (total) => {
+            if (!(mixSum > 0)) return at(total);
+            const f = Object.assign({}, s, { bal: Object.assign({}, s.bal), basis: Object.assign({}, s.basis), loose: 0 });
+            draw.concat(into || []).forEach(id => { f.bal[id] = 0; if (f.basis[id] !== undefined) f.basis[id] = 0; });
+            mix.forEach(id => {
+                const v = total * s0.bal[id] / mixSum;
+                f.bal[id] = v;
+                if (f.basis[id] !== undefined) f.basis[id] = v * s0.basis[id] / s0.bal[id];
+            });
+            return f;
+        };
+        const holds = (total) => {
+            const r = fpProject(pk, 0, { stopT: s.t + 1, from: inMix(total), lite: true, tail: pot });
+            return r.runsOut === null && r.tail.to >= r.tail.from * (1 + infl) - 0.5;
+        };
+        // The search starts near last year's figure, a year's inflation on: the runs here go
+        // the plan's whole length, and from one year to the next it moves little.
+        let forever = Infinity;
+        if (needed !== Infinity && !(k && lastForever === Infinity)) {
+            if (holds(needed)) forever = needed;
+            else {
+                let lo = needed, hi = Math.max(needed * 1.25, 50000), found = false;
+                const guess = lastForever * (1 + infl);
+                if (k && guess > needed) {
+                    if (holds(guess)) {
+                        hi = guess; found = true;
+                        const under = guess * 0.97;
+                        if (under > needed) { if (holds(under)) hi = under; else lo = under; }
+                    } else { lo = guess; hi = guess * 1.03; }
+                }
+                while (!found && hi < 1e9) { if (holds(hi)) found = true; else { lo = hi; hi *= 2; } }
+                if (found) {
+                    while (hi - lo > Math.max(50, hi * 0.002)) { const mid = (lo + hi) / 2; if (holds(mid)) hi = mid; else lo = mid; }
+                    forever = hi;
+                }
+            }
+        }
+        lastForever = forever;
         const date = new Date(base.start.getFullYear(), base.start.getMonth() + s.t, 1);
-        return { t: s.t, year: base.start.getFullYear() + k, age: Math.floor(ret.ageAt(date) / 12), have: real(have, s.t), needed: needed === Infinity ? Infinity : real(needed, s.t),
+        return { t: s.t, year: base.start.getFullYear() + k, age: Math.floor(ret.ageAt(date) / 12), have: real(have, s.t), needed: needed === Infinity ? Infinity : real(needed, s.t), forever: forever === Infinity ? Infinity : real(forever, s.t),
             // Whether the plan's own savings last, run as they are — not compared with the
             // needed figure, which is found to within a few dollars.
-            enough: have >= 0 && (have >= needed || lasts(have)) };
+            enough: have >= 0 && (have >= needed || lasts(have)), enoughForever: have >= 0 && have >= forever };
     });
+    // The plan's last year is the one measured, so stopping then has setting up the cash
+    // buffer, and the tax on it, counted as if it went on: it stands at the year before's.
+    if (rows.length > 1) {
+        const prev = rows[rows.length - 2], lastRow = rows[rows.length - 1];
+        lastRow.forever = prev.forever * (p.assume.real ? 1 : 1 + infl);
+        lastRow.enoughForever = lastRow.have >= 0 && lastRow.have >= lastRow.forever;
+    }
     const earliest = rows.findIndex(r => r.enough);
-    return { rows: rows, earliest: earliest < 0 ? null : earliest, until: ret.until, start: base.start };
+    const foreverAt = rows.findIndex(r => r.enoughForever);
+    return { rows: rows, earliest: earliest < 0 ? null : earliest, foreverAt: foreverAt < 0 ? null : foreverAt, until: ret.until, start: base.start };
 }
 
 /**
@@ -3033,6 +3098,18 @@ function fpNeededText(need, html) {
     if (need.earliest === null) return 'Savings do not reach what is needed to stop working and last to ' + need.until;
     const r = need.rows[need.earliest];
     return 'Could stop working ' + (r.t === 0 ? b('now') : 'in ' + b(String(r.year))) + ', at ' + r.age + ': ' + fpMoney(r.needed) + ' needed, ' + fpMoney(r.have) + ' saved';
+}
+
+const FP_FOREVER_TIP = 'The first year the savings you can draw on — not property — would never run out: by the end of the plan, what they earn covers what is drawn and inflation. At the plan’s returns every year, with no allowance for bad ones';
+
+/** The earliest year the savings reach what would last forever, in words. */
+function fpForeverText(need, html) {
+    if (!need || !need.rows) return '';
+    const b = (s) => html ? '<b>' + s + '</b>' : s;
+    if (need.foreverAt === null) return need.rows.every(r => r.forever === Infinity) ?
+        'Savings could not last forever: what they earn does not outrun inflation' : 'Savings do not reach what would last forever';
+    const r = need.rows[need.foreverAt];
+    return 'Could live on savings forever ' + (r.t === 0 ? b('now') : 'from ' + b(String(r.year))) + ', at ' + r.age + ': ' + fpMoney(r.forever) + ' needed, ' + fpMoney(r.have) + ' saved';
 }
 
 // ---- Where the next dollar goes ------------------------------------------------------------
@@ -3816,7 +3893,7 @@ function fpRenderRetire(widget, plan, proj, low, high) {
         ': taxed, with a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.roth) + ' in all as paid</span>');
     if (ms.penalty !== null) bits.push('<span class="fp-neg">Pre-tax money is drawn from ' + fpWhen(plan, fpMonthAt(proj.start, ms.penalty)) + ', before ' + fpAgeShort(ret.early) + ': a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.pretax) + ' in all as paid</span>');
     const need = widget._needed && widget._needed.value;
-    if (need && need.rows) bits.push('<span' + (need.earliest === null ? ' class="fp-neg"' : '') + '>' + fpNeededText(need, true) + '</span>');
+    if (need && need.rows) bits.push('<span' + (need.earliest === null ? ' class="fp-neg"' : '') + '>' + fpNeededText(need, true) + '</span>', '<span>' + fpForeverText(need, true) + '</span>');
     // Drawn again for the same plan (once the needed figures are in, say): the most that
     // could be spent is the same, so it is shown at once rather than worked out again.
     let raw = null;
@@ -3979,6 +4056,7 @@ function fpRenderDerived(widget, plan) {
     const stale = needState.stale ? ' fp-stale' : '';
     if (N) facts.push('<span class="' + (need.earliest === null ? 'fp-neg' : '') + stale + '" title="The first year the savings you can draw on — not property — reach what would be needed to stop working then and still last to ' +
         need.until + ', on the plan’s spending in retirement, income, returns and taxes">' + fpNeededText(need, true) + '</span>');
+    if (N) facts.push('<span class="' + stale + '" title="' + FP_FOREVER_TIP + '">' + fpForeverText(need, true) + '</span>');
     else if (need && need.missing) facts.push('<span class="fp-muted">With a birth month, in Retirement or on a Social Security line, it works out the year you could stop working.</span>');
     // The years looked at: all of them, or the range picked above the chart.
     const span = fpChartSpan(widget, proj);
@@ -4007,7 +4085,7 @@ function fpRenderDerived(widget, plan) {
     const table = '<table class="fp-table fp-years"><thead><tr><th>Year</th>' + (A ? '<th>Age</th>' : '') + '<th>Assets</th><th>Liabilities</th><th>Net worth</th>' + (low ? '<th>Range</th>' : '') +
         '<th title="The account what is left over each month goes to">' + escapeHtml(pot) + '</th>' +
         (N ? '<th title="Savings that can be drawn on: cash, investments, retirement and other accounts — not property">Can draw on</th>' +
-            '<th title="What savings would need to be at the start of the year to stop working then and still last to ' + need.until + '">Needed to stop</th>' : '') +
+            '<th title="What savings would need to be at the start of the year to stop working then and still last to ' + need.until + '">Needed to stop</th><th title="What savings would need to be at the start of the year to stop working then and never run out">Lasts forever</th>' : '') +
         (R ? '<th title="Drawn from savings that year">Withdrawn</th><th title="Federal tax on the pre-tax money drawn, and on the gains in investments drawn">Tax on it</th>' : '') +
         (P ? '<th title="Early-withdrawal penalties on what was drawn">Penalty</th>' : '') + '</tr></thead><tbody>' +
         // A short range, every year; a long one, the first five, every fifth after, and any
@@ -4019,7 +4097,8 @@ function fpRenderDerived(widget, plan) {
                 (low ? '<td class="fp-muted">' + fpMoney(low.rows[i].net, true) + ' – ' + fpMoney(high.rows[i].net, true) + '</td>' : '') +
                 '<td class="' + (r.cash < -0.005 ? 'fp-neg' : '') + '">' + fpMoney(r.cash) + '</td>' +
                 (N ? (needAt[r.t] ? '<td class="fp-need-have' + stale + '">' + fpMoney(needAt[r.t].have) + '</td><td class="fp-need' + (needAt[r.t].enough ? ' fp-pos' : '') + stale + '">' +
-                    (needAt[r.t].needed === Infinity ? 'out of reach' : fpMoney(needAt[r.t].needed)) + '</td>' : '<td></td><td></td>') : '') +
+                    (needAt[r.t].needed === Infinity ? 'out of reach' : fpMoney(needAt[r.t].needed)) + '</td><td class="fp-need-forever' + (needAt[r.t].enoughForever ? ' fp-pos' : '') + stale + '">' +
+                    (needAt[r.t].forever === Infinity ? 'out of reach' : fpMoney(needAt[r.t].forever)) + '</td>' : '<td></td><td></td><td></td>') : '') +
                 (R ? '<td>' + (r.withdrawn ? fpMoney(r.withdrawn) : '') + '</td><td>' + (r.withdrawTax ? fpMoney(r.withdrawTax) : '') + '</td>' : '') +
                 (P ? (r.withdrawPenalty >= 0.5 ? '<td class="fp-neg" title="' + escapeHtml(penaltySplit(r)) + '">' + fpMoney(r.withdrawPenalty) + '</td>' : '<td></td>') : '') + '</tr>';
         }).join('') + '</tbody></table>' +
@@ -4033,7 +4112,7 @@ function fpRenderDerived(widget, plan) {
     widget.querySelector('.fp-projection').innerHTML = '<div class="fp-ahead-sub">' + (proj.rows.length - 1) + ' years' + (proj.retire ? ', to age ' + proj.retire.until : last.age != null ? ', to age ' + last.age : '') +
         (plan.assume.real ? ', in today’s money' : '') + '</div>' +
         (facts.length ? '<div class="fp-facts">' + facts.map(f => '<span class="fp-fact">' + f + '</span>').join('') + '</div>' : '') +
-        range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, stale: !!stale } : null,
+        range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, foreverT: need.foreverAt === null ? null : need.rows[need.foreverAt].t, stale: !!stale } : null,
         fpChartMarks(plan, proj), pick) +
         (pickI >= 0 ? fpYearDetailHtml(plan, proj, pickI, low, high, needAt[pick] || null) : '<div class="fp-yd-hint">Click a year on the chart, or in the table, for what made it up.</div>') +
         '<div class="fp-years-head">In ' + last.year + (last.age != null ? ', at ' + last.age : '') + ': net worth <b>' + fpMoney(last.net) + '</b>' + (low ? ' (' + fpMoney(low.rows[low.rows.length - 1].net) + ' to ' + fpMoney(high.rows[high.rows.length - 1].net) + ' at returns ±' + spread + '%)' : '') + '</div>' +
@@ -4147,6 +4226,7 @@ function fpYearDetailHtml(plan, proj, i, low, high, needRow) {
     if (inWin(ms.runsOut)) ev.push(neg('Savings run out.'));
     if (needRow) ev.push('To stop working at the start of ' + needRow.year + ': ' + (isFinite(needRow.needed) ? m(needRow.needed) : 'out of reach') + ' needed, ' + m(needRow.have) + ' to draw on' +
         (plan.assume.real ? ' (today’s money)' : '') + (needRow.enough ? ' — enough.' : '.'));
+    if (needRow) ev.push('To last forever from then: ' + (isFinite(needRow.forever) ? m(needRow.forever) : 'out of reach') + (needRow.enoughForever ? ' — enough.' : '.'));
 
     // The assumptions it was worked out with.
     const as = [];
@@ -4266,7 +4346,7 @@ function fpChart(proj, low, high, need, marks, pick) {
     // Stopping early can need far more than the rest of the chart: drawn up to half
     // again its height, and clipped beyond.
     const others = Math.max(0, ...vals);
-    const needMax = Math.max(0, ...nd.filter(n => n && isFinite(n.needed)).map(n => n.needed));
+    const needMax = Math.max(0, ...nd.filter(n => n).map(n => Math.max(isFinite(n.needed) ? n.needed : 0, isFinite(n.forever) ? n.forever : 0)));
     if (needMax > 0) vals.push(Math.min(needMax, others > 0 ? others * 1.5 : needMax));
     let max = Math.max(0, ...vals), min = Math.min(0, ...vals);
     if (max === min) max = min + 1;
@@ -4303,16 +4383,22 @@ function fpChart(proj, low, high, need, marks, pick) {
     const lastNeed = nd.reduce((acc, n, i) => n && isFinite(n.needed) ? i : acc, -1);
     const clipId = 'fp-clip-' + Math.random().toString(36).slice(2, 8);
     const stopAt = need && need.earliest !== null ? rows.findIndex(r => r.t === need.earliest) : -1;
+    const foreverI = need && need.foreverT !== null ? rows.findIndex(r => r.t === need.foreverT) : -1;
+    const lastForever = nd.reduce((acc, n, i) => n && isFinite(n.forever) ? i : acc, -1);
     const needSvg = need ? '<clipPath id="' + clipId + '"><rect x="' + L + '" y="' + (T - 2) + '" width="' + (W - L - R) + '" height="' + (H - T - B + 2) + '"/></clipPath>' +
         (showHave ? '<path class="fp-line fp-have" d="' + seg(n => n.have) + '"/>' : '') +
         '<path class="fp-line fp-needed' + (need.stale ? ' fp-stale' : '') + '" clip-path="url(#' + clipId + ')" d="' + seg(n => n.needed) + '"/>' +
         (stopAt >= 0 && nd[stopAt] ? '<circle class="fp-stop-dot" cx="' + x(stopAt).toFixed(1) + '" cy="' + y(nd[stopAt].needed).toFixed(1) + '" r="5"><title>Could stop working ' +
-            (rows[stopAt].t === 0 ? 'now' : 'in ' + rows[stopAt].year) + ', at ' + nd[stopAt].age + '</title></circle>' : '') : '';
+            (rows[stopAt].t === 0 ? 'now' : 'in ' + rows[stopAt].year) + ', at ' + nd[stopAt].age + '</title></circle>' : '') +
+        '<path class="fp-line fp-forever' + (need.stale ? ' fp-stale' : '') + '" clip-path="url(#' + clipId + ')" d="' + seg(n => n.forever) + '"/>' +
+        (foreverI >= 0 && nd[foreverI] && nd[foreverI].forever <= max ? '<circle class="fp-forever-dot" cx="' + x(foreverI).toFixed(1) + '" cy="' + y(nd[foreverI].forever).toFixed(1) + '" r="5"><title>Could live on savings forever ' +
+            (rows[foreverI].t === 0 ? 'now' : 'from ' + rows[foreverI].year) + ', at ' + nd[foreverI].age + '</title></circle>' : '') : '';
     // Labels at the end of each line, pushed apart where lines end close together, and
     // one where two end on the same value (no debts left: assets are net worth).
     const ends = [{ v: end.net, cls: 'fp-net-label', text: 'Net worth' }];
     // The needed line can stop a year short of the others (none for the plan's last year).
     if (lastNeed >= rows.length - 2 && nd[lastNeed].needed <= max) ends.push({ v: nd[lastNeed].needed, cls: 'fp-needed-label', text: 'Needed to stop' });
+    if (lastForever >= rows.length - 2 && nd[lastForever].forever <= max) ends.push({ v: nd[lastForever].forever, cls: 'fp-forever-label', text: 'Lasts forever' });
     if (showHave && lastNeed >= rows.length - 2) ends.push({ v: nd[lastNeed].have, cls: 'fp-have-label', text: 'Can draw on' });
     if (Math.abs(end.assets - end.net) > 0.5) ends.push({ v: end.assets, cls: 'fp-assets-label', text: 'Assets' });
     if (end.liabilities > 0) ends.push({ v: -end.liabilities, cls: 'fp-liab-label', text: 'Liabilities' });
@@ -4327,7 +4413,7 @@ function fpChart(proj, low, high, need, marks, pick) {
             ' x="' + (x(i) - w / 2).toFixed(1) + '" y="' + T + '" width="' + w.toFixed(1) + '" height="' + (H - T - B) + '"><title>' +
             (r.t === 0 ? 'Now' : r.year) + (r.age != null ? ', age ' + r.age : '') + ' — net worth ' + fpMoney(r.net) + (low ? ' (' + fpMoney(low.rows[i].net) + ' to ' + fpMoney(high.rows[i].net) + ')' : '') +
             ', assets ' + fpMoney(r.assets) + ', liabilities ' + fpMoney(r.liabilities) +
-            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') : '') + '. Click for what made it up.</title></rect>';
+            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') + ', to last forever ' + (isFinite(nd[i].forever) ? fpMoney(nd[i].forever) : 'out of reach') : '') + '. Click for what made it up.</title></rect>';
     }).join('');
     // A mark opens the year it falls in, as that year's strip does.
     const markSvg = shown.map(m => {
@@ -4347,7 +4433,7 @@ function fpChart(proj, low, high, need, marks, pick) {
         '<div class="fp-legend"><span><i class="fp-key-net"></i>Net worth</span><span><i class="fp-key-assets"></i>Assets</span><span><i class="fp-key-liab"></i>Liabilities (below zero)</span>' +
         (low ? '<span><i class="fp-key-band"></i>Range of net worth</span>' : '') +
         (showHave ? '<span><i class="fp-key-have"></i>Savings to draw on (not property)</span>' : '') +
-        (need ? '<span><i class="fp-key-needed"></i>Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '') + '</span>' : '') +
+        (need ? '<span><i class="fp-key-needed"></i>Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '') + '</span><span><i class="fp-key-forever"></i>Lasts forever' + (foreverI >= 0 ? ' (● the first year it is reached)' : '') + '</span>' : '') +
         Object.keys(FP_MARKS).filter(k => shown.some(m => m.kind === k)).map(k => '<span><svg class="fp-key-mark fp-mark-' + k + '" viewBox="-7 -7 14 14" aria-hidden="true"><path d="' + FP_MARKS[k].d + '"/></svg>' + FP_MARKS[k].label + '</span>').join('') + '</div>';
 }
 
@@ -5078,7 +5164,7 @@ function fpSummaryText(plan) {
     }
     if (proj.milestones.debtFree !== null) out.push('', 'Debt-free ' + fpWhen(plan, fpMonthAt(proj.start, proj.milestones.debtFree)) + '.');
     const need = fpNeededToStop(plan);
-    if (need && need.rows) out.push('', fpNeededText(need, false) + ' (savings, not property; to last to ' + need.until + ').');
+    if (need && need.rows) out.push('', fpNeededText(need, false) + ' (savings, not property; to last to ' + need.until + ').', '', fpForeverText(need, false) + ' (at the plan’s returns every year).');
     out.push(...fpRetireLines(plan, proj).map((l, i) => (i ? '' : '\n### Retirement\n\n') + '- ' + l));
     out.push('', '*Assumes inflation ' + fpNum(plan.assume.inflation, 0) + '% and the rates in the plan; an estimate, not advice.*');
     return out.join('\n');
@@ -5225,7 +5311,7 @@ function fpAITarget(toolId) {
     lines.push('Assumptions: inflation ' + fpNum(plan.assume.inflation, 0) + '%' + (low ? ', investment returns ±' + spread + '% for the range' : '') + '.');
     const retLines = fpRetireLines(plan, proj);
     const need = fpNeededToStop(plan);
-    if (need && need.rows) retLines.push(fpNeededText(need, false) + ' — the first year the savings that can be drawn on (not property) reach what would be needed to stop working then and last to ' + need.until + '.');
+    if (need && need.rows) retLines.push(fpNeededText(need, false) + ' — the first year the savings that can be drawn on (not property) reach what would be needed to stop working then and last to ' + need.until + '.', fpForeverText(need, false) + ' — never running out, at the plan’s returns every year.');
     if (retLines.length) lines.push('', 'Retirement:', ...retLines.map(x => '- ' + x));
     const facts = fpAIFacts(plan, proj);
     if (facts.length) lines.push('', 'Facts worked out from the plan:', ...facts.map(x => '- ' + x));
@@ -5336,7 +5422,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpForeverText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,
