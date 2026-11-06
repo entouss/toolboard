@@ -944,7 +944,8 @@ working uses the benefit as it would be with work stopping that year, and so doe
 would last forever (`forever` on each `fpNeededToStop` row: never running out and, over
 the plan's last twelve months, keeping up with inflation, in today's mix of accounts and
 without minimum withdrawals; `tail` on the result is the month behind it, the plan's last
-year in today's money). The part of it that is taxable comes
+year in today's money; `spend` and `spendAt(t)` are the most that could be spent a month and
+still last, none of it saved). The part of it that is taxable comes
 from the IRS worksheet (`fpSSTaxable`): half the benefits plus the other income against
 the year's two amounts, which are not moved with inflation; typed taxes on it still win.
 The ages, the adjustments and the start of minimum withdrawals are all read from the
