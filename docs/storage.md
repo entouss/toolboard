@@ -943,7 +943,8 @@ line as `_est`, and `fpSet` leaves it out of what is saved. What is needed to st
 working uses the benefit as it would be with work stopping that year, and so does what
 would last forever (`forever` on each `fpNeededToStop` row: never running out and, over
 the plan's last twelve months, keeping up with inflation, in today's mix of accounts and
-without minimum withdrawals). The part of it that is taxable comes
+without minimum withdrawals; `tail` on the result is the month behind it, the plan's last
+year in today's money). The part of it that is taxable comes
 from the IRS worksheet (`fpSSTaxable`): half the benefits plus the other income against
 the year's two amounts, which are not moved with inflation; typed taxes on it still win.
 The ages, the adjustments and the start of minimum withdrawals are all read from the

@@ -20,7 +20,7 @@ const need = (p) => page.evaluate((p) => {
     const plan = Object.assign(base, p, { retire: Object.assign(base.retire, p.retire), assume: Object.assign(base.assume, p.assume) });
     const n = fpNeededToStop(plan);
     n.rows.forEach(r => { if (r.forever === Infinity) r.forever = 'inf'; if (r.needed === Infinity) r.needed = 'inf'; });
-    return { rows: n.rows, foreverAt: n.foreverAt, text: fpForeverText(Object.assign({}, n, { rows: n.rows.map(r => Object.assign({}, r, { forever: r.forever === 'inf' ? Infinity : r.forever })) }), false) };
+    return { rows: n.rows, foreverAt: n.foreverAt, tail: n.tail, tailText: fpTailText(n, false), parts: fpTailParts(n.tail), text: fpForeverText(Object.assign({}, n, { rows: n.rows.map(r => Object.assign({}, r, { forever: r.forever === 'inf' ? Infinity : r.forever })) }), false) };
 }, p);
 const near = (a, b, share) => Math.abs(a - b) <= b * share;
 const plan = (accounts, retire, more) => Object.assign({ accounts,
@@ -69,7 +69,22 @@ const covered = await need(plan(mixed, {}, { incomes: [{ id: 'p', name: 'Pension
 ok('income covers it: nothing needed', covered.rows[0].forever === 0 && covered.foreverAt === 0, String(covered.rows[0].forever));
 ok('already there reads as now', /forever now, at 43/.test(covered.text), covered.text);
 
-// 7. On the page: chart, table, hover and year.
+// 7. The month that sets the end of the lines.
+ok('no other income: all the spending is left for savings', near(simple.tail.living, 5000, 0.001) && simple.tail.income === 0 && /\$5,000 a month at \d+ in today’s money, all of it left for savings: \$5,000/.test(simple.tailText), simple.tailText);
+ok('in today’s money, with the plan’s spending as typed', near(n.tail.living, 5200, 0.001), String(n.tail.living));
+ok('the parts add up', Math.abs(n.tail.spend - (n.tail.living + n.tail.health + n.tail.loans + n.tail.goals)) < 0.01);
+ok('Social Security comes off it', n.tail.income > 2000 && new RegExp('\\$5,200 a month at 94 in today’s money, \\$[\\d,]+ of it covered by income, leaving \\$' + (5200 - Math.round(n.tail.income)).toLocaleString('en-US')).test(n.tailText), n.tailText);
+ok('the tax on drawing it is there, without minimum withdrawals behind it', n.tail.tax >= 0 && n.tail.tax < 800, String(n.tail.tax));
+ok('income covering it says so', /all covered by \$[\d,]+ of income, leaving savings nothing to pay/.test(covered.tailText), covered.tailText);
+ok('out of reach still gives the month', inCash.tail.spend >= 5200 && /a month at 94/.test(inCash.tailText), inCash.tailText);
+const withHealth = await need(plan(mixed, { health: true, healthAfter: 250, medInfl: 5 }));
+ok('health costs are a part of their own, grown past inflation', withHealth.tail.health > 250 * 1.5 && /living costs \$5,200, health \$/.test(withHealth.parts), withHealth.parts);
+// $1,000 a month at 3% on $300,000 is interest and little else: still paid at 94, by then
+// worth far less in today's money than the $1,000 it stays at.
+const loan = await need(plan(mixed.concat([{ id: 'l', name: 'Long loan', kind: 'loan', balance: 300000, rate: 3, monthly: 800 }])));
+ok('a loan still paid at the end counts, in today’s money', loan.tail.loans > 50 && loan.tail.loans < 300 && /loans \$/.test(loan.parts), loan.parts);
+
+// 8. On the page: chart, table, hover and year.
 await page.evaluate((p) => { const id = fpToolId(document.querySelector('.fp-widget')); const base = fpGet(id); fpSet(id, Object.assign(base, p, { retire: Object.assign(base.retire, p.retire), assume: Object.assign(base.assume, p.assume) })); setToolMode(id, 'split'); fpRender(document.querySelector('.fp-widget')); }, plan(mixed));
 await page.waitForFunction(() => document.querySelector('.fp-chart .fp-forever') && !document.querySelector('.fp-chart .fp-forever').classList.contains('fp-stale') && document.querySelector('.fp-chart .fp-forever').getAttribute('d'), null, { timeout: 15000 });
 await page.clock.runFor(1000);
@@ -83,7 +98,8 @@ ok('the hover gives it', /to last forever \$/.test(await page.textContent('.fp-c
 await page.locator('.fp-year-row').nth(2).click();
 ok('a picked year gives it', /To last forever from then: \$/.test(await page.innerText('.fp-projection')));
 const summary = await page.evaluate(() => fpSummaryText(fpGet(fpToolId(document.querySelector('.fp-widget')))));
-ok('the summary has it', /Could live on savings forever/.test(summary));
+ok('the summary has it', /Could live on savings forever/.test(summary) && /What sets the end of the lines: \$5,200 a month at 94/.test(summary));
+ok('the facts give the month, the hover its parts', /What sets the end of the lines: \$5,200 a month at 94/.test(await page.innerText('.fp-projection .fp-facts')) && /living costs \$5,200/.test(await page.getAttribute('.fp-tail', 'title')));
 
 ok('no page errors', errors.length === 0, errors.join(' | '));
 console.log(count + ' checks' + (failed ? ', ' + failed + ' FAILED' : ''));
