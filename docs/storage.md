@@ -119,6 +119,8 @@ to different code. See [Dynamic Tools](dynamic-tool.md).
 
 Tool-specific data is stored as a named property inside `toolCustomizations[toolId]` (e.g., `checklistItems`, `dirtreeItems`, `diffData`).
 
+A tool with authoring modes also keeps `viewMode`, `lastResultMode`, and for Both `splitDirection` (`'row'` or `'column'`; unset, the tool's own) and where the divider was left each way, `splitRatio` and `splitRatioStacked`.
+
 ### Dynamic tools — a tool the user wrote
 
 A tool made from the `script` template keeps what it is in four keys, plus the pane

@@ -220,7 +220,7 @@
 
 .checklist-list-pane { overflow: auto; }
 
-.tool.authoring-split .checklist-source { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .checklist-source { padding-right: 10px; }
 
 .checklist-add-row {
     display: flex;

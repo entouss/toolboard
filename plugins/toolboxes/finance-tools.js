@@ -77,8 +77,8 @@
 .fp-widget { font-size: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; box-sizing: border-box; padding: 10px; }
 .fp-widget .authoring-source { flex: 1 1 60%; min-width: 0; overflow: auto; }
 .fp-widget .authoring-result { flex: 1 1 40%; min-width: 0; overflow: auto; }
-.tool.authoring-split .fp-widget .authoring-source { padding-right: 10px; }
-.tool.authoring-split .fp-widget .authoring-result { padding-left: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .fp-widget .authoring-source { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .fp-widget .authoring-result { padding-left: 10px; }
 .fp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
 .fp-card { background: var(--bg-secondary); border-radius: 4px; padding: 8px 10px; }
 .fp-card-label { font-size: 11px; color: var(--text-muted); }

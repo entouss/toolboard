@@ -44,16 +44,14 @@
 }
 
 .proj-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; font-size: 12px; }
-/* The chart goes under the table, not beside it: a row of this table is wide and a
-   bar is long, so side by side gives each of them half the width it wants. The
-   framework's divider is a column-resizer and its drag maths is horizontal, so this
-   tool does without one — the panes split the height and each scrolls. */
-.proj-widget .authoring-split { flex-direction: column; }
-.proj-widget .authoring-resizer { display: none; }
+/* The chart starts under the table, not beside it: a row of this table is wide and a bar is
+   long, so side by side gives each of them half the width it wants. Stacked, the timeline is
+   the divider, and shares the height; side by side, the framework's divider shares the width. */
+.tool.authoring-stacked .proj-widget .authoring-resizer { display: none; }
 .proj-widget .authoring-source { display: flex; flex-direction: column; min-width: 0; min-height: 0; flex: 1 1 58%; overflow: auto; }
 .proj-widget .authoring-result { flex: 1 1 42%; min-width: 0; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
-.tool.authoring-split .proj-widget .authoring-source { padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
-.tool.authoring-split .proj-widget .authoring-result { padding-top: 8px; }
+.tool.authoring-split.authoring-stacked .proj-widget .authoring-source { padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
+.tool.authoring-split.authoring-stacked .proj-widget .authoring-result { padding-top: 8px; }
 
 /* ---- The periods timeline, which is also the divider --------------------------
 
@@ -63,7 +61,7 @@
 .proj-timeline { display: none; position: relative; flex: 0 0 auto; height: 100px; margin: 4px 0; cursor: row-resize;
     border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); background: var(--bg-secondary, var(--bg-tertiary));
     user-select: none; touch-action: none; font-variant-numeric: tabular-nums; }
-.tool.authoring-split .proj-widget .proj-timeline { display: block; }
+.tool.authoring-split.authoring-stacked .proj-widget .proj-timeline { display: block; overflow: hidden; }
 .proj-timeline:focus-visible { outline: 2px solid #3498db; outline-offset: -2px; }
 .proj-timeline.proj-dragging, .proj-timeline:hover { border-color: #3498db; }
 .proj-tl-rows { position: absolute; left: 8px; right: 30px; top: 4px; bottom: 4px; }
@@ -619,6 +617,7 @@ PluginRegistry.registerTool({
         // thing, so looking away does not put this back to the chart: the view
         // somebody picked is the view they meant.
         settle: false,
+        splitDirection: 'column',
         // Both, not Table: the chart is half of what this tool is for, and a plan
         // that opens without it reads as a spreadsheet with extra columns.
         defaultMode: 'split',
@@ -2055,6 +2054,9 @@ function projApplySplit(widget, fraction) {
     const source = widget.querySelector('.proj-table-pane');
     const result = widget.querySelector('.proj-gantt-pane');
     if (!source || !result) return;
+    // Side by side the framework's divider has the panes, and this is a share of the height.
+    const tool = widget.closest('.tool');
+    if (tool && !tool.classList.contains('authoring-stacked')) { result.style.flex = ''; return; }
     source.style.flex = '1 1 ' + (fraction * 100).toFixed(1) + '%';
     result.style.flex = '1 1 ' + ((1 - fraction) * 100).toFixed(1) + '%';
     const tl = widget.querySelector('.proj-timeline');

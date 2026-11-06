@@ -381,8 +381,8 @@
 .cbld-status.err { color: #e74c3c; }
 .cbld-editor { display: flex; flex-direction: column; gap: 6px; min-height: 0; min-width: 0; flex: 1 1 62%; }
 .cbld-out { display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 38%; }
-.tool.authoring-split .cbld-editor { padding-right: 8px; }
-.tool.authoring-split .cbld-out { padding-left: 8px; }
+.tool.authoring-split:not(.authoring-stacked) .cbld-editor { padding-right: 8px; }
+.tool.authoring-split:not(.authoring-stacked) .cbld-out { padding-left: 8px; }
 
 /* The empty tool: three ways to get a document in, and nothing else. */
 .cbld-start { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; }

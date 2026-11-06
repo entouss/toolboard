@@ -2244,6 +2244,17 @@ main#toolboard {
 .authoring-resizer { flex: 0 0 5px; cursor: col-resize; background: var(--border-light); border-radius: 3px; }
 .authoring-resizer:hover { background: var(--accent-color, #3498db); }
 
+/* Both, one pane over the other. Only in Both: alone, a pane fills the tool either way. */
+.tool.authoring-split.authoring-stacked .authoring-split { flex-direction: column; }
+.tool.authoring-split.authoring-stacked .authoring-split > :not(.authoring-resizer) { min-width: 0; min-height: 0; overflow: auto; }
+.tool.authoring-split.authoring-stacked .authoring-resizer { cursor: row-resize; margin: 6px 0; }
+.authoring-layout-btn {
+    display: inline-flex; align-items: center; padding: 3px 5px; border: 1px solid var(--border-color); border-radius: 3px;
+    background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; flex-shrink: 0;
+}
+.authoring-layout-btn:hover { background: var(--bg-secondary); }
+.tool:not(.authoring-split) .authoring-layout-btn { display: none; }
+
 /* The note. Its result is markdown, which brings its own spacing, so the pane only
    has to give it room and get out of the way. */
 .note-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; }
@@ -2277,8 +2288,8 @@ main#toolboard {
 }
 .note-source:focus { outline: none; }
 .note-widget .authoring-result { flex: 1 1 50%; min-width: 0; overflow: auto; }
-.tool.authoring-split .note-widget .authoring-source { padding-right: 10px; }
-.tool.authoring-split .note-widget .authoring-result { padding-left: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .note-widget .authoring-source { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .note-widget .authoring-result { padding-left: 10px; }
 .note-empty { color: var(--text-muted); font-size: 12px; font-style: italic; }
 .note-btn {
     padding: 2px 7px; border: 1px solid var(--border-color); background: var(--bg-tertiary);
@@ -2411,8 +2422,8 @@ main#toolboard {
 .dyn-widget { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; }
 .dyn-widget .authoring-source { display: flex; flex-direction: column; min-width: 0; flex: 1 1 50%; }
 .dyn-widget .authoring-result { flex: 1 1 50%; min-width: 0; overflow: auto; }
-.tool.authoring-split .dyn-widget .authoring-source { padding-right: 10px; }
-.tool.authoring-split .dyn-widget .authoring-result { padding-left: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .dyn-widget .authoring-source { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .dyn-widget .authoring-result { padding-left: 10px; }
 .dyn-tabs { display: flex; gap: 4px; margin-bottom: 6px; flex: 0 0 auto; }
 .dyn-tab {
     padding: 2px 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary);
@@ -5099,7 +5110,9 @@ function normalizeAuthoring(declared) {
         // and a table that jumped to the chart whenever you clicked elsewhere on the
         // board would be losing the view you chose, repeatedly, for no reason you
         // could see.
-        settle: declared.settle !== false
+        settle: declared.settle !== false,
+        // How Both starts out, for a tool whose panes want it the other way.
+        splitDirection: declared.splitDirection === 'column' ? 'column' : 'row'
     };
 }
 
@@ -5142,6 +5155,38 @@ function authoringModeButtonsHtml(authoring, mode) {
         escapeHtml(authoring.labels[m] || AUTHORING_LABELS[m]) + '</button>').join('');
 }
 
+/** Both side by side ('row') or one over the other ('column'): the tool's own choice, or
+ *  how it starts out. */
+function getSplitDirection(toolId, authoring) {
+    const saved = (toolCustomizations[toolId] || {}).splitDirection;
+    return saved === 'row' || saved === 'column' ? saved : authoring.splitDirection;
+}
+
+/** Where the divider was left, kept for each direction: a width is no use as a height. */
+function splitRatioKey(direction) {
+    return direction === 'column' ? 'splitRatioStacked' : 'splitRatio';
+}
+
+/** The way the button would turn Both, drawn and said. */
+function authoringLayoutButton(btn, direction) {
+    const next = direction === 'column' ? 'side by side' : 'one over the other';
+    btn.title = 'Show them ' + next;
+    btn.setAttribute('aria-label', btn.title);
+    btn.innerHTML = '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="1"/>' +
+        '<path d="' + (direction === 'column' ? 'M7 1v12' : 'M1 7h12') + '"/></svg>';
+}
+
+function toggleSplitDirection(btn) {
+    const tool = btn.closest('.tool');
+    const toolId = tool && tool.getAttribute('data-tool');
+    const authoring = toolId && getAuthoring(toolId);
+    if (!authoring) return;
+    if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
+    toolCustomizations[toolId].splitDirection = getSplitDirection(toolId, authoring) === 'column' ? 'row' : 'column';
+    saveToolCustomizations(toolCustomizations);
+    applyToolMode(tool, toolId);
+}
+
 /** A bar of the framework's own, for a tool that offers no controls to share it. */
 function authoringOverlayHtml(authoring, mode) {
     return '<div class="authoring-overlay">' + authoringModeButtonsHtml(authoring, mode) + '</div>';
@@ -5169,6 +5214,11 @@ function authoringBar(tool, authoring, mode) {
     bar.classList.add('authoring-overlay');
     if (!bar.querySelector('.authoring-mode-btn')) {
         bar.insertAdjacentHTML('afterbegin', authoringModeButtonsHtml(authoring, mode));
+    }
+    // Only where Both is the two panes: a tool whose source is a toolbar has nothing to turn.
+    if (tool.querySelector('.authoring-split') && !bar.querySelector('.authoring-layout-btn')) {
+        const modes = bar.querySelectorAll('.authoring-mode-btn');
+        modes[modes.length - 1].insertAdjacentHTML('afterend', '<button class="authoring-layout-btn" onclick="toggleSplitDirection(this)"></button>');
     }
     return bar;
 }
@@ -5204,9 +5254,14 @@ function applyToolMode(tool, toolId) {
     // Restore the divider before the result is drawn, so the renderer measures the
     // width it will actually have.
     const split = tool.querySelector('.authoring-split');
-    if (split && custom.splitRatio) {
+    const direction = getSplitDirection(toolId, authoring);
+    tool.classList.toggle('authoring-stacked', !!split && direction === 'column');
+    const layoutBtn = tool.querySelector('.authoring-layout-btn');
+    if (layoutBtn) authoringLayoutButton(layoutBtn, direction);
+    if (split) {
         const pane = tool.querySelector(authoring.source);
-        if (pane) pane.style.flex = '0 0 ' + (custom.splitRatio * 100) + '%';
+        const ratio = custom[splitRatioKey(direction)];
+        if (pane) pane.style.flex = ratio ? '0 0 ' + (ratio * 100) + '%' : '';
     }
 
     if (mode !== 'edit' && authoring.onRender && typeof window[authoring.onRender] === 'function') {
@@ -5249,9 +5304,11 @@ function startAuthoringResize(resizer, event) {
     const pane = container.querySelector(authoring.source);
     if (!pane) return;
     let ratio = null;
+    const direction = getSplitDirection(toolId, authoring);
     const onMove = (e) => {
         const rect = container.getBoundingClientRect();
-        ratio = Math.min(0.85, Math.max(0.15, (e.clientX - rect.left) / rect.width));
+        const at = direction === 'column' ? (e.clientY - rect.top) / rect.height : (e.clientX - rect.left) / rect.width;
+        ratio = Math.min(0.85, Math.max(0.15, at));
         pane.style.flex = '0 0 ' + (ratio * 100) + '%';
     };
     const onUp = () => {
@@ -5259,7 +5316,7 @@ function startAuthoringResize(resizer, event) {
         document.removeEventListener('mouseup', onUp);
         if (ratio === null) return;
         if (!toolCustomizations[toolId]) toolCustomizations[toolId] = {};
-        toolCustomizations[toolId].splitRatio = ratio;
+        toolCustomizations[toolId][splitRatioKey(direction)] = ratio;
         saveToolCustomizations(toolCustomizations);
     };
     document.addEventListener('mousemove', onMove);

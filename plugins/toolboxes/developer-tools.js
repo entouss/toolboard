@@ -673,7 +673,7 @@ body.dark-mode .diff-line.deletion .diff-gutter { background: rgba(231, 76, 60, 
    and the later rule was replacing this bar's transition with its own. */
 .dirtree-bar { display: flex; align-items: center; gap: 4px; }
 .dirtree-source, .dirtree-tree-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
-.tool.authoring-split .dirtree-source { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .dirtree-source { padding-right: 10px; }
 /* Wraps: beside the text this row has half a tool to fit in, and the folder button
    and Add were being cut off the end of it. */
 .dirtree-input-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }

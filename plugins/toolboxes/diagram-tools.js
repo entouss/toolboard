@@ -17,7 +17,7 @@
 .seq-edit-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
 .seq-edit-pane textarea { flex: 1; resize: none; padding: 0; border: none; background: transparent; font-family: monospace; font-size: 12px; color: var(--text-primary); min-height: 100px; line-height: 1.5; outline: none; }
 .seq-edit-pane textarea::placeholder { color: var(--text-muted); }
-.tool.authoring-split .seq-edit-pane { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .seq-edit-pane { padding-right: 10px; }
 .seq-view-pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); overflow: auto; }
 .tool.authoring-render .seq-view-pane { border: none; border-radius: 0; background: transparent; }
 .seq-diagram { flex: 1; min-height: 200px; display: flex; justify-content: center; padding: 10px; }
@@ -64,7 +64,7 @@ body.dark-mode .seq-dashed-number-bg { fill: #8e44ad; }
 .mermaid-diag-editor { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
 .mermaid-diag-editor textarea { flex: 1; resize: none; border: none; padding: 0; font-family: monospace; font-size: 12px; line-height: 1.5; background: transparent; color: var(--text-primary); outline: none; min-height: 0; }
 .mermaid-diag-preview { flex: 1 1 50%; min-width: 0; overflow: auto; padding: 8px; background: var(--bg-secondary); border-radius: 4px; display: flex; align-items: flex-start; justify-content: center; }
-.tool.authoring-split .mermaid-diag-editor { padding-right: 10px; }
+.tool.authoring-split:not(.authoring-stacked) .mermaid-diag-editor { padding-right: 10px; }
 .mermaid-diag-preview svg { max-width: 100%; height: auto; }
 .mermaid-diag-error { color: #e74c3c; font-size: 11px; font-family: monospace; white-space: pre-wrap; padding: 8px; }
 .mermaid-diag-status { font-size: 11px; color: var(--text-muted); padding: 3px 0 0; }
