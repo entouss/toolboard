@@ -147,6 +147,8 @@ tr.fp-acc.fp-open td { background: var(--bg-secondary); }
 .fp-link { border: none; background: none; color: #2980b9; cursor: pointer; font-size: 12px; padding: 0 4px; }
 .fp-x { border: none; background: none; color: var(--text-muted); cursor: pointer; font-size: 14px; }
 .fp-x:hover { color: #c0392b; }
+.fp-dup { border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 0 3px; vertical-align: -1px; }
+.fp-dup:hover { color: var(--text-primary); }
 .calc-widget.fp-widget label.fp-check { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
 .calc-widget.fp-widget .fp-check input { width: auto; }
 .fp-tax { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
@@ -3357,7 +3359,7 @@ function fpRender(widget) {
             '<td><input class="fp-in fp-num" type="number" step="0.1" data-f="rate" value="' + attr(a.rate) + '" placeholder="' + fpNum(plan.assume.returns[a.kind], kind.rate) + '" aria-label="' + (liability ? 'Interest' : 'Return') + ' per cent a year"></td>' +
             '<td class="fp-acc-monthly"></td>' +
             '<td class="fp-acts">' + (kind.tool ? '<button type="button" class="fp-link" onclick="fpOpenAccountTool(this)" title="Work it out in the ' + escapeHtml((PluginRegistry.getTool(kind.tool) || {}).name || 'calculator') + '">↗</button>' : '') +
-                '<button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>';
+                fpDupButton() + '<button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>';
         return main + (open && !under[a.id] ? fpDetailsRow(plan, a) : '');
     }).join('');
     const flowRows = (list, isIncome) => plan[list].map(l => fpIsSection(l) ? secRow(l, list, isIncome ? 10 : 8) :
@@ -3380,7 +3382,7 @@ function fpRender(widget) {
                 : '<td><input class="fp-in fp-date" type="month" data-f="from" value="' + attr(l.from) + '" aria-label="From" title="From (empty: now)"></td>') +
             '<td><input class="fp-in fp-date" type="month" data-f="to" value="' + attr(l.to) + '" aria-label="Until" title="Until (empty: no end)"></td>' +
             (isIncome ? '<td><label class="fp-check" title="Counted in the federal estimate, unless its taxes are typed"><input class="fp-in" type="checkbox" data-f="taxed"' + (l.taxed !== false ? ' checked' : '') + '> Taxed</label></td>' : '<td></td>') +
-            '<td class="fp-acts"><button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>' +
+            '<td class="fp-acts">' + fpDupButton() + '<button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>' +
         (isIncome && widget._open.has(l.id) && !under[l.id] ? fpIncomeDetailsRow(plan, l) : '')).join('');
     const payFrom = fpAllEntries(plan.accounts).filter(fpCanPayGoal);
     const goalRows = plan.goals.map(g => fpIsSection(g) ? secRow(g, 'goals', 8) :
@@ -3393,7 +3395,7 @@ function fpRender(widget) {
             '<td><input class="fp-in fp-date" type="month" data-f="from" value="' + attr(g.from) + '" aria-label="When the first payment falls" title="When the first payment falls"></td>' +
             '<td><select class="fp-in" data-f="account" aria-label="Paid from"><option value="">Cash, then savings</option>' +
                 payFrom.map(a => '<option value="' + attr(a.id) + '"' + (g.account === a.id ? ' selected' : '') + '>' + escapeHtml(a.name || fpKindLabel(a)) + (a.off ? ' (off)' : '') + '</option>').join('') + '</select></td>' +
-            '<td class="fp-acts"><button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>').join('');
+            '<td class="fp-acts">' + fpDupButton() + '<button type="button" class="fp-x" onclick="fpRemove(this)" title="Remove">×</button></td></tr>').join('');
     const goalHead = '<thead><tr><th>Name</th><th>Cost today</th><th></th><th>Years</th><th>Grows %/yr</th><th>From</th><th>Paid from</th><th></th></tr></thead>';
     const flowHead = '<thead><tr><th>Name</th><th>Amount</th><th></th><th>Grows %/yr</th><th>From</th><th>Until</th><th></th><th></th></tr></thead>';
     const incomeHead = '<thead><tr><th>Name</th><th>Amount</th><th></th><th>Deductions</th><th>Taxes</th><th>Grows %/yr</th><th>From</th><th>Until</th><th></th><th></th></tr></thead>';
@@ -4831,6 +4833,41 @@ function fpRemove(btn) {
     fpRender(widget);
 }
 
+function fpDupButton() {
+    return '<button type="button" class="fp-dup" onclick="fpDuplicate(this)" title="Duplicate" aria-label="Duplicate this line"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">' +
+        '<rect x="1" y="1" width="8.5" height="8.5" rx="1"/><path d="M12.5 4.5v8h-8"/></svg></button>';
+}
+
+/**
+ * A line again, right under itself, with all it holds and ids of its own. What points at an
+ * account goes on pointing at the original. A second Social Security line would leave
+ * neither with the plan's pay, so the first keeps its pay by name and the copy starts with none.
+ */
+function fpDuplicate(btn) {
+    const widget = fpWidget(btn), toolId = fpToolId(btn), tr = btn.closest('tr');
+    const list = tr.dataset.list;
+    const plan = fpGet(toolId);
+    const at = plan[list].findIndex(x => x.id === tr.dataset.id);
+    if (at < 0) return;
+    const item = plan[list][at];
+    const copy = JSON.parse(JSON.stringify(item));
+    copy.id = fpNewId(list.slice(0, 1));
+    if (item.name) copy.name = item.name + ' copy';
+    if (list === 'incomes' && item.type !== 'ss' && fpIntoRows(copy).length) fpSetInto(copy, fpIntoRows(copy).map(r => Object.assign({}, r, { id: fpNewId('r') })));
+    if (item.type === 'ss') {
+        const lines = fpAllEntries(plan.incomes);
+        if (!Array.isArray(item.payFrom)) item.payFrom = lines.filter(l => l.type === 'ss').length === 1 ? lines.filter(l => l.type !== 'ss' && l.wages !== false).map(l => l.id) : [];
+        copy.payFrom = [];
+    }
+    plan[list].splice(at + 1, 0, copy);
+    const order = list === 'accounts' ? plan.drawOrder.findIndex(x => x.id === item.id) : -1;
+    if (order >= 0) plan.drawOrder.splice(order + 1, 0, { id: copy.id });
+    fpSet(toolId, plan);
+    fpRender(widget);
+    const name = widget.querySelector('tr[data-list="' + list + '"][data-id="' + CSS.escape(copy.id) + '"] [data-f="name"]');
+    if (name) { name.focus(); name.select(); }
+}
+
 /** A made-up household, to see the tool working before typing anything in. */
 function fpSample(btn) {
     const widget = fpWidget(btn), toolId = fpToolId(btn);
@@ -5269,7 +5306,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,
