@@ -91,6 +91,18 @@
 .fp-bar { display: flex; height: 10px; gap: 2px; margin: 4px 0; }
 .fp-bar-seg { display: block; height: 100%; border-radius: 2px; min-width: 3px; }
 .fp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+.fp-legend-line { all: unset; cursor: pointer; }
+.fp-legend-line:hover { text-decoration: underline; }
+.fp-legend-line:focus-visible, .fp-chart .fp-line-name:focus-visible { outline: 2px solid var(--accent-color, #0072B2); outline-offset: 2px; }
+.fp-legend-on { font-weight: 600; color: var(--text-primary); }
+.fp-legend-off { opacity: 0.6; }
+.fp-legend-all { padding: 0 6px; font-size: 11px; }
+.fp-chart .fp-line-name { cursor: pointer; }
+.fp-chart .fp-line-name:hover { text-decoration: underline; }
+.fp-progress { display: flex; align-items: center; gap: 8px; margin: 4px 0 6px; font-size: 11px; color: var(--text-secondary); }
+.fp-progress[hidden] { display: none; }
+.fp-progress-track { flex: 1; max-width: 240px; height: 6px; border-radius: 3px; overflow: hidden; background: var(--bg-secondary); }
+.fp-progress-fill { height: 100%; background: #0072B2; }
 .fp-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 .fp-empty, .fp-view-empty { padding: 10px; margin: 8px 0; background: var(--bg-secondary); border-radius: 4px; color: var(--text-secondary); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .tool:not(.authoring-render) .fp-view-empty { display: none; }
@@ -2944,6 +2956,16 @@ function fpRetireMax(plan, shift) {
  * costs, goals and loans; null or 0 where there is nothing to spend.
  */
 function fpNeededToStop(plan) {
+    const steps = fpNeededSteps(plan, false);
+    let step = steps.next();
+    while (!step.done) step = steps.next();
+    return step.value;
+}
+
+/** The working of fpNeededToStop, a year at a time: yields { done, total } after each, so that
+ *  the page can show how far it has got, and returns the result. `all` works out what could
+ *  be spent for every year as it goes, rather than for a year when asked. */
+function* fpNeededSteps(plan, all) {
     const p = fpCalc(Object.assign({}, plan, { retire: Object.assign({}, plan.retire, { on: true }) }));
     const ret = fpRetireInfo(p);
     if (!ret) return null;
@@ -2958,8 +2980,9 @@ function fpNeededToStop(plan) {
     const infl = fpNum(p.assume.inflation, 0) / 100;
     const real = (v, t) => p.assume.real ? v / Math.pow(1 + infl, t / 12) : v;
     let lastForever = 0;
-    const tailOf = [], spendOf = [];
-    const rows = base.snaps.map((s, k) => {
+    const tailOf = [], spendOf = [], rows = [], spent = {};
+    for (let k = 0; k < base.snaps.length; k++) {
+        const s = base.snaps[k];
         const have = draw.reduce((sum, id) => sum + s.bal[id], 0) + (into ? 0 : s.loose);
         const pos = draw.filter(id => s.bal[id] > 0);
         const looseUp = !into && s.loose > 0;
@@ -3063,11 +3086,13 @@ function fpNeededToStop(plan) {
         // The month that sets the end of the lines, should this year be the one to tell it from.
         tailOf[k] = () => fpProject(pk, 0, { stopT: s.t + 1, from: inMix(isFinite(forever) ? forever : isFinite(needed) ? needed : Math.max(0, have)), lite: true, tail: pot, endT: Infinity }).tail.month;
         const date = new Date(base.start.getFullYear(), base.start.getMonth() + s.t, 1);
-        return { t: s.t, year: base.start.getFullYear() + k, age: Math.floor(ret.ageAt(date) / 12), have: real(have, s.t), needed: needed === Infinity ? Infinity : real(needed, s.t), forever: forever === Infinity ? Infinity : real(forever, s.t),
+        rows.push({ t: s.t, year: base.start.getFullYear() + k, age: Math.floor(ret.ageAt(date) / 12), have: real(have, s.t), needed: needed === Infinity ? Infinity : real(needed, s.t), forever: forever === Infinity ? Infinity : real(forever, s.t),
             // Whether the plan's own savings last, run as they are — not compared with the
             // needed figure, which is found to within a few dollars.
-            enough: have >= 0 && (have >= needed || lasts(have)), enoughForever: have >= 0 && have >= forever };
-    });
+            enough: have >= 0 && (have >= needed || lasts(have)), enoughForever: have >= 0 && have >= forever });
+        if (all) spent[s.t] = spendOf[k]();
+        yield { done: k + 1, total: base.snaps.length };
+    }
     // The plan's last year is the one measured, so stopping then has setting up the cash
     // buffer, and the tax on it, counted as if it went on: it stands at the year before's.
     if (rows.length > 1) {
@@ -3079,8 +3104,7 @@ function fpNeededToStop(plan) {
     const foreverAt = rows.findIndex(r => r.enoughForever);
     // Told from the year the savings get there, or short of the last, whose own start is measured.
     const month = tailOf[Math.max(0, Math.min(foreverAt < 0 ? rows.length : foreverAt, rows.length - 2))]();
-    // A year's is worked out only when it is asked for, and kept.
-    const spent = {};
+    // A year's, if not worked out already, when it is asked for, and kept.
     const spendAt = (t) => {
         if (!(t in spent)) { const k = rows.findIndex(r => r.t === t); spent[t] = k < 0 ? undefined : spendOf[k](); }
         return spent[t];
@@ -3088,18 +3112,66 @@ function fpNeededToStop(plan) {
     const retiresLater = ret.date > base.start;
     const best = retiresLater ? fpRetireMax(p, 0) : null;
     return { rows: rows, earliest: earliest < 0 ? null : earliest, foreverAt: foreverAt < 0 ? null : foreverAt, until: ret.until, start: base.start, spendAt: spendAt,
-        spend: { now: spendAt(0), plan: best === 0 ? null : best, later: retiresLater, retireAt: ret.atMonths },
+        spend: { now: spendAt(0), plan: best === 0 ? null : best, later: retiresLater, retireAt: ret.atMonths, set: fpRetireSpending(p) },
         tail: Object.assign(month, { age: rows[rows.length - 1].age, spend: month.living + month.health + month.loans + month.goals }) };
 }
 
 /**
  * fpNeededToStop for the plan as it stands, worked out a moment after typing stops — it
- * runs the plan a few hundred times — and kept on the widget until the plan, the rules
- * or the month change. Meanwhile the last figures are shown, marked as out of date.
- * Returns { value, stale }, value null until there is one.
+ * runs the plan thousands of times — and kept on the widget until the plan, the rules or
+ * the month change. It goes a couple of years at a time, the page free between them and a
+ * bar showing how far it has got; a change starts it again. Meanwhile the last figures are
+ * shown, marked as out of date. Returns { value, stale }, value null until there is one.
  */
 function fpNeededFor(widget, plan) {
-    return fpLater(widget, '_needed', plan, fpNeededToStop);
+    const key = fpLaterKey(plan);
+    const had = widget._needed;
+    if (had && had.key === key) return { value: had.value, stale: false };
+    const running = widget._neededJob;
+    if (running && running.key === key) return { value: had ? had.value : null, stale: true };
+    if (running) clearTimeout(running.timer);
+    const job = widget._neededJob = { key: key, done: 0, total: 0 };
+    job.timer = setTimeout(() => {
+        if (!widget.isConnected) { widget._neededJob = null; return; }
+        const now = fpGet(fpToolId(widget));
+        job.key = fpLaterKey(now);
+        const steps = fpNeededSteps(now, true);
+        const next = () => {
+            if (widget._neededJob !== job) return;
+            if (!widget.isConnected) { widget._neededJob = null; return; }
+            let step = steps.next();
+            if (!step.done) step = steps.next();
+            if (step.done) {
+                widget._neededJob = null;
+                widget._needed = { key: job.key, value: step.value };
+                fpRenderDerived(widget, now);
+                return;
+            }
+            job.done = step.value.done; job.total = step.value.total;
+            fpShowProgress(widget, job);
+            job.timer = setTimeout(next, 0);
+        };
+        next();
+    }, 300);
+    return { value: had ? had.value : null, stale: true };
+}
+
+/** The bar for work under way, hidden until it has a total to show against. */
+function fpProgressHtml(job) {
+    return '<div class="fp-progress" role="progressbar" aria-label="Working out figures" aria-valuemin="0"' + (job.total ? '' : ' hidden') + ' aria-valuemax="' + job.total + '" aria-valuenow="' + job.done + '">' +
+        '<div class="fp-progress-track"><div class="fp-progress-fill" style="width:' + (job.total ? job.done / job.total * 100 : 0).toFixed(1) + '%"></div></div>' +
+        '<span class="fp-progress-text">Working out figures: ' + job.done + ' of ' + job.total + ' years</span></div>';
+}
+
+/** The bar brought up to date, without drawing the rest again. */
+function fpShowProgress(widget, job) {
+    const bar = widget.querySelector('.fp-progress');
+    if (!bar) return;
+    bar.hidden = false;
+    bar.setAttribute('aria-valuemax', job.total);
+    bar.setAttribute('aria-valuenow', job.done);
+    bar.querySelector('.fp-progress-fill').style.width = (job.done / job.total * 100).toFixed(1) + '%';
+    bar.querySelector('.fp-progress-text').textContent = 'Working out figures: ' + job.done + ' of ' + job.total + ' years';
 }
 
 /** fpGoalSaving the same way — and at once, with nothing to work out. */
@@ -3109,12 +3181,17 @@ function fpGoalSavingFor(widget, plan) {
     return fpLater(widget, '_goalSave', plan, fpGoalSaving);
 }
 
+/** What work on a plan depends on: the plan, the rules and the month. */
+function fpLaterKey(plan) {
+    let raw = null;
+    try { raw = localStorage.getItem(TAX_TABLE_KEY); } catch (e) { raw = null; }
+    return JSON.stringify(plan) + '|' + raw + '|' + fpYm(new Date());
+}
+
 /** Work that runs the plan many times, done a moment after typing stops and kept on the
  *  widget, under `slot`, until the plan, the rules or the month change. */
 function fpLater(widget, slot, plan, compute) {
-    let raw = null;
-    try { raw = localStorage.getItem(TAX_TABLE_KEY); } catch (e) { raw = null; }
-    const keyOf = (pl) => JSON.stringify(pl) + '|' + raw + '|' + fpYm(new Date());
+    const keyOf = fpLaterKey;
     const key = keyOf(plan);
     const had = widget[slot];
     if (had && had.key === key) return { value: had.value, stale: false };
@@ -3149,6 +3226,12 @@ function fpForeverText(need, html) {
     return 'Could live on savings forever ' + (r.t === 0 ? b('now') : 'from ' + b(String(r.year))) + ', at ' + r.age + ': ' + fpMoney(r.forever) + ' needed, ' + fpMoney(r.have) + ' saved';
 }
 
+/** The spending the plan has now, to set beside what could be spent. */
+function fpSetText(need) {
+    const set = need && need.spend && need.spend.set;
+    return typeof set === 'number' ? 'currently set at ' + fpMoney(set) + ' a month' : '';
+}
+
 /** The most that could be spent and last, stopping now and on the plan's date, in words. */
 function fpLastToText(need, html) {
     const c = need && need.spend;
@@ -3157,22 +3240,24 @@ function fpLastToText(need, html) {
     const start = 'To last to ' + need.until + ': ', extras = ' on top of health costs, goals and loans';
     const retiring = 'retiring at ' + fpAgeText(c.retireAt);
     const figure = (v) => 'up to ' + b(fpMoney(v)) + ' a month ';
-    if (!c.now && (!c.later || !c.plan)) return start + (c.later ? 'neither stopping now nor ' + retiring + ' leaves anything' : 'stopping now leaves nothing') + ' to spend' + extras;
+    const set = fpSetText(need) ? '; ' + fpSetText(need) : '';
+    if (!c.now && (!c.later || !c.plan)) return start + (c.later ? 'neither stopping now nor ' + retiring + ' leaves anything' : 'stopping now leaves nothing') + ' to spend' + extras + set;
     const now = c.now ? figure(c.now) + 'stopping now' : 'stopping now leaves nothing to spend';
     const later = !c.later ? '' : !c.plan ? ', but nothing ' + retiring : (c.now ? ', or ' : '; ') + figure(c.plan) + retiring;
-    return start + now + later + ', in today’s money,' + extras;
+    return start + now + later + ', in today’s money,' + extras + set;
 }
 
 /** The most that could be spent with work stopped at month `t`, as a year's row ends, for its
- *  breakdown and, `short`, its place on the chart. Worked out here, so only for the year picked. */
+ *  breakdown and, `short`, its place on the chart. */
 function fpYearSpendText(need, t, short) {
     if (!need || !need.rows) return '';
     if (!need.rows.some(r => r.t === t)) return short ? 'no spending figure for the plan’s last year' : 'No spending figure for the plan’s last year.';
     const can = need.spendAt(t), until = need.until;
-    if (short) return can ? 'could spend up to ' + fpMoney(can) + ' a month to last to ' + until : 'nothing to spend and last to ' + until;
+    const set = fpSetText(need);
+    if (short) return (can ? 'could spend up to ' + fpMoney(can) + ' a month to last to ' + until : 'nothing to spend and last to ' + until) + (set ? ', ' + set : '');
     const when = 'With work stopped ' + (t === 0 ? 'now' : 'in ' + fpMonthAt(need.start, t + 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }));
-    return can ? when + ', you could spend up to ' + fpMoney(can) + ' a month in today’s money and last to ' + until + ', on top of health costs, goals and loans.' :
-        when + ', there would be nothing to spend, beyond health costs, goals and loans, and last to ' + until + '.';
+    return can ? when + ', you could spend up to ' + fpMoney(can) + ' a month in today’s money and last to ' + until + ', on top of health costs, goals and loans' + (set ? '; ' + set : '') + '.' :
+        when + ', there would be nothing to spend, beyond health costs, goals and loans, and last to ' + until + (set ? '; ' + set : '') + '.';
 }
 
 /** What a month comes to at the plan's end, part by part. */
@@ -3929,7 +4014,7 @@ function fpRetireLines(plan, proj) {
     if (ms.hsaPenalty !== null) lines.push('HSA money is spent on other than medical costs before ' + ret.hsaAge + ', from ' + fpWhen(plan, fpMonthAt(proj.start, ms.hsaPenalty)) + ': taxed, with a ' + ret.hsaPenalty + '% penalty, ' + fpMoney(ms.penalties.hsa) + ' in all as paid.');
     if (ms.rothEarly !== null) lines.push('Roth earnings are drawn before ' + fpAgeShort(ret.early) + ', from ' + fpWhen(plan, fpMonthAt(proj.start, ms.rothEarly)) + ': taxed, with a ' + ret.penalty + '% penalty, ' + fpMoney(ms.penalties.roth) + ' in all as paid.');
     const best = fpRetireMax(plan, 0);
-    if (best !== null) lines.push('The most that could be spent and still last to ' + ret.until + ': ' + fpMoney(best) + ' a month in today’s dollars.');
+    if (best !== null) lines.push('The most that could be spent and still last to ' + ret.until + ': ' + fpMoney(best) + ' a month in today’s dollars; currently set at ' + fpMoney(fpRetireSpending(plan)) + ' a month.');
     return lines;
 }
 
@@ -3992,7 +4077,7 @@ function fpRenderRetire(widget, plan, proj, low, high) {
         const best = fpRetireMax(plan, 0);
         const range = spread && market ? [fpRetireMax(plan, -spread), fpRetireMax(plan, spread)] : null;
         box.className = 'fp-retire-max';
-        box.innerHTML = 'You could spend up to <b>' + fpMoney(best) + '</b> a month in retirement, in today’s dollars, and last to ' + ret.until +
+        box.innerHTML = 'You could spend up to <b>' + fpMoney(best) + '</b> a month in retirement, in today’s dollars, and last to ' + ret.until + ' (currently set at ' + fpMoney(fpRetireSpending(plan)) + ')' +
             (range ? ' <span class="fp-muted">(' + fpMoney(range[0]) + ' to ' + fpMoney(range[1]) + ' at returns ±' + spread + '%)</span>' : '') + '.';
         widget._max = { key: key, html: box.innerHTML };
     }, 250);
@@ -4193,9 +4278,10 @@ function fpRenderDerived(widget, plan) {
     widget.querySelector('.fp-projection').innerHTML = '<div class="fp-ahead-sub">' + (proj.rows.length - 1) + ' years' + (proj.retire ? ', to age ' + proj.retire.until : last.age != null ? ', to age ' + last.age : '') +
         (plan.assume.real ? ', in today’s money' : '') + '</div>' +
         (facts.length ? '<div class="fp-facts">' + facts.map(f => '<span class="fp-fact">' + f + '</span>').join('') + '</div>' : '') +
+        (widget._neededJob ? fpProgressHtml(widget._neededJob) : '') +
         range + fpChart(cut(proj), cut(low), cut(high), N ? { at: needAt, earliest: need.earliest === null ? null : need.rows[need.earliest].t, foreverT: need.foreverAt === null ? null : need.rows[need.foreverAt].t, stale: !!stale,
-            pickTip: pickI >= 0 ? fpYearSpendText(need, pick, true) + (stale ? ' (updating)' : '') : '' } : null,
-        fpChartMarks(plan, proj), pick) +
+            tip: (t) => fpYearSpendText(need, t, true) + (stale ? ' (updating)' : '') } : null,
+        fpChartMarks(plan, proj), pick, fpChartLine(widget)) +
         (pickI >= 0 ? fpYearDetailHtml(plan, proj, pickI, low, high, needAt[pick] || null, N ? need : null, stale) : '<div class="fp-yd-hint">Click a year on the chart, or in the table, for what made it up.</div>') +
         '<div class="fp-years-head">In ' + last.year + (last.age != null ? ', at ' + last.age : '') + ': net worth <b>' + fpMoney(last.net) + '</b>' + (low ? ' (' + fpMoney(low.rows[low.rows.length - 1].net) + ' to ' + fpMoney(high.rows[high.rows.length - 1].net) + ' at returns ±' + spread + '%)' : '') + '</div>' +
         table;
@@ -4401,7 +4487,7 @@ function fpYearClose(btn) {
 }
 
 /** Net worth, assets and liabilities over the years, with the range as a band. */
-function fpChart(proj, low, high, need, marks, pick) {
+function fpChart(proj, low, high, need, marks, pick, only) {
     const rows = proj.rows;
     if (rows.length < 2) return '';
     const ages = rows.some(r => r.age !== null && r.age !== undefined);
@@ -4419,17 +4505,25 @@ function fpChart(proj, low, high, need, marks, pick) {
     });
     const strip = lastX.length ? lastX.length * FP_MARK_ROW + 4 : 0;
     const H = (ages ? 210 : 200) + strip, B = (ages ? 32 : 22) + strip;
-    const vals = [];
-    rows.forEach((r, i) => { vals.push(r.assets, -r.liabilities, r.net); if (low) vals.push(low.rows[i].net, high.rows[i].net); });
     // What would be needed to stop working, and the savings it is set against: savings
     // drawn as a line of their own only where they are not simply the assets (property).
     const nd = need ? rows.map(r => need.at[r.t] || null) : [];
     const showHave = nd.some((n, i) => n && Math.abs(n.have - rows[i].assets) > Math.max(1, Math.abs(rows[i].assets) * 0.01));
-    nd.forEach(n => { if (n && showHave) vals.push(n.have); });
+    // One line picked from its name: only that, on a scale of its own. One not on this
+    // chart, or not worked out yet, is not held to.
+    const solo = ['net', 'assets', 'liab'].concat(showHave ? ['have'] : [], need ? ['needed', 'forever'] : []).includes(only) ? only : null;
+    const on = (k) => !solo || solo === k;
+    const vals = [];
+    rows.forEach((r, i) => {
+        if (on('assets')) vals.push(r.assets);
+        if (on('liab')) vals.push(-r.liabilities);
+        if (on('net')) { vals.push(r.net); if (low) vals.push(low.rows[i].net, high.rows[i].net); }
+    });
+    nd.forEach(n => { if (n && showHave && on('have')) vals.push(n.have); });
     // Stopping early can need far more than the rest of the chart: drawn up to half
     // again its height, and clipped beyond.
     const others = Math.max(0, ...vals);
-    const needMax = Math.max(0, ...nd.filter(n => n).map(n => Math.max(isFinite(n.needed) ? n.needed : 0, isFinite(n.forever) ? n.forever : 0)));
+    const needMax = Math.max(0, ...nd.filter(n => n).map(n => Math.max(on('needed') && isFinite(n.needed) ? n.needed : 0, on('forever') && isFinite(n.forever) ? n.forever : 0)));
     if (needMax > 0) vals.push(Math.min(needMax, others > 0 ? others * 1.5 : needMax));
     let max = Math.max(0, ...vals), min = Math.min(0, ...vals);
     if (max === min) max = min + 1;
@@ -4450,7 +4544,7 @@ function fpChart(proj, low, high, need, marks, pick) {
     const grid = gridVals.map(v =>
         '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" class="' + (v === 0 ? 'fp-zero' : 'fp-grid') + '"/>' +
         (labelled.includes(v) ? '<text x="' + (L - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + fpMoney(v, true) + '</text>' : '')).join('');
-    const band = low ? '<path class="fp-band" d="' + rows.map((r, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(high.rows[i].net).toFixed(1)).join(' ') + ' ' +
+    const band = low && on('net') ? '<path class="fp-band" d="' + rows.map((r, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(high.rows[i].net).toFixed(1)).join(' ') + ' ' +
         rows.slice().reverse().map((r, j) => { const i = rows.length - 1 - j; return 'L' + x(i).toFixed(1) + ' ' + y(low.rows[i].net).toFixed(1); }).join(' ') + ' Z"/>' : '';
     const end = rows[rows.length - 1];
     const seg = (get) => {
@@ -4469,26 +4563,28 @@ function fpChart(proj, low, high, need, marks, pick) {
     const foreverI = need && need.foreverT !== null ? rows.findIndex(r => r.t === need.foreverT) : -1;
     const lastForever = nd.reduce((acc, n, i) => n && isFinite(n.forever) ? i : acc, -1);
     const needSvg = need ? '<clipPath id="' + clipId + '"><rect x="' + L + '" y="' + (T - 2) + '" width="' + (W - L - R) + '" height="' + (H - T - B + 2) + '"/></clipPath>' +
-        (showHave ? '<path class="fp-line fp-have" d="' + seg(n => n.have) + '"/>' : '') +
-        '<path class="fp-line fp-needed' + (need.stale ? ' fp-stale' : '') + '" clip-path="url(#' + clipId + ')" d="' + seg(n => n.needed) + '"/>' +
-        (stopAt >= 0 && nd[stopAt] ? '<circle class="fp-stop-dot" cx="' + x(stopAt).toFixed(1) + '" cy="' + y(nd[stopAt].needed).toFixed(1) + '" r="5"><title>Could stop working ' +
+        (showHave && on('have') ? '<path class="fp-line fp-have" d="' + seg(n => n.have) + '"/>' : '') +
+        (on('needed') ? '<path class="fp-line fp-needed' + (need.stale ? ' fp-stale' : '') + '" clip-path="url(#' + clipId + ')" d="' + seg(n => n.needed) + '"/>' : '') +
+        (on('needed') && stopAt >= 0 && nd[stopAt] ? '<circle class="fp-stop-dot" cx="' + x(stopAt).toFixed(1) + '" cy="' + y(nd[stopAt].needed).toFixed(1) + '" r="5"><title>Could stop working ' +
             (rows[stopAt].t === 0 ? 'now' : 'in ' + rows[stopAt].year) + ', at ' + nd[stopAt].age + '</title></circle>' : '') +
-        '<path class="fp-line fp-forever' + (need.stale ? ' fp-stale' : '') + '" clip-path="url(#' + clipId + ')" d="' + seg(n => n.forever) + '"/>' +
-        (foreverI >= 0 && nd[foreverI] && nd[foreverI].forever <= max ? '<circle class="fp-forever-dot" cx="' + x(foreverI).toFixed(1) + '" cy="' + y(nd[foreverI].forever).toFixed(1) + '" r="5"><title>Could live on savings forever ' +
+        (on('forever') ? '<path class="fp-line fp-forever' + (need.stale ? ' fp-stale' : '') + '" clip-path="url(#' + clipId + ')" d="' + seg(n => n.forever) + '"/>' : '') +
+        (on('forever') && foreverI >= 0 && nd[foreverI] && nd[foreverI].forever <= max ? '<circle class="fp-forever-dot" cx="' + x(foreverI).toFixed(1) + '" cy="' + y(nd[foreverI].forever).toFixed(1) + '" r="5"><title>Could live on savings forever ' +
             (rows[foreverI].t === 0 ? 'now' : 'from ' + rows[foreverI].year) + ', at ' + nd[foreverI].age + '</title></circle>' : '') : '';
     // Labels at the end of each line, pushed apart where lines end close together, and
     // one where two end on the same value (no debts left: assets are net worth).
-    const ends = [{ v: end.net, cls: 'fp-net-label', text: 'Net worth' }];
+    const ends = on('net') ? [{ v: end.net, cls: 'fp-net-label', line: 'net', text: 'Net worth' }] : [];
     // The needed line can stop a year short of the others (none for the plan's last year).
-    if (lastNeed >= rows.length - 2 && nd[lastNeed].needed <= max) ends.push({ v: nd[lastNeed].needed, cls: 'fp-needed-label', text: 'Needed to stop' });
-    if (lastForever >= rows.length - 2 && nd[lastForever].forever <= max) ends.push({ v: nd[lastForever].forever, cls: 'fp-forever-label', text: 'Lasts forever' });
-    if (showHave && lastNeed >= rows.length - 2) ends.push({ v: nd[lastNeed].have, cls: 'fp-have-label', text: 'Can draw on' });
-    if (Math.abs(end.assets - end.net) > 0.5) ends.push({ v: end.assets, cls: 'fp-assets-label', text: 'Assets' });
-    if (end.liabilities > 0) ends.push({ v: -end.liabilities, cls: 'fp-liab-label', text: 'Liabilities' });
+    if (on('needed') && lastNeed >= rows.length - 2 && nd[lastNeed].needed <= max) ends.push({ v: nd[lastNeed].needed, cls: 'fp-needed-label', line: 'needed', text: 'Needed to stop' });
+    if (on('forever') && lastForever >= rows.length - 2 && nd[lastForever].forever <= max) ends.push({ v: nd[lastForever].forever, cls: 'fp-forever-label', line: 'forever', text: 'Lasts forever' });
+    if (showHave && on('have') && lastNeed >= rows.length - 2) ends.push({ v: nd[lastNeed].have, cls: 'fp-have-label', line: 'have', text: 'Can draw on' });
+    if (on('assets') && (solo || Math.abs(end.assets - end.net) > 0.5)) ends.push({ v: end.assets, cls: 'fp-assets-label', line: 'assets', text: 'Assets' });
+    if (on('liab') && (solo || end.liabilities > 0)) ends.push({ v: -end.liabilities, cls: 'fp-liab-label', line: 'liab', text: 'Liabilities' });
     ends.forEach(e => { e.y = y(e.v) + 3; });
     ends.sort((a, b) => a.y - b.y);
     for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 12) ends[i].y = ends[i - 1].y + 12;
-    const labels = ends.map(e => '<text class="' + e.cls + '" x="' + (W - R + 6) + '" y="' + e.y.toFixed(1) + '">' + e.text + '</text>').join('');
+    const labels = ends.map(e => '<text class="' + e.cls + ' fp-line-name" data-line="' + e.line + '" tabindex="0" role="button" aria-pressed="' + (solo === e.line) + '" onclick="fpChartOnly(this)" onkeydown="fpChartOnlyKey(event, this)" x="' + (W - R + 6) + '" y="' + e.y.toFixed(1) + '"><title>' + (solo ? 'Show all lines' : 'Show only this line') + '</title>' + e.text + '</text>').join('');
+    // A name in the key picks its line, as the name at the line's end does.
+    const key = (k, cls, text) => '<button type="button" class="fp-legend-line' + (solo === k ? ' fp-legend-on' : solo ? ' fp-legend-off' : '') + '" data-line="' + k + '" aria-pressed="' + (solo === k) + '" title="' + (solo === k ? 'Show all lines' : 'Show only this line') + '" onclick="fpChartOnly(this)"><i class="' + cls + '"></i>' + text + '</button>';
     // A strip per year to hover, wider than the point it answers for.
     const hits = rows.map((r, i) => {
         const w = (W - L - R) / Math.max(1, rows.length - 1);
@@ -4496,7 +4592,7 @@ function fpChart(proj, low, high, need, marks, pick) {
             ' x="' + (x(i) - w / 2).toFixed(1) + '" y="' + T + '" width="' + w.toFixed(1) + '" height="' + (H - T - B) + '"><title>' +
             (r.t === 0 ? 'Now' : r.year) + (r.age != null ? ', age ' + r.age : '') + ' — net worth ' + fpMoney(r.net) + (low ? ' (' + fpMoney(low.rows[i].net) + ' to ' + fpMoney(high.rows[i].net) + ')' : '') +
             ', assets ' + fpMoney(r.assets) + ', liabilities ' + fpMoney(r.liabilities) +
-            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') + ', to last forever ' + (isFinite(nd[i].forever) ? fpMoney(nd[i].forever) : 'out of reach') : '') + (need && r.t === pick && need.pickTip ? ', ' + need.pickTip : '') + '. Click for what made it up.</title></rect>';
+            (nd[i] ? ', can draw on ' + fpMoney(nd[i].have) + ', needed to stop working ' + (isFinite(nd[i].needed) ? fpMoney(nd[i].needed) : 'out of reach') + ', to last forever ' + (isFinite(nd[i].forever) ? fpMoney(nd[i].forever) : 'out of reach') : '') + (need ? ', ' + need.tip(r.t) : '') + '. Click for what made it up.</title></rect>';
     }).join('');
     // A mark opens the year it falls in, as that year's strip does.
     const markSvg = shown.map(m => {
@@ -4508,15 +4604,16 @@ function fpChart(proj, low, high, need, marks, pick) {
     }).join('');
     return '<svg class="fp-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Net worth, assets and liabilities, ' + (rows[0].t === 0 ? 'now' : rows[0].year) + ' to ' + rows[rows.length - 1].year + '">' +
         grid + ticks + band +
-        '<path class="fp-line fp-assets" d="' + line(r => r.assets) + '"/>' +
-        '<path class="fp-line fp-liab" d="' + line(r => -r.liabilities) + '"/>' +
-        '<path class="fp-line fp-net" d="' + line(r => r.net) + '"/>' +
+        (on('assets') ? '<path class="fp-line fp-assets" d="' + line(r => r.assets) + '"/>' : '') +
+        (on('liab') ? '<path class="fp-line fp-liab" d="' + line(r => -r.liabilities) + '"/>' : '') +
+        (on('net') ? '<path class="fp-line fp-net" d="' + line(r => r.net) + '"/>' : '') +
         needSvg + labels +
         hits + markSvg + '</svg>' +
-        '<div class="fp-legend"><span><i class="fp-key-net"></i>Net worth</span><span><i class="fp-key-assets"></i>Assets</span><span><i class="fp-key-liab"></i>Liabilities (below zero)</span>' +
-        (low ? '<span><i class="fp-key-band"></i>Range of net worth</span>' : '') +
-        (showHave ? '<span><i class="fp-key-have"></i>Savings to draw on (not property)</span>' : '') +
-        (need ? '<span><i class="fp-key-needed"></i>Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '') + '</span><span><i class="fp-key-forever"></i>Lasts forever' + (foreverI >= 0 ? ' (● the first year it is reached)' : '') + '</span>' : '') +
+        '<div class="fp-legend">' + (solo ? '<button type="button" class="fp-btn fp-legend-all" data-line="" onclick="fpChartOnly(this)">Show all lines</button>' : '') +
+        key('net', 'fp-key-net', 'Net worth') + key('assets', 'fp-key-assets', 'Assets') + key('liab', 'fp-key-liab', 'Liabilities (below zero)') +
+        (low && on('net') ? '<span><i class="fp-key-band"></i>Range of net worth</span>' : '') +
+        (showHave ? key('have', 'fp-key-have', 'Savings to draw on (not property)') : '') +
+        (need ? key('needed', 'fp-key-needed', 'Needed to stop working' + (stopAt >= 0 ? ' (● the first year it is reached)' : '')) + key('forever', 'fp-key-forever', 'Lasts forever' + (foreverI >= 0 ? ' (● the first year it is reached)' : '')) : '') +
         Object.keys(FP_MARKS).filter(k => shown.some(m => m.kind === k)).map(k => '<span><svg class="fp-key-mark fp-mark-' + k + '" viewBox="-7 -7 14 14" aria-hidden="true"><path d="' + FP_MARKS[k].d + '"/></svg>' + FP_MARKS[k].label + '</span>').join('') + '</div>';
 }
 
@@ -4807,6 +4904,33 @@ function fpChartSpan(widget, proj) {
 }
 
 /** A year picked above the chart, or All years: kept, and the chart and table redrawn. */
+/** The one line the chart is showing, kept with the tool (`fpChartLine`), or null for all. */
+function fpChartLine(widget) {
+    const toolId = fpToolId(widget);
+    return (toolId && typeof toolCustomizations !== 'undefined' ? (toolCustomizations[toolId] || {}).fpChartLine : null) || null;
+}
+
+/** A line's name clicked: only that line, or all of them again if it was the one showing. */
+function fpChartOnly(el) {
+    const widget = fpWidget(el), toolId = fpToolId(el);
+    if (!widget || !toolId || typeof saveToolCustomizations !== 'function') return;
+    const picked = el.dataset.line, chosen = picked && picked !== fpChartLine(widget) ? picked : null;
+    const next = Object.assign({}, toolCustomizations);
+    next[toolId] = Object.assign({}, next[toolId] || {});
+    if (chosen) next[toolId].fpChartLine = chosen;
+    else delete next[toolId].fpChartLine;
+    saveToolCustomizations(next);
+    fpRenderDerived(widget);
+    const again = widget.querySelector('.fp-legend [data-line="' + (picked || 'net') + '"]');
+    if (again) again.focus();
+}
+
+function fpChartOnlyKey(e, el) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    fpChartOnly(el);
+}
+
 function fpChartRange(el, all) {
     const widget = fpWidget(el), toolId = fpToolId(el);
     if (!widget || !toolId || typeof saveToolCustomizations !== 'function') return;
@@ -5505,7 +5629,7 @@ function fpAIFinish(result) {
 (function injectScriptsForExport() {
     if (document.getElementById('finance-tools-scripts')) return;
 
-    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededFor, fpNeededText, fpForeverText, fpLastToText, fpYearSpendText, fpTailParts, fpTailText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
+    const functionsToExport = [fpResultDblClick, fpGoEdit, fpDuplicate, fpToggleLine, fpOffNames, fpLiveLine, fpRetireByJob, fpLastJob, fpRetireLines, fpRetireFields, fpRenderRetire, fpTaxInfo, fpSSTaxable, fpFederalTax, fpPayrollTax, fpPretaxPay, fpBasisOf, fpBirthYear, fpBirthOf, fpAgeAt, fpWhen, fpMonthAt, fpRefreshAgeHints, fpLimitCheck, fpLimitText, fpTaxWith, fpRmdAge, fpRmdFactor, fpRetKey, fpKindLabel, fpIsPretax, fpRetireInfo, fpRetireSpending, fpDrawOrder, fpRetireMax, fpHealthOf, fpPayGap, fpAdviceFields, fpMarginal, fpAdviceSteps, fpAdviceSplit, fpAdviceMix, fpAdviceHtml, fpUseMixReturn, fpResetDrawOrder, fpLimitGroup, fpGroupLimit, fpGroupOwn, fpMatchOf, fpNeededToStop, fpNeededSteps, fpLaterKey, fpProgressHtml, fpShowProgress, fpChartLine, fpChartOnly, fpChartOnlyKey, fpNeededFor, fpNeededText, fpForeverText, fpSetText, fpLastToText, fpYearSpendText, fpTailParts, fpTailText, fpAIEsc, fpAIName, fpAIFacts, fpAITarget, fpAICleanDraft, fpAIDraftPreview, fpAICleanSections, fpAISectionsPreview, fpAIApply, fpAIFinish, fpFullRetirementMonths, fpClaimFactor, fpSSEstimate, fpSSPayOf, fpWithEstimates, fpSSEstimateFields, fpSSInfo, fpAgeText, fpAddSocialSecurity, fpPayrollTarget, fpIntoRows, fpIntoOf, fpAddInto, fpRemoveInto, fpSetInto, fpPayrollNow, fpPayrollMonthlyOf, fpIncomeDetailsRow, fpIncomeDetailSummary, fpRefreshIncomeDetails, fpEscrowOf, fpPerMonth, fpHasTypedTax, fpIsSection, fpEntries, fpCalc, fpSectionsOf, fpSectionTotal, fpRefreshSections, fpAddSection, fpSectionFold, fpOpenAround, fpMoveSection, fpSectionIds, fpGrip, fpMoveItem, fpGripKey, fpDragStart, fpDragOver, fpDragLeave, fpDrop, fpDragEnd, fpFoldedOf, fpSaveFolded, fpChartSpan, fpChartRange, fpFold, fpFoldAll, fpShowFolded, fpCents, fpClosing, fpLoanTerms, fpBalanceOf, fpMonthlyOf, fpDetailsRow, fpRefreshAccounts, fpDetailSummary, fpToggleDetails, fpTaxYearOptions, fpDefaultPlan, fpNum, fpNewId, fpToolId, fpGet, fpSet, fpRateOf, fpMonthly, fpActive, fpSurplusAccount, fpIncomeTax, fpYm, fpProject, fpRollup, fpMoney, fpMonthText, fpInit, fpRender, fpRenderDerived, fpChart, fpWidget, fpOnInput, fpAdd, fpRemove, fpSample, fpApplyHashParams, fpOpenAccountTool, fpOpenTax, fpSummaryText, fpCopySummary,
         taxRulesBuiltin, taxMergeShape, taxRuleNum, taxRulesOf, taxRulesFor, fpAgeShort, taxBuiltin, taxClone, taxTableLoad, taxTableSave, taxTableChanged, taxYearsOf, taxDefaultYear, taxProblems, taxBracketsFor,
         tbToolId, tbYearOf, tbMoney, tbInit, tbRender, tbRefreshDerived, tbReadStatus, tbStore, tbOnInput, tbAddBracket, tbRemoveBracket,
         tbSetYear, tbPickYear, tbAddYear, tbDeleteYear, tbResetYear, tbTabOf, tbPickTab, tbShow, tbGetPath, tbSetPath, tbField, tbRows, tbPanel, taxRuleProblems,

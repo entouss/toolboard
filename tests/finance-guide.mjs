@@ -25,6 +25,7 @@ const plan = () => page.evaluate((i) => fpGet(i), id);
 let p = await plan();
 ok('?example=1: the made-up example, with a birth month, retirement and Social Security', p.accounts.length === 11 && p.retire.on && p.retire.birth === '1985-11' &&
     p.incomes.some(l => l.type === 'ss' && l.fraBenefit === null), JSON.stringify(p.incomes.map(l => l.name)));
+await page.waitForFunction(() => /Could stop working in/.test(document.querySelector('.fp-projection').innerText), null, { timeout: 20000 });
 ok('so every part has something to show: ages, the Social Security estimate, when you could stop', /Could stop working in \d{4}, at \d+/.test(await page.innerText('.fp-projection')) &&
     /, at \d+/.test(await page.innerText('.fp-projection')));
 const shown = await page.evaluate((i) => { const r = fpProject(fpGet(i), 0, {}); const m = r.milestones; const k = fpGet(i).incomes[0];

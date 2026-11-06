@@ -79,10 +79,15 @@ const tip = (t) => page.textContent('.fp-chart .fp-hit[data-t="' + t + '"] title
 const spendLine = await page.innerText('.fp-yd-spend');
 ok('it comes first, straight under the heading', await page.evaluate(() => document.querySelector('.fp-yd-head').nextElementSibling.classList.contains('fp-yd-spend')));
 ok('and not again in What happened', (detail.match(/With work stopped/g) || []).length === 1);
-ok('the year’s tooltip gives the same figure', money(await tip(pickedT)) === money(spendLine) && /could spend up to \$[\d,]+ a month to last to 95\. Click/.test(await tip(pickedT)), await tip(pickedT));
+ok('the year’s tooltip gives the same figure', money(await tip(pickedT)) === money(spendLine) && /could spend up to \$[\d,]+ a month to last to 95, currently set at \$5,200 a month\. Click/.test(await tip(pickedT)), await tip(pickedT));
+ok('the year’s line sets it beside what is set', /on top of health costs, goals and loans; currently set at \$5,200 a month\.$/.test(spendLine.trim()), spendLine);
+ok('the line under the chart too', /To last to 95: .*; currently set at \$5,200 a month/.test(await page.innerText('.fp-projection .fp-last-to')));
+ok('and Retirement', /and last to 95 \(currently set at \$5,200\)/.test(await page.innerText('.fp-retire-out')), await page.innerText('.fp-retire-out'));
 ok('and it matches stopping then', await page.evaluate((t) => { const n = fpNeededToStop(fpGet(fpToolId(document.querySelector('.fp-widget')))); return fpMoney(n.spendAt(Number(t))); }, pickedT) === money(spendLine));
-const others = await page.locator('.fp-chart .fp-hit').evaluateAll((els) => els.filter(e => e.getAttribute('aria-pressed') !== 'true').filter(e => /could spend/.test(e.textContent)).length);
-ok('another year’s tooltip stays as it was', others === 0, String(others));
+const tips = await page.locator('.fp-chart .fp-hit').evaluateAll((els) => els.map(e => [e.dataset.t, e.getAttribute('aria-pressed'), e.textContent]));
+ok('every year’s tooltip gives it, clicked or not', tips.slice(0, -1).every(x => /could spend up to \$[\d,]+ a month to last to 95|nothing to spend and last to 95/.test(x[2])), tips.length + ' years');
+const expected = await page.evaluate(() => { const n = fpNeededToStop(fpGet(fpToolId(document.querySelector('.fp-widget')))); return n.rows.map(r => [String(r.t), fpMoney(n.spendAt(r.t))]); });
+ok('each the same as worked out on its own', expected.every(([t, v]) => (tips.find(x => x[0] === t) || [])[2].includes('could spend up to ' + v + ' a month')), expected.length + ' years');
 
 // A change: faded and marked as updating until the new figures are in.
 await page.evaluate(() => { const w = document.querySelector('.fp-widget'), id = fpToolId(w), p = fpGet(id); p.accounts[1].balance += 50000; fpSet(id, p); fpRenderDerived(w, p); });
@@ -101,7 +106,9 @@ ok('its tooltip too', /no spending figure for the plan’s last year\. Click/.te
 const words2 = await page.evaluate(() => { const n = { rows: [{ t: 12 }], until: 95, start: new Date(2026, 10, 1), spendAt: () => null }; return [fpYearSpendText(n, 12, false), fpYearSpendText(n, 12, true)]; });
 ok('nothing to spend, in both, and the month is the one after the year’s row ends', /^With work stopped in Nov 2027, there would be nothing to spend/.test(words2[0]) && words2[1] === 'nothing to spend and last to 95', words2.join(' | '));
 const summary = await page.evaluate(() => fpSummaryText(fpGet(fpToolId(document.querySelector('.fp-widget')))));
-ok('the summary has it', /To last to 95: up to \$/.test(summary));
+ok('the summary has it', /To last to 95: up to \$.*currently set at \$5,200 a month/.test(summary));
+const typedNone = await page.evaluate((p) => { const q = mk(p); q.retire.spending = null; return fpNeededToStop(q).spend.set; }, plan());
+ok('with no spending typed, it is the plan’s expenses', typedNone === 5000, String(typedNone));
 ok('no page errors', errors.length === 0, errors.join(' | '));
 console.log(count + ' checks' + (failed ? ', ' + failed + ' FAILED' : ''));
 await browser.close();

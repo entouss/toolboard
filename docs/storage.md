@@ -1003,7 +1003,8 @@ goes when `surplusTo` is empty.
 
 Beside it, `fpFolded` lists the sections folded to their headings (`summary`,
 `accounts`, `income`, `expenses`, `month`, `assumptions`, `ahead`), for looking at
-the plan with someone else there, and `fpChartYears: { from, to }` the calendar years
+the plan with someone else there, and `fpChartLine` the one line the chart is showing (`net`, `assets`, `liab`, `have`,
+`needed` or `forever`; absent for all), and `fpChartYears: { from, to }` the calendar years
 the Ahead chart and year table are narrowed to (unset: all of them; clipped to the
 years the plan runs, never fewer than two). Both are how the tool is being looked at,
 not part of the plan, so they are kept outside `financePlan`.
