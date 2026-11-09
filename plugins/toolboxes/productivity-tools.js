@@ -7546,6 +7546,101 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
+// ✨ in the Recipe: the outline is what people find hard to write, so most of what the
+// model is asked for is that outline — drafted, turned from an ordinary recipe or scaled
+// — and every one is read by rcpParse before it is offered. The rest is read, to copy.
+var RCP_AI_OUTLINE = 'A recipe here is an indented outline, written outside-in. ' +
+    'The first line is "# " and the title. Each line starting "@ " is something done before cooking, such as heating the oven or greasing a pan. ' +
+    'Then the steps: the last thing done is at the left margin, and indented two spaces under each step is everything it uses — ' +
+    'its ingredients, and the earlier steps whose results go into it, each with what they use indented under them in turn. ' +
+    'An ingredient is a line with nothing under it: its amount, then what it is. A step always has something under it. ' +
+    'Something made alongside, such as a sauce, is a second step at the left margin. ' +
+    'No bullets, no numbers, no blank lines between steps.\n\nFor example:\n\n' +
+    '# Espresso Brownies\n@ Butter and flour an 8x8-in pan\n@ Preheat oven to 350°F (170°C)\n' +
+    'bake 350°F (170°C) 30 to 40 min\n  fold in\n    mix\n      mix\n        melt\n          4 oz (115 g) unsalted butter\n' +
+    '        1 cup (200 g) sugar\n        1/4 tsp. (2.5 mL) vanilla extract\n        1 shot (60 mL) espresso\n' +
+    '      2 large (100 g) eggs\n    1/2 cup (80 g) all-purpose flour\n    1/3 cup (80 g) cocoa powder\n' +
+    '    1/4 tsp. (1.3 g) baking soda\n    1/4 tsp. (1.5 g) table salt\n\n' +
+    'Here the butter is melted; sugar, vanilla and espresso are mixed into it; that is mixed with the eggs; ' +
+    'the flour, cocoa, soda and salt are folded in; and it is baked.';
+var RCP_AI_SYSTEM = 'You write recipes. ' + RCP_AI_OUTLINE +
+    '\n\nReply with the recipe outline only: no Markdown fences, no explanation.';
+var RCP_AI_READ_SYSTEM = 'You help people cook. ' + RCP_AI_OUTLINE + '\n\nBe brief. Reply with the result only.';
+
+/** The outline's shape, line by line: how many things each step uses, in order. */
+function rcpAIShape(roots) {
+    var walk = function(n) { return '(' + n.children.map(walk).join('') + ')'; };
+    return roots.map(walk).join('');
+}
+
+/** What the recipe holds, and whether it is an outline yet. */
+function rcpAITarget(toolId) {
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var textarea = tool && tool.querySelector('.rcp-widget textarea');
+    var text = textarea ? textarea.value : rcpGetData(toolId).text;
+    var parsed = rcpParse(text);
+    var steps = 0, ingredients = 0;
+    var count = function(n) { if (n.children.length) { steps++; n.children.forEach(count); } else ingredients++; };
+    parsed.roots.forEach(count);
+    var outline = !parsed.error && steps > 0;
+    return { scope: 'whole', kind: 'recipe', text: String(text || '').trim() ? text : '', outline: outline, title: parsed.title,
+        shape: outline ? rcpAIShape(parsed.roots) : '',
+        label: outline ? 'This recipe' + (parsed.title ? ', ' + parsed.title : '') + ' (' + steps + (steps === 1 ? ' step, ' : ' steps, ') +
+                ingredients + (ingredients === 1 ? ' ingredient)' : ' ingredients)') :
+            'This text, not an outline yet: turn it into one',
+        emptyLabel: 'No recipe yet: describe one and it is drafted.' };
+}
+
+/** What the model wrote, as an outline: no fences, no preface, no bullets or numbers. */
+function rcpAIClean(text) {
+    var t = String(text || '').replace(/\r/g, '');
+    var fence = /```[^\n]*\n([\s\S]*?)(?:\n```|$)/.exec(t);
+    if (fence) t = fence[1];
+    var lines = t.replace(/\t/g, '    ').split('\n').map(function(l) {
+        return l.replace(/^(\s*)(?:[-*•]\s+|\d+[.)]\s+)/, '$1').replace(/\s+$/, '');
+    });
+    var start = lines.findIndex(function(l) { return /^#\s*\S/.test(l); });
+    if (start > 0) lines = lines.slice(start);
+    return lines.filter(function(l) { return l.trim(); }).join('\n');
+}
+
+function rcpAIFormat(outline) {
+    return '```\n' + outline + '\n```';
+}
+
+/** Whether an outline can be used: '' when it can, else why not. */
+function rcpAICheck(outline) {
+    var parsed = rcpParse(outline);
+    if (parsed.error) return parsed.error;
+    if (!parsed.roots.length) return 'It has no steps.';
+    if (!parsed.roots.some(function(n) { return n.children.length; })) return 'Nothing is indented: every step needs what it uses indented under it.';
+    return '';
+}
+
+/** Scaled, it must be the same recipe: every line where it was. */
+function rcpAICheckScaled(outline, target) {
+    var problem = rcpAICheck(outline);
+    if (problem) return problem;
+    return target && target.shape && rcpAIShape(rcpParse(outline).roots) !== target.shape ?
+        'The steps changed: it must keep every line, in the same order and indentation, with only the amounts changed.' : '';
+}
+
+function rcpAIRepair(text, outline, problem) {
+    return 'This recipe outline cannot be used: ' + problem + '\n\n' + outline +
+        '\n\nFix it, changing as little as possible. Reply with the whole recipe outline.';
+}
+
+/** An outline into the editor, over what was there, through the ordinary save so Undo takes it back. */
+function rcpAIApply(toolId, outline, how) {
+    if (how !== 'replace' || !outline || rcpAICheck(outline)) return false;
+    var tool = document.querySelector('.tool[data-tool="' + CSS.escape(toolId) + '"]');
+    var textarea = tool && tool.querySelector('.rcp-widget textarea');
+    if (!textarea) { rcpSaveData(toolId, { text: outline }); return true; }
+    textarea.value = outline;
+    rcpOnInput(textarea);
+    return true;
+}
+
 // Recipe
 PluginRegistry.registerTool({
     id: 'recipe',
@@ -7587,6 +7682,43 @@ PluginRegistry.registerTool({
     },
     contentType: 'html',
     onInit: 'rcpInit',
+    ai: {
+        target: 'rcpAITarget',
+        apply: 'rcpAIApply',
+        actions: ['ask'],
+        custom: [
+            { id: 'draft', group: 'Recipe', label: 'Draft a recipe', system: RCP_AI_SYSTEM, needsText: false,
+                input: 'What should it be? “brownies for 8”',
+                applyHow: ['replace'], applyLabels: { replace: 'Use this recipe' },
+                clean: rcpAIClean, format: rcpAIFormat, check: rcpAICheck, repair: rcpAIRepair,
+                prompt: function(text, what) { return 'Write a recipe for: ' + what + '\n\nUse the outline exactly as described, ' +
+                    'with each amount in US and metric units, as in the example.'; } },
+            { id: 'outline', group: 'Recipe', label: 'Turn into an outline', system: RCP_AI_SYSTEM,
+                show: function(t) { return !!t.text && !t.outline; },
+                applyHow: ['replace'], applyLabels: { replace: 'Use this recipe' },
+                clean: rcpAIClean, format: rcpAIFormat, check: rcpAICheck, repair: rcpAIRepair,
+                prompt: function(text) { return 'Rewrite this recipe as the outline:\n\n' + text +
+                    '\n\nKeep every ingredient with its amount, and every step.'; } },
+            { id: 'scale', group: 'Recipe', label: 'Scale it', system: RCP_AI_SYSTEM,
+                input: 'How? “double it”, “for 2”',
+                show: function(t) { return !!t.outline; },
+                applyHow: ['replace'], applyLabels: { replace: 'Use this recipe' },
+                clean: rcpAIClean, format: rcpAIFormat, check: rcpAICheckScaled, repair: rcpAIRepair,
+                prompt: function(text, how) { return 'Here is a recipe outline:\n\n' + text + '\n\nScale it: ' + how +
+                    '. Change only the amounts, and how many it serves if it says. Keep every line, its order and its ' +
+                    'indentation exactly as they are. Reply with the whole recipe outline.'; } },
+            { id: 'steps', group: 'Recipe', label: 'Steps in words', system: RCP_AI_READ_SYSTEM, apply: false,
+                show: function(t) { return !!t.outline; },
+                prompt: function(text) { return 'Write this recipe out for someone cooking from it: the title, then ' +
+                    '"Ingredients" with each one as a bullet, then "Method" with numbered steps in the order they are done — ' +
+                    'the most indented steps first.\n\n' + text; } },
+            { id: 'shopping', group: 'Recipe', label: 'Shopping list', system: RCP_AI_READ_SYSTEM, apply: false,
+                show: function(t) { return !!t.outline; },
+                prompt: function(text) { return 'List what to buy for this recipe as Markdown bullets, grouped under short ' +
+                    'headings by where it is found in a shop. Where the same ingredient is used twice, give it once with both ' +
+                    'amounts.\n\n' + text; } }
+        ]
+    },
     defaultWidth: 640,
     defaultHeight: 480,
     source: 'external'

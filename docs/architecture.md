@@ -360,7 +360,7 @@ lines and `javascript:` addresses dropped (`mermDiagAI*`). `applyLabels` may be 
 target, for a button that names something only the tool knows now: the Kanban Board's
 Draft cards adds to “Backlog” when that is what its first column is called, and is
 never offered over the board. The Checklist's Break into steps replaces or adds to the
-list (`checklistAI*`, `kbAI*`). The Project Table's ✨ never does the table's arithmetic: it reads each
+list (`checklistAI*`, `kbAI*`). The Recipe works the same way as the Mermaid Diagram: Draft a recipe, Turn into an outline and Scale it are read by `rcpParse` before Use this recipe is offered, a flat answer counting as unusable, and a scaled one must keep the outline's shape line for line (`rcpAICheckScaled`); Steps in words and Shopping list are to copy (`rcpAI*`). The Project Table's ✨ never does the table's arithmetic: it reads each
 row with its days, dates and slack already worked out (`projAIRowLine`), and drafts
 tasks, sizes from the table's own scale and which earlier task each comes after, for
 the table to schedule; Break this row down works on the row whose cell has the caret
