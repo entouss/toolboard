@@ -340,6 +340,19 @@
 .proj-table tbody tr.proj-done > td { opacity: 0.5; }
 .proj-table tbody tr.proj-done:hover > td,
 .proj-table tbody tr.proj-done:focus-within > td { opacity: 1; }
+/* Ready to pick up: not started, and nothing it waits for is unfinished. A green
+   mark in front of the name and an edge down the row, so the eye finds them in a
+   column of names; a row still waiting gets a muted mark that says on what. */
+.proj-table tbody tr.proj-ready > td { background: rgba(46, 204, 113, 0.08); }
+.proj-table tbody tr.proj-ready > td:first-child { box-shadow: inset 3px 0 0 #2ecc71; }
+.proj-table .proj-ready-col { width: 1.1em; padding-left: 0; padding-right: 0; text-align: center; }
+.proj-ready-mark {
+    display: inline-block; width: 1.1em; text-align: center; font-size: 10px;
+    line-height: 1; vertical-align: middle; cursor: default;
+}
+.proj-ready-mark.proj-mark-ready { color: #27ae60; }
+.proj-ready-mark.proj-mark-waiting { color: var(--text-muted); }
+.proj-ready-mark.proj-mark-progress { color: #3498db; }
 .proj-table tbody tr.proj-drag-over td { border-top: 2px solid var(--proj-size-3); }
 /* The delete button is positioned out of the flow. In it, it added its own width
    to every column in the table, which is 11 columns' worth of nothing. */
@@ -485,6 +498,10 @@
    the number and the name both. That is what makes it decidable and also what makes
    it long, so this is the column that gives way: the number is at the front where
    the cut cannot reach it, and the whole of it is in the tooltip. */
+/* A dependency that is finished stays on the row, crossed out: it is still why the
+   row starts when it does, and it no longer holds anything up. */
+.proj-dep-chip.proj-dep-done { opacity: 0.6; }
+.proj-dep-chip.proj-dep-done .proj-chip-text { text-decoration: line-through; }
 .proj-chip-text {
     display: inline-block; max-width: 110px; overflow: hidden;
     text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom;
@@ -516,6 +533,16 @@
     display: flex; flex-direction: column; justify-content: center; min-width: 0;
 }
 .proj-gantt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The chart says what the table says about each row: finished ones faded, back on
+   hover; ready ones with the table's ● and green edge, waiting ones its ⏸. */
+.proj-gantt-row.proj-done > * { opacity: 0.5; }
+.proj-gantt-row.proj-done:hover > * { opacity: 1; }
+.proj-gantt-row.proj-ready { background: rgba(46, 204, 113, 0.08); box-shadow: inset 3px 0 0 #2ecc71; }
+/* The mark sits beside the name rather than in it, so the name is still just the name. */
+.proj-gantt-line { display: flex; align-items: center; min-width: 0; }
+.proj-gantt-line .proj-ready-mark { flex: 0 0 auto; width: 1em; margin-right: 1px; }
+/* Clear of the ready edge. */
+.proj-gantt-row:not(.proj-plan-row) > .proj-gantt-label { padding-left: 5px; }
 .proj-gantt-when {
     font-size: 9px; color: var(--text-muted); white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -531,8 +558,8 @@
     border-radius: 3px; top: 7px; height: 14px; opacity: 0.8;
 }
 .proj-gantt-label.proj-sub-label { color: var(--text-secondary); }
-.proj-gantt-label.proj-depth-1 { padding-left: 12px; }
-.proj-gantt-label.proj-depth-2 { padding-left: 24px; }
+.proj-gantt-row > .proj-gantt-label.proj-depth-1 { padding-left: 17px; }
+.proj-gantt-row > .proj-gantt-label.proj-depth-2 { padding-left: 29px; }
 .proj-done-dot {
     position: absolute; top: 10px; width: 8px; height: 8px; border-radius: 50%;
     background: var(--proj-good); transform: translateX(-4px);
@@ -1519,6 +1546,62 @@ function projPercent(data, row) {
  *  sub-items are, which its weighted per cent already says. */
 function projIsDone(data, row) {
     return projPercent(data, row) >= 100;
+}
+
+/**
+ * Whether a row can be picked up now. Ready: a task (not a parent, which is its
+ * sub-tasks' roll-up) at 0%, with every row it depends on finished — its own
+ * dependencies and its task's above it, since a sub-task cannot start before the
+ * thing its task waits for. Waiting: not started, and something it depends on is
+ * not finished; `on` lists those rows. In progress: started and not finished —
+ * already picked up, whatever it waits for, though `on` still says what that is.
+ * Finished rows and parents are none of these. A dependency on one of the row's
+ * own parents, or on a row that is gone, holds nothing up.
+ */
+function projReadiness(data, row) {
+    const pct = projPercent(data, row);
+    if (projIsParent(data, row) || pct >= 100) return { state: null, on: [] };
+    const chain = projAncestry(data, row);
+    const ids = chain.map(r => r.id);
+    const on = [];
+    chain.forEach(r => {
+        const deps = projCell(r, 'deps');
+        (Array.isArray(deps) ? deps : []).forEach(depId => {
+            if (ids.indexOf(depId) >= 0) return;
+            const dep = data.rows.find(x => x.id === depId);
+            if (dep && !projIsDone(data, dep) && on.indexOf(dep) < 0) on.push(dep);
+        });
+    });
+    if (pct > 0) return { state: 'progress', on: on };
+    return { state: on.length ? 'waiting' : 'ready', on: on };
+}
+
+/** The mark in front of a task's name: ● ready, ◐ in progress, ⏸ waiting, with why in its tooltip. */
+function projReadyMarkHtml(data, row) {
+    const r = projReadiness(data, row);
+    if (r.state === 'ready') {
+        return '<span class="proj-ready-mark proj-mark-ready" title="Ready to pick up: not started, ' +
+            'and nothing it waits for is unfinished">\u25CF</span>';
+    }
+    if (r.state === 'progress') {
+        return '<span class="proj-ready-mark proj-mark-progress" title="' +
+            escapeHtml('In progress \u00B7 ' + projPercent(data, row) + '% done' +
+                (r.on.length ? ' \u2014 still waiting on ' + r.on.map(d => projDepLabel(data, d)).join(', ') : '')) +
+            '">\u25D0</span>';
+    }
+    if (r.state === 'waiting') {
+        return '<span class="proj-ready-mark proj-mark-waiting" title="' +
+            escapeHtml('Waiting on ' + r.on.map(d => projDepLabel(data, d)).join(', ')) + '">\u23F8\uFE0E</span>';
+    }
+    return '<span class="proj-ready-mark"></span>';
+}
+
+/** The row's own part of it: its tint, and its mark, put right in place as a value
+ *  is typed rather than by drawing the table again. */
+function projApplyReadiness(tr, data, row) {
+    tr.classList.toggle('proj-ready', projReadiness(data, row).state === 'ready');
+    const mark = tr.querySelector('.proj-ready-mark');
+    if (mark) mark.outerHTML = projReadyMarkHtml(data, row);
 }
 
 /**
@@ -2841,9 +2924,10 @@ function projDepLabel(data, row) {
     return projRowNumber(data, row) + ' \u00B7 ' + (projCell(row, 'item') || 'Untitled');
 }
 
-function projChipHtml(label, onRemove, attrs) {
-    return '<span class="proj-dep-chip">' +
-        '<span class="proj-chip-text" title="' + escapeHtml(String(label)) + '">' +
+function projChipHtml(label, onRemove, attrs, extra) {
+    extra = extra || {};
+    return '<span class="proj-dep-chip' + (extra.cls ? ' ' + extra.cls : '') + '">' +
+        '<span class="proj-chip-text" title="' + escapeHtml(extra.title || String(label)) + '">' +
             escapeHtml(String(label)) + '</span>' +
         '<button class="proj-x" onclick="' + onRemove + '" ' + attrs +
         ' title="Remove">\u00D7</button></span>';
@@ -3046,8 +3130,10 @@ function projCellHtml(data, row, col) {
             const chips = deps.map(depId => {
                 const dep = data.rows.find(r => r.id === depId);
                 const label = dep ? projDepLabel(data, dep) : 'missing';
+                const done = !!dep && projIsDone(data, dep);
                 return projChipHtml(label, 'projRemoveDep(this)',
-                    'data-row="' + row.id + '" data-dep="' + escapeHtml(depId) + '"');
+                    'data-row="' + row.id + '" data-dep="' + escapeHtml(depId) + '"',
+                    done ? { cls: 'proj-dep-done', title: label + ' \u00B7 done' } : null);
             }).join('');
             const options = others.map(r => '<option value="' + escapeHtml(r.id) + '">' +
                 escapeHtml(projDepLabel(data, r)) + '</option>').join('');
@@ -3133,7 +3219,9 @@ function projRenderTable(widget, data) {
         table.innerHTML = '<tbody><tr><td class="proj-empty">No columns. Press + Column.</td></tr></tbody>';
         return;
     }
-    const head = '<thead><tr><th></th>' +
+    // The second, headless column is the ready mark's: a column of its own, so the
+    // mark never takes room from the task's name.
+    const head = '<thead><tr><th></th><th class="proj-ready-col" title="\u25CF ready to pick up: not started, and nothing it waits for is unfinished. \u25D0 in progress. \u23F8 waiting: hover it to see on what"></th>' +
         data.columns.map(col => '<th' + (col.collapsed ? ' class="proj-col-narrow"' : '') +
             ' data-col="' + escapeHtml(col.id) + '"' +
             ' ondragover="projColDragOver(this, event)" ondragleave="projColDragLeave(this)" ' +
@@ -3181,13 +3269,15 @@ function projRenderTable(widget, data) {
                     'onclick="projOutdentRow(this)" data-row="' + row.id + '">↰</button>' : '') + heldMark +
             '</span>';
             const classes = (isParent ? ' proj-is-parent' : '') + (isFolded ? ' proj-folded' : '') +
-                (projPercent(data, row) >= 100 ? ' proj-done' : '');
+                (projPercent(data, row) >= 100 ? ' proj-done' : '') +
+                (projReadiness(data, row).state === 'ready' ? ' proj-ready' : '');
             return '<tr draggable="true" data-row="' + row.id + '"' +
                     (classes ? ' class="' + classes.trim() + '"' : '') +
                     ' ondragstart="projRowDragStart(this, event)" ' +
                     'ondragover="projRowDragOver(this, event)" ondragleave="projRowDragLeave(this)" ' +
                     'ondrop="projRowDrop(this, event)" ondragend="projRowDragEnd(this)">' +
                 '<td>' + tools + '</td>' +
+                '<td class="proj-ready-col">' + projReadyMarkHtml(data, row) + '</td>' +
                 data.columns.map(col => col.collapsed
                     ? '<td class="proj-col-narrow" title="' + escapeHtml(col.title) + '">\u00B7</td>'
                     : '<td>' + projCellHtml(data, row, col) + projNoteOpener(row, col) + '</td>').join('') +
@@ -3195,7 +3285,7 @@ function projRenderTable(widget, data) {
                     '" title="Delete row">×</button></td>' +
             '</tr>';
         }).join('')
-        : '<tr><td colspan="' + (data.columns.length + 2) + '" class="proj-empty">No rows yet. Press + Row.</td></tr>') +
+        : '<tr><td colspan="' + (data.columns.length + 3) + '" class="proj-empty">No rows yet. Press + Row.</td></tr>') +
     '</tbody>';
     table.innerHTML = head + body;
 }
@@ -3404,13 +3494,16 @@ function projRenderGantt(widget, data) {
         const whenText = when.start === when.end
             ? when.start.slice(5)
             : when.start.slice(5) + ' \u2013 ' + when.end.slice(5);
-        return '<div class="proj-gantt-row">' +
+        const readiness = projReadiness(data, row).state;
+        const rowClass = (projIsDone(data, row) ? ' proj-done' : '') + (readiness === 'ready' ? ' proj-ready' : '');
+        return '<div class="proj-gantt-row' + rowClass + '" data-row="' + escapeHtml(row.id) + '">' +
             '<span class="proj-gantt-label' +
                 (row.parent ? ' proj-sub-label proj-depth-' + projRowDepth(data, row) : '') + '">' +
+                '<span class="proj-gantt-line">' + (readiness ? projReadyMarkHtml(data, row) : '') +
                 '<span class="proj-gantt-name" title="' + escapeHtml(label) +
                     (ganttFolded.has(row.id) && isParent ? ' — its sub-tasks are folded away in the table' : '') + '">' +
                     (ganttFolded.has(row.id) && isParent ? '<span class="proj-fold-mark">▸</span>' : '') +
-                    escapeHtml(label) + '</span>' +
+                    escapeHtml(label) + '</span></span>' +
                 '<span class="proj-gantt-when" title="' + escapeHtml(label) + ': ' +
                     when.start + ' to ' + when.end + '">' + whenText + '</span>' +
             '</span>' +
@@ -4083,8 +4176,9 @@ function projUpdateDerived(widget, data) {
     data.rows.forEach(row => {
         const tr = widget.querySelector('.proj-table tbody tr[data-row="' + CSS.escape(row.id) + '"]');
         if (!tr) return;
+        projApplyReadiness(tr, data, row);
         data.columns.forEach((col, i) => {
-            const td = tr.children[i + 1]; // +1 for the drag handle
+            const td = tr.children[i + 2]; // +2 for the drag handle and the ready mark
             if (!td || col.collapsed) return;
             // Cells that are rebuilt must never be rebuilt under the caret. The
             // progress bar is exempt: only the fill's own style is touched, and
@@ -5095,6 +5189,7 @@ function projRowDrop(tr, event) {
         projRowNumber, projRowTitle, projRowOwner, projDepLabel, projCopyTitle,
         projCsvRef, projCsvRefNumber, projRoundDays, projAssigneeCount,
         projTotalDays, projPercent, projRemainingDays, projIsDone,
+        projReadiness, projReadyMarkHtml, projApplyReadiness,
         projSlackDays, projSlackBand,
         projUnits, projUnitDays, projSayDuration, projIsWorkday, projNthWorkdayOffset,
         projFinishOffset, projYearStart, projYearLabel, projCalendarDaysOf,

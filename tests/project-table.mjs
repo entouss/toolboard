@@ -454,6 +454,87 @@ ok('a finished item becomes a marker rather than nothing',
     await page.evaluate(() => document.querySelectorAll('.proj-done-dot').length) === 1 &&
     await page.evaluate(() => document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-bar').length) === 2);
 
+// 8b. What can be picked up now: ● ready, ⏸ waiting and on what; a finished
+// dependency crossed out. Made-up rows, put back afterwards.
+const keptRows = await page.evaluate((id) => {
+    const dd = projGetData(id);
+    const kept = JSON.parse(JSON.stringify(dd.rows));
+    const r = (rid, item, pct, deps, parent) => Object.assign({ id: rid, cells: { item, size: 'S', pct, deps, links: [] } }, parent ? { parent } : {});
+    dd.rows = [
+        r('d-design', 'Design', 100, []),
+        r('d-api', 'API', 0, []),
+        r('d-build', 'Build', 0, ['d-api']),
+        r('d-ui', 'UI', 0, ['d-design'], 'd-build'),
+        r('d-db', 'Storage', 30, [], 'd-build'),
+        r('d-ship', 'Ship', 0, ['d-design'])
+    ];
+    projSetData(id, dd);
+    projOnRender(id);
+    return kept;
+}, toolId);
+await page.waitForTimeout(400);
+const readyState = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('.proj-table tbody tr[data-row]')].map(tr => {
+    const m = tr.querySelector('.proj-ready-mark');
+    return [tr.dataset.row, { ready: tr.classList.contains('proj-ready'), mark: m ? m.textContent : null, title: m ? m.title : '' }];
+})));
+const doneChips = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('.proj-table tbody tr[data-row]')].map(tr =>
+    [tr.dataset.row, [...tr.querySelectorAll('.proj-dep-chip.proj-dep-done .proj-chip-text')].map(c => c.textContent)])));
+let rs = await readyState();
+ok('a task not started with nothing to wait for is ready: ● and the row marked', rs['d-api'].ready && rs['d-api'].mark === '●' &&
+    /Ready to pick up/.test(rs['d-api'].title), JSON.stringify(rs['d-api']));
+ok('and so is one whose dependencies are all finished', rs['d-ship'].ready && rs['d-ship'].mark === '●', JSON.stringify(rs['d-ship']));
+ok('a sub-task waits on what its task waits for, and says on what', !rs['d-ui'].ready && rs['d-ui'].mark === '⏸︎' &&
+    /^Waiting on \S+ · API$/.test(rs['d-ui'].title), JSON.stringify(rs['d-ui']));
+ok('the mark has a headless column of its own, so the task’s name keeps its room', await page.evaluate(() => {
+    const tr = document.querySelector('.proj-table tbody tr[data-row="d-api"]');
+    const th = document.querySelectorAll('.proj-table thead th')[1];
+    return tr.children[1].classList.contains('proj-ready-col') && !!tr.children[1].querySelector('.proj-ready-mark') &&
+        !tr.querySelector('.proj-cell-item').parentNode.querySelector('.proj-ready-mark') && th.classList.contains('proj-ready-col') &&
+        th.textContent === '' && /ready to pick up/.test(th.title);
+}));
+ok('a task under way is in progress: ◐, no green, its % in the tooltip and what its task still waits on', !rs['d-db'].ready && rs['d-db'].mark === '◐' &&
+    /^In progress · 30% done — still waiting on \S+ · API$/.test(rs['d-db'].title), JSON.stringify(rs['d-db']));
+ok('finished and parent rows have no mark', ['d-design', 'd-build'].every(k => !rs[k].ready && rs[k].mark === ''),
+    JSON.stringify(rs));
+ok('one started before what it waits for is finished is in progress, and says it still waits', await page.evaluate((id) => {
+    const dd = JSON.parse(JSON.stringify(projGetData(id)));
+    dd.rows.find(r => r.id === 'd-ui').cells.pct = 20;
+    const r = projReadiness(dd, dd.rows.find(x => x.id === 'd-ui'));
+    return r.state === 'progress' && /^In progress · 20% done — still waiting on \S+ · API$/.test(
+        new DOMParser().parseFromString(projReadyMarkHtml(dd, dd.rows.find(x => x.id === 'd-ui')), 'text/html').body.firstChild.title);
+}, toolId));
+let dc = await doneChips();
+ok('a finished dependency is crossed out, one still open is not', dc['d-ship'].length === 1 && /Design/.test(dc['d-ship'][0]) &&
+    dc['d-build'].length === 0 && await page.evaluate(() => getComputedStyle(document.querySelector('.proj-dep-done .proj-chip-text')).textDecorationLine) === 'line-through',
+    JSON.stringify(dc));
+ok('and its tooltip says it is done', await page.evaluate(() => document.querySelector('.proj-dep-done .proj-chip-text').title.endsWith(' · done')));
+// The chart says the same of each row: finished faded, ready ● and edged, waiting ⏸.
+const chartState = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('.proj-gantt-row[data-row]')].map(g => {
+    const m = g.querySelector('.proj-gantt-line .proj-ready-mark');
+    return [g.dataset.row, { ready: g.classList.contains('proj-ready'), done: g.classList.contains('proj-done'),
+        mark: m ? m.textContent : null, title: m ? m.title : '', height: Math.round(g.getBoundingClientRect().height),
+        fade: getComputedStyle(g.querySelector('.proj-gantt-label')).opacity }];
+})));
+let cs = await chartState();
+ok('the chart marks the same rows ready and waiting as the table, with the same tooltip', ['d-design', 'd-api', 'd-build', 'd-ui', 'd-db', 'd-ship'].every(k =>
+    cs[k] && cs[k].ready === rs[k].ready && (cs[k].mark || '') === rs[k].mark && cs[k].title === rs[k].title), JSON.stringify(cs));
+ok('and fades a finished row, as the table does', cs['d-design'].done && cs['d-design'].fade === '0.5' && !cs['d-api'].done && cs['d-api'].fade === '1',
+    JSON.stringify(cs['d-design']));
+ok('with every row its usual height', Object.values(cs).every(c => c.height === 28), JSON.stringify(Object.values(cs).map(c => c.height)));
+await setCell(1, 'pct', 100);
+rs = await readyState();
+cs = await chartState();
+ok('typing 100 updates the chart too', cs['d-api'].done && cs['d-ui'].ready && cs['d-ui'].mark === '●', JSON.stringify(cs));
+dc = await doneChips();
+ok('typing 100 into what a row waits for makes it ready, there and then', rs['d-ui'].ready && rs['d-ui'].mark === '●' && rs['d-api'].mark === '',
+    JSON.stringify(rs));
+ok('and crosses it out where it is depended on', dc['d-build'].length === 1 && /API/.test(dc['d-build'][0]), JSON.stringify(dc));
+await setCell(1, 'pct', 0);
+rs = await readyState();
+ok('and taking it back puts them back', !rs['d-ui'].ready && rs['d-api'].ready && (await doneChips())['d-build'].length === 0, JSON.stringify(rs));
+await page.evaluate(([id, kept]) => { const dd = projGetData(id); dd.rows = kept; projSetData(id, dd); projOnRender(id); }, [toolId, keptRows]);
+await page.waitForTimeout(300);
+
 // 9. A dependency loop is a contradiction, and must not hang the tool.
 await page.evaluate((id) => {
     const dd = projGetData(id);
@@ -1354,12 +1435,13 @@ ok('and the table is redrawn in the new order, not just the data',
     (await headOrder()) === (await colOrder()), (await headOrder()) + ' vs ' + (await colOrder()));
 ok('the cells moved with their heading',
     await page.evaluate(() => {
-        // One for the row's own handle, then the ID, then the two that swapped.
+        // One for the row's own handle, one for its ready mark, then the ID, then
+        // the two that swapped.
         // Both of them hold chips now, so each is known by the column its own
         // controls name rather than by what it looks like.
         const cells = document.querySelector('.proj-table tbody tr').children;
-        return !!cells[2].querySelector('[data-col="deps"]') &&
-            !!cells[3].querySelector('[data-col="ticket"]');
+        return !!cells[3].querySelector('[data-col="deps"]') &&
+            !!cells[4].querySelector('[data-col="ticket"]');
     }));
 ok('and nothing was lost on the way', (await colOrder()).split(',').length ===
     columnsBefore.split(',').length, await colOrder());
@@ -1533,7 +1615,9 @@ await page.waitForTimeout(400);
 ok('and follows that item when it is renamed — it used to keep the old name',
     /\bRenamed\b/.test(await depChip()), await depChip());
 const ganttLabels = () => page.evaluate(() =>
-    [...document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-gantt-label')].map(l => l.textContent).join(','));
+    // The ready or waiting mark in front of a name is not part of it.
+    [...document.querySelectorAll('.proj-gantt-row:not(.proj-plan-row) .proj-gantt-label')].map(l =>
+        l.textContent.replace(/^[\u25CF\u25D0\u23F8]\uFE0E?/, '')).join(','));
 ok('the chart label followed it too', (await ganttLabels()).indexOf('Renamed') === 0, await ganttLabels());
 
 // 12. Sub-items, and what rolls up.

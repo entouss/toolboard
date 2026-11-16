@@ -701,7 +701,7 @@ with both dates in the tooltip either way. The dates sit in the label column rat
 than beside the bars: a bar can be a few pixels wide or hard against the edge, and a
 date that overlaps its neighbour is worth less than one you can read.
 
-`deps` guides the chart and nothing else: a bar starts today, or when the last thing
+`deps` guides the chart, and says what is ready to pick up: a bar starts today, or when the last thing
 it depends on finishes, or on a date that was typed in, and runs for the row's
 Remaining Days. A parent's bar is the
 span its children occupy, drawn as a bracket rather than a block — its own days are
@@ -709,6 +709,8 @@ theirs, and a solid bar would count them twice. The Slack column
 keeps measuring from today, so the two can disagree for a dependent item — the
 chart's deadline marker turns red where the order of work overshoots, which is where
 that disagreement becomes visible.
+
+**Ready to pick up** (`projReadiness()`), worked out and never stored: a task — not a parent, which is its sub-tasks' roll-up — at 0% with every row it depends on finished, its own dependencies and those of the tasks above it, since a sub-task cannot start before what its task waits for. Such a row gets a green ● and a green edge and tint; one not started with something unfinished to wait for gets a muted ⏸ whose tooltip names what. One started and not finished is in progress: a blue ◐, no tint — somebody already has it — its tooltip giving its % and, if it was started before what it waits for was finished, what that is. Finished rows and parents have no mark. The mark has a headless column of its own, second, after the row's handle, so it never takes room from the task's name; its heading's tooltip says what the marks mean. A dependency that is finished stays on the row, crossed out and faded, its tooltip ending `· done`. Both follow a % typed in, there and then. The chart says the same of each row: a finished one faded (back on hover), a ready one with the ● and the green edge and tint, a waiting one with the ⏸ — the mark beside the name in `.proj-gantt-line`, not inside `.proj-gantt-name`, so the name is still just the name.
 
 **A parent is measured against the span it occupies**, not against its children's
 days laid end to end. It has no work of its own: its days are theirs, and theirs run
