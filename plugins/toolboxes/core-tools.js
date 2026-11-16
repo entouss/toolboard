@@ -117,6 +117,12 @@
     min-height: 1.4em;
 }
 
+/* A web address in an item is a link: it opens in a new tab, and the text beside it
+   is still what a click edits. */
+.checklist-link { color: var(--link-color, #2878c8); text-decoration: underline; cursor: pointer; }
+.checklist-link:hover { text-decoration-thickness: 2px; }
+.checklist-item.completed .checklist-link { color: inherit; }
+
 .checklist-text:hover {
     background: rgba(0,0,0,0.05);
 }
@@ -326,6 +332,59 @@ function checklistSaveData(toolId, items) {
     saveToolCustomizations(toolCustomizations);
 }
 
+/**
+ * An item's text as HTML, its web addresses links: `[label](https://…)` shows its
+ * label, a bare https:// or http:// address shows without its scheme, cut short with …
+ * past 40 characters, the whole of it in the tooltip. Only http and https are linked; everything else is escaped
+ * text. Shown only: the item keeps its text as typed.
+ */
+function checklistLinkify(text) {
+    // Inside, so the copy of this function an exported board carries has it too.
+    const SHOWN = 40;
+    const src = String(text == null ? '' : text);
+    const re = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)|https?:\/\/[^\s<>"]+/gi;
+    let out = '', last = 0, m;
+    while ((m = re.exec(src))) {
+        let url = m[2] || m[0], label = m[1], end = m.index + m[0].length;
+        if (!label) {
+            // Punctuation that ends a sentence is not part of the address.
+            const trail = /[.,;:!?'")\]]+$/.exec(url);
+            if (trail) { url = url.slice(0, -trail[0].length); end -= trail[0].length; }
+            label = url.replace(/^https?:\/\//i, '').replace(/\/$/, '') || url;
+            if (label.length > SHOWN) label = label.slice(0, SHOWN - 1) + '\u2026';
+        }
+        out += escapeHtml(src.slice(last, m.index)) +
+            '<a class="checklist-link" href="' + escapeHtml(url) + '" title="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" ' +
+            'draggable="false" contenteditable="false" onmousedown="event.preventDefault()" onclick="checklistOpenLink(event, this)">' +
+            escapeHtml(label) + '</a>';
+        last = end;
+        re.lastIndex = end;
+    }
+    return out + escapeHtml(src.slice(last));
+}
+
+/** A link in an item opens in a new tab, rather than starting an edit of the item. */
+function checklistOpenLink(e, a) {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(a.getAttribute('href'), '_blank', 'noopener,noreferrer');
+}
+
+/** Editing shows the text as typed — whole addresses, Markdown and all — with the caret at its end. */
+function checklistTextFocus(el) {
+    const widget = el.closest('.checklist-widget');
+    const toolId = checklistGetToolId(widget);
+    const item = toolId && checklistGetItemByPath(checklistGetData(toolId), el.closest('.checklist-item').dataset.path);
+    if (!item || !el.querySelector('.checklist-link')) return;
+    el.textContent = item.text;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
 function checklistInit() {
     document.querySelectorAll('.checklist-widget').forEach(widget => {
         const toolId = checklistGetToolId(widget);
@@ -357,8 +416,9 @@ function checklistRenderItem(item, idx, parentIdx = null) {
                 <span class="checklist-drag">⋮⋮</span>
                 <span class="checklist-status" onclick="checklistCycleStatus(this, '${path}')" title="Click to change status"></span>
                 <span class="checklist-text" contenteditable="true"
+                    onfocus="checklistTextFocus(this)"
                     onblur="checklistUpdateText(this, '${path}')"
-                    onkeydown="checklistTextKeydown(event, this)">${escapeHtml(item.text)}</span>
+                    onkeydown="checklistTextKeydown(event, this)">${checklistLinkify(item.text)}</span>
                 <span class="checklist-actions">
                     ${!isSubitem ? `<button class="checklist-btn" onclick="checklistAddSub(this, ${idx})" title="Add sub-item">+</button>` : ''}
                     <button class="checklist-btn delete" onclick="checklistDelete(this, '${path}')" title="Delete">×</button>
@@ -506,9 +566,12 @@ function checklistUpdateText(el, path) {
     if (newText && newText !== item.text) {
         item.text = newText;
         checklistSaveData(toolId, items);
-    } else if (!newText) {
-        el.textContent = item.text; // Restore if empty
+        // The Markdown says the same, so it is right in Both too.
+        const source = widget.querySelector('.checklist-markdown-editor');
+        if (source) source.value = checklistToMarkdown(items);
     }
+    // Back to links, or to the text as it was if it was emptied.
+    el.innerHTML = checklistLinkify(item.text);
 }
 
 function checklistTextKeydown(e, el) {
@@ -849,7 +912,7 @@ function calcBackspace() {
 (function injectScriptsForExport() {
     if (document.getElementById('core-tools-scripts')) return;
 
-    var checklistFunctions = [checklistGetToolId, checklistGetData, checklistSaveData, checklistInit, checklistRenderItem, checklistRender, checklistGetItemByPath, checklistSetItemByPath, checklistAddItem, checklistAddSub, checklistCycleStatus, checklistUpdateText, checklistTextKeydown, checklistDelete, checklistDragStart, checklistDragOver, checklistDragLeave, checklistDrop, checklistToMarkdown, checklistFromMarkdown, checklistOnSourceInput, checklistOnRender, checklistAIText, checklistAITarget, checklistAICleanSteps, checklistAIStepsPreview, checklistAIApply];
+    var checklistFunctions = [checklistGetToolId, checklistGetData, checklistSaveData, checklistInit, checklistRenderItem, checklistLinkify, checklistOpenLink, checklistTextFocus, checklistRender, checklistGetItemByPath, checklistSetItemByPath, checklistAddItem, checklistAddSub, checklistCycleStatus, checklistUpdateText, checklistTextKeydown, checklistDelete, checklistDragStart, checklistDragOver, checklistDragLeave, checklistDrop, checklistToMarkdown, checklistFromMarkdown, checklistOnSourceInput, checklistOnRender, checklistAIText, checklistAITarget, checklistAICleanSteps, checklistAIStepsPreview, checklistAIApply];
     var calcFunctions = [calcInit, calcKeyHandler, calcInputHandler, calcNum, calcOp, calcEquals, calcClear, calcBackspace];
     var allFunctions = checklistFunctions.concat(calcFunctions);
 
