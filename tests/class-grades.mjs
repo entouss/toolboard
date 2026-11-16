@@ -56,6 +56,13 @@ function api(url, auth) {
             { id: 2, name: 'Chemistry', enrollments: [studentEnrollment(11, 68, 'D+')] },
             { id: 3, name: 'Art', enrollments: [studentEnrollment(11, null, null)] }
         ].concat(extraCourse ? [{ id: 5, name: 'Biology', enrollments: [studentEnrollment(11, 88, 'B+')] }] : []);
+        // Grading periods: Math has a quarter running and graded, Chemistry one with
+        // nothing graded yet; the rest have none.
+        if (periods) courses.forEach(c => c.enrollments.forEach(e => {
+            if (e.type !== 'student' || (c.id !== 1 && c.id !== 2)) return;
+            Object.assign(e, { has_grading_periods: true, current_grading_period_title: 'Quarter 2',
+                current_period_computed_current_score: c.id === 1 ? 91 : null, current_period_computed_current_grade: c.id === 1 ? 'A-' : null });
+        }));
         if (!one) return { body: pageOf(courses) };
         if (brokenClass === Number(one[1])) return { status: 500, body: { errors: [{ message: 'Internal error' }] } };
         const course = courses.find(c => c.id === Number(one[1]));
@@ -99,6 +106,7 @@ let proxyMode = 'ok';           // 'ok' | 'forbidden' | 'preflight' | 'not-permi
 let notAList = false;
 let brokenClass = null;
 let extraCourse = false;
+let periods = false;
 const flaked = new Set();
 const flaked2 = new Map();
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Accept', 'Content-Type': 'application/json' };
@@ -954,6 +962,32 @@ const sHead = sectionText.find(l => /^ {2}\S/.test(l)), sTask = sectionText.find
 ok('and in their Copy', textCol(sHead) === textCol(sTask) && textCol(sHead) > 0, JSON.stringify([sHead, sTask]));
 await page.evaluate(() => { classGradesSaveCustom('cg', { cgView: 'single' }); classGradesRender(document.querySelector('.tool[data-tool="cg"] .cg-widget')); });
 ok('a name with runs of spaces in it is written with one, so they cannot pass for a column', await page.evaluate(() => classGradesOneLine('  Unit   3\tQuiz ')) === 'Unit 3 Quiz');
+
+// The grading period running now, beside the full course's grade.
+periods = true;
+requests.length = 0;
+await page.click(W + ' .cg-btn:has-text("Refresh")');
+await page.waitForFunction((s) => !document.querySelector(s).disabled, W + ' .cg-btn.primary');
+await page.waitForTimeout(100);
+ok('the classes are asked for with their grading period’s scores', requests.some(r => /current_grading_period_scores/.test(decodeURIComponent(r.target || r.url))));
+text = await report();
+ok('a class with a quarter running shows its grade and the full course’s', text.includes('🟩 Math - Quarter 2 91% (A-) · Full ' + mathScore + '% (A-)'), text.split('\n').filter(l => /Math|Chemistry/.test(l)).join(' | '));
+ok('a quarter with nothing graded yet says so', text.includes('🟥 Chemistry - Quarter 2 no grade · Full 68% (D+)'), text);
+ok('the square, and the change since last check, are the full course’s', text.includes('No change since last check.'));
+await page.evaluate((s) => document.querySelectorAll(s + ' .cg-class').forEach(d => { d.open = true; }), W);
+const withQuarter = await measure();
+const qTasks = withQuarter.flatMap(c => c.tasks);
+ok('both grades start in the column of the tasks’ grades, and do not push the tasks’ columns out', qTasks.length > 3 &&
+    [0, 1, 2].every(k => same(qTasks.map(t => t[k]))) && withQuarter.every(c => c.head && Math.abs(c.head[0] - qTasks[0][0]) <= 1) &&
+    (await aligned()).split('\n').some(l => /^ {4}\S+ 5\.4 Test Review {2,}18\/20 \(90%\) {2,}\S/.test(l)), JSON.stringify(withQuarter.slice(0, 2)));
+await page.click(W + ' .cg-class[data-course="1"] .cg-class-refresh');
+await page.waitForFunction((s) => /refreshed/.test(document.querySelector(s + ' .cg-status').textContent), W, { timeout: 15000 });
+ok('↻ on one class keeps its quarter', (await report()).includes('Math - Quarter 2 91% (A-) · Full ' + mathScore + '% (A-)'));
+ai = await aiText();
+ok('✨ reads both grades', ai.includes('Class: Math — Quarter 2 91% (A-), full ' + mathScore + '% (A-), unchanged since the last check.') &&
+    ai.includes('Class: Chemistry — Quarter 2 no grade, full 68% (D+)'), ai);
+ok('and a class with no grading periods keeps its one grade', await page.evaluate(() =>
+    classGradesClassGrades({ score: 81, grade: 'B-', periodTitle: null }, null)) === '81% (B-)');
 
 await page.screenshot({ path: OUT + '/class-grades.png' });
 await page.evaluate(() => document.body.classList.add('dark-mode'));

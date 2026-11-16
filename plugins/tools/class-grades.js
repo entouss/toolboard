@@ -399,7 +399,8 @@ function classGradesAIText(toolId, now) {
     var out = ['Today is ' + new Date(now).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '.'];
     if (student && student.name) out.push('Student: ' + student.name + '.');
     courses.forEach(function(c) {
-        var grade = c.score == null ? 'no grade yet' : classGradesClassGrade(c, scale);
+        var grade = c.periodTitle ? classGradesClassGrades(c, scale, ', ', 'full')
+            : c.score == null ? 'no grade yet' : classGradesClassGrade(c, scale);
         var change = c.score == null || c.previous == null ? ''
             : c.score > c.previous ? ', up ' + classGradesRound(c.score - c.previous) + ' since the last check'
             : c.score < c.previous ? ', down ' + classGradesRound(c.previous - c.score) + ' since the last check' : ', unchanged since the last check';
@@ -605,7 +606,7 @@ function classGradesSubmissionFor(assignment, studentId) {
 /** One student's classes and work, read from the platform. */
 async function classGradesFetch(toolId, base, token, who, studentId) {
     var courses = await classGradesList(toolId, base,
-        '/api/v1/courses?enrollment_state=active&include[]=total_scores&include[]=observed_users', token);
+        '/api/v1/courses?enrollment_state=active&include[]=total_scores&include[]=current_grading_period_scores&include[]=observed_users', token);
     // A course the student is in, as a student — a parent's list also holds the
     // parent's own observer enrolments.
     courses = courses.filter(function(c) {
@@ -625,6 +626,10 @@ async function classGradesFetchCourse(toolId, base, token, who, studentId, c) {
     var score = enrollment.computed_current_score;
     var grade = enrollment.computed_current_grade;
     if (score == null && enrollment.grades) { score = enrollment.grades.current_score; grade = enrollment.grades.current_grade; }
+    // The grading period running now (a quarter, a term), where the course has them.
+    var periodTitle = enrollment.has_grading_periods && enrollment.current_grading_period_title
+        ? classGradesOneLine(enrollment.current_grading_period_title) : null;
+    var periodScore = periodTitle ? enrollment.current_period_computed_current_score : null;
     // A parent reads the course as the student sees it — Canvas's route for that,
     // which brings the student's own submission with each assignment.
     var assignments = await classGradesList(toolId, base, who.observer
@@ -659,6 +664,9 @@ async function classGradesFetchCourse(toolId, base, token, who, studentId, c) {
         name: c.name || c.course_code || ('Course ' + c.id),
         score: score == null ? null : Number(score),
         grade: grade || null,
+        periodTitle: periodTitle,
+        periodScore: periodScore == null ? null : Number(periodScore),
+        periodGrade: periodTitle && enrollment.current_period_computed_current_grade || null,
         tasks: assignments.map(function(a) {
             var s = subs ? subs[a.id] || null : classGradesSubmissionFor(a, studentId);
             return {
@@ -701,7 +709,7 @@ async function classGradesRefreshClass(btn, event) {
     try {
         var who = { observer: !!data.observer };
         var course = await classGradesRequest(toolId, custom.cgBase + '/api/v1/courses/' + encodeURIComponent(courseId) +
-            '?include[]=total_scores&include[]=observed_users', token);
+            '?include[]=total_scores&include[]=current_grading_period_scores&include[]=observed_users', token);
         if (!course || Array.isArray(course) || course.id == null) throw new Error('The school did not answer with the class.');
         var fresh = await classGradesFetchCourse(toolId, custom.cgBase, token, who, studentId, course);
         // Since last check, for this class alone: its own last grade, then this one.
@@ -776,6 +784,17 @@ function classGradesTaskGrade(task) {
  *  something more (a letter) — not a number that only repeats the percentage. */
 function classGradesClassGrade(c, scale) {
     return classGradesClassGradeOf(c, scale).text;
+}
+
+/**
+ * A class's grades as said on its line: with a grading period running, that period's
+ * grade and the full course's — "Quarter 2 91% (A-) · Full 92.4% (A-)"; otherwise the
+ * one grade. `full` names the course's (AI text says it in a sentence).
+ */
+function classGradesClassGrades(c, scale, sep, full) {
+    if (!c.periodTitle) return classGradesClassGrade(c, scale);
+    var of = function(score, grade) { return score == null ? 'no grade' : classGradesClassGrade({ score: score, grade: grade }, scale); };
+    return c.periodTitle + ' ' + of(c.periodScore, c.periodGrade) + (sep || ' \u00B7 ') + (full || 'Full') + ' ' + of(c.score, c.grade);
 }
 
 /** The grade's text, and where its letter came from: the course's own scheme, the scale here, or none. */
@@ -920,7 +939,8 @@ function classGradesReportModel(snapshot, opts) {
         }
         return {
             id: String(c.id),
-            headParts: { square: classGradesSquare(c.score, t), name: classGradesOneLine(c.name), grade: classGradesClassGrade(c, opts.scale) },
+            headParts: { square: classGradesSquare(c.score, t), name: classGradesOneLine(c.name), grade: classGradesClassGrades(c, opts.scale),
+                twoGrades: !!c.periodTitle },
             letterFrom: classGradesClassGradeOf(c, opts.scale).from,
             name: c.name,
             score: c.score,
@@ -979,8 +999,11 @@ function classGradesAlign(filter) {
             var widest = function(list, key) {
                 return list.reduce(function(n, r) { return Math.max(n, classGradesWidth(r[key])); }, 0);
             };
+            // A class's two grades (a period's and the full course's) run on past the
+            // column rather than push its tasks' columns out.
+            var oneGrade = heads.filter(function(h) { return !h.twoGrades || !rows.length; });
             w = { name: Math.min(CLASS_GRADES_NAME_COLUMN, Math.max(widest(rows, 'name'), widest(heads, 'name'))),
-                grade: Math.max(widest(rows, 'grade'), widest(heads, 'grade')), status: widest(rows, 'status') };
+                grade: Math.max(widest(rows, 'grade'), widest(oneGrade, 'grade')), status: widest(rows, 'status') };
         }
         var G = CLASS_GRADES_GAP, h = m.headParts, indent = CLASS_GRADES_TASK_INDENT;
         var esc = classGradesEscape;

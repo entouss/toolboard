@@ -518,6 +518,12 @@ personal access token, or a parent's, which shows the students it is linked to.
   has a grading scheme, otherwise from a scale in the connection settings (the common
   A 93, A- 90, B+ 87 … F one to begin with, editable). Hovering over a class says which.
   **Status:** ✅ handed in, ⚠️ late, 🚫 missing, ⏳ not yet due.
+- **Quarter and full grade:** where a course has grading periods and one is running,
+  its line shows that period’s grade (named as the school names it, such as "Quarter 2")
+  and then the full course’s: `Quarter 2 91% (A-) · Full 92.4% (A-)`, each with its letter,
+  and "no grade" for one not graded yet. Without a period running, the one grade. The
+  square, sorting by grade and the change since the last check go by the full grade. Two
+  grades run on past the grade column rather than push the tasks’ columns out. ✨ reads both.
 - **Classes fold**, closed to begin with, each saying how many tasks it has; Expand all
   and Collapse all, and which are open is kept per student. Tasks are listed newest due
   first (or oldest first, chosen with the filters), undated work last.
