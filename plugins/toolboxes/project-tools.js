@@ -58,13 +58,18 @@
    Between the table and the chart, in Both: the quarter the plan is in and the three
    after it, the half it is in and the next, each with its first and last day, to
    scale — and under the quarters, their timeboxes and sprints and the planning week. Dragged, it shares the height between the two panes. */
-.proj-timeline { display: none; position: relative; flex: 0 0 auto; height: 100px; margin: 4px 0; cursor: row-resize;
+.proj-timeline { display: none; position: relative; flex: 0 0 auto; height: 116px; margin: 4px 0; cursor: row-resize;
     border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); background: var(--bg-secondary, var(--bg-tertiary));
     user-select: none; touch-action: none; font-variant-numeric: tabular-nums; }
 .tool.authoring-split.authoring-stacked .proj-widget .proj-timeline { display: block; overflow: hidden; }
 .proj-timeline:focus-visible { outline: 2px solid #3498db; outline-offset: -2px; }
 .proj-timeline.proj-dragging, .proj-timeline:hover { border-color: #3498db; }
-.proj-tl-rows { position: absolute; left: 8px; right: 30px; top: 4px; bottom: 4px; }
+.proj-tl-rows { position: absolute; left: 8px; right: 30px; top: 20px; bottom: 4px; }
+/* One person's working days in each period, rounded to be remembered: a rule of thumb
+   for sizing, above the periods it is about. */
+.proj-tl-capacity { position: absolute; left: 8px; right: 30px; top: 3px; height: 14px; line-height: 14px; font-size: 10px; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.proj-tl-capacity b { color: var(--text-secondary); font-weight: 600; }
 .proj-tl-row { position: absolute; left: 0; right: 0; height: 24px; }
 .proj-tl-row.halves { top: 0; }
 .proj-tl-row.quarters { top: 26px; }
@@ -91,10 +96,10 @@
 .proj-tl-copy:hover { color: var(--text-primary); }
 /* A window too short for the periods keeps the divider and loses the dates: the
    panes need the height more than the timeline does. */
-.proj-timeline.proj-tl-short { height: 58px; }
+.proj-timeline.proj-tl-short { height: 74px; }
 .proj-timeline.proj-tl-short .proj-tl-row.timeboxes, .proj-timeline.proj-tl-short .proj-tl-row.sprints { display: none; }
 .proj-timeline.proj-tl-compact { height: 8px; }
-.proj-timeline.proj-tl-compact .proj-tl-rows, .proj-timeline.proj-tl-compact .proj-tl-copy { display: none; }
+.proj-timeline.proj-tl-compact .proj-tl-rows, .proj-timeline.proj-tl-compact .proj-tl-copy, .proj-timeline.proj-tl-compact .proj-tl-capacity { display: none; }
 
 /* Days per size. One line, always in view: it is what every calculated column is
    built on, and a number you cannot see is a number you cannot trust. */
@@ -2250,6 +2255,43 @@ function projLongDate(ms) {
     return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
+/**
+ * What one person can do in each period, in working days: a rule of thumb for sizing,
+ * not a plan. A person works five days a week unless the week is said to be fewer —
+ * or, with weekends skipped, whatever the week is — and the planning week is not
+ * delivery, so a quarter is its timeboxes and a half two of those. Rounded to be
+ * remembered: whole days under 20, fives to 100, tens above; its size is the size, if
+ * any, that is that many days exactly.
+ */
+function projPersonCapacity(units, sizes) {
+    const n = (v, fallback) => { const x = Number(v); return isFinite(x) && x > 0 ? x : fallback; };
+    const dpw = Math.min(7, n(units.daysPerWeek, PROJ_DEFAULT_UNITS.daysPerWeek));
+    const week = units.skipWeekends ? dpw : Math.min(5, dpw);
+    const sprint = week * n(units.weeksPerSprint, PROJ_DEFAULT_UNITS.weeksPerSprint);
+    const timebox = sprint * n(units.sprintsPerTimebox, PROJ_DEFAULT_UNITS.sprintsPerTimebox);
+    const quarter = timebox * n(units.timeboxesPerQuarter, PROJ_DEFAULT_UNITS.timeboxesPerQuarter);
+    const round = (v) => v < 20 ? Math.round(v) : v <= 100 ? Math.round(v / 5) * 5 : Math.round(v / 10) * 10;
+    const sizeOf = (v) => PROJ_SIZE_RAMP.find(k => sizes && Number(sizes[k]) > 0 && Math.abs(Number(sizes[k]) - v) < 1e-9) || '';
+    return { week: week, periods: [['sprint', sprint], ['timebox', timebox], ['quarter', quarter], ['half', quarter * 2]].map(([name, exact]) => {
+        const shown = round(exact);
+        return { name: name, exact: exact, shown: shown, rounded: Math.abs(shown - exact) > 1e-9, size: sizeOf(exact) };
+    }) };
+}
+
+/** The capacity line, as words: plain for Copy, with the figures in bold for the timeline. */
+function projCapacityText(cap, html) {
+    const b = (t) => html ? '<b>' + t + '</b>' : t;
+    return 'One person, in working days: ' + cap.periods.map(p => b(p.name + ' ' + (p.rounded ? '≈ ' : '') + p.shown) + (p.size ? ' (' + p.size + ')' : '')).join(' · ');
+}
+
+/** How the capacity line was worked out, for its tooltip. */
+function projCapacityTitle(cap) {
+    const days = (v) => (Math.round(v * 100) / 100) + (v === 1 ? ' day' : ' days');
+    return 'A rule of thumb for one person, at ' + cap.week + ' working days a week: ' +
+        cap.periods.map(p => 'a ' + p.name + ' is ' + days(p.exact)).join(', ') +
+        '. The planning week is not counted, and nor are holidays, time off or meetings.';
+}
+
 function projRenderTimeline(widget, data) {
     const tl = widget.querySelector('.proj-timeline');
     if (!tl) return;
@@ -2281,7 +2323,9 @@ function projRenderTimeline(widget, data) {
     };
     tl.setAttribute('aria-label', 'Periods, and the divider between the table and the chart: drag, or ↑ and ↓, to share the height; double-click to reset');
     tl.title = 'Drag to share the height between the table and the chart · double-click to reset';
-    tl.innerHTML = '<div class="proj-tl-rows">' +
+    const cap = projPersonCapacity(units, data.sizes);
+    tl.innerHTML = '<div class="proj-tl-capacity" title="' + escapeHtml(projCapacityTitle(cap)) + '">' + projCapacityText(cap, true) + '</div>' +
+        '<div class="proj-tl-rows">' +
             '<div class="proj-tl-row halves">' + m.halves.map(seg).join('') + '</div>' +
             '<div class="proj-tl-row quarters">' + m.quarters.map(seg).join('') + '</div>' +
             '<div class="proj-tl-row timeboxes">' + m.timeboxes.map(seg).join('') + '</div>' +
@@ -2289,12 +2333,13 @@ function projRenderTimeline(widget, data) {
             '<div class="proj-tl-today" style="left:' + pct(m.today + PROJ_DAY / 2).toFixed(3) + '%" title="Today"></div>' +
         '</div>' +
         '<button type="button" class="proj-tl-copy" onclick="projCopyPeriods(this)" title="Copy these periods and their dates">⎘</button>';
+    m.capacity = projCapacityText(cap, false);
     tl._model = m;
 }
 
 /** The periods as lines of text: name, first and last day, length, and which is now. */
 function projPeriodsText(m) {
-    return m.listed.map(p => p.name + ': ' + projFormatDate(p.start) + ' – ' + projFormatDate(p.end) + ' (' + p.days + ' days' + (p.now ? ', now' : '') + ')').join('\n');
+    return (m.capacity ? m.capacity + '\n' : '') + m.listed.map(p => p.name + ': ' + projFormatDate(p.start) + ' – ' + projFormatDate(p.end) + ' (' + p.days + ' days' + (p.now ? ', now' : '') + ')').join('\n');
 }
 
 function projCopyPeriods(btn) {
@@ -5068,7 +5113,7 @@ function projRowDrop(tr, event) {
         projOnNoteInput, projCloseModal,
         projRolledSize, projSizeStep, projPercentStep, projSchedule,
         projSplitOf, projApplySplit, projSaveSplit, projSplitDown, projSplitKey, projSplitReset,
-        projYearQuarters, projTimelineModel, projQuarterParts, projTimelineFit, projChartMatches, projOnChartSpan, projAlignTimeline, projKeepTicksIn, projShortDate, projLongDate, projRenderTimeline, projPeriodsText, projCopyPeriods,
+        projYearQuarters, projTimelineModel, projQuarterParts, projTimelineFit, projChartMatches, projOnChartSpan, projAlignTimeline, projKeepTicksIn, projShortDate, projLongDate, projPersonCapacity, projCapacityText, projCapacityTitle, projRenderTimeline, projPeriodsText, projCopyPeriods,
         projAISizeScale, projAIRowSquare, projAISquareUp, projAIRowLine, projAIFocusedRow, projAITarget, projAICleanRows, projAIRowsPreview, projAIApply,
         projInit, projOnRender, projRender, projAutoFit, projRefresh, projRenderSizes,
         projColumnHeadHtml, projCellHtml, projRenderTable, projTickStep, projRenderGantt,

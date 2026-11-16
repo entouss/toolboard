@@ -99,13 +99,36 @@ await page.hover(TL);
 await page.click(TL + ' .proj-tl-copy');
 await page.waitForTimeout(200);
 const copied = await page.evaluate(() => navigator.clipboard.readText());
-ok('Copy gives the quarters and halves, now marked', copied === [
+ok('Copy gives one person’s days, then the quarters and halves, now marked', copied === [
+    'One person, in working days: sprint 10 (M) · timebox 30 (L) · quarter 60 (XL) · half 120 (XXL)',
     '2026 Q4: 2026-10-01 – 2026-12-30 (91 days, now)', '2027 Q1: 2027-01-01 – 2027-04-01 (91 days)', '2027 Q2: 2027-04-02 – 2027-07-01 (91 days)',
     '2027 Q3: 2027-07-02 – 2027-09-30 (91 days)', '2026 H2: 2026-07-02 – 2026-12-31 (183 days, now)', '2027 H1: 2027-01-01 – 2027-07-01 (182 days)',
     '2026 Q4 T1: 2026-10-01 – 2026-11-11 (42 days, now)', '2026 Q4 T2: 2026-11-12 – 2026-12-23 (42 days)',
     '2026 Q4 T1 S3: 2026-10-29 – 2026-11-11 (14 days, now)', '2026 Q4 T2 S1: 2026-11-12 – 2026-11-25 (14 days)', '2026 Q4 T2 S2: 2026-11-26 – 2026-12-09 (14 days)',
     '2026 Q4 T2 S3: 2026-12-10 – 2026-12-23 (14 days)', '2026 Q4 planning week: 2026-12-24 – 2026-12-30 (7 days)'].join('\n'), copied);
 ok('and pressing it does not move the divider', (await page.evaluate((i) => (toolCustomizations[i] || {}).projSplit, id)) === undefined);
+
+// 3a. One person's working days in each period, rounded to be remembered, above them.
+const cap = () => page.evaluate((s) => { const c = document.querySelector(s + ' .proj-tl-capacity');
+    return c ? { text: c.textContent, title: c.title, top: c.getBoundingClientRect().bottom <= document.querySelector(s + ' .proj-tl-rows').getBoundingClientRect().top + 0.5,
+        shown: getComputedStyle(c).display !== 'none' && c.getBoundingClientRect().height > 0 } : null; }, TL);
+let c = await cap();
+ok('a line above the periods: one person’s working days, each matching a size', c && c.shown && c.top &&
+    c.text === 'One person, in working days: sprint 10 (M) · timebox 30 (L) · quarter 60 (XL) · half 120 (XXL)', JSON.stringify(c));
+ok('its tooltip says how: five days a week, no planning week, holidays or meetings', /at 5 working days a week/.test(c.title) && /a sprint is 10 days/.test(c.title) &&
+    /a half is 120 days/.test(c.title) && /planning week is not counted/.test(c.title) && /holidays, time off or meetings/.test(c.title), c.title);
+await setUnits({ weeksPerSprint: 1.5 });
+c = await cap();
+ok('a sprint of a week and a half: rounded, and said to be, with no size to match', c.text === 'One person, in working days: sprint ≈ 8 · timebox ≈ 25 · quarter 45 · half 90', c.text);
+ok('the tooltip keeps the exact figures', /a sprint is 7\.5 days, a timebox is 22\.5 days/.test(c.title), c.title);
+await setUnits({ weeksPerSprint: 2, daysPerWeek: 4, skipWeekends: true });
+c = await cap();
+ok('a four-day week, weekends skipped: four days a week', c.text === 'One person, in working days: sprint 8 · timebox ≈ 25 · quarter ≈ 50 · half ≈ 95' && /at 4 working days a week/.test(c.title), c.text);
+await setUnits({ daysPerWeek: 7, skipWeekends: false });
+await page.evaluate((i) => { const d = projGetData(i); d.sizes.M = 12; projSetData(i, d); projRender(document.querySelector('.tool[data-tool="' + i + '"] .proj-widget'), i); }, id);
+c = await cap();
+ok('a sprint no longer a size: no size beside it', c.text === 'One person, in working days: sprint 10 · timebox 30 (L) · quarter 60 (XL) · half 120 (XXL)', c.text);
+await page.evaluate((i) => { const d = projGetData(i); d.sizes.M = 10; projSetData(i, d); projRender(document.querySelector('.tool[data-tool="' + i + '"] .proj-widget'), i); }, id);
 
 // 3b. The chart's span: fitted to the plan, or matched to the timeline so each date
 // sits under the same date above.
@@ -243,12 +266,12 @@ const compact = await page.evaluate(async (i) => {
     t.style.height = '300px';
     await new Promise(r => setTimeout(r, 150));
     const tl = t.querySelector('.proj-timeline');
-    const small = tl.classList.contains('proj-tl-compact') && tl.getBoundingClientRect().height < 12 && getComputedStyle(tl.querySelector('.proj-tl-rows')).display === 'none';
+    const small = tl.classList.contains('proj-tl-compact') && tl.getBoundingClientRect().height < 12 && getComputedStyle(tl.querySelector('.proj-tl-rows')).display === 'none' && getComputedStyle(tl.querySelector('.proj-tl-capacity')).display === 'none';
     t.style.height = before;
     await new Promise(r => setTimeout(r, 150));
     return small && !tl.classList.contains('proj-tl-compact');
 }, id);
-ok('in a window too short for the dates, it is a thin divider; given room again, the dates come back', compact);
+ok('in a window too short for the dates, it is a thin divider, without the capacity line; given room again, they come back', compact);
 const short = await page.evaluate(async (i) => {
     const t = document.querySelector('.tool[data-tool="' + i + '"]');
     const before = t.style.height;
@@ -263,7 +286,7 @@ const short = await page.evaluate(async (i) => {
     return { full: full.join(), mid: mid.join(), midH: midH, after: rows(tl).join() };
 }, id);
 ok('given less room, the timeboxes and sprints go first, and the halves and quarters stay', short.full === 'true,true,true,true' &&
-    short.mid === 'true,true,false,false' && short.midH < 62 && short.after === short.full, JSON.stringify(short));
+    short.mid === 'true,true,false,false' && short.midH < 78 && short.after === short.full, JSON.stringify(short));
 // The chart does not scroll sideways because of its own labels: the last one, centred
 // on a day near the edge, used to stick out by half its width whatever the axis.
 const overflow = () => page.evaluate((i) => {

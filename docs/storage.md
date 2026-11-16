@@ -529,6 +529,8 @@ timeline's own span, and the timeline's rows sit over the chart's bars, so each 
 is under the same date above. Work past either end is cut at the edge with a ▸ and
 its tooltip says so. It applies only in Both, where the timeline is there to match.
 
+Above the periods, the timeline says what **one person** can do in each, in working days — a rule of thumb for sizing, not a plan (`projPersonCapacity()`). Nothing is stored for it: it is worked out from the ladder at five days a week (fewer if the week is fewer, and the week itself when `skipWeekends` is on), leaves out the planning week, so a quarter is its timeboxes and a half two quarters, and rounds to be remembered — whole days under 20, fives to 100, tens above, with `≈` only where it rounded. A size that is exactly that many days is named beside it, so with the defaults it reads sprint 10 (M), timebox 30 (L), quarter 60 (XL), half 120 (XXL); the tooltip has the exact figures, and Copy ⎘ puts the line first. It goes with the dates when the window is too short for them.
+
 `projUnitDays()` turns that into days — week 7, sprint 14, timebox 42, quarter 91 —
 and `projSayDuration()` says a number in the largest rung it fits exactly, which is
 what the Total and Remaining tooltips show.
