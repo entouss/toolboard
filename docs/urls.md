@@ -127,6 +127,9 @@ of them in one file named after the board. **Import from File** brings either ba
 any board, loading the plugins its tools need; what belongs to one browser alone
 (`LOCAL_ONLY_KEYS`: a script's approval, a fetched source) is left out on the way.
 
+**Export as PDF**, beside it, carries nothing back: it is the tool printed, for
+reading. See [tool.md](tool.md) for what is printed and how a tool gives a page of its own.
+
 ## From an exported HTML file
 
 **Export as HTML**, in a tool's settings, writes a standalone page. That page now

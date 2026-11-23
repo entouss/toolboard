@@ -4881,6 +4881,7 @@ tr:hover {
             <button class="copy-tool-btn ts-single-only" id="toolSettingsCopyDataLinkBtn">Copy Link with Data</button>
             <button class="export-tool-btn ts-single-only" id="toolSettingsExportBtn">Export as HTML</button>
             <button class="export-png-btn ts-single-only" id="toolSettingsExportPngBtn">Export as PNG</button>
+            <button class="export-png-btn ts-single-only" id="toolSettingsExportPdfBtn" title="Print the tool, and choose Save as PDF in the print dialog">Export as PDF</button>
             <button class="export-png-btn ts-single-only" id="toolSettingsExportJsonBtn" title="The tool as a file Import / Export can bring back, on this board or another">Export as JSON</button>
             <button class="export-png-btn ts-bulk-only" id="toolSettingsExportJsonBulkBtn" title="These tools as one file Import / Export can bring back">Export as JSON</button>
             <button class="send-to-back-btn ts-single-only" id="toolSettingsSendToBackBtn">Send to Back</button>
@@ -5363,6 +5364,9 @@ const PluginRegistry = {
             // Name a function here to be handed the parameters of the link a tool
             // was opened from — see applyToolHashParams and docs/urls.md.
             hashParams: typeof plugin.hashParams === 'string' ? plugin.hashParams : null,
+            // Name a function here, (toolId) => HTML, to give Export as PDF a page of
+            // the tool's own instead of a copy of the screen. See buildToolPrintHtml.
+            printHtml: typeof plugin.printHtml === 'string' ? plugin.printHtml : null,
             // A page explaining the tool, opened from the ? in its header. Relative
             // to the app, so it travels with whatever host serves it.
             guide: typeof plugin.guide === 'string' ? plugin.guide : null,
@@ -7228,6 +7232,7 @@ function setupToolControls() {
     const settingsDuplicateBtn = document.getElementById('toolSettingsDuplicateBtn');
     const settingsExportBtn = document.getElementById('toolSettingsExportBtn');
     const settingsExportPngBtn = document.getElementById('toolSettingsExportPngBtn');
+    const settingsExportPdfBtn = document.getElementById('toolSettingsExportPdfBtn');
     const settingsExportJsonBtn = document.getElementById('toolSettingsExportJsonBtn');
     const settingsExportJsonBulkBtn = document.getElementById('toolSettingsExportJsonBulkBtn');
     const settingsSendToBackBtn = document.getElementById('toolSettingsSendToBackBtn');
@@ -7864,6 +7869,16 @@ function setupToolControls() {
             const toolId = currentSettingsToolId;
             closeSettingsModal();
             exportToolAsPng(toolId);
+        }
+    });
+
+    // Export as PDF: printed, and kept with the print dialog's Save as PDF.
+    settingsExportPdfBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentSettingsToolId) {
+            const toolId = currentSettingsToolId;
+            closeSettingsModal();
+            exportToolAsPdf(toolId);
         }
     });
 
@@ -19013,6 +19028,118 @@ async function exportToolAsPng(toolId) {
         console.error('Error exporting note as PNG:', error);
         alert('Failed to export note as PNG. Please try again.');
     }
+}
+
+// Export as PDF. The browser's print dialog makes the PDF (Save as PDF), as no
+// library could as well: its text can be searched and selected, and its pages break
+// where they should. A tool can name a function giving a page of its own
+// (`printHtml` in its registration); otherwise the page is a copy of the tool as it
+// is on screen, in the light theme, with what is typed in its fields, its canvases
+// as pictures, and anything that scrolls let out to its full length.
+const TOOL_PRINT_CSS =
+    '@page { margin: 12mm; }' +
+    'html, body { background: #fff !important; height: auto !important; overflow: visible !important; }' +
+    'body { margin: 0; padding: 0; color: #111; }' +
+    '* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+    '.tool-print-title { font: 600 16pt system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0 0 8pt; color: #111; }' +
+    '.tool-print-own { font: 10.5pt/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: #111; }' +
+    '.tool-print-own h1 { font-size: 16pt; margin: 0 0 6pt; } .tool-print-own h2 { font-size: 12.5pt; margin: 12pt 0 3pt; break-after: avoid; }' +
+    '.tool-print-own h3 { font-size: 11pt; margin: 10pt 0 2pt; break-after: avoid; }' +
+    '.tool-print-own ul, .tool-print-own ol { margin: 2pt 0 4pt; padding-left: 16pt; } .tool-print-own li { break-inside: avoid; }' +
+    '.tool-print-own a { color: #1a5fb4; text-decoration: none; }' +
+    '.tool-print-own table { border-collapse: collapse; } .tool-print-own th, .tool-print-own td { border: 1px solid #ccc; padding: 2pt 4pt; }' +
+    '.tool-print-copy.tool { position: static !important; transform: none !important; left: auto !important; top: auto !important;' +
+        ' width: auto !important; height: auto !important; max-height: none !important; box-shadow: none !important; border: none !important; }' +
+    '.tool-print-copy .tool-content { zoom: 1 !important; height: auto !important; max-height: none !important; overflow: visible !important; }' +
+    '.tool-print-gone { border: 1px dashed #bbb; color: #777; padding: 6pt; font: 9pt system-ui, sans-serif; }';
+
+function toolPrintTemplate(toolId) {
+    const custom = toolCustomizations[toolId] || {};
+    const tid = custom.templateId || toolId;
+    return NOTE_TEMPLATES[tid] || PluginRegistry.getTool(tid) || null;
+}
+
+// The page to print, as a whole HTML document.
+function buildToolPrintHtml(toolId) {
+    const toolEl = document.querySelector('.tool[data-tool="' + toolId + '"]');
+    if (!toolEl) return null;
+    const custom = toolCustomizations[toolId] || {};
+    const title = custom.title || (getToolContent(toolId) || {}).title || 'Tool';
+    const head = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>';
+    const tpl = toolPrintTemplate(toolId);
+    const own = tpl && tpl.printHtml && typeof window[tpl.printHtml] === 'function' ? window[tpl.printHtml] : null;
+    if (own) {
+        let body = null;
+        try { body = own(toolId); } catch (e) { console.error('printHtml failed, printing the screen instead:', e); }
+        if (typeof body === 'string')
+            return head + '<style>' + TOOL_PRINT_CSS + '</style></head><body><div class="tool-print-own">' + body + '</div></body></html>';
+    }
+    const live = toolEl.querySelector('.tool-content');
+    if (!live) return null;
+    const copy = live.cloneNode(true);
+    copy.style.zoom = '';
+    // The copy, element for element with what is on screen: what the copy cannot carry by itself.
+    const a = [live, ...live.querySelectorAll('*')], b = [copy, ...copy.querySelectorAll('*')];
+    const swaps = [];
+    a.forEach((el, i) => {
+        const c = b[i];
+        if (!c) return;
+        const tag = el.tagName;
+        if (tag === 'INPUT') {
+            if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) c.setAttribute('checked', ''); else c.removeAttribute('checked'); }
+            else if (el.type !== 'file' && el.type !== 'password') c.setAttribute('value', el.value);
+        } else if (tag === 'TEXTAREA') c.textContent = el.value;
+        else if (tag === 'SELECT') Array.from(el.options).forEach((o, j) => { if (c.options[j]) { if (o.selected) c.options[j].setAttribute('selected', ''); else c.options[j].removeAttribute('selected'); } });
+        else if (tag === 'CANVAS') {
+            const img = document.createElement('img');
+            try { img.src = el.toDataURL('image/png'); } catch (e) { img.alt = '(a picture that could not be copied)'; }
+            img.style.width = el.clientWidth + 'px';
+            img.style.maxWidth = '100%';
+            swaps.push([c, img]);
+        } else if (tag === 'IFRAME' || tag === 'VIDEO' || tag === 'EMBED' || tag === 'OBJECT') {
+            const gone = document.createElement('div');
+            gone.className = 'tool-print-gone';
+            gone.textContent = 'Embedded content is not printed.';
+            swaps.push([c, gone]);
+        }
+        if (el.nodeType === 1 && el !== live) {
+            const cs = getComputedStyle(el);
+            const scrolls = (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) ||
+                (/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth + 1);
+            if (scrolls) { c.style.height = 'auto'; c.style.maxHeight = 'none'; c.style.overflow = 'visible'; }
+        }
+    });
+    swaps.forEach(([from, to]) => from.replaceWith(to));
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map(x => x.outerHTML).join('');
+    return head + styles + '<style>' + TOOL_PRINT_CSS + '</style></head><body>' +
+        '<h1 class="tool-print-title">' + escapeHtml(title) + '</h1>' +
+        '<div class="' + escapeHtml(toolEl.className) + ' tool-print-copy" data-tool="' + escapeHtml(toolId) + '">' + copy.outerHTML + '</div></body></html>';
+}
+
+function exportToolAsPdf(toolId) {
+    const html = buildToolPrintHtml(toolId);
+    if (!html) return;
+    const frame = document.createElement('iframe');
+    frame.className = 'tool-print-frame';
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+    document.body.appendChild(frame);
+    const doc = frame.contentDocument;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    showToolToast('Choose “Save as PDF” in the print dialog to keep it');
+    // Laid out, its stylesheets in, before it is printed; cleared up after.
+    setTimeout(() => {
+        try {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+        } catch (e) {
+            console.error('Error exporting tool as PDF:', e);
+            alert('The tool could not be printed: ' + e.message);
+        }
+        setTimeout(() => frame.remove(), 1000);
+    }, 400);
 }
 
 // Board management functions
