@@ -740,6 +740,423 @@ more than its last day, and using it here made a row that finished exactly on it
 deadline read as a day late. In a plan that just fits, that was every row. A dependency loop is detected rather than
 followed; those rows are drawn from today and the chart says so.
 
+### Vacation Planner — a trip in one key
+
+`toolCustomizations[toolId].vacPlan` holds the whole trip. Times are minutes after
+midnight, and days are keyed by their date:
+
+```js
+{
+  name: 'Lake week', start: '2027-07-09', end: '2027-07-12', destination: 'Lakeside, ME',
+  stays: [ { id, place, inDate, inTime, outDate, outTime, conf, cost, phone, notes } ],
+  home: place,                          // where the trip starts and ends; or null
+  journeys: { out: { flight, driveMin, shuttleMin, exitMin, transferMin, transferMode, pickupMin, returnMin, leave },
+              back: { … } },            // a block a journey made carries leg: 'out:drive' and legAt
+  meals: [ { key: 'am', label: 'Breakfast', start: 480, end: 540 },
+           { key: 'xm', label: 'Lunch', start: 750, end: 810 },
+           { key: 'pm', label: 'Dinner', start: 1110, end: 1200 } ],
+  hours: [6, 23],                       // the day's grid; stretched to take in any block outside it
+  showHours?: [from | null, to | null], // the hours shown, chosen (see The hours shown); null is Auto
+  airportLead: 120,                     // minutes before a flight to be at the airport
+  breakEvery: 120,                      // minutes between breaks on a drive; 0 for none
+  days: { '2027-07-09': { blocks: [ { id, title, kind: 'food' | 'activity' | 'flight' | 'drive' | 'travel' | 'rest',
+                                      start, end, meal?: 'am' | 'xm' | 'pm',
+                                      place?: { label, address, url?, lat?, lng? }, notes?, done?, cost?, paid?, fit?,
+                                      flight?: { number, from, to, arrive, arriveDay, seat, gate, conf,
+                                                 checkinH?, bagMin?, gateMin? },   // check-in (see Flight check-in)
+                                      rental?, rentalAt?, rentalId?,     // a rental's pick-up or return
+                                      link?, linkGap?, nolink?,          // linked after another block (see Linked blocks)
+                                      drive?: { from: place, to: place, stops: [ place ] } } ],
+                          label?: 'Beach day',
+                          list: [ { text, done } ],
+                          outfits: [ { id, preset, who,       // who: a person's id; '' is everyone
+                                       items: { <type id>: { text, packed } } } ],
+                          outfitKeys: [ '<who>|<preset>' ] } },
+  places: [ { id, label, address, url?, lat?, lng? } ],
+  parking: [ { id, lot: place, fromDate, fromTime, toDate, toTime, conf, cost, spot } ],
+  rentals: [ { id, company, car, pickPlace, pickDate, pickTime, dropPlace, dropDate, dropTime, conf, cost, notes } ],
+  cruises: [ { id, line, ship, cabin, conf, cost, notes, boardPlace, boardDate, boardTime, allAboard,
+               leavePlace, leaveDate, leaveTime, days: { '<date>': { port, arrive, depart, aboard } } } ],
+  tabOrder: [ 'trip', 'people', … ],    // the trip-wide tabs as arranged; missing ones follow
+  ignoredWarnings: [ 'overlap:<id>|<id>', … ],   // clashes marked as meant (see What clashes)
+  travelTimes: { '<place> ↔ <place>': { min: 25, mode: 'walk' | 'drive' | 'transit' | 'taxi' } },
+  currency: '$', budget: '2500',        // the Budget tab's; budget as typed, read by vacMoney
+  extras: [ { id, label, cat, date, cost, paid } ],   // costs of the Budget tab's own
+  people: [ { id, name, color } ],
+  clothesTypes: [ { id: 'top', label: 'Top' }, … ],          // the clothes table's columns
+  outfitPresets: [ { id: 'day', name: 'Day', auto: true, items: { top: 'T-shirt', … } }, … ],
+  lists: [ { id, name, items: [ { text, done } ] } ]
+}
+```
+
+- **Days come from the dates.** A day is made the first time the dates take it in, with one
+  block for each of `meals`, marked by `meal`. From then on a meal is a block like any
+  other: moved, renamed or deleted, it stays that way, and Restore meals adds back any
+  of the three a day is missing. Leaving a day out of the dates deletes it, and asks
+  first when it holds anything more than its meals as they came.
+- **Meal times are the trip's**, set in the Meals tab (saved without drawing it again, so
+  the next field keeps the focus). Changing one moves that meal on every day where it is
+  still at the old time, and renames it where it still has the old name; a meal that
+  was moved or renamed is left alone.
+- **A day's label** is kept as typed, and gone when emptied. It shows beside the date
+  on the day, on its tab (cut to `VAC_TAB_LABEL` characters, whole on hover), under
+  the date in the Trip view and the Clothes table, in the day pickers and in the
+  bullet list's headings. A labelled day counts as planned when the dates would
+  leave it out.
+- **A place is copied into the block**, not referred to, so removing a place from
+  `places` changes no block. Editing a saved place in the Places tab, or a stay's
+  name or address in the Stay tab, finds the copies still exactly as it was (in blocks, drives' starts,
+  stops and ends, and parking) and asks whether to change them too; a name typed is
+  kept over one read from a pasted link. A pasted Google Maps link is kept as `url`, its place
+  name read from `/maps/place/<name>/` and its pin from `!3d…!4d…` only (or a
+  `query=lat,lng`) — never `@lat,lng`, which is the middle of the map as it was
+  scrolled when the link was copied, not the place; a pin kept before from it is let
+  go on reading (`vacFixPins`). A short `maps.app.goo.gl` link carries neither and
+  stays only a link. A place opens as its `url`, or a Maps search for its name and
+  address. On a route and in directions (`vacRouteStop`) it is its name and address
+  when it has an address (Maps finds the place and shows it by name), else its pin,
+  else its name alone. Places, the block's panel and a stay say where directions go
+  (`vacPlaceTarget`: address, 📍 pin, a name alone, or nothing for a short link) with a
+  **Check** link to that exact spot. Renamed to something that does not agree with the
+  name in its link (`vacNamesAgree`: neither in the other, no long word shared), a
+  place lets the link and its pin go (`vacRenamePlace`), so name and pin never disagree.
+  **The trip's destination** (`destination`, in the header: "Los Angeles, CA") is
+  added to what Maps is asked for a place with only a name (`vacPlaceQuery`), so
+  "Hollywood Lookout" is looked for there and not near wherever the phone is. It is set
+  on reading (`vacApplyNear`, as `near`, not enumerable, so never saved: changing the
+  destination changes them all) on saved places, stays, rentals, and blocks' places,
+  drives' starts, stops and ends; not on airports, parking lots or home, which are
+  where you set off from, nor on a place with an address or a pin. Directions,
+  searches, the target line and the calendar's location use it; travel times keep
+  their key without it (`vacGapKey`). **Route for the day** is a Google Maps directions link through the
+  day's places in time order, from where you woke to where you sleep (see stays), at most
+  nine stops between the first and the last. Nothing is sent to Google until a link
+  is clicked.
+- **A flight** departs at `start`. `arrive` is when it lands, local at that airport (no
+  time zones are worked out), `arriveDay` the days after: 0, 1 or 2. Landing the same
+  day, `end` is `arrive`; later, the block runs to midnight and the day it lands shows
+  it as an event in its header. Its number opens a search for its status, and each
+  airport a Maps search for "<code> airport", which is also the flight's stop on the
+  day's route. **Add the trip to the airport** adds a drive ending `airportLead`
+  minutes before take-off, from the day's stay to the airport.
+  Flights are also cards in the Travel tab, with the same fields and a day picker:
+  **+ Add flight** adds one there (a flight block on the trip's first day, 9:00 to
+  11:00, to fill in) without opening a day, and a card's changes are the block's, saved
+  without redrawing so the next field keeps the focus.
+- **A drive** goes `from`, through `stops`, `to`, each a place typed as an address, a
+  Maps link or the name of a saved place (which is copied in). Its directions open
+  from its start, or from wherever you are when it has none. Its length is the block's:
+  a directions link gives no travel time back. A dashed mark falls every `breakEvery`
+  minutes along it.
+- **Parking** is the trip's, not a day's: the days it is dropped off and picked up show
+  it in their header, the pick-up with where it was left (`spot`). Times are minutes,
+  or null.
+- **Getting there and getting back** are worked out (`vacJourneyPlan`), in the Travel
+  tab, from Home (set in the Stay tab), the parking, a flight (the first going, the last
+  coming back if there is another, or one chosen; or none, for a drive) and the stays.
+  Going, back from take-off: at the airport `airportLead` before it, the shuttle from
+  the lot (`shuttleMin`) before that, the parking dropped off as it leaves, the drive
+  from home (`driveMin`) before that; on from landing: `exitMin` to leave the airport,
+  then a taxi, rental car, shuttle, train or drive (`transferMin`) to that night's stay.
+  Coming back runs the other way: check out, the transfer to the airport, the flight,
+  the shuttle to the lot, the pick-up, the drive home. With no flight it is a drive
+  between home and the first or last stay, leaving at `leave`. A step with no length
+  set yet says so and stays off the schedule. **Put it on the schedule** makes each step
+  with both its times a block on its day (a drive with its start and end, any other
+  with its place), marked `leg` and `legAt`, and sets the parking's drop-off or pick-up;
+  done again, or once a setting changes after it, it updates the blocks it made, leaves
+  one changed by hand since (its day or times no longer `legAt`), and takes away one it
+  no longer needs unless changed. The bullet list writes both out, step by step.
+- **A cruise** is a card in its own tab: the ship and booking, where and when you board
+  (with all aboard) and leave it (`leavePlace` empty is where it boarded), and a row for
+  each day between, at sea until it is given a port, then with the ship's arrival,
+  departure and all aboard (half an hour before departure unless set). The ship is
+  where you sleep while on it (`vacCruiseStays`, read by `vacStaysOn` beside the stays):
+  boarding day ends at its port, a port day starts and ends at that port, a sea day has
+  no route, and getting there and back go to and from the ship as they would a hotel
+  (boarding and leaving it in place of checking in and out). Each day's header says
+  boarding, in port or at sea, or leaving; in the Trip view the ship is a blue bar
+  across its days with each port under it. The bullet list gives it a `## Cruise`
+  section with a line a day, its booking only with `conf`.
+- **A car rental** is a card in the Travel tab: company, car, where and when it is
+  picked up and returned (`dropPlace` empty is where it was picked up), the booking.
+  The days it is picked up and returned show it in their header. Getting there with
+  its transfer set to Rental car, and a rental booked, goes from landing to the
+  counter (`pickupMin`, 30 to begin with) and then drives from there to the stay;
+  getting back drives from the stay to where it is returned, returns it, and takes
+  the shuttle (`shuttleMin`) to the terminal. Put on the schedule, the rental's
+  pick-up and return take those times, as parking does. The bullet list gives it a
+  `## Car rental` section, its confirmation only with `conf`.
+- **Stays** are where you sleep, each with its place, check-in and check-out dates and
+  times (minutes, or null), and its booking. On a date you wake at the stay checked in
+  before it and not yet out, and sleep at the one checked in by it and out after it
+  (`vacStaysOn`): the day's route starts at the first and ends at the second, so a
+  changeover day goes from the one to the other, and a new drive starts from it. The
+  days checked in and out show it in their header. In the Trip view each stay is a
+  bar across its days, from midday on the first to midday on the last, above the
+  hours; stays that overlap get a row each, and a changeover day shares one.
+  A block with a place (or a drive with somewhere to go) shows a 📍 in the Trip view,
+  the place on hover. A plan
+  kept with one `stay` (before there were several) is read as a single stay the whole
+  trip long. The stays' names are offered wherever a place is typed, though they are
+  not in Places.
+- **Route for the trip**, at the top of the Trip view, is the whole trip's stops as
+  Google Maps directions, in parts of at most eleven stops (Maps takes nine between the
+  start and the end), each part starting where the last ended. The planner draws no map
+  of its own; a plan that kept positions for one (`geo`) has them dropped when read.
+- **People** are who is going, each with a colour (the next unused of
+  `VAC_PEOPLE_COLORS` when added). Removing one asks first when anything of theirs in
+  the clothes table differs from its preset or is ticked, and deletes their outfits.
+- **Clothes** are a table in their own tab: a row for each outfit, by day, then
+  preset, then person, a column for each of `clothesTypes`, each cell an item and a
+  tick for packed. Each day has an outfit for each preset marked `auto` (Day and
+  Evening to begin with) for each person, or for everyone when nobody has been
+  added; such an outfit's id is `o|<date>|<who>|<preset>`, so reading the plan twice
+  makes the same ones, and `outfitKeys` remembers what was made, so one taken out
+  stays out. Saving makes them first, so what is kept is what is drawn. Once there
+  are people, everyone's outfits never changed from their preset give way to theirs.
+  **+ Outfit** adds one by hand (any other id); ↻ fills its empty cells from its
+  preset.
+- **A preset** is an item for each type. A new outfit starts from it; an item changed
+  in it reaches every outfit of that preset still showing the old one, and an outfit
+  given another preset takes the new one's items where it still had the old one's.
+  Marked every day, every day gets one; unmarked, those it made that were never
+  changed go.
+- **Clothes kept as lists** (`day.clothes`, before the table) move, when the plan is
+  read, into each person's Day outfit under `extras`, joined with commas.
+- **Add to packing** counts the table's items across the days, by person and by name
+  (ignoring case), into the list named Packing, made if there is none: `Shorts × 3`,
+  `Hat (Alex)`. An item it put there carries `clothes: '<who>|<name>'` (`who` empty
+  for everyone; a key without `|` is read as everyone's) and is brought up to date
+  rather than added again; an item of everyone's already there by that name is taken
+  over; one no longer worn goes unless it was ticked. Clothes show only in the Clothes
+  tab and in the bullet list, not on the days or in the Trip view.
+- **The Travel tab** shows one section at a time, chosen from a row of sub-tabs: Getting
+  there, Getting back (each with a ✓ once on the schedule), Flights, Parking and Car
+  rental (each with its count). The sub-tab is `vacUi`'s `travelTab`, kept while the
+  planner is open but not with the plan; it opens on Getting there. Drives are blocks
+  on their days and have no list of their own here.
+- **The Stay tab** is split into sub-tabs the same way: Stays (with its count; each stay a card of
+  its own) and Home (with a ✓ once set). It is `vacUi`'s `stayTab`, kept while the
+  planner is open, and opens on Stays; a stay's bar in the Trip view opens Stays.
+  `vacSubtabsHtml` draws the row for both tabs.
+- **The tabs** are Trip and the trip-wide panes in `VAC_PANES` (People, Clothes,
+  Travel, Stay, Cruise, Places, Lists, Meals, Budget), in the order kept in `tabOrder` (dragged, or
+  Alt+← / Alt+→ on the tab with the focus; days stay in date order after them), shown from the start, then a tab a day once there are dates. Each
+  pane fills the main area; the side panel, the chosen block's, is there only on a
+  day. Lists holds the trip's lists and each day's own (`day:<date>`), which a
+  day's **To do** opens.
+- **The schedule fills the height there is.** After drawing, `vacFit` measures the room
+  below the day's grid (or the Trip view's) and stretches the hours to it, at no less
+  than `VAC_PX` (30) a hour on a day and `VAC_TRIP_PX` (16) in the Trip view; below
+  that it scrolls. The scale is kept per view in `vacUi`, drawn again once when it
+  changes, and again when the tool is resized (not while a field has the focus).
+  Dragging reads the grid's own `data-px`.
+- **What is being looked at is not saved**: the tab, the chosen block and the list
+  live in `vacUi`, in memory, so switching days is not an undo step.
+- List item text is kept as typed; its web addresses are drawn as links by the
+  Checklist's `checklistLinkify`.
+- **Bullet list** is the plan written out by `vacMarkdown(plan, { date, lists })`, not
+  stored: a `#` title and the dates, then a `##` for each day with its
+  blocks in time order (its icon — a meal's own, ☕ 🥪 🍽️ — then time · what ·
+  `(AM)`/`(XM)`/`(PM)` for a meal · where, as a Maps link · ✓ when done), each note line a bullet under its block, the day's route
+  and its own list; then each checklist that has items, as `- [ ]` and `- [x]`. `date`
+  gives one day alone; `lists: false` leaves the checklists out. A day also lists the
+  flights landing and the parking dropped off or picked up that day, a flight its
+  airports, seat, gate and status link, a drive its directions with each stop under
+  it, and what to wear (one line, or a line for each person once there are people); the parking follows the days under `## Parking`. Confirmation
+  and reservation numbers are left out unless `conf` is true, as the list is often
+  passed on. The stays come under `## Stay`, each with its dates, a Maps link, its
+  phone and its notes, its confirmation only with `conf`. No cost is in it: the
+  budget stays in its tab. Under a block, `↳ 🚕 15 min to Cafe` says how long to
+  the next place, where a travel time is set.
+  Every line starts with its icon: 🏨 a stay, 🅿️ parking, 🚢 a cruise (⚓ or 🌊 on each
+  of its days), 🚙 the car, 🗺️ the day's route, 👕 what to wear, ☑️ its to-do. Getting
+  there and Getting back give each date once, its steps under it with their times.
+  **Home's address is never in it**, as the list is passed on: the journeys' 🏠 line
+  says Home, a drive from or to home names it Home and has no directions link (which
+  would carry the address), and the day's route leaves home out.
+  The panel opens on **Preview**, the list rendered (`vacMdHtml`: its text escaped
+  first, so a name is never markup; boxes as ☐ and ☑; only http and https links,
+  opening in a new tab); **Markdown** shows the source. **Copy formatted** puts both
+  HTML and plain text on the clipboard: a chat that takes formatting gets headings,
+  bullets and links, one that does not gets `vacMdPlain` — headings as lines, • and ◦
+  for bullets, a link as its name – its address, no Markdown in it. **Copy Markdown**
+  copies the source. Without the Markdown library (a CDN), Preview and Copy formatted
+  are off and the source shows.
+- **Travel time between places** (`vacGaps(plan, date)`): between a block and the
+  next with a place, when the places differ and nothing that moves you (a drive, other
+  travel, a flight) lies between them, the day shows a chip in the gap. Clicked, it
+  asks how long and how (walk, drive, transit, taxi), with Google Maps directions in
+  that mode to find out; it is kept in `travelTimes` by the two places, either way
+  round (`vacGapKey`), so it fills in on any day with the same pair. Set, the chip
+  says it; longer than the gap, it turns amber and says by how much, and it is a
+  clash. It moves nothing: it only says, and warns. The Trip view's day columns have the
+  same chips, compact (`🚶15m`, `≈🚗5m`, `⏱`), opening the same box there; in the left
+  half of the trip it opens to the right, so it stays in view.
+  **Drives and travel take their length from it** (`vacTravelTime`: set for the pair,
+  else estimated from pins). Getting there and back: a drive or transfer step with no
+  length chosen uses the travel time between its two places, shown as `≈ 25 min` (or
+  `45 min` when set) beside its length, which still wins when chosen. A drive or other
+  travel block's panel gives the travel time from where you were before it
+  (`vacBlockTravel`) to where it goes, with **Fit to it**; fitted to a set time, the
+  block keeps `fit: <key>` and follows the time when it changes (`vacFollowTravel`).
+  Its length changed by hand — its end in the panel, or its bottom edge dragged on a
+  day or in the Trip view — it stops following and offers to **Keep** the new length
+  as the pair's travel time (`ui.offer`, not saved).
+  **A chip on each drive or travel block** (`vacDriveChips`) whose two ends are known —
+  its own start, or where you were before it, and where it goes — on its right edge,
+  on the day and in the Trip view, so getting there and back's drives keep showing
+  their travel time once on the schedule. Shorter than the way it covers (by any
+  amount for a set time; for an estimate, by 10 minutes and a third), it turns amber
+  and is a clash (`drivegap:<id>`). It opens the same box; a time set there, or
+  anywhere, moves blocks fitted to it and puts getting there and back on the
+  schedule again where they are on it (their steps changed by hand left alone).
+  Every drive and travel block has one: one that cannot be timed shows `⏱ ?` and says
+  what is missing — the parking with no lot yet (its box opens Travel › Parking),
+  nowhere to go, a place that is only a short Maps link, or no start.
+  **Estimated** when none is set and both places have a pin (`lat`/`lng`, from a
+  pasted Maps link): `vacKm` is the straight line, `vacEstimate` makes it a time —
+  the way taken as `detour` times the line (1.3 on foot, 1.35 by car or taxi, 1.4 by
+  transit), at `kmh` (4.8, 40, 35, 20; 70 for a drive or taxi past 30 km), plus
+  `extra` minutes (5 to park or hail, 10 to wait), to the nearest 5 and 5 at least.
+  It walks up to 1.5 km and drives past that. The chip shows it with ≈, in italics;
+  it warns only when it is over the gap by 10 minutes and by a third of itself, and
+  the clash says it is estimated. Opened, the chip offers each way's estimate, kept
+  with a click. Nothing leaves the browser. The bullet list has only times set.
+- **The hours shown** (`plan.showHours`), set by 🕘 in each day's header and the Trip
+  view's bar, for both: each end **Auto** (the trip's `hours`, stretched to take in
+  every block — as before) or chosen, from midnight to noon and from 6 PM to 4 AM the
+  next day (`to` up to 28). Both Auto, the field is dropped. `vacSpan` gives the hours;
+  `vacColumn` what a day's column shows in them. Past midnight, below a dashed line
+  named for the next day, the next day's blocks in those hours, drawn a day on
+  (`shift: 1440`, class `vac-nextday`) but still the next day's: dragged there, they
+  move on their own day; clicked or dragged on empty time there makes a block on the
+  next day (none past the trip's last day). In the Trip view, clicked, one opens the
+  night it falls in. A block wholly outside the chosen hours is not drawn: a marker on
+  the top or bottom edge names the nearest (`▲ Breakfast 7:00 AM +1 more`; `▲2` in the
+  Trip view), all of them in its tooltip, and clicked chooses it (`vacEdgePick`). A
+  block partly outside is cut to the edge. Travel chips outside the hours are left out.
+  Fewer hours make each hour taller, as the grid fills the height there is.
+  **A short block's text runs on below it** into the free time under it
+  (`vacColumn`'s `room`: to the next block below that shares any of its width, else
+  the end of the hours), cut where that block starts (class `vac-spill`, `clip-path`
+  down by `--vac-spill`). With room for all of it, a short block on a day shows its
+  title, time and place, not one line; in the Trip view, its title. Right against the
+  next block, it stays within itself. Not while dragging.
+- **Linked blocks** (`link: <id>` on the block that follows, `linkGap` minutes): a
+  linked block starts its gap after the block it follows ends (`vacChainSettle`, run
+  by `vacSaveData` on every save). The gap is the travel time set for their two
+  places when neither is itself travel (`vacLinkGap`), else `linkGap`; a drive or
+  other travel block linked between two is the trip itself, so its gaps are 0. The
+  chain is tight: a longer or shorter block moves what follows, later or earlier, and
+  a travel time set or changed moves the block after it. A flight is never moved by
+  what is before it. A chain that would run past midnight stops at the end of the day
+  and is a clash (`chainend:<id>`). Links to a block on another day do nothing; links
+  to a block that is gone are dropped.
+  Made by: the gap chip's tick, **Keep <next> right after the trip** (on by default;
+  a time set with it ticked links them, `linkGap` the time; unticked before a time is
+  set it is kept in `ui.gapUnlink`); a block's panel, **Link to the blocks around it**
+  for a drive or travel (gaps 0), else **Link to <the one before>** or **Link <the one
+  after> to it** (keeping the gap there is); and getting there and back, whose steps
+  the planner made are linked to each other and to the flight each time it plans
+  (going: the flight follows the last step; coming back: the first step follows the
+  flight). **Unlink** in the panel or the tick takes it off; on a journey step or a
+  flight it also sets `nolink`, so planning again does not link it back.
+  **Moving** a linked block — dragged on a day or in the Trip view, to another day
+  too, its start or day changed in the panel — moves its whole chain by as much
+  (`vacChainOf`, `vacChainMove`), kept inside the day. Moving a journey's step moves
+  the steps on its side of the flight and not the flight, and the link to the flight
+  keeps the new gap; moving the flight moves its journey, which stays the planner's.
+  A set travel time on a linked drive or travel block's own chip fits it (`fit`).
+  Linked blocks show 🔗 in their title and on their chips.
+- **Directions never start from wherever the phone is** when the plan knows better:
+  a drive with no start of its own (`vacDriveUrl(b, plan, date)`) sets off from the
+  day's last place before it, a block's place or a drive's end — after a flight, the
+  airport it lands at, also one from the day before landing that day — else where you woke
+  (`vacDriveOrigin`) — in its panel, the list and the calendar. A place kept only as
+  a short `maps.app.goo.gl` link carries no name, address or pin to give Maps, so the
+  panel and the travel chip say so and ask for a name or address.
+- **Flight check-in** (`vacFlightTimes(date, b)`): online check-in opens `checkinH`
+  hours before take-off (24 unless set; 0 for none), and at the airport bag drop and
+  the gate close `bagMin` and `gateMin` minutes before (none unless set). Set in the
+  flight's panel and its Travel card, which say when each is; shown in the header of
+  their days (✅, 🧳, 🚪) and so in the bullet list; in the calendar online check-in
+  has a reminder as it opens, bag drop and the gate half an hour before. Getting there
+  and back start with online check-in (on its own day, which may be before the
+  trip), and their airport step names bag drop and the gate. Getting to the airport
+  after bag drop closes is a clash (`bagdrop:<flight>|<block>`).
+- **The time at the airport is on the schedule**: getting there and back put "At the
+  airport" (from when you get there, `airportLead` before, to take-off; at the airport
+  it leaves from) and "Bags and out" (from landing, for `exitMin`, at the airport it
+  lands at) on the schedule as other-travel blocks (`out:airport`, `out:arrive`, …).
+  They are not late for their own flight, not drives to time, and a meal during
+  them is had there, as on a flight. Travel to a stay before its check-in is only
+  arriving early: the check-in and check-out clashes are for time spent there.
+- **Picking up and returning the rental car are on the schedule**: getting there by
+  rental car puts "Pick up the rental car" on as a block (`out:pickup`, for
+  `pickupMin`, at its counter); getting back, "Return the rental car" (`back:return`,
+  for `returnMin`, 15 to begin with, at where it is returned), ending as the shuttle to
+  the terminal starts, the drive there ending as it begins. Both carry `rentalId`. A rental's card offers **Pick-up on the
+  schedule** and **Return on the schedule** for one not in a journey: a block with
+  `rental: <id>` and `rentalAt: 'pick' | 'drop'` (half an hour, a quarter), at the
+  card's day, time and place, which follows the card as it changes (`vacRentalFollow`);
+  once on, the card says so. Neither is a drive to time.
+- **Getting there and back stay in order**: a check-out step is shown no later than
+  the next step of that day starts, and a check-in no earlier than the one before ends.
+- **💰 Budget** (`vacBudgetLines`, `vacBudgetTotals`), a tab after Meals: every cost
+  typed in the plan — a stay's, parking's, a rental's, a cruise's, any block's
+  (its panel has a Cost), and lines of the tab's own (`extras`, with a category and
+  a day) — by day and then time, each opening where it is set. A cost is text,
+  read by `vacMoney`: `$1,240`, `€85.50`, `1.240,50`; one with no number in it
+  (`included`) is listed, said and not counted. Its categories are Stay, Travel
+  (flights, drives, parking, the rental), Cruise, Food, Activities and Other. **Paid**
+  is kept on the cost where it was typed (`paid`). Above: the total, paid, to pay, per
+  person once there are people, and with a `budget` set what is left (or over, in
+  red, with a bar), and the total of each category. Amounts are shown with the
+  trip's `currency` (`$` to begin with). Its fields save without drawing again; the
+  totals follow. Nothing of it goes in the bullet list or the calendar.
+- **Moving blocks in the Trip view** (`vacTripDown`): a block dragged moves up and
+  down, and across to another day's column; its bottom edge dragged changes when it
+  ends; clicked without moving, its day opens with it chosen. The pointer is held by
+  the planner, as the block moves from one column to another while dragged.
+- **What clashes** (`vacConflicts(plan)`) is worked out on every draw and never
+  stored: blocks at the same time (a meal during a flight is had on board, so not
+  one), a block on the day a flight lands before it does, anything but a meal still
+  going on in the `airportLead` before take-off, a rental car picked up before the
+  flight there lands or returned too late for the flight back, parking dropped off
+  too late or picked up before landing (the journeys' flights), a night with nowhere
+  to sleep (once there is a stay or a cruise) or two places, a stay out before it is
+  in, and on a cruise a drive, transfer or flight running past all aboard on boarding
+  day, or anything ashore (not a meal or rest) running past it on a port day. Also:
+  a block at a stay's own place before its check-in time on its first day, or past
+  its check-out time on its last; a drive with no car — while your own is parked
+  (between parking's drop-off and pick-up; or, with no parking, between landing
+  there and taking off back) and no rental's pick-up to return covers its start; on
+  a cruise's day at sea, anything with a place (or a drive) but a meal or rest; and a
+  travel time longer than the gap it has to fit in (`gap:<id>|<id>`). Each
+  has a key that stays the same while its cause does (`overlap:<id>|<id>`,
+  `nostay:<date>`, …); **Ignore** keeps it in `ignoredWarnings`, an undo step like any
+  edit. The header's ⚠️ counts the rest and opens the list (Show ignored, Warn again),
+  each with **Go to**: its day with its block chosen, or the tab and sub-tab it is set
+  in. Blocks in one get an amber edge and a ⚠️ whose tooltip says why, on the day and
+  in the Trip view. When the header is kept (an edit drawing only the day), its count
+  and an open list are brought up to date on their own.
+- **📅 Calendar** downloads the plan as iCalendar (`vacIcs(plan, { date, alarms, conf })`,
+  not stored): each block an event (a flight ending on the day it lands, a drive at
+  its destination with directions, a place as its location), each stay and cruise
+  all day across its days with checking in and out, boarding, port calls and all
+  aboard as timed events, and parking and the rental car's pick-up and return.
+  Times are floating (no time zone): a 3:00 PM block is 3:00 PM wherever the calendar
+  is. Reminders (on by default) are 2 h before a flight or all aboard and 30 min
+  before the rest, none for meals; booking numbers only with `conf`. Each event's
+  UID comes from the block's id or the booking's (`<id>@vacation-planner.toolboard`),
+  so importing again updates it. One day gives its blocks and that day's timed
+  events, not the stays across days. Lines are CRLF and folded at 75 bytes. The file
+  is named from the trip; home is Home in it, a drive to or from it with no
+  directions link (`test-trip.ics`, or `test-trip-<date>.ics`). Bullet list,
+  Calendar and the warnings share the space over the schedule, one at a time.
+
 ### Curriculum Explorer — a record of schools
 
 `toolCustomizations[toolId].curriculum` holds a whole school career, not one document:

@@ -1828,6 +1828,312 @@ body.dark-mode .rcp-widget { --rcp-accent: #5cb860; --rcp-border: #8b9096; }
 .agt-done .agt-title, .agt-done .agt-of { text-align: center; }
 .agt-done .agt-actions { justify-content: center; margin-top: 6px; }
 
+/* Vacation Planner */
+.vac-widget { display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; gap: 6px; font-size: 12px; color: var(--text-primary); container-type: inline-size; }
+.vac-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.vac-widget input, .vac-widget select, .vac-widget textarea { font: inherit; color: var(--text-primary); background: var(--input-bg, var(--bg-secondary)); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 5px; box-sizing: border-box; }
+.vac-name { font-weight: 600; font-size: 14px !important; flex: 1 1 140px; min-width: 120px; }
+.vac-dates { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.vac-btn { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 11px; white-space: nowrap; text-decoration: none; }
+.vac-btn:hover { background: var(--table-hover); }
+.vac-btn.vac-on { border-color: #3498db; color: #3498db; }
+.vac-btn.vac-off { opacity: .45; cursor: default; }
+.vac-btn.vac-danger { color: #e74c3c; }
+.vac-icon { border: none; background: none; cursor: pointer; padding: 0 3px; font-size: 13px; color: var(--text-secondary); text-decoration: none; line-height: 1; }
+.vac-icon:hover { color: var(--text-primary); }
+.vac-meal-list { display: flex; flex-direction: column; gap: 6px; }
+.vac-meal-list .vac-meal-row input[data-f="label"] { width: 140px; }
+.vac-meals { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-tertiary); }
+.vac-meal-row { display: inline-flex; align-items: center; gap: 4px; }
+.vac-meal-row input[data-f="label"] { width: 90px; }
+.vac-meals .vac-hint { flex-basis: 100%; margin: 0; }
+.vac-meal-tag { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .04em; padding: 0 4px; border-radius: 3px; background: #e67e22; color: #fff; line-height: 14px; }
+.vac-tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--border-color); margin-top: 6px; }
+.vac-tab { border: 1px solid transparent; border-bottom: none; background: none; color: var(--text-secondary); padding: 4px 9px; cursor: pointer; font-size: 11px; white-space: nowrap; border-radius: 4px 4px 0 0; }
+.vac-tab:hover { color: var(--text-primary); }
+.vac-tab.vac-on { border-color: var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-weight: 600; margin-bottom: -1px; }
+.vac-body { display: flex; flex: 1; min-height: 0; gap: 8px; }
+.vac-main { flex: 1; min-width: 0; overflow: auto; position: relative; }
+.vac-side { width: 250px; flex: none; display: flex; flex-direction: column; gap: 6px; border-left: 1px solid var(--border-color); padding-left: 8px; overflow: auto; }
+@container (max-width: 560px) {
+    .vac-body { flex-direction: column; overflow: auto; }
+    .vac-main { flex: none; max-height: 70vh; }
+    .vac-side { width: auto; border-left: none; border-top: 1px solid var(--border-color); padding: 6px 0 0; overflow: visible; }
+}
+.vac-empty { padding: 30px 10px; text-align: center; color: var(--text-secondary); line-height: 1.6; }
+.vac-hint { color: var(--text-secondary); line-height: 1.5; font-size: 11px; }
+.vac-day-head { position: sticky; top: 0; z-index: 4; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0 6px; background: var(--bg-secondary); }
+.vac-day-head b { font-size: 13px; }
+.vac-day-label { margin-right: auto; flex: 0 1 220px; min-width: 90px; border-color: transparent !important; background: transparent !important; font-size: 12px; }
+.vac-day-label:hover, .vac-day-label:focus { border-color: var(--border-color) !important; background: var(--input-bg, var(--bg-secondary)) !important; }
+.vac-trip-labelled .vac-thead { height: 38px; }
+.vac-tlabel, .vac-cdlabel { display: block; font-weight: normal; font-size: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vac-cdlabel { white-space: normal; max-width: 110px; }
+.vac-grid-wrap { padding: 6px 0 10px; }
+.vac-grid { position: relative; user-select: none; touch-action: none; cursor: copy; }
+.vac-hour { position: absolute; left: 0; right: 0; height: var(--vac-px, 30px); border-top: 1px solid var(--border-color); box-sizing: border-box; }
+.vac-hour::after { content: ''; position: absolute; left: 50px; right: 0; top: calc(var(--vac-px, 30px) / 2); border-top: 1px dashed var(--border-color); opacity: .5; }
+.vac-hour span { position: absolute; left: 2px; top: -7px; padding-right: 4px; font-size: 10px; color: var(--text-secondary); background: var(--bg-secondary); }
+.vac-lane { position: absolute; top: 0; bottom: 0; left: 50px; right: 4px; }
+.vac-block { --vac-c: #3498db; position: absolute; box-sizing: border-box; overflow: hidden; border-radius: 4px; border-left: 3px solid var(--vac-c);
+    background: color-mix(in srgb, var(--vac-c) 18%, var(--bg-secondary)); padding: 2px 5px; font-size: 11px; line-height: 1.3; cursor: grab; }
+.vac-block:hover { z-index: 2; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.vac-k-food { --vac-c: #e67e22; }
+.vac-k-activity { --vac-c: #3498db; }
+.vac-k-travel { --vac-c: #9b59b6; }
+.vac-k-flight { --vac-c: #16a085; }
+.vac-k-drive { --vac-c: #b7950b; }
+.vac-break { position: absolute; left: -3px; right: 0; border-top: 1px dashed var(--vac-c); pointer-events: none; }
+.vac-break span { position: absolute; right: 3px; top: 1px; font-size: 9px; color: var(--text-secondary); }
+.vac-events { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px; }
+.vac-event { font-size: 11px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); text-decoration: none; }
+a.vac-event:hover { background: var(--table-hover); }
+.vac-sec { font-weight: 600; margin-top: 6px; padding-bottom: 2px; border-bottom: 1px solid var(--border-color); }
+.vac-trow { display: block; width: 100%; text-align: left; border: none; background: none; color: var(--text-primary); padding: 3px 2px; cursor: pointer; font-size: 11px; border-radius: 3px; }
+.vac-trow:hover { background: var(--table-hover); }
+.vac-park { padding: 6px 0; border-bottom: 1px dashed var(--border-color); }
+.vac-park-links { flex: 1; }
+.vac-park-add, .vac-flight-add { align-self: flex-start; margin-top: 4px; }
+.vac-stops { display: flex; flex-direction: column; gap: 4px; }
+.vac-stops .vac-btn { align-self: flex-start; }
+.vac-stop { display: flex; gap: 4px; align-items: center; }
+.vac-stop input { flex: 1; min-width: 0; }
+.vac-form label.vac-inline { flex-direction: row; align-items: center; gap: 4px; flex: none; font-size: 11px; }
+.vac-out-bar { flex-wrap: wrap; }
+.vac-people { display: flex; flex-direction: column; gap: 4px; }
+.vac-person-row { display: flex; align-items: center; gap: 6px; }
+.vac-person-row input[type="color"] { width: 26px; height: 22px; padding: 0 1px; cursor: pointer; }
+.vac-person-row input[data-f="name"] { width: 110px; }
+.vac-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.vac-who { display: inline-flex; align-items: center; gap: 4px; }
+.vac-clothes { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+.vac-cbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; position: sticky; left: 0; }
+.vac-presets { border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-tertiary); padding: 6px 8px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+.vac-ptable, .vac-ctable { border-collapse: collapse; font-size: 11px; }
+.vac-ptable th, .vac-ptable td { padding: 2px 3px; text-align: left; font-weight: 600; color: var(--text-secondary); }
+.vac-ptable td { font-weight: normal; }
+.vac-ptable input:not([type]) { width: 92px; font-size: 11px !important; }
+.vac-pauto { text-align: center !important; }
+.vac-tname { display: inline-flex; align-items: center; gap: 1px; }
+.vac-tname input { font-weight: 600; }
+.vac-csum { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.vac-ctable { width: 100%; min-width: max-content; }
+.vac-ctable th { position: sticky; top: 0; z-index: 2; background: var(--bg-secondary); text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-secondary); padding: 4px; border-bottom: 1px solid var(--border-color); }
+.vac-ctable td { padding: 2px 3px; border-bottom: 1px solid var(--border-light, var(--border-color)); vertical-align: middle; }
+.vac-ctable tr.vac-cfirst td { border-top: 2px solid var(--border-color); }
+.vac-cdate { vertical-align: top !important; min-width: 84px; padding-top: 5px !important; }
+.vac-ccount { font-size: 10px; color: var(--text-secondary); margin: 2px 0 4px; }
+.vac-cadd { padding: 1px 6px; font-size: 10px; }
+.vac-ctable select { font-size: 11px !important; padding: 2px 3px !important; }
+.vac-cwho select { border-left: 4px solid var(--vac-who) !important; }
+.vac-cell { white-space: nowrap; }
+.vac-cell input[type="checkbox"] { vertical-align: middle; margin: 0 2px 0 0; }
+.vac-ctext { width: 96px; font-size: 11px !important; padding: 2px 4px !important; }
+.vac-packed .vac-ctext { text-decoration: line-through; color: var(--text-secondary) !important; }
+.vac-cacts { white-space: nowrap; }
+.vac-k-rest { --vac-c: #27ae60; }
+.vac-meal { background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--vac-c) 8%, transparent) 6px 12px); }
+.vac-block.vac-sel { outline: 2px solid var(--vac-c); outline-offset: -1px; z-index: 3; }
+.vac-block.vac-done { opacity: .55; }
+.vac-block.vac-done .vac-b-title { text-decoration: line-through; }
+.vac-b-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 22px; }
+.vac-b-time, .vac-b-place { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.vac-block.vac-short { display: flex; gap: 6px; align-items: baseline; padding-top: 0; }
+.vac-block.vac-short .vac-b-place { display: none; }
+.vac-block .vac-meal-tag { position: absolute; top: 2px; right: 3px; }
+.vac-b-resize { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; cursor: ns-resize; }
+.vac-ghost { --vac-c: #3498db; border: 1px dashed #3498db; background: rgba(52,152,219,.15); pointer-events: none; }
+.vac-dragging, .vac-dragging .vac-block { cursor: grabbing; }
+.vac-trip { display: flex; gap: 4px; min-width: min-content; padding-bottom: 6px; }
+.vac-tcol { flex: 1 0 96px; min-width: 96px; display: flex; flex-direction: column; }
+.vac-taxis { flex: 0 0 40px; min-width: 40px; }
+.vac-thead { position: sticky; top: 0; z-index: 4; height: 26px; flex: none; border: none; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vac-taxis .vac-thead { cursor: default; }
+button.vac-thead:hover { color: #3498db; }
+.vac-tgrid { position: relative; margin-top: 4px; }
+.vac-tstays { position: relative; flex: none; border-bottom: 1px solid var(--border-color); }
+.vac-tstays-label { position: absolute; right: 4px; top: 3px; font-size: 12px; }
+.vac-tstay { position: absolute; left: -2px; right: -2px; height: 17px; background: color-mix(in srgb, #8e44ad 22%, var(--bg-secondary));
+    border-top: 1px solid #8e44ad; border-bottom: 1px solid #8e44ad; box-sizing: border-box; cursor: pointer; font-size: 10px; line-height: 15px; }
+.vac-tstay span { position: relative; z-index: 2; padding-left: 5px; white-space: nowrap; font-weight: 600; }
+.vac-tstay-in { left: 50%; border-left: 1px solid #8e44ad; border-radius: 8px 0 0 8px; z-index: 1; }
+.vac-tstay-out { right: 50%; border-right: 1px solid #8e44ad; border-radius: 0 8px 8px 0; }
+.vac-tstay-in.vac-tstay-out { left: 25%; right: 25%; border-radius: 8px; }
+.vac-tstay-cruise { background: color-mix(in srgb, #2980b9 20%, var(--bg-secondary)); border-color: #2980b9 !important; }
+.vac-tstay .vac-tport { font-weight: normal; color: var(--text-secondary); }
+.vac-pane.vac-pane-wide { max-width: 860px; }
+.vac-cdays { display: flex; flex-direction: column; gap: 2px; padding: 4px 0 4px 8px; border-left: 3px solid #2980b9; }
+.vac-crow2 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; min-height: 24px; }
+.vac-cday { width: 78px; font-weight: 600; flex: none; }
+.vac-cport-in { flex: 0 1 220px; min-width: 120px; }
+.vac-atsea .vac-cport-in:not(:focus) { border-style: dashed !important; background: transparent !important; }
+.vac-crow2 input[type="time"] { font-size: 11px !important; padding: 1px 3px !important; }
+.vac-tstay:hover { background: color-mix(in srgb, #8e44ad 35%, var(--bg-secondary)); }
+.vac-taxis .vac-tgrid span { position: absolute; right: 4px; font-size: 9px; color: var(--text-secondary); transform: translateY(-50%); }
+.vac-thour { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border-color); opacity: .5; }
+.vac-tcol .vac-block { padding: 0 3px; font-size: 10px; cursor: pointer; }
+.vac-tcol .vac-b-title { padding-right: 0; font-weight: 500; }
+.vac-tcol .vac-block { touch-action: none; }
+.vac-tcol .vac-b-resize { height: 4px; }
+.vac-tcol .vac-block.vac-tdrag { z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,.25); opacity: .9; }
+.vac-tpin { float: right; font-size: 9px; line-height: 14px; margin-left: 2px; }
+.vac-short .vac-tpin { order: 2; margin-left: auto; flex: none; }
+.vac-short .vac-b-title { min-width: 0; }
+.vac-sbody { display: flex; flex-direction: column; gap: 6px; }
+.vac-home input { flex: 1; min-width: 0; }
+.vac-journey { display: flex; flex-direction: column; gap: 3px; }
+.vac-jstep { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 3px 0 3px 8px; border-left: 3px solid var(--border-color); margin-left: 10px; }
+.vac-jstep select, .vac-jstep input { font-size: 11px !important; padding: 1px 3px !important; }
+.vac-jicon { width: 18px; text-align: center; }
+.vac-jtext { flex: 1 1 200px; min-width: 0; }
+.vac-jwhen { color: var(--text-secondary); font-size: 11px; }
+.vac-jstate { font-size: 11px; color: #27ae60; }
+.vac-j-home, .vac-j-airport, .vac-j-checkin, .vac-j-checkout, .vac-j-park, .vac-j-return { color: var(--text-secondary); }
+.vac-rental-card > label.vac-wide { flex: none; }
+.vac-subtabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 0 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); }
+.vac-subtab { border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); border-radius: 14px; padding: 3px 11px;
+    font-size: 11px; cursor: pointer; white-space: nowrap; }
+.vac-subtab:hover { background: var(--table-hover); }
+.vac-subtab.vac-on { background: #3498db; border-color: #3498db; color: #fff; }
+.vac-subtab.vac-on .vac-count, .vac-subtab.vac-on .vac-jstate { color: #fff; }
+.vac-subpane { display: flex; flex-direction: column; gap: 6px; }
+.vac-subpane > .vac-tcard:first-child, .vac-subpane > .vac-park:first-child { padding-top: 0; }
+.vac-tcard, .vac-subpane > .vac-park { border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px !important; background: var(--bg-secondary); }
+.vac-tcard .vac-row > label { flex: 1 1 90px; }
+.vac-trip-bar { justify-content: flex-end; margin-bottom: 6px; }
+.vac-tab[draggable="true"] { cursor: pointer; }
+.vac-tab.vac-tab-dragging { opacity: .4; }
+.vac-tab.vac-drop-before { box-shadow: inset 3px 0 0 #3498db; }
+.vac-tab.vac-drop-after { box-shadow: inset -3px 0 0 #3498db; }
+.vac-tabsep { flex: none; width: 1px; margin: 4px 6px; background: var(--border-color); }
+.vac-pane { max-width: 640px; display: flex; flex-direction: column; gap: 6px; padding: 4px 2px 10px; }
+.vac-pane .vac-park { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.vac-pane .vac-park > label:first-child, .vac-pane .vac-park > label:nth-last-child(2), .vac-pane .vac-park > .vac-row:last-child { grid-column: 1 / -1; }
+.vac-pane .vac-stay-card > label:nth-child(2), .vac-pane .vac-park > .vac-wide { grid-column: 1 / -1; }
+.vac-stay-links { flex: 1; display: inline-flex; gap: 6px; }
+.vac-form { display: flex; flex-direction: column; gap: 6px; }
+.vac-form label { display: flex; flex-direction: column; gap: 2px; font-size: 10px; color: var(--text-secondary); flex: 1; min-width: 0; }
+.vac-form label.vac-check { flex-direction: row; align-items: center; gap: 5px; font-size: 11px; color: var(--text-primary); }
+.vac-form textarea { resize: vertical; }
+.vac-form input, .vac-form select, .vac-form textarea { font-size: 11px; color: var(--text-primary); }
+.vac-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.vac-form-links:empty { display: none; }
+.vac-meal-note { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+.vac-place { display: flex; align-items: center; gap: 4px; padding: 4px 0; border-bottom: 1px solid var(--border-color); }
+.vac-pname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.vac-pname:hover { color: var(--link-color, #1f6fb2); }
+.vac-pedit { flex-direction: column; align-items: stretch; gap: 4px; }
+.vac-paddr { font-size: 10px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vac-use { padding: 1px 6px; }
+.vac-add-place { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.vac-add-place .vac-btn { align-self: flex-start; }
+.vac-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.vac-chip { border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); border-radius: 10px; padding: 2px 8px; cursor: pointer; font-size: 11px; }
+.vac-chip.vac-on { border-color: #3498db; background: color-mix(in srgb, #3498db 15%, var(--bg-secondary)); }
+.vac-count { color: var(--text-secondary); font-size: 10px; }
+.vac-list { display: flex; flex-direction: column; gap: 2px; }
+.vac-item { display: flex; align-items: flex-start; gap: 5px; padding: 2px 0; }
+.vac-item input[type="checkbox"] { margin-top: 2px; }
+.vac-itext { flex: 1; min-width: 0; overflow-wrap: anywhere; cursor: text; line-height: 1.4; }
+.vac-idone .vac-itext { text-decoration: line-through; color: var(--text-secondary); }
+.vac-item-edit { flex: 1; min-width: 0; }
+.vac-item-new { margin-top: 4px; }
+.vac-list-actions { margin-top: 6px; }
+.vac-body { position: relative; }
+.vac-out { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; gap: 6px; padding: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 16px var(--shadow-medium); }
+.vac-out-bar label.vac-check { display: inline-flex; align-items: center; gap: 4px; }
+.vac-out-gap { flex: 1; }
+.vac-warn-slot { display: contents; }
+.vac-warn-btn.vac-warn-on { background: #fdf2d0; border-color: #e0a800; color: #7a5a00; font-weight: 600; }
+.vac-warn-btn.vac-warn-on.vac-on { background: #e0a800; color: #fff; }
+.vac-warn-list { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+.vac-warn-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--border-color); border-left: 3px solid #e0a800; border-radius: 4px; background: var(--bg-primary); }
+.vac-warn-row.vac-warn-off { opacity: .6; border-left-color: var(--border-color); }
+.vac-warn-when { flex: none; width: 86px; color: var(--text-secondary); font-size: 11px; }
+.vac-warn-text { flex: 1; min-width: 0; }
+.vac-bud-set { gap: 14px; }
+.vac-bud-cur { width: 44px; } .vac-bud-limit { width: 90px; }
+.vac-bud-figs { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.vac-bud-fig { display: flex; flex-direction: column; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); min-width: 90px; }
+.vac-bud-fig span { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .03em; }
+.vac-bud-fig b { font-size: 16px; }
+.vac-bud-fig.vac-bud-over { border-color: #c0392b; } .vac-bud-fig.vac-bud-over b { color: #c0392b; }
+.vac-bud-bar { height: 8px; border-radius: 4px; background: var(--bg-tertiary); overflow: hidden; margin: 2px 0 8px; }
+.vac-bud-bar span { display: block; height: 100%; background: #27ae60; }
+.vac-bud-bar.vac-bud-over span { background: #c0392b; }
+.vac-bud-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.vac-bud-cat { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--bg-tertiary); }
+.vac-bud-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+.vac-bud-table th { text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding: 4px 6px; }
+.vac-bud-table td { border-bottom: 1px solid var(--border-color); padding: 3px 6px; vertical-align: middle; }
+.vac-bud-table .vac-bud-amt { text-align: right; white-space: nowrap; }
+.vac-bud-table input:not([type="checkbox"]) { width: 100%; box-sizing: border-box; }
+.vac-bud-table .vac-bud-amt input { text-align: right; width: 90px; }
+.vac-link { border: none; background: none; padding: 0; color: #3498db; cursor: pointer; text-align: left; font: inherit; }
+.vac-link:hover { text-decoration: underline; }
+.vac-pmain { flex: 1; min-width: 0; }
+.vac-head .vac-dest { width: 200px; }
+.vac-ptarget { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-weight: normal; }
+.vac-ptarget a { color: #3498db; }
+.vac-ptarget-none { color: #b9770e; }
+.vac-gap { position: absolute; right: 6px; z-index: 4; transform: translateY(-50%); border: 1px dashed var(--border-color); background: var(--bg-primary);
+    color: var(--text-secondary); border-radius: 10px; padding: 0 7px; font-size: 10px; line-height: 16px; cursor: pointer; white-space: nowrap; }
+.vac-gap.vac-gap-set { border-style: solid; color: var(--text-primary); }
+.vac-fcheck { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
+.vac-fcheck .vac-row { align-items: center; }
+.vac-ftime { font-weight: 600; }
+.vac-b-link { font-size: 10px; margin-right: 2px; }
+.vac-hours { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text-secondary); }
+.vac-hours select { font-size: 11px; padding: 1px 2px; }
+.vac-hour.vac-midnight { border-top: 1px dashed var(--text-secondary); }
+.vac-hour.vac-midnight span { font-weight: 600; font-size: 9px; color: var(--text-primary); max-width: 46px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vac-thour.vac-tmidnight { border-top: 1px dashed var(--text-secondary); opacity: 1; }
+.vac-block.vac-nextday { opacity: .85; }
+/* Text past a short block's edge, into the free time under it: shown down to where the next block starts. */
+.vac-block.vac-spill { overflow: visible; clip-path: inset(-4px -4px calc(-1 * var(--vac-spill)) -4px); }
+.vac-dragging .vac-block.vac-spill { overflow: hidden; clip-path: none; }
+.vac-edge { position: absolute; left: 50%; transform: translate(-50%, -50%); z-index: 4; font-size: 10px; line-height: 1.4; padding: 0 8px; white-space: nowrap; max-width: 90%;
+    overflow: hidden; text-overflow: ellipsis; border-radius: 9px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; }
+.vac-edge:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+.vac-edge-top { top: 0; }
+.vac-edge-bottom { top: 100%; }
+.vac-tday .vac-edge { padding: 0 4px; font-size: 9px; }
+.vac-block.vac-linked { border-top-style: dashed; }
+.vac-blink { font-size: 11px; color: var(--text-secondary); display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 2px 0; }
+.vac-blink b { color: var(--text-primary); }
+.vac-gap-linkrow { font-size: 11px; }
+.vac-btime { font-size: 11px; color: var(--text-secondary); display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 2px 0; }
+.vac-btime b { color: var(--text-primary); }
+.vac-btime.vac-offer { background: #fdf2d0; color: #7a5a00; border-radius: 4px; padding: 3px 6px; }
+.vac-jauto { font-size: 11px; color: var(--text-secondary); font-style: italic; }
+.vac-gap.vac-gap-on { background: var(--bg-secondary); border-style: solid; }
+.vac-gap.vac-gap-on.vac-gap-short { background: #fdf2d0; }
+.vac-gap.vac-gap-missing { border-style: dashed; color: var(--text-secondary); }
+.vac-gap.vac-gap-compact { right: 1px; padding: 0 3px; font-size: 9px; line-height: 12px; border-radius: 6px; }
+.vac-gap-pop.vac-gap-pop-l { right: auto; left: 1px; }
+.vac-gap.vac-gap-est { font-style: italic; color: var(--text-primary); }
+.vac-gap-ests { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.vac-gap-ests .vac-hint { width: 100%; }
+.vac-gap.vac-gap-short { border-color: #e0a800; background: #fdf2d0; color: #7a5a00; font-weight: 600; }
+.vac-gap-pop { position: absolute; right: 6px; z-index: 6; width: 230px; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: var(--bg-secondary);
+    border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 14px var(--shadow-medium); font-size: 12px; }
+.vac-gap-route { font-weight: 600; }
+.vac-block.vac-warned { box-shadow: inset 0 0 0 2px #e0a800; }
+.vac-b-warn { margin-right: 2px; cursor: help; }
+.vac-cal-body { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 4px 2px; }
+.vac-cal-body p { margin: 0; }
+.vac-out-views { display: inline-flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+.vac-out-view { border: none; background: var(--bg-tertiary); color: var(--text-primary); padding: 3px 10px; font-size: 11px; cursor: pointer; }
+.vac-out-view + .vac-out-view { border-left: 1px solid var(--border-color); }
+.vac-out-view.vac-on { background: #3498db; color: #fff; }
+.vac-out-view:disabled { opacity: .5; cursor: default; }
+.vac-out-preview { flex: 1; min-height: 120px; overflow: auto; padding: 4px 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; user-select: text; }
+.vac-out-preview[hidden], .vac-out-text[hidden] { display: none; }
+.vac-out-preview ul { margin: 2px 0 6px; padding-left: 20px; }
+.vac-out-preview h1 { font-size: 18px; margin: 8px 0 2px; }
+.vac-out-preview h2 { font-size: 14px; margin: 12px 0 2px; }
+.vac-out-text { flex: 1; min-height: 120px; resize: none; font-family: monospace; font-size: 12px !important; line-height: 1.5; white-space: pre; }
+
 `;
     document.head.appendChild(style);
 })();
@@ -7010,6 +7316,4411 @@ function agtInit() {
     });
 }
 
+// =============================================
+// VACATION PLANNER
+// =============================================
+// A trip from one date to another, one tab a day. Each day is a time grid of
+// blocks: every new day starts with its AM, XM and PM meals (breakfast, lunch,
+// dinner), which move, change and go like any other block. A block can have a
+// place, opened in Google Maps, and a day's places in time order make its route.
+// Checklists beside it: packing, booking, before leaving, and one for each day.
+// Nothing goes to Google until a link is clicked.
+// Pixels to the hour, at the least: each view stretches its hours to fill the height it
+// has (vacFit), and scrolls only when even these would not fit.
+const VAC_PX = 30;          // a day's grid
+const VAC_TRIP_PX = 16;     // the Trip view's columns
+const VAC_SNAP = 15;        // the minutes a block moves and stretches by
+const VAC_MAX_DAYS = 60;
+const VAC_MAX_WAYPOINTS = 9; // Google Maps takes this many stops between the start and the end
+const VAC_KINDS = [
+    { id: 'food', label: 'Food', icon: '🍽️' },
+    { id: 'activity', label: 'Activity', icon: '🎟️' },
+    { id: 'flight', label: 'Flight', icon: '\u2708\uFE0F' },
+    { id: 'drive', label: 'Drive', icon: '\uD83D\uDE97' },
+    { id: 'travel', label: 'Other travel', icon: '\uD83D\uDE86' },
+    { id: 'rest', label: 'Rest', icon: '🛏️' }
+];
+// The meals each new day starts with, times in minutes after midnight.
+const VAC_MEALS = [
+    { key: 'am', label: 'Breakfast', icon: '☕', start: 480, end: 540 },
+    { key: 'xm', label: 'Lunch', icon: '🥪', start: 750, end: 810 },
+    { key: 'pm', label: 'Dinner', icon: '🍽️', start: 1110, end: 1200 }
+];
+const VAC_LISTS = [
+    { name: 'Packing', items: ['Passports and IDs', 'Phone chargers', 'Medicines', 'Toiletries', 'Swimwear'] },
+    { name: 'To book', items: ['Travel there and back', 'Where to stay', 'Parking', 'Car rental'] },
+    { name: 'Before we leave', items: ['Hold the mail', 'Water the plants', 'Out-of-office reply'] }
+];
+// The clothes table: a column for each type, and the outfits every day starts with.
+const VAC_CLOTHES_TYPES = [
+    { id: 'top', label: 'Top' }, { id: 'bottom', label: 'Bottom' }, { id: 'shoes', label: 'Shoes' },
+    { id: 'layer', label: 'Layer' }, { id: 'extras', label: 'Extras' }
+];
+const VAC_OUTFIT_PRESETS = [
+    { id: 'day', name: 'Day', auto: true, items: { top: 'T-shirt', bottom: 'Shorts', shoes: 'Sneakers' } },
+    { id: 'evening', name: 'Evening', auto: true, items: { top: 'Shirt', bottom: 'Trousers', shoes: 'Loafers', layer: 'Light jacket' } }
+];
+// A colour for each new person, in turn.
+const VAC_PEOPLE_COLORS = ['#27ae60', '#8e44ad', '#2980b9', '#d35400', '#c0392b', '#16a085', '#b7950b', '#7f8c8d'];
+// The trip-wide tabs, before the days.
+const VAC_PANES = [
+    { id: 'people', label: '\uD83D\uDC65 People' }, { id: 'clothes', label: '\uD83D\uDC55 Clothes' }, { id: 'travel', label: '\u2708\uFE0F Travel' },
+    { id: 'stay', label: '\uD83C\uDFE8 Stay' }, { id: 'cruise', label: '\uD83D\uDEA2 Cruise' }, { id: 'places', label: '\uD83D\uDCCD Places' }, { id: 'lists', label: '\u2611\uFE0F Lists' }, { id: 'meals', label: '\uD83C\uDF7D\uFE0F Meals' }, { id: 'budget', label: '\uD83D\uDCB0 Budget' }
+];
+// What the money goes on, for the Budget tab.
+const VAC_BUDGET_CATS = [
+    { id: 'stay', label: 'Stay', icon: '\uD83C\uDFE8' }, { id: 'travel', label: 'Travel', icon: '\u2708\uFE0F' },
+    { id: 'cruise', label: 'Cruise', icon: '\uD83D\uDEA2' }, { id: 'food', label: 'Food', icon: '\uD83C\uDF7D\uFE0F' },
+    { id: 'activity', label: 'Activities', icon: '\uD83C\uDF9F\uFE0F' }, { id: 'other', label: 'Other', icon: '\uD83D\uDCE6' }
+];
+// What is being looked at, per tool: not saved, so switching days is not an undo step.
+const vacUi = new Map();
+
+function vacGetToolId(el) { return el.closest('.tool')?.dataset.tool || null; }
+function vacGetWidget(el) { return el.closest('.vac-widget'); }
+function vacEsc(s) { return escapeHtml(s == null ? '' : String(s)); }
+function vacNewId(prefix) { return (prefix || 'b') + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function vacUiOf(toolId) {
+    if (!vacUi.has(toolId)) vacUi.set(toolId, { view: 'trip', panel: 'block', list: null, sel: null, meals: false });
+    return vacUi.get(toolId);
+}
+
+function vacDefaultPlan() {
+    return {
+        name: '', start: '', end: '',
+        stays: [],
+        home: null,          // where the trip starts and ends
+        journeys: {},        // getting there and back: { out: {…}, back: {…} }
+        meals: VAC_MEALS.map(m => ({ key: m.key, label: m.label, start: m.start, end: m.end })),
+        hours: [6, 23],
+        airportLead: 120,   // minutes before a flight to be at the airport
+        breakEvery: 120,    // minutes between breaks on a drive; 0 for none
+        days: {},
+        parking: [],
+        rentals: [],
+        cruises: [],
+        people: [],
+        clothesTypes: VAC_CLOTHES_TYPES.map(t => Object.assign({}, t)),
+        outfitPresets: JSON.parse(JSON.stringify(VAC_OUTFIT_PRESETS)),
+        places: [],
+        lists: VAC_LISTS.map((l, i) => ({ id: 'l' + (i + 1), name: l.name, items: l.items.map(t => ({ text: t, done: false })) }))
+    };
+}
+
+/** One place to stay, as kept before there were several: the first stay, the whole trip long. */
+function vacMigrateStay(plan) {
+    if (plan.stay && !(plan.stays || []).length) {
+        const dates = vacDates(plan);
+        plan.stays = [{ id: 's-1', place: vacCopyPlace(plan.stay), inDate: dates[0] || '', inTime: null,
+            outDate: dates[dates.length - 1] || '', outTime: null, conf: '', cost: '', phone: '', notes: '' }];
+    }
+    delete plan.stay;
+    delete plan.geo;   // positions found for a map the planner no longer has
+    plan.stays = plan.stays || [];
+}
+
+/** Where a cruise is on a date: its boarding port, the port it calls at, or where you leave it; at sea, nowhere. */
+function vacCruisePlaceOn(c, date) {
+    if (date === c.boardDate) return c.boardPlace || null;
+    if (date === c.leaveDate) return c.leavePlace || c.boardPlace || null;
+    const day = (c.days || {})[date];
+    return day && day.port ? day.port : null;
+}
+
+/** Each cruise as a stay for a date: the ship is where you sleep, at the port it is in. */
+function vacCruiseStays(plan, date) {
+    return (plan.cruises || []).filter(c => c.boardDate).map(c => ({ id: c.id, cruise: true, name: c.ship || 'the ship',
+        place: vacCruisePlaceOn(c, date), inDate: c.boardDate, inTime: c.boardTime, outDate: c.leaveDate || c.boardDate, outTime: c.leaveTime }));
+}
+
+/** A port call's all-aboard: as set, else half an hour before it sails. */
+function vacAllAboard(day) { return day.aboard != null ? day.aboard : day.depart != null ? Math.max(0, day.depart - 30) : null; }
+
+/** Where you wake on a date (checked in before it, not yet out) and where you sleep (in by it, out after it). */
+function vacStaysOn(plan, date) {
+    const live = (plan.stays || []).concat(vacCruiseStays(plan, date)).filter(s => s.place && s.inDate);
+    const out = (s) => s.outDate || s.inDate;
+    return {
+        morning: live.find(s => s.inDate < date && out(s) >= date) || null,
+        night: live.find(s => s.inDate <= date && out(s) > date) || null
+    };
+}
+
+/** The place a day starts from: where you woke, else where you will sleep. */
+function vacDayHome(plan, date) {
+    const st = vacStaysOn(plan, date);
+    return (st.morning || st.night || {}).place || null;
+}
+
+function vacStayPlaces(plan) { return (plan.stays || []).map(s => s.place).filter(Boolean); }
+
+function vacGetData(toolId) {
+    const c = loadToolCustomizations()[toolId] || {};
+    const plan = Object.assign(vacDefaultPlan(), c.vacPlan ? JSON.parse(JSON.stringify(c.vacPlan)) : {});
+    vacMigrateStay(plan);
+    vacFixPins(plan);
+    vacApplyNear(plan);
+    vacEnsureDays(plan);
+    vacEnsureOutfits(plan);
+    return plan;
+}
+
+function vacSaveData(toolId, plan) {
+    // Saved as drawn: a day's outfits from its presets are made before it is kept,
+    // and linked blocks put in step.
+    vacEnsureDays(plan);
+    vacChainSettle(plan);
+    vacEnsureOutfits(plan);
+    const all = loadToolCustomizations();
+    (all[toolId] = all[toolId] || {}).vacPlan = plan;
+    saveToolCustomizations(all);
+}
+
+function vacIso(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function vacDateOf(s) { return new Date(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)); }
+
+/** The trip's days, first to last: the start alone when there is no end, at most VAC_MAX_DAYS. */
+function vacDates(plan) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(plan.start || '')) return [];
+    const last = plan.end && plan.end >= plan.start ? plan.end : plan.start;
+    const out = [];
+    for (let d = vacDateOf(plan.start); out.length < VAC_MAX_DAYS; d.setDate(d.getDate() + 1)) {
+        const iso = vacIso(d);
+        if (iso > last) break;
+        out.push(iso);
+    }
+    return out;
+}
+
+function vacSeedDay(plan) {
+    return { blocks: plan.meals.map(m => ({ id: vacNewId(), title: m.label, kind: 'food', meal: m.key, start: m.start, end: m.end })), list: [] };
+}
+
+function vacEnsureDays(plan) {
+    vacDates(plan).forEach(d => {
+        if (!plan.days[d]) plan.days[d] = vacSeedDay(plan);
+        plan.days[d].blocks = plan.days[d].blocks || [];
+        plan.days[d].list = plan.days[d].list || [];
+        plan.days[d].outfits = plan.days[d].outfits || [];
+        plan.days[d].outfitKeys = plan.days[d].outfitKeys || [];
+    });
+}
+
+function vacPresetOf(plan, id) { return plan.outfitPresets.find(p => p.id === id) || null; }
+
+/** A preset's items as an outfit's cells, nothing packed. */
+function vacPresetItems(plan, pr) {
+    const out = {};
+    plan.clothesTypes.forEach(t => { const v = pr && pr.items[t.id]; if (v) out[t.id] = { text: v, packed: false }; });
+    return out;
+}
+
+/** Whether an outfit is more than its preset made it: one added by hand, a cell changed, or anything packed. */
+function vacRowTouched(plan, r) {
+    if (!/^o\|/.test(r.id)) return true;
+    const pr = vacPresetOf(plan, r.preset);
+    return plan.clothesTypes.some(t => {
+        const c = r.items[t.id];
+        return (c && c.packed) || ((c && c.text) || '') !== ((pr && pr.items[t.id]) || '');
+    }) || Object.keys(r.items).some(k => !plan.clothesTypes.some(t => t.id === k) && r.items[k] && r.items[k].text);
+}
+
+/**
+ * Each day has an outfit for each preset marked every day, for each person (or for
+ * everyone, when nobody has been added). Their ids are made from what they are, so
+ * reading the plan twice makes the same ones; outfitKeys remembers what was made, so
+ * one taken out stays out. Clothes kept as a list before there was a table move into
+ * that person's Day outfit, under Extras.
+ */
+function vacEnsureOutfits(plan) {
+    const people = plan.people || [];
+    const whos = people.length ? people.map(p => p.id) : [''];
+    const auto = plan.outfitPresets.filter(p => p.auto);
+    vacDates(plan).forEach(d => {
+        const day = plan.days[d];
+        day.outfits = day.outfits || [];
+        day.outfitKeys = day.outfitKeys || [];
+        if (day.clothes && day.clothes.length) {
+            const by = new Map();
+            day.clothes.forEach(it => { const w = vacPerson(plan, it.who) ? it.who : ''; if (!by.has(w)) by.set(w, []); by.get(w).push(it.text); });
+            by.forEach((texts, w) => {
+                const key = w + '|day';
+                if (day.outfitKeys.includes(key)) return;
+                day.outfitKeys.push(key);
+                day.outfits.push({ id: 'o|' + d + '|' + key, preset: 'day', who: w, items: { extras: { text: texts.join(', '), packed: false } } });
+            });
+        }
+        delete day.clothes;
+        // Once there are people, everyone's outfits that were never changed give way to theirs.
+        if (people.length) day.outfits = day.outfits.filter(r => {
+            if (r.who || vacRowTouched(plan, r)) return true;
+            day.outfitKeys = day.outfitKeys.filter(k => k !== '|' + r.preset);
+            return false;
+        });
+        whos.forEach(w => auto.forEach(pr => {
+            const key = w + '|' + pr.id;
+            if (day.outfitKeys.includes(key)) return;
+            day.outfitKeys.push(key);
+            day.outfits.push({ id: 'o|' + d + '|' + key, preset: pr.id, who: w, items: vacPresetItems(plan, pr) });
+        }));
+    });
+}
+
+/** A day's outfits in the table's order: by preset, then by person. */
+function vacSortedOutfits(plan, outfits) {
+    const pi = (id) => { const i = plan.outfitPresets.findIndex(p => p.id === id); return i < 0 ? 99 : i; };
+    const wi = (id) => id ? (plan.people || []).findIndex(p => p.id === id) + 1 : 0;
+    return outfits.slice().sort((a, b) => pi(a.preset) - pi(b.preset) || wi(a.who) - wi(b.who));
+}
+
+/** Whether leaving a day out loses anything: more than its meals, as they came. */
+function vacHasPlans(plan, day) {
+    return !!day && (!!(day.label || '').trim() || day.list.length > 0 || (day.outfits || []).some(r => vacRowTouched(plan, r)) ||
+        day.blocks.some(b => !b.meal || b.place || b.notes || b.done));
+}
+
+function vacParseTime(s) {
+    const m = /^(\d{1,2}):(\d{2})/.exec(s || '');
+    return m ? Math.min(1440, +m[1] * 60 + +m[2]) : null;
+}
+
+function vacTimeValue(min) {
+    const t = Math.min(min, 1439);
+    return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+
+function vacTimeLabel(min) {
+    return new Date(2000, 0, 1, Math.floor(min / 60), min % 60).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function vacHourLabel(h) {
+    return new Date(2000, 0, 1, h).toLocaleTimeString([], { hour: 'numeric' });
+}
+
+function vacDayLabel(date, style) {
+    return vacDateOf(date).toLocaleDateString([], style === 'long'
+        ? { weekday: 'long', month: 'long', day: 'numeric' }
+        : { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+const VAC_TAB_LABEL = 16;   // characters of a day's label shown on its tab
+
+function vacDayText(plan, date) { return ((plan.days[date] || {}).label || '').trim(); }
+
+/** A day's date and, when it has one, its label: "Fri, Jul 9 · Beach day". */
+function vacDayName(plan, date, style) {
+    const label = vacDayText(plan, date);
+    return vacDayLabel(date, style) + (label ? ' · ' + label : '');
+}
+
+function vacTabText(plan, date) {
+    const label = vacDayText(plan, date);
+    return vacDayLabel(date, 'short') + (label ? ' · ' + (label.length > VAC_TAB_LABEL ? label.slice(0, VAC_TAB_LABEL - 1) + '…' : label) : '');
+}
+
+/** A day's label, kept as typed. Only its tab changes, so the field moved to keeps the focus. */
+function vacSetDayLabel(el) {
+    const date = el.closest('.vac-day').dataset.date, widget = vacGetWidget(el);
+    vacMutate(el, (plan) => {
+        if (!plan.days[date]) return 'none';
+        const label = el.value.trim();
+        if (label) plan.days[date].label = label; else delete plan.days[date].label;
+    }, { draw: false });
+    const plan = vacGetData(vacGetToolId(widget)), tab = widget.querySelector('.vac-tab[data-view="' + date + '"]');
+    if (tab) { tab.textContent = vacTabText(plan, date); tab.title = vacDayName(plan, date, 'long'); }
+}
+
+/**
+ * A place from what was typed: an address, or a Google Maps link. A link keeps its
+ * address, and gives up what it carries itself — the place's name and where its pin
+ * is. A short maps.app.goo.gl link carries neither, so it stays a link.
+ */
+function vacParsePlace(text) {
+    const s = String(text || '').trim();
+    if (!s) return null;
+    if (!/^https?:\/\//i.test(s)) return { label: '', address: s };
+    const p = { label: '', address: '', url: s };
+    let u;
+    try { u = new URL(s); } catch (e) { return p; }
+    let path = u.pathname;
+    try { path = decodeURIComponent(path.replace(/\+/g, ' ')); } catch (e) { /* kept as it came */ }
+    const named = /\/maps\/place\/([^/]+)/.exec(path);
+    if (named) p.label = named[1].trim();
+    // The place's own pin (!3d…!4d…), never @lat,lng: that is the middle of the map as it
+    // was scrolled when the link was copied, which can be streets away from the place.
+    const pin = /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/.exec(s);
+    if (pin) { p.lat = +pin[1]; p.lng = +pin[2]; }
+    const q = (u.searchParams.get('query') || u.searchParams.get('q') || u.searchParams.get('destination') || '').trim();
+    const at = /^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/.exec(q);
+    if (at) { p.lat = +at[1]; p.lng = +at[2]; }
+    else if (q) p.address = q;
+    return p;
+}
+
+/** What directions to a place go to, said: its address, its pin, its name, or nothing Maps can use. */
+function vacPlaceTarget(p) {
+    if (!p) return { kind: 'none', text: '' };
+    if (p.address) return { kind: 'address', text: vacPlaceText(p) };
+    if (p.lat != null && p.lng != null) return { kind: 'pin', text: p.lat + ', ' + p.lng };
+    if (p.label) return { kind: 'name', text: vacPlaceQuery(p) };
+    return { kind: 'none', text: '' };
+}
+
+/** The line under a place: where directions go, and a link to see exactly that spot. */
+function vacPlaceTargetHtml(p) {
+    const t = vacPlaceTarget(p);
+    if (t.kind === 'none') return p && p.url ? '<div class="vac-ptarget vac-ptarget-none">Directions cannot find it: a short Maps link carries no address or pin. Give it an address.</div>' : '';
+    const check = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(t.kind === 'pin' ? p.lat + ',' + p.lng : t.text);
+    return '<div class="vac-ptarget">Directions go to: ' + (t.kind === 'pin' ? '📍 pin ' : t.kind === 'name' ? 'the name ' : '') + vacEsc(t.text) +
+        ' <a href="' + vacEsc(check) + '" target="_blank" rel="noopener noreferrer" title="Open Maps at exactly this">Check</a>' +
+        (t.kind === 'name' ? ' <span class="vac-hint">(' + (p.near ? 'looked for in the destination; an address is surer' : 'a name alone can match another place near you: set the trip\u2019s destination, or give it an address') + ')</span>' : '') + '</div>';
+}
+
+/** Two names for the same place: one in the other, or a long word they share. */
+function vacNamesAgree(a, b) {
+    const n = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    const x = n(a), y = n(b);
+    if (!x || !y || x.includes(y) || y.includes(x)) return true;
+    const words = new Set(x.split(' ').filter(w => w.length >= 4));
+    return y.split(' ').some(w => w.length >= 4 && words.has(w));
+}
+
+/** Renamed: a link (and its pin) for some other place is let go, so the name and where it goes agree. */
+function vacRenamePlace(p, label) {
+    p.label = label;
+    if (!p.url) return p;
+    const linkName = (vacParsePlace(p.url) || {}).label;
+    if (label && linkName && !vacNamesAgree(linkName, label)) { delete p.url; delete p.lat; delete p.lng; }
+    return p;
+}
+
+/** Saved before: a pin taken from a link's map centre (@lat,lng), not the place's own, is let go. */
+function vacFixPins(node) {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(vacFixPins); return; }
+    if (typeof node.url === 'string' && node.lat != null && !/!3d-?\d/.test(node.url) &&
+        !/[?&](query|q|destination)=-?\d+(\.\d+)?(%2C|,)/i.test(node.url)) { delete node.lat; delete node.lng; }
+    Object.keys(node).forEach(k => { if (node[k] && typeof node[k] === 'object') vacFixPins(node[k]); });
+}
+
+/**
+ * What Maps is asked to find for a place: its name and address; for a place with only
+ * a name, the trip's destination after it (`near`, set on reading), so "The Getty"
+ * is looked for as "The Getty, Los Angeles, CA" and not near wherever you are.
+ */
+function vacPlaceQuery(p) {
+    const t = vacPlaceText(p);
+    return t && p.near && !p.address && p.lat == null ? t + ', ' + p.near : t;
+}
+
+/**
+ * On reading: each place that has only a name, where the trip is, is given the
+ * destination to be looked for in — not kept (it is not enumerable, so it is never
+ * saved), so changing the destination changes them all. Airports, parking lots and
+ * home are left out: they are where you set off from.
+ */
+function vacApplyNear(plan) {
+    const dest = String(plan.destination || '').trim();
+    if (!dest) return;
+    const lots = (plan.parking || []).map(pk => pk.lot).filter(Boolean);
+    const near = (p) => {
+        if (!p || typeof p !== 'object' || !p.label || p.address || p.lat != null) return;
+        if (/\bairport\b/i.test(p.label) || lots.some(l => vacSamePlace(l, p)) || vacIsHome(plan, p)) return;
+        Object.defineProperty(p, 'near', { value: dest, enumerable: false, configurable: true, writable: true });
+    };
+    (plan.places || []).forEach(near);
+    (plan.stays || []).forEach(s => near(s.place));
+    (plan.rentals || []).forEach(r => { near(r.pickPlace); near(r.dropPlace); });
+    Object.values(plan.days || {}).forEach(day => (day.blocks || []).forEach(b => {
+        near(b.place);
+        if (b.drive) { near(b.drive.from); near(b.drive.to); (b.drive.stops || []).forEach(near); }
+    }));
+}
+
+function vacPlaceText(p) {
+    return p ? [p.label, p.address].filter(Boolean).join(', ') : '';
+}
+
+function vacPlaceName(p) {
+    return p ? (p.label || p.address || (p.url ? 'Google Maps link' : '')) : '';
+}
+
+/** Where the place opens in Google Maps: its own link, or a search for it. */
+function vacPlaceUrl(p) {
+    if (!p) return '';
+    if (p.url) return p.url;
+    const q = vacPlaceQuery(p) || (p.lat != null ? p.lat + ',' + p.lng : '');
+    return q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : '';
+}
+
+/**
+ * A place as a stop on a route, as Google Maps is told it: its name and address where
+ * it has an address (Maps finds the place, and shows it by name); else its pin, exact;
+ * else its name alone.
+ */
+function vacRouteStop(p) {
+    if (!p) return '';
+    if (p.address) return vacPlaceText(p);
+    if (p.lat != null && p.lng != null) return p.lat + ',' + p.lng;
+    return vacPlaceQuery(p);
+}
+
+function vacSamePlace(a, b) {
+    return !!a && !!b && (a.label || '') === (b.label || '') && (a.address || '') === (b.address || '') && (a.url || '') === (b.url || '');
+}
+
+function vacCopyPlace(p) {
+    if (!p) return null;
+    const out = { label: p.label || '', address: p.address || '' };
+    if (p.url) out.url = p.url;
+    if (p.lat != null && p.lng != null) { out.lat = p.lat; out.lng = p.lng; }
+    return out;
+}
+
+/** The day's places in time order, from where you woke and to where you sleep, when those are known. */
+function vacRouteStops(plan, date) {
+    const day = plan.days[date];
+    const stops = [];
+    const push = (p) => { const q = vacRouteStop(p); if (q && stops[stops.length - 1] !== q) stops.push(q); };
+    const st = vacStaysOn(plan, date);
+    const from = (st.morning || st.night || {}).place, to = (st.night || st.morning || {}).place;
+    if (from) push(from);
+    (day ? day.blocks : []).slice().sort((a, b) => a.start - b.start || a.end - b.end).forEach(b => vacBlockStops(b).forEach(push));
+    if (to && stops.length > 1) push(to);
+    return stops;
+}
+
+function vacRouteUrl(stops) {
+    if (stops.length < 2) return '';
+    return vacDirUrl(stops[0], stops.slice(1, -1), stops[stops.length - 1]);
+}
+
+/** Google Maps directions; with no origin, Maps starts from wherever you are. */
+function vacDirUrl(origin, mid, dest) {
+    const via = mid.slice(0, VAC_MAX_WAYPOINTS);
+    return 'https://www.google.com/maps/dir/?api=1' + (origin ? '&origin=' + encodeURIComponent(origin) : '') +
+        '&destination=' + encodeURIComponent(dest) + (via.length ? '&waypoints=' + encodeURIComponent(via.join('|')) : '');
+}
+
+function vacAddDays(iso, n) {
+    const d = vacDateOf(iso);
+    d.setDate(d.getDate() + n);
+    return vacIso(d);
+}
+
+/** An airport, as a place to find: its code or name, as an airport. */
+function vacAirportPlace(code) {
+    const c = String(code || '').trim();
+    return c ? { label: /airport/i.test(c) ? c : c + ' airport', address: '' } : null;
+}
+
+function vacFlightStatusUrl(fl) {
+    return fl && fl.number ? 'https://www.google.com/search?q=' + encodeURIComponent(fl.number + ' flight status') : '';
+}
+
+/** The places a block takes you to, in order: a flight its airport, a drive its start, stops and end. */
+function vacBlockStops(b) {
+    if (b.kind === 'flight') return b.flight && b.flight.from ? [vacAirportPlace(b.flight.from)] : [];
+    if (b.kind === 'drive') { const d = b.drive || {}; return [d.from].concat(d.stops || [], [d.to]).filter(Boolean); }
+    return b.place ? [b.place] : [];
+}
+
+/** Whether a place is home: what is passed on (the list, the calendar) says Home, never its address. */
+function vacIsHome(plan, p) { return !!(p && plan.home && vacSamePlace(p, plan.home)); }
+
+/** A length of time in words: 25 min, 1 h, 1 h 15 min. */
+function vacDur(min) {
+    const h = Math.floor(min / 60), m = min % 60;
+    return h ? h + ' h' + (m ? ' ' + m + ' min' : '') : m + ' min';
+}
+
+/** A drive's directions: from its start (or wherever you are), through its stops, to its end. */
+function vacDriveUrl(b, plan, date) {
+    const d = b.drive || {}, to = vacRouteStop(d.to);
+    if (!to) return '';
+    const from = vacRouteStop(d.from) || (plan && date ? vacRouteStop(vacDriveOrigin(plan, date, b)) : '');
+    return vacDirUrl(from || null, (d.stops || []).map(vacRouteStop).filter(Boolean), to);
+}
+
+/**
+ * Where a drive with no start of its own sets off: where the day's last block before
+ * it ended up (a place, or a drive's end), else where you woke. Without it, Google
+ * Maps would start from wherever the phone is.
+ */
+function vacDriveOrigin(plan, date, b) {
+    const day = plan.days[date];
+    const before = (day ? day.blocks : []).filter(x => x !== b && x.start < b.start).sort((x, y) => y.start - x.start || y.end - x.end);
+    for (const x of before) {
+        // After a flight, you are where it lands, not where it left from.
+        if (x.kind === 'flight') {
+            const fl = x.flight || {};
+            if (!(fl.arriveDay > 0) && fl.to) return vacAirportPlace(fl.to);
+            continue;
+        }
+        const p = x.kind === 'drive' ? (x.drive || {}).to : x.place;
+        if (vacRouteStop(p)) return p;
+    }
+    // A flight from an earlier day that lands this day, before it.
+    const landed = vacAllFlights(plan).filter(f => f.date < date && vacAddDays(f.date, (f.b.flight || {}).arriveDay || 0) === date &&
+        ((f.b.flight || {}).arrive != null ? f.b.flight.arrive : 0) <= b.start && (f.b.flight || {}).to);
+    if (landed.length) return vacAirportPlace(landed[landed.length - 1].b.flight.to);
+    return vacDayHome(plan, date);
+}
+
+/**
+ * A flight's check-in times: online check-in opening (`checkinH` hours before take-off,
+ * 24 unless set; 0 for none), and at the airport bag drop closing and the gate closing
+ * (`bagMin`, `gateMin` minutes before; none unless set). Each as { date, at }.
+ */
+function vacFlightTimes(date, b) {
+    const fl = b.flight || {}, out = {};
+    const h = fl.checkinH == null ? 24 : +fl.checkinH;
+    if (h > 0) { const t = b.start - h * 60, days = Math.floor(t / 1440); out.online = { date: vacAddDays(date, days), at: t - days * 1440 }; }
+    if (fl.bagMin) out.bag = { date, at: Math.max(0, b.start - fl.bagMin) };
+    if (fl.gateMin) out.gate = { date, at: Math.max(0, b.start - fl.gateMin) };
+    return out;
+}
+
+/** In a flight's panel or card: when to check in, and when bags and the gate close. */
+function vacFlightTimesHtml(plan, date, b) {
+    const fl = b.flight || {}, on = ' onchange="vacEditField(this)"', t = date ? vacFlightTimes(date, b) : {};
+    const sel = (key, values, cur, label) => '<select data-f="' + key + '"' + on + '>' + values.map(v => '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + label(v) + '</option>').join('') + '</select>';
+    const when = (x) => x ? ' <span class="vac-ftime">' + vacEsc(vacDayLabel(x.date, 'short')) + ' ' + vacTimeLabel(x.at) + '</span>' : '';
+    const at = (x) => x ? ' <span class="vac-ftime">' + vacTimeLabel(x.at) + '</span>' : '';
+    return '<div class="vac-fcheck">' +
+        '<div class="vac-row"><label class="vac-inline">✅ Online check-in opens ' + sel('f_checkinH', [24, 30, 36, 48, 72, 0], fl.checkinH == null ? 24 : +fl.checkinH,
+            v => v ? v + ' h before' : 'not online') + '</label>' + when(t.online) + '</div>' +
+        '<div class="vac-row"><label class="vac-inline">🧳 Bag drop closes ' + sel('f_bagMin', [0, 30, 40, 45, 60, 75, 90], fl.bagMin || 0, v => v ? vacDur(v) + ' before' : 'not set') + '</label>' + at(t.bag) + '</div>' +
+        '<div class="vac-row"><label class="vac-inline">🚪 Gate closes ' + sel('f_gateMin', [0, 10, 15, 20, 25, 30, 45], fl.gateMin || 0, v => v ? vacDur(v) + ' before' : 'not set') + '</label>' + at(t.gate) + '</div>' +
+    '</div>';
+}
+
+/** A flight's end on its day: its landing when that is the same day, else midnight. */
+function vacFlightEnd(b) {
+    const fl = b.flight || (b.flight = {});
+    if (fl.arriveDay > 0) b.end = 1440;
+    else b.end = fl.arrive != null && fl.arrive > b.start ? fl.arrive : Math.min(1440, b.start + 60);
+}
+
+/** A place from what was typed: a place kept by that name, or an address or Maps link. */
+function vacResolvePlace(plan, text) {
+    const t = String(text || '').trim();
+    if (!t) return null;
+    const known = vacStayPlaces(plan).concat(plan.places).find(x => x && x.label && x.label.toLowerCase() === t.toLowerCase());
+    return known ? vacCopyPlace(known) : vacParsePlace(t);
+}
+
+function vacPlaceInput(p) { return p ? (p.url || p.label || p.address || '') : ''; }
+
+/** What happens on a day besides its blocks: flights landing from an earlier day, and parking. */
+function vacDayEvents(plan, date) {
+    const out = [];
+    vacDates(plan).forEach(d => plan.days[d].blocks.forEach(b => {
+        if (b.kind !== 'flight') return;
+        const nm = vacBlockInfo(plan, b).title, t = vacFlightTimes(d, b);
+        if (t.online && t.online.date === date) out.push({ icon: '\u2705', text: 'Online check-in opens ' + vacTimeLabel(t.online.at) + ' \u00B7 ' + nm, url: '', at: t.online.at });
+        if (t.bag && d === date) out.push({ icon: '\uD83E\uDDF3', text: 'Bag drop closes ' + vacTimeLabel(t.bag.at) + ' \u00B7 ' + nm, url: '', at: t.bag.at });
+        if (t.gate && d === date) out.push({ icon: '\uD83D\uDEAA', text: 'Gate closes ' + vacTimeLabel(t.gate.at) + ' \u00B7 ' + nm, url: '', at: t.gate.at });
+    }));
+    vacDates(plan).forEach(d => plan.days[d].blocks.forEach(b => {
+        const fl = b.flight;
+        if (b.kind === 'flight' && fl && fl.arriveDay > 0 && vacAddDays(d, fl.arriveDay) === date)
+            out.push({ icon: '✈️', text: vacBlockInfo(plan, b).title + ' arrives' + (fl.arrive != null ? ' ' + vacTimeLabel(fl.arrive) : '') +
+                (fl.to ? ' at ' + fl.to : ''), url: '', at: fl.arrive || 0 });
+    }));
+    (plan.stays || []).forEach(st => {
+        const name = vacPlaceName(st.place), url = vacPlaceUrl(st.place);
+        if (st.outDate && st.outDate === date) out.push({ icon: '\uD83C\uDFE8', text: 'Check out' + (st.outTime != null ? ' ' + vacTimeLabel(st.outTime) : '') +
+            (name ? ' \u00B7 ' + name : ''), url, at: st.outTime != null ? st.outTime : 600 });
+        if (st.inDate === date) out.push({ icon: '\uD83C\uDFE8', text: 'Check in' + (st.inTime != null ? ' ' + vacTimeLabel(st.inTime) : '') +
+            (name ? ' \u00B7 ' + name : ''), url, at: st.inTime != null ? st.inTime : 900 });
+    });
+    (plan.cruises || []).forEach(c => {
+        if (!c.boardDate || date < c.boardDate || date > (c.leaveDate || c.boardDate)) return;
+        const ship = c.ship || 'the ship';
+        if (date === c.boardDate) out.push({ icon: '\uD83D\uDEA2', text: 'Board ' + ship + (c.boardTime != null ? ' ' + vacTimeLabel(c.boardTime) : '') +
+            (c.allAboard != null ? ' \u00B7 all aboard ' + vacTimeLabel(c.allAboard) : ''), url: vacPlaceUrl(c.boardPlace), at: c.boardTime != null ? c.boardTime : 780 });
+        else if (date === c.leaveDate) out.push({ icon: '\uD83D\uDEA2', text: 'Leave ' + ship + (c.leaveTime != null ? ' ' + vacTimeLabel(c.leaveTime) : ''),
+            url: vacPlaceUrl(c.leavePlace || c.boardPlace), at: c.leaveTime != null ? c.leaveTime : 480 });
+        else {
+            const day = (c.days || {})[date] || {};
+            if (!day.port) out.push({ icon: '\uD83C\uDF0A', text: 'At sea', url: '', at: 0 });
+            else out.push({ icon: '\u2693', text: 'In port: ' + vacPlaceName(day.port) +
+                (day.arrive != null ? ' ' + vacTimeLabel(day.arrive) + (day.depart != null ? '\u2013' + vacTimeLabel(day.depart) : '') : '') +
+                (vacAllAboard(day) != null ? ' \u00B7 all aboard ' + vacTimeLabel(vacAllAboard(day)) : ''), url: vacPlaceUrl(day.port), at: day.arrive || 0 });
+        }
+    });
+    (plan.rentals || []).forEach(r => {
+        const name = r.company || vacPlaceName(r.pickPlace) || 'Rental car', back = r.dropPlace || r.pickPlace;
+        if (r.pickDate === date) out.push({ icon: '\uD83D\uDE99', text: 'Pick up' + (r.pickTime != null ? ' ' + vacTimeLabel(r.pickTime) : '') + ' \u00B7 ' + name,
+            url: vacPlaceUrl(r.pickPlace), at: r.pickTime != null ? r.pickTime : 600 });
+        if (r.dropDate === date) out.push({ icon: '\uD83D\uDE99', text: 'Return' + (r.dropTime != null ? ' ' + vacTimeLabel(r.dropTime) : '') + ' \u00B7 ' + name,
+            url: vacPlaceUrl(back), at: r.dropTime != null ? r.dropTime : 600 });
+    });
+    (plan.parking || []).forEach(pk => {
+        const lot = vacPlaceName(pk.lot), url = vacPlaceUrl(pk.lot);
+        if (pk.fromDate === date) out.push({ icon: '🅿️', text: 'Drop off' + (pk.fromTime != null ? ' ' + vacTimeLabel(pk.fromTime) : '') +
+            (lot ? ' · ' + lot : ''), url, at: pk.fromTime || 0 });
+        if (pk.toDate === date) out.push({ icon: '🅿️', text: 'Pick up' + (pk.toTime != null ? ' ' + vacTimeLabel(pk.toTime) : '') +
+            (lot ? ' · ' + lot : '') + (pk.spot ? ' · ' + pk.spot : ''), url, at: pk.toTime || 0 });
+    });
+    return out.sort((a, b) => a.at - b.at);
+}
+
+/** Blocks that overlap sit side by side: for each, its column and how many share its stretch. */
+function vacLayout(blocks) {
+    const sorted = blocks.slice().sort((a, b) => a.start - b.start || b.end - a.end);
+    const out = new Map();
+    let cluster = [], ends = [], clusterEnd = -1;
+    const flush = () => { cluster.forEach(x => out.set(x.id, { col: x.col, cols: ends.length })); cluster = []; ends = []; };
+    sorted.forEach(b => {
+        if (b.start >= clusterEnd) { flush(); clusterEnd = -1; }
+        let col = ends.findIndex(e => e <= b.start);
+        if (col < 0) { col = ends.length; ends.push(b.end); } else ends[col] = b.end;
+        cluster.push({ id: b.id, col });
+        clusterEnd = Math.max(clusterEnd, b.end);
+    });
+    flush();
+    return out;
+}
+
+/** The hours shown: the trip's, stretched to take in any block outside them. */
+function vacSpan(plan, blocks) {
+    // Each end chosen (`plan.showHours`, the end up to 28: 4 AM the next day), or the trip's, stretched to take in any block.
+    const fix = plan.showHours || [];
+    let h0 = fix[0] != null ? fix[0] : plan.hours[0], h1 = fix[1] != null ? fix[1] : plan.hours[1];
+    blocks.forEach(b => {
+        if (fix[0] == null) h0 = Math.min(h0, Math.floor(b.start / 60));
+        if (fix[1] == null) h1 = Math.max(h1, Math.ceil(b.end / 60));
+    });
+    return [h0, Math.max(h1, h0 + 1)];
+}
+
+/**
+ * What a day's column shows from h0 to h1: its blocks in the hours, and past midnight
+ * the next day's (`shift` 1440); its blocks wholly before or after the hours, for the
+ * markers on its edges.
+ */
+function vacColumn(plan, date, h0, h1) {
+    const shown = [], above = [], below = [];
+    (plan.days[date] || { blocks: [] }).blocks.forEach(b => {
+        if (b.end <= h0 * 60 && b.end > b.start) above.push(b);
+        else if (b.start >= h1 * 60) below.push(b);
+        else shown.push({ b, date, shift: 0 });
+    });
+    const next = vacAddDays(date, 1);
+    if (h1 > 24 && plan.days[next]) plan.days[next].blocks.forEach(b => { if (b.start < (h1 - 24) * 60) shown.push({ b, date: next, shift: 1440 }); });
+    above.sort((a, b) => b.end - a.end || b.start - a.start);
+    below.sort((a, b) => a.start - b.start || a.end - b.end);
+    const lay = vacLayout(shown.map(x => ({ id: x.b.id, start: x.b.start + x.shift, end: x.b.end + x.shift })));
+    // Room under each block: to the next block below it that shares any of its width, else the end of the hours.
+    const room = new Map(), side = (x) => { const l = lay.get(x.b.id); return [l.col / l.cols, (l.col + 1) / l.cols]; };
+    shown.forEach(x => {
+        const [l0, r0] = side(x), end = x.b.end + x.shift;
+        let at = h1 * 60;
+        shown.forEach(y => {
+            if (y === x) return;
+            const s = y.b.start + y.shift, [l1, r1] = side(y);
+            if (s >= end && s < at && l1 < r0 && l0 < r1) at = s;
+        });
+        room.set(x.b.id, at);
+    });
+    return { shown, above, below, next: plan.days[next] ? next : null, lay, room };
+}
+
+/** A marker on the top or bottom edge, for the blocks outside the hours shown: the nearest named, the rest counted. */
+function vacEdgeHtml(plan, list, where, date, compact) {
+    if (!list.length) return '';
+    const name = (b) => vacBlockInfo(plan, b).title, b = list[0];
+    const tip = (list.length === 1 ? 'Outside the hours shown: ' : list.length + ' blocks outside the hours shown:\n') +
+        list.map(x => vacTimeLabel(x.start) + ' ' + name(x)).join('\n') + '\nClick to choose ' + (list.length === 1 ? 'it' : 'the nearest');
+    const arrow = where === 'top' ? '▲' : '▼';
+    return '<button class="vac-edge vac-edge-' + where + '" data-id="' + vacEsc(b.id) + '" data-date="' + date + '" onpointerdown="event.stopPropagation()" onclick="vacEdgePick(this)" title="' + vacEsc(tip) + '">' +
+        (compact ? arrow + list.length : arrow + ' ' + vacEsc(name(b)) + ' ' + vacTimeLabel(b.start) + (list.length > 1 ? ' +' + (list.length - 1) + ' more' : '')) + '</button>';
+}
+
+/** A marker clicked: its block chosen, on its day. */
+function vacEdgePick(el) {
+    vacMutate(el, (plan, ui) => { ui.view = el.dataset.date; ui.sel = el.dataset.id; return false; });
+}
+
+/** The hours to show, on each day and in the Trip view: each end Auto or chosen. */
+function vacHoursHtml(plan) {
+    const fix = plan.showHours || [];
+    const opt = (h, cur, label) => '<option value="' + h + '"' + (h === cur ? ' selected' : '') + '>' + label + '</option>';
+    const from = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => opt(h, fix[0], h === 0 ? 'Midnight' : vacHourLabel(h))).join('');
+    const to = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28].map(h => opt(h, fix[1], h === 24 ? 'Midnight' : h > 24 ? vacHourLabel(h) + ' +1' : vacHourLabel(h))).join('');
+    return '<span class="vac-hours" title="The hours shown, on each day and in the Trip view. Past midnight, the next day’s first hours">🕘 ' +
+        '<select class="vac-hours-from" onchange="vacSetHours(this)"><option value=""' + (fix[0] == null ? ' selected' : '') + '>Auto</option>' + from + '</select>–' +
+        '<select class="vac-hours-to" onchange="vacSetHours(this)"><option value=""' + (fix[1] == null ? ' selected' : '') + '>Auto</option>' + to + '</select></span>';
+}
+
+function vacSetHours(el) {
+    const box = el.closest('.vac-hours'), from = box.querySelector('.vac-hours-from').value, to = box.querySelector('.vac-hours-to').value;
+    vacMutate(el, (plan) => {
+        if (from === '' && to === '') delete plan.showHours;
+        else plan.showHours = [from === '' ? null : +from, to === '' ? null : +to];
+    });
+}
+
+function vacBlockInfo(plan, b) {
+    const meal = b.meal && VAC_MEALS.find(m => m.key === b.meal);
+    const kind = VAC_KINDS.find(k => k.id === b.kind) || VAC_KINDS[1];
+    const fl = kind.id === 'flight' ? b.flight || {} : null, dr = kind.id === 'drive' ? b.drive || {} : null;
+    const auto = fl && fl.number ? 'Flight ' + fl.number : dr && dr.to ? 'Drive to ' + vacPlaceName(dr.to) : kind.label;
+    const where = fl ? [fl.from, fl.to].filter(Boolean).join(' → ')
+        : dr ? [dr.from, dr.to].filter(Boolean).map(vacPlaceName).join(' → ')
+        : vacPlaceName(b.place);
+    const times = vacTimeLabel(b.start) + '–' + (fl && fl.arriveDay > 0
+        ? (fl.arrive != null ? vacTimeLabel(fl.arrive) : '?') + ' +' + fl.arriveDay
+        : vacTimeLabel(b.end));
+    return { meal, kind, icon: meal ? meal.icon : kind.icon, title: b.title || auto, auto, where, times };
+}
+
+function vacBlockHtml(plan, b, h0, px, lay, opts) {
+    const info = vacBlockInfo(plan, b);
+    // Cut to the hours shown (`opts.span`, in the grid's minutes), so nothing hangs over its edges.
+    const s0 = b.start + (opts.shift || 0), e0 = b.end + (opts.shift || 0), sp = opts.span || [-Infinity, Infinity];
+    const cs = Math.max(s0, sp[0]), ce = Math.min(e0, sp[1]);
+    const top = (cs - h0 * 60) * px / 60;
+    const height = Math.max((ce - cs) * px / 60, opts.compact ? 6 : 14);
+    // How tall its text is: one line in the Trip view; on a day, the title, the time and the place.
+    const full = opts.compact ? 13 : 33 + ((b.place || (b.drive && b.drive.to) || b.kind === 'flight') ? 13 : 0);
+    const avail = opts.below != null ? (Math.min(opts.below, sp[1]) - cs) * px / 60 : height;
+    const roomy = !opts.compact && height < 30 && avail >= full;   // short, with room for all of it below
+    const need = opts.compact || roomy || height >= 30 ? full : 16;
+    const spill = Math.min(avail, need) - height;
+    const left = lay.col / lay.cols * 100, width = 100 / lay.cols;
+    const place = info.where;
+    const tip = info.times + ' · ' + info.title + (info.meal ? ' (' + info.meal.key.toUpperCase() + ')' : '') +
+        (place ? ' · ' + place : '') + (b.notes ? '\n' + b.notes : '') +
+        (opts.compact ? '\nClick to open its day; drag to move it, to another day too; drag its bottom edge to change when it ends' : '');
+    const warn = opts.warn && opts.warn.get(b.id);
+    if (opts.linked === undefined) {
+        const day = plan.days[opts.date], P = day && vacLinkPrev(day, b);
+        opts = Object.assign({}, opts, { linked: P ? 'Linked: right after ' + vacBlockInfo(plan, P).title + ', and moves with it' : '' });
+    }
+    const cls = 'vac-block vac-k-' + info.kind.id + (opts.linked ? ' vac-linked' : '') + (info.meal ? ' vac-meal' : '') + (b.done ? ' vac-done' : '') + (warn ? ' vac-warned' : '') +
+        (opts.sel ? ' vac-sel' : '') + (height < 30 && !roomy ? ' vac-short' : '') + (opts.shift ? ' vac-nextday' : '') + (spill > 1 ? ' vac-spill' : '');
+    // A long drive shows where its breaks fall.
+    let breaks = '';
+    if (info.kind.id === 'drive' && !opts.compact && plan.breakEvery > 0)
+        for (let t = b.start + plan.breakEvery; t < b.end - 10; t += plan.breakEvery)
+            breaks += '<div class="vac-break" style="top:' + ((t - b.start) * px / 60) + 'px" title="A break around ' + vacTimeLabel(t) + '"><span>☕ ' + vacTimeLabel(t) + '</span></div>';
+    return '<div class="' + cls + '" data-id="' + vacEsc(b.id) + '" data-date="' + opts.date + '"' +
+        (opts.compact ? ' onpointerdown="vacTripDown(event)"' : '') +
+        ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + left + '% + 1px);width:calc(' + width + '% - 3px)' + (spill > 1 ? ';--vac-spill:' + Math.floor(spill) + 'px' : '') + '"' +
+        ' title="' + vacEsc(tip) + '">' + breaks +
+        (info.meal && !opts.compact ? '<span class="vac-meal-tag">' + info.meal.key.toUpperCase() + '</span>' : '') +
+        // In the Trip view, a pin where the block has a place, before the title can cut it off.
+        (opts.compact && (b.place || (b.drive && b.drive.to)) ? '<span class="vac-tpin" title="' + vacEsc(info.where) + '">\uD83D\uDCCD</span>' : '') +
+        '<div class="vac-b-title">' + (warn ? '<span class="vac-b-warn" title="' + vacEsc(warn) + '">\u26A0\uFE0F</span>' : '') +
+            (opts.linked ? '<span class="vac-b-link" title="' + vacEsc(opts.linked) + '">\uD83D\uDD17</span>' : '') + info.icon + ' ' + vacEsc(info.title) + '</div>' +
+        (opts.compact ? '<div class="vac-b-resize" title="Drag to change when it ends"></div>' : '<div class="vac-b-time">' + info.times + '</div>' +
+            (place ? '<div class="vac-b-place">' + (info.kind.id === 'flight' || info.kind.id === 'drive' ? '' : '📍 ') + vacEsc(place) + '</div>' : '') +
+            '<div class="vac-b-resize" title="Drag to change when it ends"></div>') +
+        '</div>';
+}
+
+function vacDayHtml(plan, date, ui) {
+    const day = plan.days[date];
+    const [h0, h1] = vacSpan(plan, day.blocks);
+    const col = vacColumn(plan, date, h0, h1), lay = col.lay;
+    const stops = vacRouteStops(plan, date), route = vacRouteUrl(stops);
+    const missing = plan.meals.filter(m => !day.blocks.some(b => b.meal === m.key));
+    const warn = vacWarnings(plan).byBlock;
+    let lines = '';
+    const px = vacPxOf(ui, 'day');
+    for (let h = h0; h < h1; h++) lines += '<div class="vac-hour' + (h === 24 ? ' vac-midnight' : '') + '" style="top:' + ((h - h0) * px) + 'px"><span>' +
+        (h === 24 ? vacEsc(col.next ? vacDayLabel(col.next, 'short') : 'Midnight') : vacHourLabel(h)) + '</span></div>';
+    const routeTip = 'Directions in Google Maps through ' + stops.length + ' stops' +
+        (vacDayHome(plan, date) ? ', from where you\u2019re staying' : '') +
+        (stops.length - 2 > VAC_MAX_WAYPOINTS ? ' (Google Maps takes ' + VAC_MAX_WAYPOINTS + ' between the first and the last; the rest are left out)' : '');
+    return '<div class="vac-day" data-date="' + date + '">' +
+        '<div class="vac-day-head"><b>' + vacEsc(vacDayLabel(date, 'long')) + '</b>' +
+            '<input class="vac-day-label" value="' + vacEsc(day.label || '') + '" placeholder="Add a label" title="A name for the day: \u201CBeach day\u201D, \u201CParis\u201D" onchange="vacSetDayLabel(this)">' +
+            (route
+                ? '<a class="vac-btn vac-route" href="' + vacEsc(route) + '" target="_blank" rel="noopener noreferrer" title="' + vacEsc(routeTip) + '">🗺️ Route for the day</a>'
+                : '<span class="vac-btn vac-route vac-off" title="Give two blocks a place, or one and where you’re staying, for a route">🗺️ Route for the day</span>') +
+            (missing.length ? '<button class="vac-btn vac-restore" onclick="vacRestoreMeals(this)" title="Put back ' +
+                vacEsc(missing.map(m => m.label).join(', ')) + '">Restore meals</button>' : '') +
+            '<button class="vac-btn vac-todo" data-date="' + date + '" onclick="vacOpenDayList(this)" title="This day\u2019s own list, in Lists">\u2611\uFE0F To do' +
+                (day.list.length ? ' <span class="vac-count">' + day.list.filter(x => x.done).length + '/' + day.list.length + '</span>' : '') + '</button>' +
+            vacDayEventsHtml(plan, date) + vacHoursHtml(plan) +
+        '</div>' +
+        '<div class="vac-grid-wrap"><div class="vac-grid" style="height:' + ((h1 - h0) * px) + 'px;--vac-px:' + px + 'px" data-h0="' + h0 + '" data-h1="' + h1 + '" data-px="' + px + '" data-date="' + date + '" onpointerdown="vacGridDown(event)">' +
+            lines + '<div class="vac-lane">' +
+            col.shown.map(x => vacBlockHtml(plan, x.b, h0, px, lay.get(x.b.id), { sel: ui.sel === x.b.id, date: x.date, warn, shift: x.shift, span: [h0 * 60, h1 * 60], below: col.room.get(x.b.id) })).join('') +
+            vacGapsHtml(plan, date, ui, h0, px, { max: (h1 - h0) * px }) +
+            vacEdgeHtml(plan, col.above, 'top', date) + vacEdgeHtml(plan, col.below, 'bottom', date) +
+        '</div></div></div></div>';
+}
+
+function vacDayEventsHtml(plan, date) {
+    const ev = vacDayEvents(plan, date);
+    if (!ev.length) return '';
+    return '<div class="vac-events">' + ev.map(e => e.url
+        ? '<a class="vac-event" href="' + vacEsc(e.url) + '" target="_blank" rel="noopener noreferrer" title="Open in Google Maps">' + e.icon + ' ' + vacEsc(e.text) + '</a>'
+        : '<span class="vac-event">' + e.icon + ' ' + vacEsc(e.text) + '</span>').join('') + '</div>';
+}
+
+function vacPerson(plan, id) { return id ? (plan.people || []).find(p => p.id === id) || null : null; }
+
+/** A day's clothes by whom: Everyone first, then each person in order; only those with something. */
+function vacWearGroups(plan, day) {
+    const groups = [{ person: null, outfits: [] }].concat((plan.people || []).map(p => ({ person: p, outfits: [] })));
+    vacSortedOutfits(plan, day.outfits || []).forEach(r => {
+        const items = plan.clothesTypes.map(t => r.items[t.id] && r.items[t.id].text).filter(Boolean);
+        if (!items.length) return;
+        const g = groups.find(x => x.person && x.person.id === r.who) || groups[0];
+        const pr = vacPresetOf(plan, r.preset);
+        g.outfits.push({ name: pr ? pr.name : 'Outfit', items });
+    });
+    return groups.filter(g => g.outfits.length);
+}
+
+function vacWearText(g) { return g.outfits.map(o => o.name + ': ' + o.items.join(', ')).join(' · '); }
+
+function vacWhoName(person) { return person ? person.name || 'Someone' : 'Everyone'; }
+function vacWhoColor(person) { return person ? person.color : '#95a5a6'; }
+
+
+function vacPersonAdd(el) {
+    const widget = vacGetWidget(el);
+    vacMutate(el, (plan, ui) => {
+        plan.people = plan.people || [];
+        const used = new Set(plan.people.map(p => p.color));
+        const color = VAC_PEOPLE_COLORS.find(c => !used.has(c)) || VAC_PEOPLE_COLORS[plan.people.length % VAC_PEOPLE_COLORS.length];
+        plan.people.push({ id: vacNewId('u'), name: '', color });
+    });
+    const names = widget.querySelectorAll('.vac-person-row [data-f="name"]');
+    if (names.length) names[names.length - 1].focus();
+}
+
+/** A person's name or colour: saved, the form left as it is so the next field keeps the focus. */
+function vacPersonField(el) {
+    const id = el.closest('.vac-person-row').dataset.id;
+    vacMutate(el, (plan) => {
+        const p = vacPerson(plan, id);
+        if (!p) return 'none';
+        if (el.dataset.f === 'name') p.name = el.value.trim();
+        else p.color = el.value;
+    }, { draw: false });
+}
+
+function vacPersonRemove(btn) {
+    const id = btn.closest('.vac-person-row').dataset.id;
+    vacMutate(btn, (plan, ui) => {
+        const p = vacPerson(plan, id);
+        if (!p) return 'none';
+        const touched = Object.values(plan.days).some(d => (d.outfits || []).some(r => r.who === id && vacRowTouched(plan, r)));
+        if (touched && !window.confirm('Remove ' + vacWhoName(p) + ', and the clothes planned for them?')) return 'none';
+        Object.values(plan.days).forEach(d => {
+            d.outfits = (d.outfits || []).filter(r => r.who !== id);
+            d.outfitKeys = (d.outfitKeys || []).filter(k => k.split('|')[0] !== id);
+        });
+        plan.people = plan.people.filter(x => x.id !== id);
+        if (ui.cwho === id) ui.cwho = '';
+    });
+}
+
+function vacPeopleHtml(plan) {
+    return '<div class="vac-sec">👥 Who is going</div>' +
+        '<div class="vac-people">' + (plan.people || []).map(p =>
+        '<div class="vac-person-row" data-id="' + vacEsc(p.id) + '">' +
+            '<input type="color" data-f="color" value="' + vacEsc(p.color) + '" onchange="vacPersonField(this)" title="Their colour">' +
+            '<input data-f="name" value="' + vacEsc(p.name) + '" placeholder="Name" onchange="vacPersonField(this)">' +
+            '<button class="vac-icon" onclick="vacPersonRemove(this)" title="Remove">×</button></div>').join('') + '</div>' +
+        ((plan.people || []).length ? '' : '<div class="vac-hint">Nobody yet: the clothes are everyone’s.</div>') +
+        '<button class="vac-btn vac-park-add" onclick="vacPersonAdd(this)">+ Add person</button>' +
+        '<div class="vac-hint">Each person has their own outfits in the Clothes tab.</div>';
+}
+
+/** The Clothes tab: who and which day, the presets when open, and the table. */
+function vacClothesHtml(plan, ui) {
+    const dates = vacDates(plan), people = plan.people || [];
+    if (!dates.length) return '<div class="vac-empty">Pick the dates of the trip, above, to plan what to wear each day.</div>';
+    const who = vacPerson(plan, ui.cwho) ? ui.cwho : '';
+    const day = dates.includes(ui.cday) ? ui.cday : '';
+    const chip = (id, label, color) => '<button class="vac-chip vac-who' + (id === who ? ' vac-on' : '') + '" data-k="who" data-v="' + vacEsc(id) +
+        '" onclick="vacClothesFilter(this)">' + (color ? '<span class="vac-dot" style="background:' + vacEsc(color) + '"></span>' : '') + vacEsc(label) + '</button>';
+    return '<div class="vac-clothes">' +
+        '<div class="vac-cbar">' +
+            (people.length ? '<span class="vac-chips">' + chip('', 'All') + people.map(p => chip(p.id, vacWhoName(p), p.color)).join('') + '</span>' : '') +
+            '<select class="vac-cday-pick" data-k="day" onchange="vacClothesFilter(this)"><option value="">Every day</option>' +
+                dates.map(d => '<option value="' + d + '"' + (d === day ? ' selected' : '') + '>' + vacEsc(vacDayName(plan, d, 'short')) + '</option>').join('') + '</select>' +
+            '<span class="vac-out-gap"></span>' +
+            '<button class="vac-btn' + (ui.presets ? ' vac-on' : '') + '" onclick="vacTogglePresets(this)" title="The outfits each day starts with, and the kinds of clothes">⚙️ Presets &amp; types</button>' +
+            '<button class="vac-btn" onclick="vacClothesToPacking(this)" title="Everything in the table, counted, in the Packing list">🧳 Add to packing</button>' +
+        '</div>' +
+        (ui.presets ? vacPresetsHtml(plan) : '') +
+        vacClothesTableHtml(plan, ui) +
+        '</div>';
+}
+
+function vacClothesTableHtml(plan, ui) {
+    const dates = vacDates(plan), people = plan.people || [], types = plan.clothesTypes;
+    const who = vacPerson(plan, ui.cwho) ? ui.cwho : '';
+    const shown = dates.includes(ui.cday) ? [ui.cday] : dates;
+    const listId = (t) => 'vac-ct-' + ui.toolId + '-' + t.id;
+    let body = '', packed = 0, total = 0;
+    shown.forEach(d => {
+        const rows = vacSortedOutfits(plan, plan.days[d].outfits.filter(r => !who || r.who === who));
+        const n = vacPackedCount(plan, rows);
+        packed += n.packed; total += n.total;
+        const dayCell = '<td class="vac-cdate" rowspan="' + Math.max(1, rows.length) + '"><b>' + vacEsc(vacDayLabel(d, 'short')) + '</b>' +
+            (vacDayText(plan, d) ? '<div class="vac-cdlabel">' + vacEsc(vacDayText(plan, d)) + '</div>' : '') +
+            '<div class="vac-ccount" data-date="' + d + '">' + n.packed + '/' + n.total + ' packed</div>' +
+            '<button class="vac-btn vac-cadd" data-date="' + d + '" onclick="vacOutfitAdd(this)" title="Another outfit this day">+ Outfit</button></td>';
+        if (!rows.length) { body += '<tr class="vac-cfirst">' + dayCell + '<td colspan="' + (types.length + 3) + '" class="vac-hint">No outfits this day.</td></tr>'; return; }
+        rows.forEach((r, i) => {
+            const person = vacPerson(plan, r.who);
+            body += '<tr class="vac-crow' + (i === 0 ? ' vac-cfirst' : '') + '" data-row="' + vacEsc(r.id) + '" data-date="' + d + '">' + (i === 0 ? dayCell : '') +
+                '<td><select data-k="preset" onchange="vacOutfitField(this)">' + plan.outfitPresets.map(p => '<option value="' + vacEsc(p.id) + '"' +
+                    (p.id === r.preset ? ' selected' : '') + '>' + vacEsc(p.name) + '</option>').join('') +
+                    (vacPresetOf(plan, r.preset) ? '' : '<option selected>Outfit</option>') + '</select></td>' +
+                '<td class="vac-cwho" style="--vac-who:' + vacEsc(vacWhoColor(person)) + '"><select data-k="who" onchange="vacOutfitField(this)">' +
+                    '<option value="">Everyone</option>' + people.map(p => '<option value="' + vacEsc(p.id) + '"' + (p.id === r.who ? ' selected' : '') + '>' +
+                    vacEsc(vacWhoName(p)) + '</option>').join('') + '</select></td>' +
+                types.map(t => {
+                    const c = r.items[t.id] || {};
+                    return '<td class="vac-cell' + (c.packed ? ' vac-packed' : '') + '"><input type="checkbox" data-c="' + vacEsc(t.id) + '" title="Packed"' +
+                        (c.packed ? ' checked' : '') + (c.text ? '' : ' disabled') + ' onchange="vacCellPacked(this)">' +
+                        '<input class="vac-ctext" data-c="' + vacEsc(t.id) + '" value="' + vacEsc(c.text || '') + '" list="' + vacEsc(listId(t)) + '" onchange="vacCellText(this)"></td>';
+                }).join('') +
+                '<td class="vac-cacts"><button class="vac-icon" onclick="vacOutfitFill(this)" title="Fill the empty ones from the preset">↻</button>' +
+                    '<button class="vac-icon" onclick="vacOutfitRemove(this)" title="Remove this outfit">×</button></td></tr>';
+        });
+    });
+    // What has been worn in each column before, and the presets', offered as you type.
+    const lists = types.map(t => {
+        const seen = new Set();
+        plan.outfitPresets.forEach(p => p.items[t.id] && seen.add(p.items[t.id]));
+        dates.forEach(d => plan.days[d].outfits.forEach(r => r.items[t.id] && r.items[t.id].text && seen.add(r.items[t.id].text)));
+        return '<datalist id="' + vacEsc(listId(t)) + '">' + Array.from(seen).map(v => '<option value="' + vacEsc(v) + '">').join('') + '</datalist>';
+    }).join('');
+    return '<div class="vac-ctable-wrap"><div class="vac-csum">' + packed + '/' + total + ' packed</div>' +
+        '<table class="vac-ctable"><thead><tr><th>Day</th><th>Outfit</th><th>Person</th>' +
+        types.map(t => '<th>' + vacEsc(t.label) + '</th>').join('') + '<th></th></tr></thead><tbody>' + body + '</tbody></table>' + lists + '</div>';
+}
+
+function vacPackedCount(plan, rows) {
+    let packed = 0, total = 0;
+    rows.forEach(r => plan.clothesTypes.forEach(t => { const c = r.items[t.id]; if (c && c.text) { total++; if (c.packed) packed++; } }));
+    return { packed, total };
+}
+
+/** The presets, one to a row, a column for each type; the types' names head the columns. */
+function vacPresetsHtml(plan) {
+    const types = plan.clothesTypes;
+    return '<div class="vac-presets"><table class="vac-ptable"><thead><tr><th>Preset</th><th title="Every day starts with one, for each person">Every day</th>' +
+        types.map(t => '<th><span class="vac-tname"><input data-t="' + vacEsc(t.id) + '" value="' + vacEsc(t.label) + '" onchange="vacTypeField(this)" title="The name of this kind of clothes">' +
+            '<button class="vac-icon" data-t="' + vacEsc(t.id) + '" onclick="vacTypeRemove(this)" title="Remove this column">×</button></span></th>').join('') +
+        '<th><button class="vac-btn" onclick="vacTypeAdd(this)">+ Type</button></th></tr></thead><tbody>' +
+        plan.outfitPresets.map(p => '<tr data-p="' + vacEsc(p.id) + '">' +
+            '<td><input data-k="name" value="' + vacEsc(p.name) + '" onchange="vacPresetField(this)"></td>' +
+            '<td class="vac-pauto"><input type="checkbox" data-k="auto"' + (p.auto ? ' checked' : '') + ' onchange="vacPresetField(this)"></td>' +
+            types.map(t => '<td><input data-k="item" data-t="' + vacEsc(t.id) + '" value="' + vacEsc(p.items[t.id] || '') + '" onchange="vacPresetField(this)"></td>').join('') +
+            '<td><button class="vac-icon" onclick="vacPresetRemove(this)" title="Remove this preset">×</button></td></tr>').join('') +
+        '</tbody></table>' +
+        '<div class="vac-row"><button class="vac-btn" onclick="vacPresetAdd(this)">+ Preset</button>' +
+        '<span class="vac-hint">A new outfit starts from its preset. A change here reaches every outfit still showing the old item.</span></div></div>';
+}
+
+function vacTogglePresets(el) { vacMutate(el, (plan, ui) => { ui.presets = !ui.presets; return false; }); }
+
+function vacClothesFilter(el) {
+    vacMutate(el, (plan, ui) => {
+        if (el.dataset.k === 'who') ui.cwho = el.dataset.v || '';
+        else ui.cday = el.value;
+        return false;
+    });
+}
+
+/** The table drawn again, the rest left as it is: a field being moved to keeps its place. */
+function vacClothesRefresh(widget) {
+    const wrap = widget.querySelector('.vac-ctable-wrap');
+    if (!wrap) return;
+    const toolId = vacGetToolId(widget), plan = vacGetData(toolId), ui = vacUiOf(toolId);
+    const main = widget.querySelector('.vac-main'), top = main ? main.scrollTop : 0;
+    // Only when it changes, so a click that ended the edit still lands on what it was aimed at.
+    const next = document.createElement('div');
+    next.innerHTML = vacClothesTableHtml(plan, ui);
+    if (next.firstElementChild.outerHTML === wrap.outerHTML) return;
+    wrap.replaceWith(next.firstElementChild);
+    if (main) main.scrollTop = top;
+}
+
+/** A cell's item or its tick: saved, and the counts brought up to date, the table left as it is. */
+function vacCellEdit(el, fn) {
+    const tr = el.closest('.vac-crow'), id = tr.dataset.row, date = tr.dataset.date, t = el.dataset.c, widget = vacGetWidget(el);
+    vacMutate(el, (plan) => {
+        const r = (plan.days[date] ? plan.days[date].outfits : []).find(x => x.id === id);
+        if (!r) return 'none';
+        const c = r.items[t] || (r.items[t] = { text: '', packed: false });
+        fn(c);
+        if (!c.text) delete r.items[t];
+    }, { draw: false });
+    const toolId = vacGetToolId(widget), plan = vacGetData(toolId), ui = vacUiOf(toolId);
+    const r = plan.days[date].outfits.find(x => x.id === id), c = (r && r.items[t]) || {};
+    const td = el.closest('.vac-cell'), cb = td.querySelector('input[type="checkbox"]');
+    cb.disabled = !c.text;
+    cb.checked = !!c.packed;
+    td.classList.toggle('vac-packed', !!c.packed);
+    const who = vacPerson(plan, ui.cwho) ? ui.cwho : '';
+    let packed = 0, total = 0;
+    vacDates(plan).filter(d => !vacDates(plan).includes(ui.cday) || d === ui.cday).forEach(d => {
+        const n = vacPackedCount(plan, plan.days[d].outfits.filter(x => !who || x.who === who));
+        packed += n.packed; total += n.total;
+        const cell = widget.querySelector('.vac-ccount[data-date="' + d + '"]');
+        if (cell) cell.textContent = n.packed + '/' + n.total + ' packed';
+    });
+    const sum = widget.querySelector('.vac-csum');
+    if (sum) sum.textContent = packed + '/' + total + ' packed';
+}
+
+function vacCellText(el) { vacCellEdit(el, (c) => { c.text = el.value.trim(); if (!c.text) c.packed = false; }); }
+function vacCellPacked(el) { vacCellEdit(el, (c) => { c.packed = el.checked; }); }
+
+function vacOutfitRow(plan, el) {
+    const tr = el.closest('.vac-crow'), day = plan.days[tr.dataset.date];
+    const index = day ? day.outfits.findIndex(x => x.id === tr.dataset.row) : -1;
+    return index < 0 ? null : { day, index, row: day.outfits[index] };
+}
+
+/** An outfit's preset or person. Its cells still showing the old preset's items take the new one's. */
+function vacOutfitField(el) {
+    vacMutate(el, (plan) => {
+        const f = vacOutfitRow(plan, el);
+        if (!f) return 'none';
+        const r = f.row;
+        if (el.dataset.k === 'who') { r.who = el.value; return; }
+        const was = vacPresetOf(plan, r.preset), now = vacPresetOf(plan, el.value);
+        if (!now) return 'none';
+        plan.clothesTypes.forEach(t => {
+            const c = r.items[t.id], old = (was && was.items[t.id]) || '';
+            if (((c && c.text) || '') !== old) return;
+            if (now.items[t.id]) r.items[t.id] = { text: now.items[t.id], packed: !!(c && c.packed && c.text === now.items[t.id]) };
+            else delete r.items[t.id];
+        });
+        r.preset = now.id;
+    });
+}
+
+function vacOutfitAdd(btn) {
+    vacMutate(btn, (plan, ui) => {
+        const day = plan.days[btn.dataset.date];
+        if (!day) return 'none';
+        const pr = plan.outfitPresets.find(p => !p.auto) || plan.outfitPresets[0] || null;
+        const who = vacPerson(plan, ui.cwho) ? ui.cwho : ((plan.people || [])[0] || {}).id || '';
+        day.outfits.push({ id: vacNewId('o'), preset: pr ? pr.id : '', who, items: vacPresetItems(plan, pr) });
+    });
+}
+
+function vacOutfitFill(btn) {
+    vacMutate(btn, (plan) => {
+        const f = vacOutfitRow(plan, btn), pr = f && vacPresetOf(plan, f.row.preset);
+        if (!pr) return 'none';
+        plan.clothesTypes.forEach(t => {
+            const c = f.row.items[t.id];
+            if ((!c || !c.text) && pr.items[t.id]) f.row.items[t.id] = { text: pr.items[t.id], packed: false };
+        });
+    });
+}
+
+function vacOutfitRemove(btn) {
+    vacMutate(btn, (plan) => {
+        const f = vacOutfitRow(plan, btn);
+        if (!f) return 'none';
+        f.day.outfits.splice(f.index, 1);
+    });
+}
+
+/** A preset's name, item or every-day mark. An item changed reaches the outfits still showing the old one. */
+function vacPresetField(el) {
+    const id = el.closest('tr').dataset.p, k = el.dataset.k, widget = vacGetWidget(el);
+    vacMutate(el, (plan) => {
+        const pr = vacPresetOf(plan, id);
+        if (!pr) return 'none';
+        if (k === 'name') pr.name = el.value.trim() || pr.name;
+        else if (k === 'auto') {
+            pr.auto = el.checked;
+            // Taken off every day: the outfits it made that were never changed go.
+            if (!pr.auto) Object.values(plan.days).forEach(d => {
+                d.outfits = (d.outfits || []).filter(r => r.preset !== id || !/^o\|/.test(r.id) || vacRowTouched(plan, r));
+                d.outfitKeys = (d.outfitKeys || []).filter(key => key.split('|')[1] !== id || d.outfits.some(r => r.id.endsWith('|' + key)));
+            });
+        } else {
+            const t = el.dataset.t, old = pr.items[t] || '', now = el.value.trim();
+            Object.values(plan.days).forEach(d => (d.outfits || []).forEach(r => {
+                if (r.preset !== id || ((r.items[t] || {}).text || '') !== old) return;
+                if (now) r.items[t] = { text: now, packed: !!(r.items[t] && r.items[t].packed) }; else delete r.items[t];
+            }));
+            if (now) pr.items[t] = now; else delete pr.items[t];
+        }
+    }, k === 'auto' ? undefined : { draw: false });
+    if (k !== 'auto') vacClothesRefresh(widget);
+}
+
+function vacPresetAdd(btn) {
+    vacMutate(btn, (plan) => { plan.outfitPresets.push({ id: vacNewId('p'), name: 'Outfit ' + (plan.outfitPresets.length + 1), auto: false, items: {} }); });
+    const names = vacGetWidget(btn) && document.querySelectorAll('.vac-ptable [data-k="name"]');
+    if (names && names.length) { names[names.length - 1].focus(); names[names.length - 1].select(); }
+}
+
+function vacPresetRemove(btn) {
+    const id = btn.closest('tr').dataset.p;
+    vacMutate(btn, (plan) => {
+        const pr = vacPresetOf(plan, id);
+        if (!pr) return 'none';
+        const used = Object.values(plan.days).some(d => (d.outfits || []).some(r => r.preset === id && vacRowTouched(plan, r)));
+        if (used && !window.confirm('Remove the ' + pr.name + ' preset? Outfits made from it that you have changed are kept.')) return 'none';
+        Object.values(plan.days).forEach(d => {
+            d.outfits = (d.outfits || []).filter(r => r.preset !== id || vacRowTouched(plan, r));
+            d.outfitKeys = (d.outfitKeys || []).filter(key => key.split('|')[1] !== id);
+        });
+        plan.outfitPresets = plan.outfitPresets.filter(p => p.id !== id);
+    });
+}
+
+function vacTypeAdd(btn) {
+    const widget = vacGetWidget(btn);
+    vacMutate(btn, (plan) => { plan.clothesTypes.push({ id: vacNewId('t'), label: 'New' }); });
+    const names = widget.querySelectorAll('.vac-tname input');
+    if (names.length) { names[names.length - 1].focus(); names[names.length - 1].select(); }
+}
+
+function vacTypeField(el) {
+    const widget = vacGetWidget(el);
+    vacMutate(el, (plan) => {
+        const t = plan.clothesTypes.find(x => x.id === el.dataset.t);
+        if (!t) return 'none';
+        t.label = el.value.trim() || t.label;
+    }, { draw: false });
+    vacClothesRefresh(widget);
+}
+
+function vacTypeRemove(btn) {
+    const id = btn.dataset.t;
+    vacMutate(btn, (plan) => {
+        const t = plan.clothesTypes.find(x => x.id === id);
+        if (!t) return 'none';
+        const n = Object.values(plan.days).reduce((sum, d) => sum + (d.outfits || []).filter(r => r.items[id] && r.items[id].text).length, 0);
+        if (n && !window.confirm('Remove the ' + t.label + ' column, and what is in it in ' + n + (n === 1 ? ' outfit' : ' outfits') + '?')) return 'none';
+        Object.values(plan.days).forEach(d => (d.outfits || []).forEach(r => { delete r.items[id]; }));
+        plan.outfitPresets.forEach(p => { delete p.items[id]; });
+        plan.clothesTypes = plan.clothesTypes.filter(x => x.id !== id);
+    });
+}
+
+/** The trip's stays in rows: each in the first row where it does not overlap another (a changeover day is shared). */
+function vacStayLanes(plan, dates) {
+    if (!dates.length) return [];
+    const first = dates[0], last = dates[dates.length - 1];
+    const cruises = (plan.cruises || []).filter(c => c.boardDate).map(c => ({ id: c.id, cruise: c, place: { label: c.ship || 'Cruise', address: '' },
+        inDate: c.boardDate, inTime: c.boardTime, outDate: c.leaveDate || c.boardDate, outTime: c.leaveTime }));
+    const stays = (plan.stays || []).concat(cruises).filter(st => st.place && st.inDate && st.inDate <= last && (st.outDate || st.inDate) >= first)
+        .slice().sort((a, b) => a.inDate < b.inDate ? -1 : a.inDate > b.inDate ? 1 : 0);
+    const lanes = [];
+    stays.forEach(st => {
+        const lane = lanes.find(l => (l[l.length - 1].outDate || l[l.length - 1].inDate) <= st.inDate);
+        if (lane) lane.push(st); else lanes.push([st]);
+    });
+    return lanes;
+}
+
+/** A day's part of each stay: from midday where it starts, to midday where it ends, the whole day between. */
+function vacStaySegmentsHtml(plan, lanes, date, dates) {
+    return lanes.map((lane, row) => lane.map(st => {
+        const out = st.outDate || st.inDate;
+        if (date < st.inDate || date > out) return '';
+        const starts = date === st.inDate, ends = date === out;
+        const shown = starts || date === dates[0];
+        const name = vacPlaceName(st.place);
+        const tip = name + ' · ' + vacDayLabel(st.inDate, 'short') + (st.inTime != null ? ' ' + vacTimeLabel(st.inTime) : '') +
+            ' – ' + vacDayLabel(out, 'short') + (st.outTime != null ? ' ' + vacTimeLabel(st.outTime) : '');
+        const c = st.cruise, day = c && (c.days || {})[date];
+        const port = c && !starts && !ends ? (day && day.port ? '\u2693 ' + vacPlaceName(day.port) : '\uD83C\uDF0A') : '';
+        return '<div class="vac-tstay' + (c ? ' vac-tstay-cruise' : '') + (starts ? ' vac-tstay-in' : '') + (ends ? ' vac-tstay-out' : '') + '" style="top:' + (row * 20 + 2) + 'px" ' +
+            'data-view="' + (c ? 'cruise' : 'stay') + '"' + (c ? '' : ' data-sub="stays"') + ' onclick="vacView(this)" title="' + vacEsc(tip + (port ? ' \u00B7 ' + port : '')) + '">' +
+            (shown ? '<span>' + (c ? '\uD83D\uDEA2 ' : '\uD83C\uDFE8 ') + vacEsc(name) + '</span>' : port ? '<span class="vac-tport">' + vacEsc(port) + '</span>' : '') + '</div>';
+    }).join('')).join('');
+}
+
+/**
+ * The whole trip as Google Maps directions, in parts: Maps takes VAC_MAX_WAYPOINTS
+ * stops between the start and the end, so each part starts where the last ended.
+ */
+function vacTripRouteLinks(plan) {
+    const stops = [];
+    vacDates(plan).forEach(d => vacRouteStops(plan, d).forEach(q => {
+        if (!stops.length || stops[stops.length - 1].q !== q) stops.push({ q, d });
+    }));
+    const size = VAC_MAX_WAYPOINTS + 2, out = [];
+    for (let i = 0; i < stops.length - 1; i += size - 1) {
+        const part = stops.slice(i, i + size);
+        if (part.length < 2) break;
+        out.push({ url: vacDirUrl(part[0].q, part.slice(1, -1).map(x => x.q), part[part.length - 1].q), from: part[0].d, to: part[part.length - 1].d });
+    }
+    return out;
+}
+
+function vacTripHtml(plan, dates, ui) {
+    if (!dates.length) return '<div class="vac-empty">Pick the dates of the trip, above, to plan its days.<br>Each day starts with breakfast, lunch and dinner.</div>';
+    const [h0, h1] = vacSpan(plan, dates.flatMap(d => plan.days[d].blocks));
+    const tpx = vacPxOf(ui, 'trip'), height = (h1 - h0) * tpx, warn = vacWarnings(plan).byBlock;
+    let axis = '', lines = '';
+    for (let h = h0; h < h1; h++) {
+        if ((h - h0) % (tpx >= 28 ? 1 : 2) === 0) axis += '<span style="top:' + ((h - h0) * tpx) + 'px">' + vacHourLabel(h) + '</span>';
+        lines += '<div class="vac-thour' + (h === 24 ? ' vac-tmidnight' : '') + '" style="top:' + ((h - h0) * tpx) + 'px"></div>';
+    }
+    // Stays across the days, a row for each that overlap: in at midday on its first, out at midday on its last.
+    const lanes = vacStayLanes(plan, dates);
+    const band = (html) => lanes.length ? '<div class="vac-tstays" style="height:' + (lanes.length * 20 + 4) + 'px">' + html + '</div>' : '';
+    const routes = vacTripRouteLinks(plan);
+    const bar = '<div class="vac-cbar vac-trip-bar">' + vacHoursHtml(plan) + (routes.length > 1 ? '<span class="vac-hint">Route for the trip:</span>' : '') +
+        routes.map(r => '<a class="vac-btn" href="' + vacEsc(r.url) + '" target="_blank" rel="noopener noreferrer" title="Directions in Google Maps">\uD83D\uDDFA\uFE0F ' +
+            (routes.length === 1 ? 'Route for the trip' : vacEsc(vacDayLabel(r.from, 'short') + (r.to !== r.from ? ' \u2013 ' + vacDayLabel(r.to, 'short') : ''))) + '</a>').join('') +
+        '</div>';
+    return bar + '<div class="vac-trip' + (dates.some(d => vacDayText(plan, d)) ? ' vac-trip-labelled' : '') + '">' +
+        '<div class="vac-tcol vac-taxis"><div class="vac-thead"></div>' + band('<span class="vac-tstays-label" title="Where you\u2019re staying">\uD83C\uDFE8</span>') +
+            '<div class="vac-tgrid" data-hours="' + (h1 - h0) + '" style="height:' + height + 'px">' + axis + '</div></div>' +
+        dates.map(d => {
+            const col = vacColumn(plan, d, h0, h1), lay = col.lay;
+            return '<div class="vac-tcol"><button class="vac-thead" data-view="' + d + '" onclick="vacView(this)" title="Plan this day">' +
+                vacEsc(vacDayLabel(d, 'short')) + (vacDayText(plan, d) ? '<span class="vac-tlabel">' + vacEsc(vacDayText(plan, d)) + '</span>' : '') + '</button>' +
+                band(vacStaySegmentsHtml(plan, lanes, d, dates)) +
+                '<div class="vac-tgrid vac-tday" data-date="' + d + '" data-h0="' + h0 + '" data-px="' + tpx + '" style="height:' + height + 'px">' + lines +
+                col.shown.map(x => vacBlockHtml(plan, x.b, h0, tpx, lay.get(x.b.id), { compact: true, date: x.date, warn, shift: x.shift, span: [h0 * 60, h1 * 60], below: col.room.get(x.b.id) })).join('') +
+                vacGapsHtml(plan, d, ui, h0, tpx, { compact: true, left: dates.indexOf(d) < dates.length / 2, max: height }) +
+                vacEdgeHtml(plan, col.above, 'top', d, true) + vacEdgeHtml(plan, col.below, 'bottom', d, true) +
+                '</div></div>';
+        }).join('') +
+        '</div>';
+}
+
+/** The block, as found anywhere in the trip. */
+function vacFind(plan, id) {
+    if (!id) return null;
+    for (const date of Object.keys(plan.days)) {
+        const day = plan.days[date], index = day.blocks.findIndex(b => b.id === id);
+        if (index >= 0) return { date, day, index, block: day.blocks[index] };
+    }
+    return null;
+}
+
+function vacFormLinksHtml(plan, b) {
+    const a = (url, label, tip) => '<a class="vac-btn" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer" title="' + vacEsc(tip || url) + '">' + label + '</a>';
+    if (b.kind === 'flight') {
+        const fl = b.flight || {};
+        return (fl.number ? a(vacFlightStatusUrl(fl), '🔎 Flight status', 'Search for ' + fl.number + '’s status') : '') +
+            (fl.from ? a(vacPlaceUrl(vacAirportPlace(fl.from)), '📍 ' + vacEsc(fl.from)) : '') +
+            (fl.to ? a(vacPlaceUrl(vacAirportPlace(fl.to)), '📍 ' + vacEsc(fl.to)) : '');
+    }
+    if (b.kind === 'drive') {
+        const f = vacFind(plan, b.id), dr = b.drive || {}, url = vacDriveUrl(b, plan, f && f.date);
+        if (!url) return '<span class="vac-hint">Say where it goes for directions.</span>';
+        const own = vacRouteStop(dr.from), from = own ? null : f && vacDriveOrigin(plan, f.date, b);
+        const start = own ? '' : vacRouteStop(from) ? ' Starts from ' + vacPlaceName(from) + ', where you were before it.' : '';
+        return a(url, '🗺️ Directions', 'Directions in Google Maps, through the stops.' + start) +
+            (!own && dr.from ? '<span class="vac-hint">Its start is only a short Maps link, so directions start from ' +
+                (vacRouteStop(from) ? vacEsc(vacPlaceName(from)) : 'where you are') + ': give it a name or address.</span>'
+                : !own && !vacRouteStop(from) ? '<span class="vac-hint">No start: Maps will start from where you are. Say where it starts from.</span>' : '') +
+            (dr.to && !vacRouteStop(dr.to) ? '<span class="vac-hint">Give where it goes a name or address.</span>' : '');
+    }
+    const url = vacPlaceUrl(b.place);
+    const saved = !b.place || plan.places.concat(vacStayPlaces(plan)).some(x => vacSamePlace(x, b.place));
+    return (url ? a(url, '📍 Open in Maps') : '') +
+        (saved ? '' : '<button class="vac-btn" onclick="vacSavePlace(this)" title="Keep it in Places, to use again">☆ Save to places</button>');
+}
+
+function vacMinutesOptions(values, cur, none) {
+    return values.map(v => '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' +
+        (v === 0 ? none : (v >= 60 ? (v / 60) + ' h' : v + ' min')) + '</option>').join('');
+}
+
+function vacBlockFormHtml(plan, dates, ui) {
+    const f = vacFind(plan, ui.sel);
+    if (!f) return '<div class="vac-hint">' + (ui.view === 'trip'
+        ? 'Pick a day, or a block in one, to plan it.'
+        : 'Click a time on the day to add a block, or drag down to say how long. Click a block to change it, drag it to move it, and drag its bottom edge to change when it ends.') + '</div>';
+    const b = f.block, info = vacBlockInfo(plan, b), p = b.place || {}, k = info.kind.id;
+    const kinds = VAC_KINDS.map(x => '<option value="' + x.id + '"' + (x.id === k ? ' selected' : '') + '>' + x.icon + ' ' + x.label + '</option>').join('');
+    const days = dates.map(d => '<option value="' + d + '"' + (d === f.date ? ' selected' : '') + '>' + vacEsc(vacDayName(plan, d, 'short')) + '</option>').join('');
+    const on = ' onchange="vacEditField(this)"';
+    const field = (label, key, value, extra) => '<label>' + label + '<input data-f="' + key + '" value="' + vacEsc(value || '') + '"' + (extra || '') + on + '></label>';
+    const list = ' list="vac-places-' + vacEsc(ui.toolId) + '"';
+    let times, details;
+    if (k === 'flight') {
+        const fl = b.flight || {};
+        times = '<div class="vac-row"><label>Departs<input type="time" step="300" data-f="start" value="' + vacTimeValue(b.start) + '"' + on + '></label>' +
+            '<label>Lands<input type="time" step="300" data-f="f_arrive" value="' + vacTimeValue(fl.arrive != null ? fl.arrive : b.end) + '"' + on + '></label>' +
+            '<label>On<select data-f="f_arriveDay"' + on + '>' + [0, 1, 2].map(n => '<option value="' + n + '"' + ((fl.arriveDay || 0) === n ? ' selected' : '') + '>' +
+                (n ? '+' + n + ' day' : 'the same day') + '</option>').join('') + '</select></label></div>' +
+            '<div class="vac-hint">Times are local at each airport.</div>';
+        details = '<div class="vac-row">' + field('Flight', 'f_number', fl.number, ' placeholder="XY 123"') + field('Seat', 'f_seat', fl.seat) + '</div>' +
+            '<div class="vac-row">' + field('From', 'f_from', fl.from, ' placeholder="Airport"') + field('To', 'f_to', fl.to, ' placeholder="Airport"') + '</div>' +
+            '<div class="vac-row">' + field('Terminal / gate', 'f_gate', fl.gate) + field('Confirmation', 'f_conf', fl.conf) + '</div>' +
+            vacFlightTimesHtml(plan, f.date, b) +
+            '<div class="vac-row vac-form-links">' + vacFormLinksHtml(plan, b) + '</div>' +
+            '<div class="vac-row"><button class="vac-btn" onclick="vacAirportDrive(this)" title="A drive that gets you to the airport in time">🚗 Add the trip to the airport</button>' +
+            '<label class="vac-inline">be there <select data-f="lead"' + on + '>' + vacMinutesOptions([60, 90, 120, 150, 180, 240], plan.airportLead) + '</select> before</label></div>';
+    } else {
+        times = '<div class="vac-row"><label>From<input type="time" step="900" data-f="start" value="' + vacTimeValue(b.start) + '"' + on + '></label>' +
+            '<label>To<input type="time" step="900" data-f="end" value="' + vacTimeValue(b.end) + '"' + on + '></label></div>';
+        if (k === 'drive') {
+            const dr = b.drive || {};
+            details = field('Starting from', 'd_from', vacPlaceInput(dr.from), list + ' placeholder="Address, Maps link or a saved place"') +
+                '<div class="vac-stops">' + (dr.stops || []).map((st, i) => '<div class="vac-stop">' +
+                    '<input data-f="d_stop" data-i="' + i + '" value="' + vacEsc(vacPlaceInput(st)) + '"' + list + ' placeholder="A stop: fuel, food, a sight"' + on + '>' +
+                    '<button class="vac-icon" data-i="' + i + '" onclick="vacStopRemove(this)" title="Remove the stop">×</button></div>').join('') +
+                    '<button class="vac-btn" onclick="vacStopAdd(this)">+ Stop on the way</button></div>' +
+                field('Going to', 'd_to', vacPlaceInput(dr.to), list + ' placeholder="Address, Maps link or a saved place"') +
+                '<div class="vac-row vac-form-links">' + vacFormLinksHtml(plan, b) + '</div>' +
+                '<label class="vac-inline">A break every <select data-f="breakEvery"' + on + '>' + vacMinutesOptions([0, 60, 90, 120, 150, 180], plan.breakEvery, 'never') + '</select></label>' +
+                '<div class="vac-hint">How long the drive takes is the block’s length: see it in Directions, then set it.</div>';
+        } else {
+            details = '<label>Place<input data-f="plabel"' + list + ' value="' + vacEsc(p.label || '') + '" placeholder="Its name"' + on + '></label>' +
+                '<label>Address or Google Maps link<input data-f="paddress" value="' + vacEsc(p.address || p.url || '') + '" placeholder="Paste a link from Google Maps"' + on + '></label>' +
+                (b.place ? vacPlaceTargetHtml(b.place) : '') +
+                '<div class="vac-row vac-form-links">' + vacFormLinksHtml(plan, b) + '</div>';
+        }
+    }
+    return '<div class="vac-form" data-id="' + vacEsc(b.id) + '">' +
+        (info.meal ? '<div class="vac-meal-note"><span class="vac-meal-tag">' + info.meal.key.toUpperCase() + '</span> one of the day’s meals</div>' : '') +
+        '<label>What<input data-f="title" value="' + vacEsc(b.title) + '" placeholder="' + vacEsc(info.auto) + '"' + on + '></label>' +
+        '<div class="vac-row"><label>Kind<select data-f="kind"' + on + '>' + kinds + '</select></label>' +
+            '<label>Day<select data-f="date"' + on + '>' + days + '</select></label></div>' +
+        times + '<div class="vac-btravel">' + vacBlockTravelHtml(plan, f.date, b, ui) + '</div>' +
+        '<div class="vac-blinks">' + vacBlockLinkHtml(plan, f.date, b) + '</div>' + details +
+        '<label>Notes<textarea data-f="notes" rows="3"' + on + '>' + vacEsc(b.notes || '') + '</textarea></label>' +
+        '<div class="vac-row">' + field('Cost', 'cost', b.cost, ' placeholder="Tickets, a meal\u2026" inputmode="decimal"') + '</div>' +
+        '<label class="vac-check"><input type="checkbox" data-f="done"' + (b.done ? ' checked' : '') + on + '> Done</label>' +
+        '<div class="vac-row"><button class="vac-btn vac-danger" onclick="vacDeleteBlock(this)">Delete</button></div>' +
+    '</div>';
+}
+
+function vacPlacesHtml(plan, ui) {
+    const row = (p, i) => {
+        const url = vacPlaceUrl(p);
+        if (String(ui.editPlace) === String(i)) return '<div class="vac-place vac-pedit" data-i="' + i + '">' +
+            '<input class="vac-pe-label" value="' + vacEsc(p.label || '') + '" placeholder="Name" onkeydown="vacPlaceEditKey(this, event)">' +
+            '<input class="vac-pe-addr" value="' + vacEsc(p.url || p.address || '') + '" placeholder="Address or Google Maps link" onkeydown="vacPlaceEditKey(this, event)">' +
+            '<div class="vac-row"><button class="vac-btn" onclick="vacPlaceSave(this)">Save</button><button class="vac-btn" onclick="vacPlaceEditCancel(this)">Cancel</button></div></div>';
+        return '<div class="vac-place">' +
+            '<div class="vac-pmain"><div class="vac-pname" data-i="' + i + '" onclick="vacPlaceEdit(this)" title="Click to change">' + vacEsc(vacPlaceName(p)) +
+                (p.label && p.address ? '<div class="vac-paddr">' + vacEsc(p.address) + '</div>' : '') + '</div>' + vacPlaceTargetHtml(p) + '</div>' +
+            (url ? '<a class="vac-icon" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer" title="Open in Google Maps">📍</a>' : '') +
+            '<button class="vac-icon vac-pedit-btn" data-i="' + i + '" onclick="vacPlaceEdit(this)" title="Change it">✎</button>' +
+            '<button class="vac-icon" data-i="' + i + '" onclick="vacRemovePlace(this)" title="Remove">×</button>' +
+        '</div>';
+    };
+    return plan.places.map((p, i) => row(p, i)).join('') +
+        (plan.places.length ? '' : '<div class="vac-hint">Places kept here are offered when you name a block\u2019s place, a drive\u2019s or a parking lot. Paste a link from Google Maps to keep its pin.</div>') +
+        '<div class="vac-add-place"><input class="vac-np-label" placeholder="Name">' +
+            '<input class="vac-np-addr" placeholder="Address or Google Maps link" onkeydown="vacPlaceKey(this, event)">' +
+            '<button class="vac-btn" onclick="vacAddPlace(this)">Add place</button></div>';
+}
+
+function vacPlaceEdit(el) {
+    const widget = vacGetWidget(el);
+    vacMutate(el, (plan, ui) => { ui.editPlace = el.dataset.i; return false; });
+    const input = widget.querySelector('.vac-pedit .vac-pe-label');
+    if (input) { input.focus(); input.select(); }
+}
+
+function vacPlaceEditCancel(el) { vacMutate(el, (plan, ui) => { ui.editPlace = null; return false; }); }
+
+function vacPlaceEditKey(input, e) {
+    if (e.key === 'Enter') { e.preventDefault(); vacPlaceSave(input); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); vacPlaceEditCancel(input); }
+}
+
+/**
+ * Where a place is copied into the plan: block places, drives' starts, stops and
+ * ends, and parking lots, each still exactly as the place was. Calls fn(holder, key)
+ * for each, so the copy can be read or replaced.
+ */
+function vacPlaceCopies(plan, old, fn) {
+    const counts = { block: 0, drive: 0, parking: 0 };
+    Object.values(plan.days).forEach(d => d.blocks.forEach(b => {
+        if (vacSamePlace(b.place, old)) { counts.block++; fn(b, 'place'); }
+        const dr = b.drive;
+        if (!dr) return;
+        let hit = false;
+        ['from', 'to'].forEach(k => { if (vacSamePlace(dr[k], old)) { hit = true; fn(dr, k); } });
+        (dr.stops || []).forEach((st, i) => { if (vacSamePlace(st, old)) { hit = true; fn(dr.stops, i); } });
+        if (hit) counts.drive++;
+    }));
+    (plan.parking || []).forEach(pk => { if (vacSamePlace(pk.lot, old)) { counts.parking++; fn(pk, 'lot'); } });
+    return counts;
+}
+
+/** Asks whether the copies of a place still exactly as it was should change with it, and changes them if so. */
+function vacReplaceCopies(plan, old, now) {
+    const counts = vacPlaceCopies(plan, old, () => {});
+    const parts = [['block', 'blocks'], ['drive', 'drives'], ['parking', 'parking']].filter(([k]) => counts[k])
+        .map(([k, many]) => counts[k] + ' ' + (counts[k] === 1 ? k : many));
+    if (parts.length && window.confirm('Change ' + (vacPlaceName(old) || 'it') + ' where it is used too: ' + parts.join(', ') + '?'))
+        vacPlaceCopies(plan, old, (holder, key) => { holder[key] = vacCopyPlace(now); });
+}
+
+/**
+ * A saved place changed. Where the plan holds a copy still
+ * exactly as it was, it asks whether to change those too.
+ */
+function vacPlaceSave(el) {
+    const box = el.closest('.vac-pedit'), i = box.dataset.i;
+    const label = box.querySelector('.vac-pe-label').value.trim(), addr = box.querySelector('.vac-pe-addr').value;
+    vacMutate(el, (plan, ui) => {
+        const old = plan.places[+i];
+        ui.editPlace = null;
+        if (!old) return false;
+        const got = vacParsePlace(addr) || { label: '', address: '' };
+        if (label) vacRenamePlace(got, label);
+        if (!got.label && !got.address && !got.url) return false;
+        const now = vacCopyPlace(got);
+        if (vacSamePlace(now, old) && now.lat === old.lat && now.lng === old.lng) return false;
+        vacReplaceCopies(plan, old, now);
+        plan.places[+i] = Object.assign({ id: old.id }, now);
+    });
+}
+
+/** Each cruise: the ship and booking, boarding and leaving, and its days at sea or in port. */
+function vacCruisesHtml(plan, ui) {
+    const list = (plan.cruises || []).map((c, i) => vacCruiseCardHtml(plan, c, i, ui.toolId)).join('');
+    return '<div class="vac-sec">🚢 Cruise</div>' +
+        (list || '<div class="vac-hint">No cruise. The ship is where you sleep while on it: each port day’s route starts and ends at the port, and getting there and back can go to and from it.</div>') +
+        '<button class="vac-btn vac-park-add vac-cruise-add" onclick="vacCruiseAdd(this)">+ Add cruise</button>';
+}
+
+function vacCruiseCardHtml(plan, c, i, toolId) {
+    const on = ' onchange="vacCruiseField(this)"';
+    const field = (label, key, extra) => '<label>' + label + '<input data-f="' + key + '" value="' + vacEsc(c[key] || '') + '"' + (extra || '') + on + '></label>';
+    const place = (label, key, ph) => '<label>' + label + '<input data-f="' + key + '" list="vac-places-' + vacEsc(toolId || '') + '" value="' +
+        vacEsc(vacPlaceInput(c[key])) + '" placeholder="' + ph + '"' + on + '></label>';
+    const date = (key) => '<input type="date" data-f="' + key + '" value="' + vacEsc(c[key] || '') + '"' + on + '>';
+    const time = (key, v, extra) => '<input type="time" step="300" data-f="' + key + '" value="' + (v != null ? vacTimeValue(v) : '') + '"' + (extra || '') + on + '>';
+    const days = [];
+    if (c.boardDate) for (let d = c.boardDate, n = 0; d <= (c.leaveDate || c.boardDate) && n < VAC_MAX_DAYS; d = vacAddDays(d, 1), n++) days.push(d);
+    const rows = days.map(d => {
+        const label = '<span class="vac-cday">' + vacEsc(vacDayLabel(d, 'short')) + '</span>';
+        if (d === c.boardDate) return '<div class="vac-crow2">' + label + '🚢 Board' + (c.boardPlace ? ' · ' + vacEsc(vacPlaceName(c.boardPlace)) : '') +
+            (c.boardTime != null ? ' · ' + vacTimeLabel(c.boardTime) : '') + (c.allAboard != null ? ' · all aboard ' + vacTimeLabel(c.allAboard) : '') + '</div>';
+        if (d === c.leaveDate) return '<div class="vac-crow2">' + label + '🚢 Leave the ship' + (c.leavePlace || c.boardPlace ? ' · ' +
+            vacEsc(vacPlaceName(c.leavePlace || c.boardPlace)) : '') + (c.leaveTime != null ? ' · ' + vacTimeLabel(c.leaveTime) : '') + '</div>';
+        const day = (c.days || {})[d] || {}, dk = ' data-d="' + d + '"';
+        return '<div class="vac-crow2 vac-cport' + (day.port ? '' : ' vac-atsea') + '">' + label + (day.port ? '⚓' : '🌊') +
+            '<input class="vac-cport-in" data-f="port"' + dk + ' list="vac-places-' + vacEsc(toolId || '') + '" value="' + vacEsc(vacPlaceInput(day.port)) +
+                '" placeholder="At sea, or a port"' + on + '>' +
+            (day.port ? '<label class="vac-inline">in' + time('arrive', day.arrive, dk) + '</label><label class="vac-inline">out' + time('depart', day.depart, dk) + '</label>' +
+                '<label class="vac-inline">all aboard' + time('aboard', vacAllAboard(day), dk) + '</label>' +
+                (vacPlaceUrl(day.port) ? '<a class="vac-icon" href="' + vacEsc(vacPlaceUrl(day.port)) + '" target="_blank" rel="noopener noreferrer" title="Open in Google Maps">📍</a>' : '') : '') +
+            '</div>';
+    }).join('');
+    return '<div class="vac-tcard vac-cruise-card vac-form" data-i="' + i + '">' +
+        '<div class="vac-row">' + field('Cruise line', 'line') + field('Ship', 'ship', ' placeholder="Example Star"') + field('Cabin', 'cabin') + '</div>' +
+        '<div class="vac-row">' + place('Boards at', 'boardPlace', 'The port: address, Maps link or a saved place') +
+            '<label>On' + date('boardDate') + '</label><label>Boarding' + time('boardTime', c.boardTime) + '</label><label>All aboard' + time('allAboard', c.allAboard) + '</label></div>' +
+        '<div class="vac-row">' + place('Leave the ship at', 'leavePlace', 'Where it boarded') +
+            '<label>On' + date('leaveDate') + '</label><label>At' + time('leaveTime', c.leaveTime) + '</label></div>' +
+        (rows ? '<div class="vac-cdays">' + rows + '</div>' : '') +
+        '<div class="vac-row">' + field('Booking', 'conf') + field('Cost', 'cost') + '</div>' +
+        '<label>Notes<textarea data-f="notes" rows="2"' + on + '>' + vacEsc(c.notes || '') + '</textarea></label>' +
+        '<div class="vac-row"><span class="vac-out-gap"></span><button class="vac-btn vac-danger" onclick="vacCruiseRemove(this)">Remove</button></div>' +
+        '</div>';
+}
+
+/** A cruise starts on the trip's first day and ends on its last. */
+function vacCruiseAdd(btn) {
+    const widget = vacGetWidget(btn);
+    vacMutate(btn, (plan) => {
+        const dates = vacDates(plan);
+        (plan.cruises = plan.cruises || []).push({ id: vacNewId('c'), line: '', ship: '', cabin: '', conf: '', cost: '', notes: '',
+            boardPlace: null, boardDate: dates[0] || '', boardTime: null, allAboard: null, leavePlace: null, leaveDate: dates[dates.length - 1] || '', leaveTime: null, days: {} });
+    });
+    const ships = widget.querySelectorAll('.vac-cruise-card [data-f="ship"]');
+    if (ships.length) ships[ships.length - 1].focus();
+}
+
+function vacCruiseRemove(btn) {
+    const i = +btn.closest('.vac-cruise-card').dataset.i;
+    vacMutate(btn, (plan) => {
+        const c = (plan.cruises || [])[i];
+        if (!c) return 'none';
+        if ((c.ship || c.boardPlace) && !window.confirm('Remove the cruise' + (c.ship ? ' on ' + c.ship : '') + '?')) return 'none';
+        plan.cruises.splice(i, 1);
+    });
+}
+
+/**
+ * A field of a cruise. Its dates, a port given or taken away, change the days shown, so
+ * those draw the tab again; anything else is saved with the card left as it is.
+ */
+function vacCruiseField(el) {
+    const card = el.closest('.vac-cruise-card'), i = +card.dataset.i, k = el.dataset.f, d = el.dataset.d;
+    const redraw = k === 'boardDate' || k === 'leaveDate' || k === 'port' || k === 'boardPlace' || k === 'leavePlace' || k === 'boardTime' || k === 'allAboard' || k === 'leaveTime';
+    vacMutate(el, (plan) => {
+        const c = (plan.cruises || [])[i];
+        if (!c) return 'none';
+        const time = () => el.value ? vacParseTime(el.value) : null;
+        if (d) {
+            c.days = c.days || {};
+            const day = c.days[d] = c.days[d] || {};
+            if (k === 'port') { day.port = vacResolvePlace(plan, el.value); if (!day.port) delete c.days[d]; }
+            else day[k] = time();
+        } else if (k === 'boardPlace' || k === 'leavePlace') c[k] = vacResolvePlace(plan, el.value);
+        else if (k === 'boardTime' || k === 'allAboard' || k === 'leaveTime') c[k] = time();
+        else if (k === 'boardDate' || k === 'leaveDate') {
+            c[k] = el.value;
+            if (c.leaveDate && c.boardDate && c.leaveDate < c.boardDate) c[k === 'boardDate' ? 'leaveDate' : 'boardDate'] = el.value;
+        } else c[k] = k === 'notes' ? el.value : el.value.trim();
+    }, redraw ? undefined : { draw: false });
+    // All aboard, when not set, follows the time it sails.
+    if (d && k === 'depart') {
+        const c = (vacGetData(vacGetToolId(card)).cruises || [])[i], day = c && (c.days || {})[d];
+        const aboard = card.querySelector('[data-f="aboard"][data-d="' + d + '"]');
+        if (day && aboard && day.aboard == null) aboard.value = vacAllAboard(day) != null ? vacTimeValue(vacAllAboard(day)) : '';
+    }
+}
+
+/** Each place to stay: where, when in and out, the booking, and how to reach them. */
+function vacStaysHtml(plan, ui) {
+    const on = ' onchange="vacStayField(this)"';
+    const stays = (plan.stays || []).map((st, i) => {
+        const p = st.place || {}, url = vacPlaceUrl(st.place);
+        const date = (key) => '<input type="date" data-f="' + key + '" value="' + vacEsc(st[key] || '') + '"' + on + '>';
+        const time = (key) => '<input type="time" step="900" data-f="' + key + '" value="' + (st[key] != null ? vacTimeValue(st[key]) : '') + '"' + on + '>';
+        const field = (label, key, extra) => '<label>' + label + '<input data-f="' + key + '" value="' + vacEsc(st[key] || '') + '"' + (extra || '') + on + '></label>';
+        return '<div class="vac-park vac-stay-card vac-form" data-i="' + i + '">' +
+            '<label>Name<input data-f="label" value="' + vacEsc(p.label || '') + '" placeholder="Lake House, Hotel Example"' + on + '></label>' +
+            '<label>Address or Google Maps link<input data-f="address" value="' + vacEsc(p.url || p.address || '') + '" placeholder="Paste a link from Google Maps"' + on + '></label>' +
+            '<div class="vac-stay-target vac-wide">' + vacPlaceTargetHtml(st.place) + '</div>' +
+            '<div class="vac-row"><label>Check in' + date('inDate') + '</label><label>&nbsp;' + time('inTime') + '</label></div>' +
+            '<div class="vac-row"><label>Check out' + date('outDate') + '</label><label>&nbsp;' + time('outTime') + '</label></div>' +
+            '<div class="vac-row">' + field('Confirmation', 'conf') + field('Cost', 'cost') + '</div>' +
+            '<div class="vac-row">' + field('Phone', 'phone', ' type="tel"') + '</div>' +
+            '<label class="vac-wide">Notes<textarea data-f="notes" rows="2"' + on + '>' + vacEsc(st.notes || '') + '</textarea></label>' +
+            '<div class="vac-row vac-wide"><span class="vac-stay-links">' + vacStayLinksHtml(st) + '</span>' +
+                '<button class="vac-btn vac-danger" onclick="vacStayRemove(this)">Remove</button></div>' +
+            '</div>';
+    }).join('');
+    const homeUrl = vacPlaceUrl(plan.home);
+    const sections = [
+        { id: 'stays', label: '\uD83C\uDFE8 Stays', count: (plan.stays || []).length },
+        { id: 'home', label: '\uD83C\uDFE0 Home', done: !!plan.home }
+    ];
+    const cur = sections.some(x => x.id === ui.stayTab) ? ui.stayTab : 'stays';
+    const body = cur === 'home'
+        ? '<div class="vac-row vac-home"><input class="vac-home-in" value="' + vacEsc(plan.home ? (plan.home.url || plan.home.address || plan.home.label) : '') +
+            '" placeholder="Where the trip starts and ends: an address or a Maps link" onchange="vacHomeField(this)">' +
+            '<span class="vac-home-link">' + (homeUrl ? '<a class="vac-icon" href="' + vacEsc(homeUrl) + '" target="_blank" rel="noopener noreferrer" title="Open in Google Maps">\uD83D\uDCCD</a>' : '') + '</span></div>' +
+            '<div class="vac-hint">Getting there starts here and getting back ends here (Travel).</div>'
+        : (stays || '<div class="vac-hint">Add where you’re staying: each day’s route starts from it, and its days show checking in and out.</div>') +
+            '<button class="vac-btn vac-park-add" onclick="vacStayAdd(this)">+ Add stay</button>';
+    return vacSubtabsHtml(sections, cur, 'vacStayTab', 'Set') + '<div class="vac-subpane" data-sub="' + cur + '">' + body + '</div>';
+}
+
+/** Which Stay section shows: kept while the planner is open, not with the plan. */
+function vacStayTab(btn) { vacMutate(btn, (plan, ui) => { ui.view = 'stay'; ui.stayTab = btn.dataset.sub; return false; }); }
+
+/** Home: where getting there starts and getting back ends. Drives already from or to it can follow it. */
+function vacHomeField(el) {
+    const box = el.closest('.vac-home');
+    vacMutate(el, (plan) => {
+        const now = vacParsePlace(el.value), old = plan.home;
+        if (old && now && !vacSamePlace(old, now)) vacReplaceCopies(plan, old, now);
+        plan.home = now ? vacCopyPlace(now) : null;
+    }, { draw: false });
+    const plan = vacGetData(vacGetToolId(box)), url = vacPlaceUrl(plan.home);
+    const pill = vacGetWidget(box).querySelector('.vac-subtab[data-sub="home"]');
+    if (pill) pill.innerHTML = '\uD83C\uDFE0 Home' + (plan.home ? ' <span class="vac-jstate" title="Set">\u2713</span>' : '');
+    box.querySelector('.vac-home-link').innerHTML = url ? '<a class="vac-icon" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer" title="Open in Google Maps">📍</a>' : '';
+}
+
+function vacStayLinksHtml(st) {
+    const url = vacPlaceUrl(st.place), tel = String(st.phone || '').replace(/[^\d+]/g, '');
+    return (url ? '<a class="vac-btn" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer">📍 Open in Maps</a>' : '') +
+        (tel ? '<a class="vac-btn" href="tel:' + vacEsc(tel) + '">📞 Call</a>' : '');
+}
+
+/** A new stay starts where the last one ends, or on the trip's first day, and runs to its last. */
+function vacStayAdd(btn) {
+    const widget = vacGetWidget(btn);
+    vacMutate(btn, (plan) => {
+        const dates = vacDates(plan), last = (plan.stays || [])[plan.stays.length - 1];
+        const inDate = (last && last.outDate) || dates[0] || '';
+        plan.stays.push({ id: vacNewId('s'), place: null, inDate, inTime: null,
+            outDate: dates.length && dates[dates.length - 1] > inDate ? dates[dates.length - 1] : inDate, outTime: null,
+            conf: '', cost: '', phone: '', notes: '' });
+    });
+    const names = widget.querySelectorAll('.vac-stay-card [data-f="label"]');
+    if (names.length) names[names.length - 1].focus();
+}
+
+function vacStayRemove(btn) {
+    const i = +btn.closest('.vac-stay-card').dataset.i;
+    vacMutate(btn, (plan) => {
+        const st = plan.stays[i];
+        if (!st) return 'none';
+        if (st.place && !window.confirm('Remove ' + (vacPlaceName(st.place) || 'this stay') + '?')) return 'none';
+        plan.stays.splice(i, 1);
+    });
+}
+
+/**
+ * A field of a stay, saved with the form left as it is. Its name or address changed,
+ * the copies of it still exactly as it was (a drive from it, say) can change too.
+ */
+function vacStayField(el) {
+    const card = el.closest('.vac-stay-card'), i = +card.dataset.i, k = el.dataset.f;
+    vacMutate(el, (plan) => {
+        const st = plan.stays[i];
+        if (!st) return 'none';
+        if (k === 'label' || k === 'address') {
+            const old = st.place;
+            const label = card.querySelector('[data-f="label"]').value.trim();
+            const got = vacParsePlace(card.querySelector('[data-f="address"]').value) || { label: '', address: '' };
+            if (label) vacRenamePlace(got, label);
+            const now = got.label || got.address || got.url ? vacCopyPlace(got) : null;
+            if (old && now && !vacSamePlace(old, now)) vacReplaceCopies(plan, old, now);
+            st.place = now;
+        } else if (k === 'inTime' || k === 'outTime') st[k] = el.value ? vacParseTime(el.value) : null;
+        else st[k] = k === 'notes' ? el.value : el.value.trim();
+    }, { draw: false });
+    const st = (vacGetData(vacGetToolId(card)).stays || [])[i];
+    if (!st) return;
+    // A pasted Maps link gives its name, when none was typed.
+    const name = card.querySelector('[data-f="label"]');
+    if (k === 'address' && st.place && st.place.label && !name.value) name.value = st.place.label;
+    const links = card.querySelector('.vac-stay-links'), next = document.createElement('span');
+    next.innerHTML = vacStayLinksHtml(st);
+    if (next.innerHTML !== links.innerHTML) links.innerHTML = next.innerHTML;
+}
+
+/** A flight to fill in, in Travel: the same flight as the block on its day, and the same fields. */
+function vacFlightCardHtml(plan, dates, d, b) {
+    const fl = b.flight || {}, on = ' onchange="vacEditField(this)"';
+    const field = (label, key, value, extra) => '<label>' + label + '<input data-f="' + key + '" value="' + vacEsc(value || '') + '"' + (extra || '') + on + '></label>';
+    return '<div class="vac-tcard vac-form" data-id="' + vacEsc(b.id) + '">' +
+        '<div class="vac-row"><label>Day<select data-f="date"' + on + '>' + dates.map(x => '<option value="' + x + '"' + (x === d ? ' selected' : '') + '>' +
+            vacEsc(vacDayName(plan, x, 'short')) + '</option>').join('') + '</select></label>' + field('Flight', 'f_number', fl.number, ' placeholder="XY 123"') + '</div>' +
+        '<div class="vac-row">' + field('From', 'f_from', fl.from, ' placeholder="Airport"') + field('To', 'f_to', fl.to, ' placeholder="Airport"') + '</div>' +
+        '<div class="vac-row"><label>Departs<input type="time" step="300" data-f="start" value="' + vacTimeValue(b.start) + '"' + on + '></label>' +
+            '<label>Lands<input type="time" step="300" data-f="f_arrive" value="' + vacTimeValue(fl.arrive != null ? fl.arrive : b.end) + '"' + on + '></label>' +
+            '<label>On<select data-f="f_arriveDay"' + on + '>' + [0, 1, 2].map(n => '<option value="' + n + '"' + ((fl.arriveDay || 0) === n ? ' selected' : '') + '>' +
+                (n ? '+' + n + ' day' : 'the same day') + '</option>').join('') + '</select></label></div>' +
+        '<div class="vac-row">' + field('Seat', 'f_seat', fl.seat) + field('Terminal / gate', 'f_gate', fl.gate) + field('Confirmation', 'f_conf', fl.conf) + '</div>' +
+        vacFlightTimesHtml(plan, d, b) +
+        '<div class="vac-row"><span class="vac-row vac-form-links">' + vacFormLinksHtml(plan, b) + '</span><span class="vac-out-gap"></span>' +
+            '<button class="vac-btn" data-date="' + d + '" data-id="' + vacEsc(b.id) + '" onclick="vacTripPick(this)" title="The flight on its day">Open on its day</button>' +
+            '<button class="vac-btn vac-danger" onclick="vacFlightRemove(this)">Remove</button></div>' +
+        '</div>';
+}
+
+/** A flight added from Travel: a flight block on the trip's first day, to fill in. */
+function vacFlightAdd(btn) {
+    const widget = vacGetWidget(btn);
+    let id = null;
+    vacMutate(btn, (plan) => {
+        const dates = vacDates(plan);
+        if (!dates.length) return 'none';
+        id = vacNewId();
+        plan.days[dates[0]].blocks.push({ id, title: '', kind: 'flight', start: 540, end: 660, flight: { arrive: 660, arriveDay: 0 } });
+    });
+    const number = id && widget.querySelector('.vac-tcard[data-id="' + id + '"] [data-f="f_number"]');
+    if (number) number.focus();
+}
+
+function vacFlightRemove(btn) {
+    const id = btn.closest('.vac-tcard').dataset.id;
+    vacMutate(btn, (plan, ui) => {
+        const f = vacFind(plan, id);
+        if (!f) return 'none';
+        f.day.blocks.splice(f.index, 1);
+        if (ui.sel === id) ui.sel = null;
+    });
+}
+
+// ---- Getting there and getting back: home, parking, the flight and where you stay, in order.
+const VAC_TRANSFER_MODES = [
+    { id: 'taxi', label: 'Taxi', icon: '🚕', kind: 'travel' },
+    { id: 'rental', label: 'Rental car', icon: '🚗', kind: 'drive' },
+    { id: 'shuttle', label: 'Shuttle', icon: '🚌', kind: 'travel' },
+    { id: 'train', label: 'Train', icon: '🚆', kind: 'travel' },
+    { id: 'drive', label: 'Drive', icon: '🚗', kind: 'drive' }
+];
+// Getting from one place to the next, and how: the mode Google Maps is asked for.
+// For an estimate: the way is `detour` times the straight line, at `kmh`, plus `extra`
+// minutes (parking, waiting); a drive past 30 km goes faster, on bigger roads.
+const VAC_GAP_MODES = [
+    { id: 'walk', label: 'Walk', icon: '\uD83D\uDEB6', maps: 'walking', detour: 1.3, kmh: 4.8, extra: 0 },
+    { id: 'drive', label: 'Drive', icon: '\uD83D\uDE97', maps: 'driving', detour: 1.35, kmh: 40, extra: 5 },
+    { id: 'transit', label: 'Transit', icon: '\uD83D\uDE8C', maps: 'transit', detour: 1.4, kmh: 20, extra: 10 },
+    { id: 'taxi', label: 'Taxi', icon: '\uD83D\uDE95', maps: 'driving', detour: 1.35, kmh: 35, extra: 5 }
+];
+const VAC_GAP_LENGTHS = [5, 10, 15, 20, 25, 30, 40, 45, 60, 75, 90, 120, 150, 180, 240];
+const VAC_STEP_LENGTHS = [5, 10, 15, 20, 30, 40, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 480];
+
+function vacLen(min) { return min >= 60 ? (min / 60) + ' h' : min + ' min'; }
+
+/** A journey's settings, with their defaults: how long each step takes, and which flight it is built on. */
+function vacJourneyOpts(plan, which) {
+    plan.journeys = plan.journeys || {};
+    const base = { flight: '', driveMin: null, shuttleMin: 20, exitMin: 30, transferMin: null, transferMode: 'taxi', pickupMin: 30, returnMin: 15, leave: which === 'out' ? 540 : 600 };
+    plan.journeys[which] = Object.assign(base, plan.journeys[which] || {});
+    return plan.journeys[which];
+}
+
+/** Every flight in the trip, by day and time. */
+function vacAllFlights(plan) {
+    return vacDates(plan).flatMap(d => plan.days[d].blocks.filter(b => b.kind === 'flight').sort((a, b) => a.start - b.start).map(b => ({ date: d, b })));
+}
+
+/** The flight a journey is built on: the one chosen, else the first going and the last (if another) coming back. */
+function vacJourneyFlight(plan, which, o) {
+    if (o.flight === 'none') return null;
+    const all = vacAllFlights(plan);
+    const chosen = o.flight && all.find(x => x.b.id === o.flight);
+    if (chosen) return chosen;
+    if (!all.length) return null;
+    return which === 'out' ? all[0] : (all.length > 1 ? all[all.length - 1] : null);
+}
+
+/** The parking going: dropped off that day, else the first; coming back: picked up that day, else the last. */
+function vacJourneyParking(plan, which, date) {
+    const ps = (plan.parking || []);
+    if (!ps.length) return null;
+    return which === 'out' ? (ps.find(p => p.fromDate === date) || ps[0]) : (ps.find(p => p.toDate === date) || ps[ps.length - 1]);
+}
+
+/** The rental a journey uses: going, picked up the day it lands, else the first; back, returned that day, else the last. */
+function vacJourneyRental(plan, which, date) {
+    const rs = plan.rentals || [];
+    if (!rs.length) return null;
+    return which === 'out' ? (rs.find(r => r.pickDate === date) || rs[0]) : (rs.find(r => r.dropDate === date) || rs[rs.length - 1]);
+}
+
+/** For the airport step: when bags and the gate close, where set. */
+function vacCutoffText(date, b) {
+    const t = vacFlightTimes(date, b);
+    return (t.bag ? ' · bags by ' + vacTimeLabel(t.bag.at) : '') + (t.gate ? ' · gate closes ' + vacTimeLabel(t.gate.at) : '');
+}
+
+/**
+ * A journey's steps, worked out from its flight: going, back from take-off (home, the
+ * drive, parking, the shuttle, the airport) and on from landing (the transfer, checking
+ * in); coming back the other way round. With no flight it is a drive between home and
+ * the first or last stay. A step with a kind and both times becomes a block.
+ */
+function vacJourneyPlan(plan, which) {
+    const o = vacJourneyOpts(plan, which), dates = vacDates(plan), home = plan.home;
+    const steps = [], notes = [];
+    if (!dates.length) return { o, F: null, steps, notes: ['Pick the dates of the trip, above, first.'] };
+    const F = vacJourneyFlight(plan, which, o);
+    const clamp = (t) => Math.max(0, Math.min(1440, t));
+    const after = (t, len) => len != null ? clamp(t + len) : null;
+    const before = (t, len) => len != null ? clamp(t - len) : null;
+    const mode = VAC_TRANSFER_MODES.find(m => m.id === o.transferMode) || VAC_TRANSFER_MODES[0];
+    const homeStep = { leg: 'home', icon: '🏠', title: home ? vacPlaceName(home) : 'Home', place: home };
+    const stayName = (st) => st ? vacPlaceName(st.place) : 'where you\u2019re staying';
+    // A step's length: as chosen, else the travel time between its two places (set, or estimated).
+    const modeOf = (key) => key === 'driveMin' ? 'drive' : ({ rental: 'drive', drive: 'drive', taxi: 'taxi' })[o.transferMode] || 'transit';
+    const L = (key, from, to) => { if (o[key] != null) return o[key]; const t = vacTravelTime(plan, from, to, modeOf(key)); return t ? t.min : null; };
+    const inStep = (st) => st.cruise ? { leg: 'checkin', icon: '\uD83D\uDEA2', title: 'Board ' + st.name, date: st.inDate, start: st.inTime, end: null }
+        : { leg: 'checkin', icon: '\uD83C\uDFE8', title: 'Check in \u00B7 ' + stayName(st), date: st.inDate, start: st.inTime, end: null };
+    const outStep = (st, d) => st.cruise ? { leg: 'checkout', icon: '\uD83D\uDEA2', title: 'Leave ' + st.name, date: st.outDate || d, start: st.outTime, end: null }
+        : { leg: 'checkout', icon: '\uD83C\uDFE8', title: 'Check out \u00B7 ' + stayName(st), date: st.outDate || d, start: st.outTime, end: null };
+    if (which === 'out') {
+        steps.push(homeStep);
+        if (F) {
+            const fl = F.b.flight || {}, d = F.date, airport = vacAirportPlace(fl.from);
+            const at = clamp(F.b.start - plan.airportLead), pk = vacJourneyParking(plan, 'out', d);
+            if (pk) {
+                const shStart = clamp(at - o.shuttleMin);
+                steps.push({ leg: 'drive', icon: '🚗', kind: 'drive', title: 'Drive to ' + (vacPlaceName(pk.lot) || 'the parking'), date: d,
+                    start: before(shStart, L('driveMin', home, pk.lot)), end: shStart, from: home, to: pk.lot, len: 'driveMin' });
+                steps.push({ leg: 'park', icon: '🅿️', title: 'Drop off · ' + (vacPlaceName(pk.lot) || 'the parking'), date: d, start: shStart, parking: pk.id, end: null, at: 'from' });
+                steps.push({ leg: 'shuttle', icon: '🚌', kind: 'travel', title: 'Shuttle to ' + (fl.from || 'the airport'), date: d, start: shStart, end: at, to: airport, len: 'shuttleMin' });
+            } else {
+                steps.push({ leg: 'drive', icon: '🚗', kind: 'drive', title: 'Drive to ' + (fl.from ? fl.from + ' airport' : 'the airport'), date: d,
+                    start: before(at, L('driveMin', home, airport)), end: at, from: home, to: airport, len: 'driveMin' });
+            }
+            // The time at the airport, check-in, security and the gate, is a block of its own.
+            steps.push({ leg: 'airport', icon: '⏱️', kind: 'travel', title: 'At the airport, ' + vacLen(plan.airportLead) + ' before' + vacCutoffText(d, F.b), date: d, start: at, end: F.b.start,
+                to: vacAirportPlace(fl.from) });
+            steps.push({ leg: 'flight', icon: '✈️', title: vacBlockInfo(plan, F.b).title + (fl.from || fl.to ? ' · ' + [fl.from, fl.to].filter(Boolean).join(' → ') : ''),
+                date: d, start: F.b.start, end: fl.arrive != null ? fl.arrive : F.b.end, plus: fl.arriveDay || 0 });
+            const ld = vacAddDays(d, fl.arriveDay || 0), land = fl.arrive != null ? fl.arrive : F.b.end;
+            const st = vacStaysOn(plan, ld).night || vacStaysOn(plan, ld).morning, ts = clamp(land + o.exitMin);
+            steps.push({ leg: 'arrive', icon: '\uD83D\uDEC4', kind: 'travel', title: 'Bags and out' + (fl.to ? ' \u00B7 ' + fl.to : ''), date: ld, start: land, end: ts, to: vacAirportPlace(fl.to) });
+            const rental = mode.id === 'rental' && vacJourneyRental(plan, 'out', ld);
+            if (rental) {
+                const drive = clamp(ts + o.pickupMin);
+                steps.push({ leg: 'pickup', icon: '\uD83D\uDE99', kind: 'travel', title: 'Pick up the rental car \u00B7 ' + (rental.company || vacPlaceName(rental.pickPlace) || 'the counter'),
+                    date: ld, start: ts, end: drive, rental: rental.id, at: 'pick', len: 'pickupMin', exit: true, mode: true, to: rental.pickPlace || vacAirportPlace(fl.to) });
+                steps.push({ leg: 'transfer', icon: '\uD83D\uDE97', kind: 'drive', title: 'Drive to ' + stayName(st), date: ld, start: drive, end: after(drive, L('transferMin', rental.pickPlace || vacAirportPlace(fl.to), st && st.place)),
+                    from: rental.pickPlace || vacAirportPlace(fl.to), to: st && st.place, len: 'transferMin' });
+            } else steps.push({ leg: 'transfer', icon: mode.icon, kind: mode.kind, title: mode.label + ' to ' + stayName(st), date: ld, start: ts, end: after(ts, L('transferMin', vacAirportPlace(fl.to), st && st.place)),
+                from: vacAirportPlace(fl.to), to: st && st.place, len: 'transferMin', exit: true, mode: true });
+            if (st) steps.push(inStep(st));
+            if (!dates.includes(ld)) notes.push('It lands after the trip’s last day: change the dates to plan from there.');
+        } else {
+            const d = dates[0], st = vacStaysOn(plan, d).night;
+            steps.push({ leg: 'drive', icon: '🚗', kind: 'drive', title: 'Drive to ' + stayName(st), date: d, start: o.leave, end: after(o.leave, L('driveMin', home, st && st.place)),
+                from: home, to: st && st.place, len: 'driveMin', leave: true });
+            if (st) steps.push(inStep(st));
+        }
+    } else {
+        if (F) {
+            const fl = F.b.flight || {}, d = F.date, at = clamp(F.b.start - plan.airportLead);
+            const st = vacStaysOn(plan, d).morning || vacStaysOn(plan, d).night;
+            if (st) steps.push(outStep(st, d));
+            const rental = mode.id === 'rental' && vacJourneyRental(plan, 'back', d);
+            if (rental) {
+                // Back by the shuttle's start, the return taking its own time before it.
+                const back = rental.dropPlace || rental.pickPlace, shStart = clamp(at - o.shuttleMin), ret = clamp(shStart - (o.returnMin || 0));
+                steps.push({ leg: 'transfer', icon: '\uD83D\uDE97', kind: 'drive', title: 'Drive to ' + (vacPlaceName(back) || 'return the car'), date: d,
+                    start: before(ret, L('transferMin', st && st.place, back || vacAirportPlace(fl.from))), end: ret, from: st && st.place, to: back || vacAirportPlace(fl.from), len: 'transferMin', mode: true });
+                steps.push({ leg: 'return', icon: '\uD83D\uDE99', kind: 'travel', title: 'Return the rental car \u00B7 ' + (rental.company || vacPlaceName(back) || 'the counter'),
+                    date: d, start: ret, end: shStart, rental: rental.id, at: 'drop', len: 'returnMin', to: back || vacAirportPlace(fl.from) });
+                steps.push({ leg: 'rshuttle', icon: '\uD83D\uDE8C', kind: 'travel', title: 'Shuttle to ' + (fl.from || 'the airport'), date: d, start: shStart, end: at,
+                    to: vacAirportPlace(fl.from), len: 'shuttleMin' });
+            } else steps.push({ leg: 'transfer', icon: mode.icon, kind: mode.kind, title: mode.label + ' to ' + (fl.from || 'the airport'), date: d, start: before(at, L('transferMin', st && st.place, vacAirportPlace(fl.from))), end: at,
+                from: st && st.place, to: vacAirportPlace(fl.from), len: 'transferMin', mode: true });
+            // The time at the airport, check-in, security and the gate, is a block of its own.
+            steps.push({ leg: 'airport', icon: '⏱️', kind: 'travel', title: 'At the airport, ' + vacLen(plan.airportLead) + ' before' + vacCutoffText(d, F.b), date: d, start: at, end: F.b.start,
+                to: vacAirportPlace(fl.from) });
+            steps.push({ leg: 'flight', icon: '✈️', title: vacBlockInfo(plan, F.b).title + (fl.from || fl.to ? ' · ' + [fl.from, fl.to].filter(Boolean).join(' → ') : ''),
+                date: d, start: F.b.start, end: fl.arrive != null ? fl.arrive : F.b.end, plus: fl.arriveDay || 0 });
+            const ld = vacAddDays(d, fl.arriveDay || 0), land = fl.arrive != null ? fl.arrive : F.b.end, ex = clamp(land + o.exitMin);
+            steps.push({ leg: 'arrive', icon: '\uD83D\uDEC4', kind: 'travel', title: 'Bags and out' + (fl.to ? ' \u00B7 ' + fl.to : ''), date: ld, start: land, end: ex, to: vacAirportPlace(fl.to) });
+            const pk = vacJourneyParking(plan, 'back', ld);
+            if (pk) {
+                const shEnd = clamp(ex + o.shuttleMin);
+                steps.push({ leg: 'shuttle', icon: '🚌', kind: 'travel', title: 'Shuttle to ' + (vacPlaceName(pk.lot) || 'the parking'), date: ld, start: ex, end: shEnd,
+                    to: pk.lot, len: 'shuttleMin', exit: true });
+                steps.push({ leg: 'park', icon: '🅿️', title: 'Pick up · ' + (vacPlaceName(pk.lot) || 'the parking'), date: ld, start: shEnd, end: null, parking: pk.id, at: 'to' });
+                steps.push({ leg: 'drive', icon: '🚗', kind: 'drive', title: 'Drive home', date: ld, start: shEnd, end: after(shEnd, L('driveMin', pk.lot, home)), from: pk.lot, to: home, len: 'driveMin' });
+            } else {
+                steps.push({ leg: 'drive', icon: '🚗', kind: 'drive', title: 'Drive home', date: ld, start: ex, end: after(ex, L('driveMin', vacAirportPlace(fl.to), home)),
+                    from: vacAirportPlace(fl.to), to: home, len: 'driveMin', exit: true });
+            }
+            if (!dates.includes(ld)) notes.push('It lands after the trip’s last day: change the dates to plan the way home.');
+        } else {
+            const d = dates[dates.length - 1], st = vacStaysOn(plan, d).morning;
+            if (st) steps.push(outStep(st, d));
+            steps.push({ leg: 'drive', icon: '🚗', kind: 'drive', title: 'Drive home', date: d, start: o.leave, end: after(o.leave, L('driveMin', st && st.place, home)),
+                from: st && st.place, to: home, len: 'driveMin', leave: true });
+        }
+        steps.push(homeStep);
+    }
+    steps.forEach(st => {
+        if (st.len && st.len !== 'shuttleMin' && st.len !== 'pickupMin' && st.len !== 'returnMin' && o[st.len] == null && st.from && st.to) st.auto = vacTravelTime(plan, st.from, st.to, modeOf(st.len));
+    });
+    // Online check-in, before setting off: on its own day, first (after home going; first coming back).
+    if (F) {
+        const t = vacFlightTimes(F.date, F.b);
+        if (t.online) steps.splice(which === 'out' ? 1 : 0, 0, { leg: 'online', icon: '\u2705', title: 'Online check-in opens', date: t.online.date, start: t.online.at, end: null });
+    }
+    // Checked out by the time you leave, checked in once you are there: the steps stay in order.
+    steps.forEach((st, i) => {
+        if (st.leg === 'checkout' && st.start != null) {
+            const next = steps.slice(i + 1).find(x => x.start != null && x.date === st.date);
+            if (next && next.start < st.start) st.start = next.start;
+        }
+        if (st.leg === 'checkin' && st.start != null) {
+            const prev = steps.slice(0, i).reverse().find(x => x.date === st.date && (x.end != null || x.start != null));
+            const at = prev && (prev.end != null ? prev.end : prev.start);
+            if (at != null && at > st.start) st.start = at;
+        }
+    });
+    if (!home) notes.push('Set Home, in the Stay tab, so the drives know where they start and end.');
+    return { o, F, steps, notes };
+}
+
+/** Where a journey's step is on the schedule, if it is. */
+function vacFindLeg(plan, key) {
+    for (const d of Object.keys(plan.days)) {
+        const i = plan.days[d].blocks.findIndex(b => b.leg === key);
+        if (i >= 0) return { date: d, index: i, block: plan.days[d].blocks[i] };
+    }
+    return null;
+}
+
+/** A step the planner put on the schedule that has since been changed by hand: moved, stretched or taken to another day. */
+function vacLegEdited(block, date) {
+    const at = block.legAt;
+    return !at || at.date !== date || at.start !== block.start || at.end !== block.end;
+}
+
+/**
+ * Puts a journey on the schedule: each step with both times as a block, updated where
+ * the planner made it and nobody has changed it since; parking's drop-off or pick-up
+ * set from it; steps it made before and no longer needs taken away, unless changed.
+ */
+function vacJourneyApplyTo(plan, which) {
+    const { steps, F } = vacJourneyPlan(plan, which), made = new Set();
+    let prev = null;   // the block of the step before, and that step, for the links
+    const chain = (b, st, mine) => {
+        if (prev && prev.date === st.date && mine && !b.nolink && prev.block !== b) {
+            b.link = prev.block.id;
+            b.linkGap = Math.max(0, st.start - (prev.st.end != null ? prev.st.end : prev.st.start));
+        }
+        prev = { block: b, st, date: st.date };
+    };
+    steps.forEach(st => {
+        if (st.leg === 'flight' && F) { chain(F.b, st, which === 'out'); return; }
+        if (st.leg === 'park') {
+            const pk = (plan.parking || []).find(p => p.id === st.parking);
+            if (pk) { pk[st.at + 'Date'] = st.date; pk[st.at + 'Time'] = st.start; }
+            return;
+        }
+        if (st.rental) {
+            const r = (plan.rentals || []).find(x => x.id === st.rental);
+            if (r) { r[st.at + 'Date'] = st.date; r[st.at + 'Time'] = st.start; }
+            if (!st.kind) return;   // picking up and returning go on as blocks too
+        }
+        if (!st.kind || st.start == null || st.end == null || !plan.days[st.date]) return;
+        const key = which + ':' + st.leg;
+        made.add(key);
+        const fresh = { title: st.title, kind: st.kind, start: st.start, end: Math.min(1440, Math.max(st.end, st.start + VAC_SNAP)) };
+        const found = vacFindLeg(plan, key);
+        if (found && vacLegEdited(found.block, found.date)) { prev = { block: found.block, st: { end: found.block.end }, date: found.date }; return; }
+        let b = found && found.block;
+        if (found && found.date !== st.date) { plan.days[found.date].blocks.splice(found.index, 1); plan.days[st.date].blocks.push(b); }
+        if (!b) { b = { id: vacNewId(), leg: key }; plan.days[st.date].blocks.push(b); }
+        Object.assign(b, fresh);
+        if (st.rental) b.rentalId = st.rental;
+        delete b.place; delete b.drive;
+        if (st.kind === 'drive') b.drive = { from: vacCopyPlace(st.from), to: vacCopyPlace(st.to), stops: [] };
+        else if (st.to) b.place = vacCopyPlace(st.to);
+        b.legAt = { date: st.date, start: b.start, end: b.end };
+        chain(b, st, true);
+    });
+    Object.keys(plan.days).forEach(d => {
+        plan.days[d].blocks = plan.days[d].blocks.filter(b => !b.leg || b.leg.indexOf(which + ':') !== 0 || made.has(b.leg) || vacLegEdited(b, d));
+    });
+}
+
+function vacJourneyOnSchedule(plan, which) {
+    return Object.values(plan.days).some(d => d.blocks.some(b => b.leg && b.leg.indexOf(which + ':') === 0));
+}
+
+function vacJourneyApply(btn) { vacMutate(btn, (plan) => { vacJourneyApplyTo(plan, btn.dataset.j); }); }
+
+/** A journey's setting. Once it is on the schedule, the schedule follows. */
+function vacJourneyField(el) {
+    const which = el.dataset.j, k = el.dataset.k;
+    vacMutate(el, (plan) => {
+        const o = vacJourneyOpts(plan, which);
+        if (k === 'flight' || k === 'transferMode') o[k] = el.value;
+        else if (k === 'leave') { const t = vacParseTime(el.value); if (t == null) return 'none'; o.leave = t; }
+        else o[k] = el.value === '' ? null : +el.value;
+        if (vacJourneyOnSchedule(plan, which)) vacJourneyApplyTo(plan, which);
+    });
+}
+
+function vacStepTimes(st) {
+    if (st.start == null) return '';
+    return vacTimeLabel(st.start) + (st.end != null ? '–' + vacTimeLabel(st.end) + (st.plus ? ' +' + st.plus : '') : '');
+}
+
+function vacJourneyHtml(plan, which) {
+    const { o, F, steps, notes } = vacJourneyPlan(plan, which);
+    const flights = vacAllFlights(plan), on = (k) => ' data-j="' + which + '" data-k="' + k + '" onchange="vacJourneyField(this)"';
+    const lenSel = (k, v, none) => '<select class="vac-jlen"' + on(k) + '><option value=""' + (v == null ? ' selected' : '') + '>' + none + '</option>' +
+        VAC_STEP_LENGTHS.map(n => '<option value="' + n + '"' + (n === v ? ' selected' : '') + '>' + vacLen(n) + '</option>').join('') + '</select>';
+    const placed = vacJourneyOnSchedule(plan, which);
+    const rows = steps.map(st => {
+        const leg = st.kind ? vacFindLeg(plan, which + ':' + st.leg) : null;
+        const edited = leg && vacLegEdited(leg.block, leg.date);
+        const times = edited ? vacTimeLabel(leg.block.start) + '–' + vacTimeLabel(leg.block.end) : vacStepTimes(st);
+        const dir = st.kind === 'drive' && st.from && st.to ? vacDirUrl(vacRouteStop(st.from), [], vacRouteStop(st.to)) : '';
+        return '<div class="vac-jstep vac-j-' + st.leg + '">' +
+            '<span class="vac-jicon">' + st.icon + '</span>' +
+            '<span class="vac-jtext"><b>' + vacEsc(st.title) + '</b>' +
+                (st.date && st.leg !== 'home' ? ' <span class="vac-jwhen">' + vacEsc(vacDayLabel(edited ? leg.date : st.date, 'short')) + (times ? ' · ' + times : '') + '</span>' : '') + '</span>' +
+            (st.mode ? '<select' + on('transferMode') + '>' + VAC_TRANSFER_MODES.map(m => '<option value="' + m.id + '"' + (m.id === o.transferMode ? ' selected' : '') + '>' +
+                m.icon + ' ' + m.label + '</option>').join('') + '</select>' : '') +
+            (st.exit ? '<label class="vac-inline">leaving <select class="vac-jlen"' + on('exitMin') + '>' + [10, 15, 20, 30, 45, 60, 90].map(n => '<option value="' + n + '"' +
+                (n === o.exitMin ? ' selected' : '') + '>' + vacLen(n) + '</option>').join('') + '</select> after landing</label>' : '') +
+            (st.leave ? '<label class="vac-inline">leaving at <input type="time" step="900" value="' + vacTimeValue(o.leave) + '"' + on('leave') + '></label>' : '') +
+            (st.len ? lenSel(st.len, o[st.len], st.auto ? 'Travel time' : 'How long?') : '') +
+            (st.auto ? '<span class="vac-jauto" title="' + (st.auto.estimate ? 'Estimated from the two places\u2019 pins' : 'The travel time set for these two places') +
+                ': choose a length to use your own">' + (st.auto.estimate ? '\u2248 ' : '') + vacDur(st.auto.min) + '</span>' : '') +
+            (dir ? '<a class="vac-icon" href="' + vacEsc(dir) + '" target="_blank" rel="noopener noreferrer" title="Directions in Google Maps, to see how long it takes">🗺️</a>' : '') +
+            (st.leg === 'home' && !plan.home ? '<button class="vac-btn" data-view="stay" onclick="vacView(this)">Set home</button>' : '') +
+            (edited ? '<span class="vac-jstate" title="Changed by hand: planning again leaves it as it is">✎ changed</span>'
+                : leg ? '<span class="vac-jstate" title="On the schedule">✓</span>'
+                : st.kind && st.len && o[st.len] == null && !st.auto ? '<span class="vac-jstate vac-hint">needs a length</span>' : '') +
+            '</div>';
+    }).join('');
+    return '<div class="vac-journey" data-j="' + which + '">' +
+        '<div class="vac-row"><label class="vac-inline">Flight <select' + on('flight') + '>' +
+            '<option value=""' + (!o.flight ? ' selected' : '') + '>' + (which === 'out' ? 'The first' : 'The last') + (F && !o.flight ? ': ' + vacEsc(vacBlockInfo(plan, F.b).title) : '') + '</option>' +
+            flights.map(x => '<option value="' + vacEsc(x.b.id) + '"' + (o.flight === x.b.id ? ' selected' : '') + '>' + vacEsc(vacDayLabel(x.date, 'short') + ' · ' + vacBlockInfo(plan, x.b).title) + '</option>').join('') +
+            '<option value="none"' + (o.flight === 'none' ? ' selected' : '') + '>No flight: drive</option></select></label>' +
+            '<span class="vac-out-gap"></span>' +
+            '<button class="vac-btn" data-j="' + which + '" onclick="vacJourneyApply(this)" title="Each step with its times, as a block on its day">📅 ' +
+                (placed ? 'Update the schedule' : 'Put it on the schedule') + '</button></div>' +
+        rows + notes.map(n => '<div class="vac-hint">' + vacEsc(n) + '</div>').join('') + '</div>';
+}
+
+/** A row of sub-tabs, each with its count or a ✓ (titled `doneTip`) when it has one. */
+function vacSubtabsHtml(sections, cur, handler, doneTip) {
+    return '<div class="vac-subtabs" role="tablist">' + sections.map(x => '<button class="vac-subtab' + (x.id === cur ? ' vac-on' : '') + '" role="tab" ' +
+        'data-sub="' + x.id + '" onclick="' + handler + '(this)">' + x.label + (x.count ? ' <span class="vac-count">' + x.count + '</span>' : '') +
+        (x.done ? ' <span class="vac-jstate" title="' + vacEsc(doneTip) + '">\u2713</span>' : '') + '</button>').join('') + '</div>';
+}
+
+/** Which Travel section shows: kept while the planner is open, not with the plan. */
+function vacTravelTab(btn) { vacMutate(btn, (plan, ui) => { ui.view = 'travel'; ui.travelTab = btn.dataset.sub; return false; }); }
+
+function vacTravelHtml(plan, ui) {
+    const dates0 = vacDates(plan);
+    const flights = dates0.flatMap(d => plan.days[d].blocks.filter(b => b.kind === 'flight').sort((a, b) => a.start - b.start)
+        .map(b => vacFlightCardHtml(plan, dates0, d, b))).join('');
+    const on = ' onchange="vacParkField(this)"';
+    const dates = vacDates(plan);
+    const park = (plan.parking || []).map((pk, i) => {
+        const url = vacPlaceUrl(pk.lot);
+        const date = (key, value) => '<input type="date" data-f="' + key + '" value="' + vacEsc(value || '') + '"' +
+            (dates.length ? ' min="' + vacAddDays(dates[0], -7) + '"' : '') + on + '>';
+        const time = (key, value) => '<input type="time" step="900" data-f="' + key + '" value="' + (value != null ? vacTimeValue(value) : '') + '"' + on + '>';
+        return '<div class="vac-park vac-form" data-i="' + i + '">' +
+            '<label>Where<input data-f="lot" list="vac-places-' + vacEsc(ui.toolId) + '" value="' + vacEsc(vacPlaceInput(pk.lot)) + '" placeholder="The lot: address, Maps link or a saved place"' + on + '></label>' +
+            '<div class="vac-row"><label>Drop off' + date('fromDate', pk.fromDate) + '</label><label>&nbsp;' + time('fromTime', pk.fromTime) + '</label></div>' +
+            '<div class="vac-row"><label>Pick up' + date('toDate', pk.toDate) + '</label><label>&nbsp;' + time('toTime', pk.toTime) + '</label></div>' +
+            '<div class="vac-row"><label>Reservation<input data-f="conf" value="' + vacEsc(pk.conf || '') + '"' + on + '></label>' +
+                '<label>Cost<input data-f="cost" value="' + vacEsc(pk.cost || '') + '"' + on + '></label></div>' +
+            '<label>Where we parked<input data-f="spot" value="' + vacEsc(pk.spot || '') + '" placeholder="Level, row, spot"' + on + '></label>' +
+            '<div class="vac-row"><span class="vac-park-links">' + (url ? '<a class="vac-btn" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer">📍 Open in Maps</a>' : '') + '</span>' +
+                '<button class="vac-btn vac-danger" onclick="vacParkRemove(this)">Remove</button></div>' +
+            '</div>';
+    }).join('');
+    const nRent = (plan.rentals || []).length, nFlights = vacAllFlights(plan).length, nPark = (plan.parking || []).length;
+    const sections = [
+        { id: 'out', label: '🛫 Getting there', done: vacJourneyOnSchedule(plan, 'out') },
+        { id: 'back', label: '🛬 Getting back', done: vacJourneyOnSchedule(plan, 'back') },
+        { id: 'flights', label: '✈️ Flights', count: nFlights },
+        { id: 'parking', label: '🅿️ Parking', count: nPark },
+        { id: 'rental', label: '🚙 Car rental', count: nRent }
+    ];
+    const cur = sections.some(x => x.id === ui.travelTab) ? ui.travelTab : 'out';
+    const pills = vacSubtabsHtml(sections, cur, 'vacTravelTab', 'On the schedule');
+    const noDates = '<div class="vac-hint">Pick the dates of the trip, above, first.</div>';
+    let body;
+    if (cur === 'out' || cur === 'back') body = dates0.length ? vacJourneyHtml(plan, cur) +
+        (nFlights ? '' : '<div class="vac-row"><span class="vac-hint">No flight: this journey is a drive.</span>' +
+            '<button class="vac-btn" data-sub="flights" onclick="vacTravelTab(this)">✈️ Add a flight</button></div>') : noDates;
+    else if (cur === 'flights') body = (flights || '<div class="vac-hint">No flights yet.</div>') +
+        (dates0.length ? '<button class="vac-btn vac-flight-add" onclick="vacFlightAdd(this)">+ Add flight</button>' : noDates);
+    else if (cur === 'parking') body = (park || '<div class="vac-hint">No parking. Booked, getting there and back drop the car off and pick it up.</div>') +
+        '<button class="vac-btn vac-park-add" onclick="vacParkAdd(this)">+ Add parking</button>';
+    else body = ((plan.rentals || []).map((r, i) => vacRentalCardHtml(plan, r, i, ui.toolId)).join('') ||
+            '<div class="vac-hint">No car rental. Booked, getting there and back can use it: set their transfer to Rental car.</div>') +
+        '<button class="vac-btn vac-park-add vac-rental-add" onclick="vacRentalAdd(this)">+ Add car rental</button>';
+    return pills + '<div class="vac-subpane" data-sub="' + cur + '">' + body + '</div>';
+}
+
+/** The lists to choose from: the day being looked at has one of its own. */
+function vacListChoices(plan, ui) {
+    return plan.lists.concat(vacDates(plan).map(d => ({ id: 'day:' + d, icon: '\uD83D\uDCC5 ', name: vacDayName(plan, d, 'short'),
+        items: plan.days[d].list, day: true })));
+}
+
+function vacLinkify(text) {
+    return typeof checklistLinkify === 'function' ? checklistLinkify(text) : vacEsc(text);
+}
+
+function vacListsHtml(plan, ui) {
+    const lists = vacListChoices(plan, ui);
+    const cur = lists.find(l => l.id === ui.list) || lists[0];
+    const chips = lists.map(l => {
+        const done = l.items.filter(x => x.done).length;
+        return '<button class="vac-chip' + (l === cur ? ' vac-on' : '') + '" data-list="' + vacEsc(l.id) + '" onclick="vacPickList(this)">' +
+            (l.icon || '') + vacEsc(l.name) + (l.items.length ? ' <span class="vac-count">' + done + '/' + l.items.length + '</span>' : '') + '</button>';
+    }).join('') + '<button class="vac-chip" onclick="vacAddList(this)" title="Add a list">+</button>';
+    if (!cur) return '<div class="vac-chips">' + chips + '</div>';
+    return '<div class="vac-chips">' + chips + '</div>' +
+        '<div class="vac-list" data-list="' + vacEsc(cur.id) + '">' +
+        (cur.items.map((it, i) => '<div class="vac-item' + (it.done ? ' vac-idone' : '') + '" data-i="' + i + '">' +
+            '<input type="checkbox"' + (it.done ? ' checked' : '') + ' onchange="vacItemToggle(this)">' +
+            '<span class="vac-itext" onclick="vacItemEdit(this)" title="Click to change">' + vacLinkify(it.text) + '</span>' +
+            '<button class="vac-icon" onclick="vacItemRemove(this)" title="Remove">×</button></div>').join('')) +
+        '<input class="vac-item-new" placeholder="Add an item, then Enter" onkeydown="vacItemKey(this, event)">' +
+        (cur.day ? '' : '<div class="vac-row vac-list-actions"><button class="vac-btn" onclick="vacRenameList(this)">Rename</button>' +
+            '<button class="vac-btn vac-danger" onclick="vacDeleteList(this)">Delete list</button></div>') +
+        '</div>';
+}
+
+function vacSideHtml(plan, dates, ui) {
+    return '<div class="vac-sbody">' + vacBlockFormHtml(plan, dates, ui) + '</div>';
+}
+
+/** The saved places' names, offered wherever a place is typed: a block's, a drive's, a parking lot's. */
+function vacPlacesDatalist(plan, ui) {
+    const names = vacStayPlaces(plan).concat(plan.places).filter(p => p && p.label);
+    return '<datalist class="vac-places-list" id="vac-places-' + vacEsc(ui.toolId) + '">' + names.map(p => '<option value="' + vacEsc(p.label) + '">').join('') + '</datalist>';
+}
+
+function vacHeadHtml(plan, ui) {
+    return '<div class="vac-head">' +
+        '<input class="vac-name" placeholder="Name the trip" value="' + vacEsc(plan.name) + '" onchange="vacSetName(this)">' +
+        '<input class="vac-dest" placeholder="\uD83D\uDCCD Destination: city, region" value="' + vacEsc(plan.destination || '') + '" onchange="vacSetDest(this)" ' +
+            'title="Where the trip is: added to places that have only a name, so Maps looks for them there and not near you">' +
+        '<span class="vac-dates">📅 <input type="date" class="vac-start" value="' + vacEsc(plan.start) + '" onchange="vacSetDates(this)" title="First day">' +
+            ' – <input type="date" class="vac-end" value="' + vacEsc(plan.end || plan.start) + '" min="' + vacEsc(plan.start) + '" onchange="vacSetDates(this)" title="Last day"></span>' +
+        '<span class="vac-warn-slot">' + vacWarnBtnHtml(plan, ui) + '</span>' +
+        '<button class="vac-btn' + (ui.out ? ' vac-on' : '') + '" onclick="vacOutToggle(this)" title="The plan as a bullet list, to copy">\uD83D\uDCCB Bullet list</button>' +
+        '<button class="vac-btn vac-cal-btn' + (ui.cal ? ' vac-on' : '') + '" onclick="vacCalToggle(this)" title="The plan as a calendar file, to import">\uD83D\uDCC5 Calendar</button>' +
+        '</div>';
+}
+
+/** The key a travel time is kept under: the two places, either way round. */
+function vacGapKey(a, b) {
+    const k = (p) => p.address ? vacPlaceText(p) : p.lat != null && p.lng != null ? p.lat + ',' + p.lng : vacPlaceText(p);
+    return [k(a), k(b)].sort().join(' ↔ ');
+}
+
+/**
+ * Each place-to-place move on a day that nothing on the schedule already covers:
+ * between a block and the next one with a place, when the places differ and no drive,
+ * other travel or flight lies between them. With how long it takes, if set
+ * (`plan.travelTimes`, kept by the pair of places so it fills in on any day), the
+ * time there is, and by how much it falls short.
+ */
+function vacGaps(plan, date) {
+    const day = plan.days[date];
+    if (!day) return [];
+    const moving = (b) => b.kind === 'drive' || b.kind === 'travel' || b.kind === 'flight';
+    const endOf = (b) => b.kind === 'drive' ? (b.drive || {}).to : b.kind === 'flight' ? null : b.place;
+    const bs = day.blocks.slice().sort((x, y) => x.start - y.start || x.end - y.end);
+    const out = [];
+    let prev = null;
+    bs.forEach(b => {
+        if (moving(b)) { if (b.kind !== 'travel' || !b.place) prev = b.kind === 'drive' && endOf(b) ? b : null; else prev = b; return; }
+        if (!b.place) return;
+        if (prev && endOf(prev) && b.start >= prev.end) {
+            const from = endOf(prev), to = b.place;
+            if (!vacSamePlace(from, to) && vacRouteStop(from) !== vacRouteStop(to)) {
+                const key = vacGapKey(from, to), t = (plan.travelTimes || {})[key] || null, gap = b.start - prev.end;
+                const nm = (p) => vacIsHome(plan, p) ? 'Home' : vacPlaceName(p);
+                const g = { a: prev, b, from, to, key, gap, fromName: nm(from), toName: nm(to), km: vacKm(from, to), estimate: false };
+                if (t) Object.assign(g, { min: t.min, mode: t.mode, short: Math.max(0, t.min - gap) });
+                else if (g.km != null) {
+                    // Not set, but both have a pin: an estimate, which warns only when it is well over.
+                    const mode = g.km <= 1.5 ? 'walk' : 'drive', min = vacEstimate(g.km, mode), over = min - gap;
+                    Object.assign(g, { min, mode, estimate: true, short: over >= Math.max(10, min * 0.3) ? over : 0 });
+                } else Object.assign(g, { min: null, mode: null, short: 0 });
+                out.push(g);
+            }
+        }
+        prev = b;
+    });
+    return out;
+}
+
+/** The straight line between two places with a pin, in km; null without both pins. */
+function vacKm(a, b) {
+    if (!a || !b || a.lat == null || b.lat == null || a.lng == null || b.lng == null) return null;
+    const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** About how long, in minutes to the nearest 5 (5 at least): rough, from the straight line, never a route. */
+function vacEstimate(km, modeId) {
+    const m = vacGapMode(modeId), way = km * m.detour;
+    const kmh = (m.id === 'drive' || m.id === 'taxi') && way > 30 ? 70 : m.kmh;
+    return Math.max(5, Math.round((way / kmh * 60 + m.extra) / 5) * 5);
+}
+
+/** The travel time from one place to another: as set for the pair, else estimated from their pins (in `modeId`), else null. */
+function vacTravelTime(plan, from, to, modeId) {
+    if (!from || !to || vacSamePlace(from, to)) return null;
+    const key = vacGapKey(from, to), set = key.split(' ↔ ').every(Boolean) ? (plan.travelTimes || {})[key] : null;
+    if (set) return { key, min: set.min, mode: set.mode, estimate: false };
+    const km = vacKm(from, to);
+    return km != null ? { key, min: vacEstimate(km, modeId || 'drive'), mode: modeId || 'drive', estimate: true } : null;
+}
+
+/** For a drive or other travel block: where it comes from and goes to, and how long that takes. */
+function vacBlockTravel(plan, date, b) {
+    if (b.kind !== 'drive' && b.kind !== 'travel') return null;
+    const dr = b.drive || {}, to = b.kind === 'drive' ? dr.to : b.place;
+    const from = (b.kind === 'drive' && vacRouteStop(dr.from) ? dr.from : null) || vacDriveOrigin(plan, date, b);
+    if (!to || !from) return null;
+    const t = vacTravelTime(plan, from, to, b.kind === 'drive' ? 'drive' : 'transit');
+    return { from, to, key: vacGapKey(from, to), t, fromName: vacIsHome(plan, from) ? 'Home' : vacPlaceName(from), toName: vacIsHome(plan, to) ? 'Home' : vacPlaceName(to) };
+}
+
+/** The block's travel time in its panel: Fit to it; and, after a resize by hand, keep the new length as the pair's. */
+function vacBlockTravelHtml(plan, date, b, ui) {
+    const x = vacBlockTravel(plan, date, b);
+    if (!x) return '';
+    const len = b.end - b.start, t = x.t, m = t && vacGapMode(t.mode);
+    let html = '';
+    if (t) html += '<div class="vac-btime">Travel time ' + vacEsc(x.fromName) + ' → ' + vacEsc(x.toName) + ': <b>' + (t.estimate ? '≈ ' : '') + vacDur(t.min) + '</b> ' +
+        m.icon + (t.estimate ? ' <span class="vac-hint">(estimated from their pins)</span>' : '') +
+        (t.min !== len ? ' <button class="vac-btn vac-fit" data-min="' + t.min + '" onclick="vacDriveFit(this)" title="Make the block ' + vacDur(t.min) + ' long">Fit to it</button>'
+            : ' <span class="vac-jstate" title="The block is as long as the travel time">✓</span>') + '</div>';
+    const offer = ui && ui.offer && ui.offer.id === b.id ? ui.offer : null;
+    if (offer && (!t || t.estimate || t.min !== offer.min) && x.key.split(' ↔ ').every(Boolean))
+        html += '<div class="vac-btime vac-offer">Keep <b>' + vacDur(offer.min) + '</b> as the travel time from ' + vacEsc(x.fromName) + ' to ' + vacEsc(x.toName) + ', on any day? ' +
+            '<button class="vac-btn vac-keep" onclick="vacTravelKeep(this)">Keep</button><button class="vac-icon vac-offer-no" onclick="vacTravelKeep(this)" title="No">×</button></div>';
+    return html;
+}
+
+/** Fit to it: the block as long as the travel time; one set for the pair, it follows from then on. */
+function vacDriveFit(btn) {
+    const id = btn.closest('.vac-form').dataset.id;
+    vacMutate(btn, (plan, ui) => {
+        const f = vacFind(plan, id), x = f && vacBlockTravel(plan, f.date, f.block);
+        if (!x || !x.t) return 'none';
+        f.block.end = Math.min(1440, f.block.start + x.t.min);
+        if (x.t.estimate) delete f.block.fit; else f.block.fit = x.key;
+        ui.offer = null;
+    });
+}
+
+/** Keep: the new length is the pair's travel time, and the block follows it. × leaves it. */
+function vacTravelKeep(btn) {
+    const id = btn.closest('.vac-form').dataset.id, keep = btn.classList.contains('vac-keep');
+    vacMutate(btn, (plan, ui) => {
+        const offer = ui.offer;
+        ui.offer = null;
+        if (!keep || !offer) return false;
+        const f = vacFind(plan, id), x = f && vacBlockTravel(plan, f.date, f.block);
+        if (!x) return false;
+        plan.travelTimes = plan.travelTimes || {};
+        plan.travelTimes[x.key] = { min: offer.min, mode: x.t && !x.t.estimate ? x.t.mode : f.block.kind === 'drive' ? 'drive' : 'transit' };
+        f.block.fit = x.key;
+        vacFollowTravel(plan, x.key);
+    });
+}
+
+/** A block's length changed by hand: it no longer follows the travel time, and keeping its length is offered. */
+function vacLengthByHand(plan, ui, date, b) {
+    const x = vacBlockTravel(plan, date, b);
+    if (!x) return;
+    delete b.fit;
+    ui.offer = { id: b.id, min: b.end - b.start };
+}
+
+/** Blocks fitted to a pair's travel time follow it when it changes. */
+function vacFollowTravel(plan, key) {
+    const t = (plan.travelTimes || {})[key];
+    if (!t) return;
+    Object.values(plan.days).forEach(day => day.blocks.forEach(b => { if (b.fit === key) b.end = Math.min(1440, b.start + t.min); }));
+    ['out', 'back'].forEach(which => { if (vacJourneyOnSchedule(plan, which)) vacJourneyApplyTo(plan, which); });
+}
+
+/**
+ * A chip on each drive or travel block whose two ends are known: how long getting from
+ * one to the other takes (set, or estimated), and by how much the block is too short.
+ */
+function vacDriveChips(plan, date) {
+    const day = plan.days[date];
+    if (!day) return [];
+    return day.blocks.filter(b => (b.kind === 'drive' || b.kind === 'travel') && !/:(airport|arrive|pickup|return)$/.test(b.leg || '') && !b.rental).map(b => {
+        const x = vacBlockTravel(plan, date, b), dr = b.drive || {}, to = b.kind === 'drive' ? dr.to : b.place;
+        if (!x || !vacRouteStop(x.to) || !vacRouteStop(x.from)) {
+            // Not timed: the chip says what is missing, and where to set it.
+            const toParking = /:(drive|shuttle)$/.test(b.leg || '') && (plan.parking || []).length && !(plan.parking || []).some(pk => pk.lot);
+            const why = toParking ? 'The parking has no lot yet: set it in Travel › Parking, and how long the drive takes shows here.'
+                : !to ? 'It has no place to go to: say where it goes, and how long it takes shows here.'
+                : !vacRouteStop(to) ? vacPlaceName(to) + ' is only a short Maps link: give it an address.'
+                : 'Where it starts from is not known: say where it starts.';
+            return { onBlock: true, missing: true, id: 'blk:' + b.id, block: b, why, view: toParking ? 'travel:parking' : '' };
+        }
+        const t = x.t, len = b.end - b.start, over = t ? t.min - len : 0;
+        const short = !t ? 0 : t.estimate ? (over >= Math.max(10, t.min * 0.3) ? over : 0) : Math.max(0, over);
+        return { onBlock: true, id: 'blk:' + b.id, block: b, from: x.from, to: x.to, key: x.key, fromName: x.fromName, toName: x.toName,
+            min: t ? t.min : null, mode: t ? t.mode : (b.kind === 'drive' ? 'drive' : 'transit'), estimate: !!(t && t.estimate), km: vacKm(x.from, x.to), short, len };
+    });
+}
+
+/** A block that is a way from one place to another: it is the travel itself. */
+function vacMoving(b) { return b.kind === 'drive' || b.kind === 'travel' || b.kind === 'flight'; }
+
+/** The block a linked block follows, on the same day; null when it has none there. */
+function vacLinkPrev(day, b) {
+    return b.link ? day.blocks.find(x => x.id === b.link && x !== b) || null : null;
+}
+
+/** The blocks that follow this one, on the same day. */
+function vacLinkNext(day, b) { return day.blocks.filter(x => x.link === b.id && x !== b); }
+
+/**
+ * How long after the block before it a linked block starts: the travel time set for
+ * their two places, when neither is itself travel; else the time kept with the link.
+ */
+function vacLinkGap(plan, P, N) {
+    const from = P.kind === 'drive' ? (P.drive || {}).to : P.kind === 'flight' ? null : P.place;
+    if (!vacMoving(N) && from && N.place && !vacSamePlace(from, N.place) && vacRouteStop(from) !== vacRouteStop(N.place)) {
+        const t = (plan.travelTimes || {})[vacGapKey(from, N.place)];
+        if (t) return t.min;
+    }
+    return N.linkGap > 0 ? N.linkGap : 0;
+}
+
+/** Moves a block by `delta` minutes; one the planner made, and not changed since, stays the planner's. */
+function vacShiftBlock(b, date, delta, keepLeg) {
+    const mine = keepLeg && b.leg && !vacLegEdited(b, date);
+    b.start += delta; b.end += delta;
+    if (b.kind === 'flight') { const fl = b.flight || (b.flight = {}); if (!(fl.arriveDay > 0) && fl.arrive != null) fl.arrive = b.end; }
+    if (mine) b.legAt = { date, start: b.start, end: b.end };
+}
+
+/**
+ * Linked blocks put in step: each starts its gap after the block it follows ends, and
+ * the ones after it with it. A flight is never moved by what is before it. A chain that
+ * would run past midnight stops at the end of the day. Links to a block that is gone,
+ * or on another day, are left alone (and do nothing).
+ */
+function vacChainSettle(plan) {
+    const all = new Set();
+    Object.values(plan.days).forEach(day => day.blocks.forEach(b => all.add(b.id)));
+    Object.keys(plan.days).forEach(date => {
+        const day = plan.days[date], seen = new Set();
+        day.blocks.forEach(b => { if (b.link && !all.has(b.link)) { delete b.link; delete b.linkGap; } });
+        const visit = (P) => {
+            if (seen.has(P.id)) return;
+            seen.add(P.id);
+            vacLinkNext(day, P).forEach(N => {
+                if (N.kind !== 'flight') {
+                    const len = N.end - N.start, s = Math.max(0, Math.min(P.end + vacLinkGap(plan, P, N), 1440 - len));
+                    if (s !== N.start) vacShiftBlock(N, date, s - N.start, true);
+                }
+                visit(N);
+            });
+        };
+        day.blocks.filter(b => !vacLinkPrev(day, b) || b.kind === 'flight').forEach(visit);
+    });
+}
+
+/**
+ * The blocks that move with one: those linked to it, and to them, on its day. Moving a
+ * step of a journey does not move the flight, nor what is on its other side; moving the
+ * flight moves it all.
+ */
+function vacChainOf(plan, date, b) {
+    const day = plan.days[date], out = [b], seen = new Set([b.id]);
+    if (!day) return out;
+    for (let i = 0; i < out.length; i++) {
+        const x = out[i];
+        if (x.kind === 'flight' && x !== b) continue;
+        const near = vacLinkNext(day, x).concat([vacLinkPrev(day, x)].filter(Boolean));
+        near.forEach(y => { if (!seen.has(y.id)) { seen.add(y.id); out.push(y); } });
+    }
+    return out.filter(x => x.kind !== 'flight' || x === b);
+}
+
+/** How far a chain can move in a day: from its earliest start to midnight past its latest end. */
+function vacChainRoom(chain) {
+    return { lo: -Math.min.apply(null, chain.map(x => x.start)), hi: 1440 - Math.max.apply(null, chain.map(x => x.end)) };
+}
+
+/**
+ * Moves the chain of `b` by `delta`, on its day or to another (`to`). Where it leaves a
+ * link behind (the flight, when a step moved), the time kept with that link is the new gap.
+ */
+function vacChainMove(plan, date, b, delta, to) {
+    const chain = vacChainOf(plan, date, b), day = plan.days[date], room = vacChainRoom(chain);
+    delta = Math.max(room.lo, Math.min(room.hi, delta));
+    const flightMoved = b.kind === 'flight';
+    chain.forEach(x => vacShiftBlock(x, date, delta, flightMoved));
+    const inChain = new Set(chain.map(x => x.id));
+    day.blocks.forEach(x => {
+        const P = vacLinkPrev(day, x);
+        if (P && inChain.has(x.id) !== inChain.has(P.id)) x.linkGap = Math.max(0, x.start - P.end);
+    });
+    if (to && to !== date && plan.days[to]) {
+        day.blocks = day.blocks.filter(x => !inChain.has(x.id));
+        chain.forEach(x => { if (x.legAt && flightMoved) x.legAt.date = to; plan.days[to].blocks.push(x); });
+    }
+    if (flightMoved) ['out', 'back'].forEach(which => {
+        const F = vacJourneyFlight(plan, which, vacJourneyOpts(plan, which));
+        if (F && F.b === b && vacJourneyOnSchedule(plan, which)) vacJourneyApplyTo(plan, which);
+    });
+    return chain;
+}
+
+/** A block's place in its chain, in its panel: what it follows, what follows it, and the links on offer. */
+function vacBlockLinkHtml(plan, date, b) {
+    const day = plan.days[date];
+    if (!day) return '';
+    const name = (x) => vacEsc(vacBlockInfo(plan, x).title);
+    const P = vacLinkPrev(day, b), next = vacLinkNext(day, b);
+    const others = day.blocks.filter(x => x !== b);
+    const before = others.filter(x => x.end <= b.start).sort((x, y) => y.end - x.end || y.start - x.start)[0];
+    const after = others.filter(x => x.start >= b.end).sort((x, y) => x.start - y.start || x.end - y.end)[0];
+    let html = '';
+    if (P) {
+        const gap = vacLinkGap(plan, P, b);
+        html += '<div class="vac-blink">🔗 Right after <b>' + name(P) + '</b>' + (gap ? ', ' + vacDur(gap) + ' later' : '') +
+            ' <button class="vac-btn vac-unlink" data-op="unlink" data-id="' + vacEsc(b.id) + '" onclick="vacLinkSet(this)" title="It no longer moves with it">Unlink</button></div>';
+    }
+    next.forEach(N => {
+        html += '<div class="vac-blink">🔗 <b>' + name(N) + '</b> right after it' +
+            ' <button class="vac-btn vac-unlink" data-op="unlink" data-id="' + vacEsc(N.id) + '" onclick="vacLinkSet(this)" title="It no longer moves with this one">Unlink</button></div>';
+    });
+    const offers = [];
+    if ((b.kind === 'drive' || b.kind === 'travel') && ((before && !P) || (after && !next.length)))
+        offers.push('<button class="vac-btn vac-link-around" data-op="around" onclick="vacLinkSet(this)" title="It starts when ' +
+            (before ? vacEsc(vacBlockInfo(plan, before).title) : 'the one before') + ' ends, and what is after starts when it ends; they move together">🔗 Link to the blocks around it</button>');
+    else {
+        if (before && !P) offers.push('<button class="vac-btn vac-link-before" data-op="before" onclick="vacLinkSet(this)" title="It keeps its time after ' +
+            name(before) + ', and they move together">🔗 Link to ' + name(before) + '</button>');
+        if (after && !next.length && after.kind !== 'flight' && after.link !== b.id) offers.push('<button class="vac-btn vac-link-after" data-op="after" onclick="vacLinkSet(this)" title="' +
+            name(after) + ' keeps its time after it, and they move together">🔗 Link ' + name(after) + ' to it</button>');
+    }
+    if (offers.length) html += '<div class="vac-row vac-blink-offers">' + offers.join('') + '</div>';
+    if (P || next.length) html += '<div class="vac-hint">Linked blocks move together, and follow when one before them gets longer or shorter.</div>';
+    return html;
+}
+
+/** Link or unlink: to the block before, the one after, both (for a drive), or a link undone. */
+function vacLinkSet(btn) {
+    const form = btn.closest('.vac-form'), op = btn.dataset.op;
+    vacMutate(btn, (plan) => {
+        const f = vacFind(plan, form.dataset.id);
+        if (!f) return 'none';
+        const b = f.block, others = f.day.blocks.filter(x => x !== b);
+        const before = others.filter(x => x.end <= b.start).sort((x, y) => y.end - x.end || y.start - x.start)[0];
+        const after = others.filter(x => x.start >= b.end).sort((x, y) => x.start - y.start || x.end - y.end)[0];
+        const link = (N, P, gap) => { N.link = P.id; N.linkGap = gap; delete N.nolink; };
+        if (op === 'unlink') {
+            const g = vacFind(plan, btn.dataset.id);
+            if (!g) return 'none';
+            delete g.block.link; delete g.block.linkGap;
+            if (g.block.leg || g.block.kind === 'flight') g.block.nolink = true;
+        } else if (op === 'around') {
+            if (before && !vacLinkPrev(f.day, b)) link(b, before, 0);
+            if (after && !vacLinkNext(f.day, b).length && after.kind !== 'flight') link(after, b, 0);
+        } else if (op === 'before' && before) link(b, before, Math.max(0, b.start - before.end));
+        else if (op === 'after' && after) link(after, b, Math.max(0, after.start - b.end));
+        else return 'none';
+    });
+}
+
+function vacGapMode(id) { return VAC_GAP_MODES.find(m => m.id === id) || VAC_GAP_MODES[0]; }
+
+/** The chips in the day's gaps, and the one being set. */
+function vacGapsHtml(plan, date, ui, h0, px, opts) {
+    const o = opts || {};
+    return vacGaps(plan, date).concat(vacDriveChips(plan, date)).map(g => {
+        // In a gap, in its middle; on a drive or travel block, at its middle, on its right edge.
+        const id = g.onBlock ? g.id : g.a.id + '|' + g.b.id;
+        const y = (g.onBlock ? (g.block.start + g.block.end) / 2 - h0 * 60 : (g.a.end - h0 * 60) + g.gap / 2) * px / 60;
+        if (o.max != null && (y < 0 || y > o.max)) return '';
+        if (g.missing) {
+            const chip0 = '<button class="vac-gap vac-gap-on vac-gap-missing' + (o.compact ? ' vac-gap-compact' : '') + '" data-g="' + vacEsc(id) + '" style="top:' + y + 'px" ' +
+                'onpointerdown="event.stopPropagation()" onclick="vacGapOpen(this)" title="' + vacEsc(g.why) + '">\u23F1' + (o.compact ? '' : ' ?') + '</button>';
+            if (ui.gap !== id) return chip0;
+            return chip0 + '<div class="vac-gap-pop' + (o.left ? ' vac-gap-pop-l' : '') + '" data-g="' + vacEsc(id) + '" style="top:' + (y + 14) + 'px" onpointerdown="event.stopPropagation()">' +
+                '<div class="vac-gap-route">' + vacEsc(vacBlockInfo(plan, g.block).title) + '</div><div class="vac-hint">' + vacEsc(g.why) + '</div>' +
+                '<div class="vac-row">' + (g.view ? '<button class="vac-btn vac-gap-goto" data-view="' + g.view + '" data-id="" onclick="vacGoTo(this)">Set the parking</button>' : '') +
+                '<button class="vac-icon vac-gap-close" data-g="' + vacEsc(id) + '" onclick="vacGapOpen(this)" title="Close">\u00D7</button></div></div>';
+        }
+        const m = vacGapMode(g.mode), day = plan.days[date];
+        const linked = g.onBlock ? !!(vacLinkPrev(day, g.block) || vacLinkNext(day, g.block).length) : g.b.link === g.a.id;
+        const tip = (linked ? 'Linked: they move together. ' : '') + 'From ' + g.fromName + ' to ' + g.toName + (g.min == null ? ': how long does it take? Click to set'
+            : g.estimate ? ': about ' + vacDur(g.min) + ' by ' + m.label.toLowerCase() + ', estimated from ' + g.km.toFixed(1) + ' km in a straight line. Click to set it'
+            : ': ' + vacDur(g.min) + ' by ' + m.label.toLowerCase());
+        const chip = '<button class="vac-gap' + (linked ? ' vac-gap-linked' : '') + (g.onBlock ? ' vac-gap-on' : '') + (o.compact ? ' vac-gap-compact' : '') + (g.min != null && !g.estimate ? ' vac-gap-set' : '') + (g.estimate ? ' vac-gap-est' : '') + (g.short ? ' vac-gap-short' : '') + '" data-g="' + vacEsc(id) + '" style="top:' + y + 'px" ' +
+            'onpointerdown="event.stopPropagation()" onclick="vacGapOpen(this)" title="' + vacEsc(tip) + '">' +
+            (linked && !o.compact ? '\uD83D\uDD17 ' : '') + (o.compact ? (g.min != null ? (g.estimate ? '\u2248' : '') + m.icon + vacDur(g.min).replace(' min', 'm').replace(' h', 'h') : '\u23F1')
+                : g.min != null ? (g.estimate ? '\u2248 ' : '') + m.icon + ' ' + vacDur(g.min) + (g.short ? ' \u00B7 ' + vacDur(g.short) + ' short' : '') : '\u23F1 travel?') + '</button>';
+        const popY = y + 14;
+        if (ui.gap !== id) return chip;
+        const dir = vacDirUrl(vacRouteStop(g.from), [], vacRouteStop(g.to)) + '&travelmode=' + m.maps;
+        return chip + '<div class="vac-gap-pop' + (o.left ? ' vac-gap-pop-l' : '') + '" data-g="' + vacEsc(id) + '" data-key="' + vacEsc(g.key) + '" style="top:' + popY + 'px" onpointerdown="event.stopPropagation()">' +
+            '<div class="vac-gap-route">' + vacEsc(g.fromName) + ' → ' + vacEsc(g.toName) + '</div>' +
+            '<div class="vac-row"><select class="vac-gap-mode" onchange="vacGapSet(this)">' + VAC_GAP_MODES.map(x => '<option value="' + x.id + '"' + (x.id === (g.mode || 'walk') ? ' selected' : '') + '>' +
+                x.icon + ' ' + x.label + '</option>').join('') + '</select>' +
+            '<select class="vac-gap-min" onchange="vacGapSet(this)"><option value="">How long?</option>' + VAC_GAP_LENGTHS.map(n => '<option value="' + n + '"' + (n === g.min && !g.estimate ? ' selected' : '') + '>' +
+                vacDur(n) + '</option>').join('') + '</select></div>' +
+            (g.km != null ? '<div class="vac-gap-ests"><span class="vac-hint">About, from ' + g.km.toFixed(1) + ' km in a straight line:</span>' +
+                VAC_GAP_MODES.map(x => { const n = vacEstimate(g.km, x.id);
+                    return '<button class="vac-btn vac-gap-use" data-mode="' + x.id + '" data-min="' + n + '" onclick="vacGapSet(this)" title="Keep this">' + x.icon + ' ' + vacDur(n) + '</button>'; }).join('') + '</div>'
+                : '<div class="vac-hint">Paste a Google Maps link with a pin for both places, and it is estimated.</div>') +
+            (g.onBlock ? '' : '<label class="vac-check vac-gap-linkrow" title="When the time is set, ' + vacEsc(vacBlockInfo(plan, g.b).title) + ' starts that long after ' +
+                vacEsc(vacBlockInfo(plan, g.a).title) + ' ends, and they move together"><input type="checkbox" class="vac-gap-link" data-a="' + vacEsc(g.a.id) + '" data-b="' + vacEsc(g.b.id) + '"' +
+                (linked || (ui.gapUnlink !== id && !(g.min != null && !g.estimate)) ? ' checked' : '') + ' onchange="vacGapLink(this)"> \uD83D\uDD17 Keep ' + vacEsc(vacBlockInfo(plan, g.b).title) + ' right after the trip</label>') +
+            '<div class="vac-row"><a class="vac-btn" href="' + vacEsc(dir) + '" target="_blank" rel="noopener noreferrer" title="' +
+                vacEsc('From ' + (vacPlaceTarget(g.from).text || 'where you are') + ' to ' + (vacPlaceTarget(g.to).text || '?')) + '">\uD83D\uDDFA\uFE0F Directions</a>' +
+            (g.min != null && !g.estimate ? '<button class="vac-btn vac-gap-clear" onclick="vacGapSet(this)">Clear</button>' : '') +
+            '<button class="vac-icon vac-gap-close" data-g="' + vacEsc(id) + '" onclick="vacGapOpen(this)" title="Close">×</button></div>' +
+            (!vacRouteStop(g.from) ? '<div class="vac-hint">' + vacEsc(g.fromName) + ' is only a short Maps link, so Maps will start from where you are: give it a name or address.</div>' : '') +
+            '<div class="vac-hint">' + (g.estimate ? 'An estimate, not a route: set it to be sure. ' : '') + 'Kept for these two places, on any day.</div></div>';
+    }).join('');
+}
+
+function vacGapOpen(el) { const id = el.dataset.g; vacMutate(el, (plan, ui) => { ui.gap = ui.gap === id ? null : id; return false; }, { side: false }); }
+
+/** How long it takes, and how: kept for the pair of places. Clear forgets it. */
+function vacGapSet(el) {
+    const pop = el.closest('.vac-gap-pop'), key = pop.dataset.key, g = pop.dataset.g || '';
+    const tick = pop.querySelector('.vac-gap-link');
+    vacMutate(el, (plan, ui) => {
+        plan.travelTimes = plan.travelTimes || {};
+        let set = false;
+        if (el.classList.contains('vac-gap-use')) { plan.travelTimes[key] = { min: +el.dataset.min, mode: el.dataset.mode }; set = true; }
+        else {
+            const min = pop.querySelector('.vac-gap-min').value, mode = pop.querySelector('.vac-gap-mode').value;
+            if (el.classList.contains('vac-gap-clear') || !min) {
+                if (el.classList.contains('vac-gap-mode') && !min) return false;
+                delete plan.travelTimes[key];
+            } else { plan.travelTimes[key] = { min: +min, mode }; set = true; }
+        }
+        // Set between two blocks, with the tick: the one after keeps right after the trip.
+        if (set && tick && tick.checked) {
+            const a = vacFind(plan, tick.dataset.a), b = vacFind(plan, tick.dataset.b);
+            if (a && b && a.date === b.date) { b.block.link = a.block.id; b.block.linkGap = plan.travelTimes[key].min; delete b.block.nolink; }
+        }
+        // Set on a drive or travel block that is linked: it is as long as the trip, and what follows moves.
+        if (set && /^blk:/.test(g)) {
+            const f = vacFind(plan, g.slice(4));
+            if (f && (vacLinkPrev(f.day, f.block) || vacLinkNext(f.day, f.block).length)) f.block.fit = key;
+        }
+        vacFollowTravel(plan, key);
+    }, { side: false });
+}
+
+/** The tick: with a time set, links (it moves at once) or unlinks; before, it says what setting one does. */
+function vacGapLink(el) {
+    const pop = el.closest('.vac-gap-pop'), key = pop.dataset.key, id = pop.dataset.g;
+    vacMutate(el, (plan, ui) => {
+        const a = vacFind(plan, el.dataset.a), b = vacFind(plan, el.dataset.b), t = (plan.travelTimes || {})[key];
+        if (!a || !b) return 'none';
+        if (!el.checked) {
+            if (b.block.link === a.block.id) { delete b.block.link; delete b.block.linkGap; if (b.block.leg) b.block.nolink = true; }
+            else { ui.gapUnlink = id; return false; }
+        } else if (t && a.date === b.date) { b.block.link = a.block.id; b.block.linkGap = t.min; delete b.block.nolink; ui.gapUnlink = null; }
+        else { ui.gapUnlink = null; return false; }
+    }, { side: false });
+}
+
+/**
+ * What in the plan cannot all happen: worked out from what is there, never kept.
+ * Each warning has a key that stays the same while its cause does (so it can be
+ * ignored), the date and blocks it is about, and where to go to fix it.
+ */
+function vacConflicts(plan) {
+    const out = [], dates = vacDates(plan), lead = plan.airportLead || 0;
+    const add = (key, date, ids, icon, text, view) => out.push({ key, date, ids: ids || [], icon, text, view: view || date });
+    const name = (b) => vacBlockInfo(plan, b).title;
+    const on = (d) => (plan.days[d] || { blocks: [] }).blocks;
+    const span = (b) => vacTimeLabel(b.start) + '\u2013' + vacTimeLabel(b.end);
+    // Flights: where each leaves and lands.
+    const flights = vacAllFlights(plan).map(({ date, b }) => {
+        const fl = b.flight || {};
+        return { date, b, land: vacAddDays(date, fl.arriveDay || 0), arrive: fl.arrive != null ? fl.arrive : b.end };
+    });
+    // 1. Blocks at the same time, and blocks while a flight from the day before is still in the air.
+    dates.forEach(d => {
+        const bs = on(d).slice().sort((a, b) => a.start - b.start || a.end - b.end);
+        for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length && bs[j].start < bs[i].end; j++) {
+            const a = bs[i], b = bs[j];
+            if (b.start >= a.end || a.end <= a.start || b.end <= b.start) continue;
+            // A meal during a flight is had on board; at the airport, there.
+            const aboard = (x) => x.kind === 'flight' || /:(airport|arrive)$/.test(x.leg || '');
+            if ((aboard(a) && b.kind === 'food') || (aboard(b) && a.kind === 'food')) continue;
+            add('overlap:' + [a.id, b.id].sort().join('|'), d, [a.id, b.id], '\u23F1\uFE0F',
+                name(a) + ' (' + span(a) + ') and ' + name(b) + ' (' + span(b) + ') are at the same time');
+        }
+        flights.filter(f => f.land === d && f.date !== d).forEach(f => on(d).filter(b => b.start < f.arrive).forEach(b =>
+            add('inair:' + f.b.id + '|' + b.id, d, [b.id, f.b.id], '\u2708\uFE0F',
+                name(b) + ' (' + span(b) + ') is before ' + name(f.b) + ' lands, at ' + vacTimeLabel(f.arrive))));
+    });
+    // 2. Not at the airport in time: something else still going on in the time before take-off.
+    flights.forEach(f => {
+        const at = f.b.start - lead;
+        on(f.date).forEach(b => {
+            if (b === f.b || b.kind === 'food' || b.kind === 'flight' || /:(airport|arrive)$/.test(b.leg || '') || b.end <= at || b.end > f.b.start || b.start >= f.b.start) return;
+            add('late:' + f.b.id + '|' + b.id, f.date, [b.id, f.b.id], '\u23F0',
+                name(b) + ' ends at ' + vacTimeLabel(b.end) + ', ' + vacLen(f.b.start - b.end) + ' before ' + name(f.b) +
+                ' takes off: be at the airport ' + vacLen(lead) + ' before, by ' + vacTimeLabel(Math.max(0, at)));
+        });
+    });
+    // 2b. Getting to the airport after bag drop closes: bags would miss the flight.
+    flights.forEach(f => {
+        const t = vacFlightTimes(f.date, f.b);
+        if (!t.bag) return;
+        on(f.date).filter(b => (b.kind === 'drive' || b.kind === 'travel') && !/:(airport|arrive)$/.test(b.leg || '') && b.end > t.bag.at && b.end <= f.b.start).forEach(b =>
+            add('bagdrop:' + f.b.id + '|' + b.id, f.date, [b.id, f.b.id], '\uD83E\uDDF3', name(b) + ' gets there at ' + vacTimeLabel(b.end) + ', after bag drop for ' + name(f.b) +
+                ' closes, at ' + vacTimeLabel(t.bag.at)));
+    });
+    // 3. The car, around the flights there and back.
+    const there = vacJourneyFlight(plan, 'out', vacJourneyOpts(plan, 'out'));
+    const backO = vacJourneyOpts(plan, 'back'), back = vacJourneyFlight(plan, 'back', backO);
+    const fOf = (x) => x && flights.find(f => f.b === x.b);
+    const fOut = fOf(there), fBack = fOf(back);
+    const before = (d1, t1, d2, t2) => d1 < d2 || (d1 === d2 && t1 < t2);
+    (plan.rentals || []).forEach(r => {
+        const nm = r.company || vacPlaceName(r.pickPlace) || 'the rental car';
+        if (fOut && r.pickDate && r.pickTime != null && before(r.pickDate, r.pickTime, fOut.land, fOut.arrive) && r.pickDate >= fOut.date)
+            add('rentpick:' + r.id, r.pickDate, [fOut.b.id], '\uD83D\uDE99', 'Picking up ' + nm + ' at ' + vacTimeLabel(r.pickTime) + ', before ' +
+                name(fOut.b) + ' lands at ' + vacTimeLabel(fOut.arrive), 'travel:rental');
+        if (fBack && r.dropDate && r.dropTime != null && !before(r.dropDate, r.dropTime, fBack.date, fBack.b.start - lead) && r.dropDate <= fBack.date)
+            add('rentdrop:' + r.id, r.dropDate, [fBack.b.id], '\uD83D\uDE99', 'Returning ' + nm + ' at ' + vacTimeLabel(r.dropTime) + ' leaves less than ' +
+                vacLen(lead) + ' before ' + name(fBack.b) + ' takes off', 'travel:rental');
+    });
+    (plan.parking || []).forEach(pk => {
+        const lot = vacPlaceName(pk.lot) || 'the parking';
+        if (fOut && pk.fromDate && pk.fromTime != null && !before(pk.fromDate, pk.fromTime, fOut.date, fOut.b.start - lead) && pk.fromDate <= fOut.date)
+            add('parkdrop:' + pk.id, pk.fromDate, [fOut.b.id], '\uD83C\uDD7F\uFE0F', 'Dropping the car at ' + lot + ' at ' + vacTimeLabel(pk.fromTime) +
+                ' leaves less than ' + vacLen(lead) + ' before ' + name(fOut.b) + ' takes off', 'travel:parking');
+        const fB = fBack || (fOut && flights.length > 1 ? flights[flights.length - 1] : null);
+        if (fB && pk.toDate && pk.toTime != null && before(pk.toDate, pk.toTime, fB.land, fB.arrive) && pk.toDate >= fB.date)
+            add('parkpick:' + pk.id, pk.toDate, [fB.b.id], '\uD83C\uDD7F\uFE0F', 'Picking up the car at ' + lot + ' at ' + vacTimeLabel(pk.toTime) +
+                ', before ' + name(fB.b) + ' lands at ' + vacTimeLabel(fB.arrive), 'travel:parking');
+    });
+    // 4. Nights: somewhere to sleep, and only one place.
+    const stays = (plan.stays || []).filter(s => s.inDate);
+    stays.forEach(s => {
+        if (s.outDate && s.outDate < s.inDate) add('stayorder:' + s.id, s.inDate, [], '\uD83C\uDFE8',
+            (vacPlaceName(s.place) || 'A stay') + ' checks out (' + vacDayLabel(s.outDate, 'short') + ') before it checks in (' + vacDayLabel(s.inDate, 'short') + ')', 'stay:stays');
+    });
+    const cruises = (plan.cruises || []).filter(c => c.boardDate);
+    if (stays.length || cruises.length) dates.slice(0, -1).forEach(d => {
+        const sleep = stays.filter(s => s.inDate <= d && (s.outDate || s.inDate) > d).map(s => vacPlaceName(s.place) || 'a stay')
+            .concat(cruises.filter(c => c.boardDate <= d && (c.leaveDate || c.boardDate) > d).map(c => c.ship || 'the ship'));
+        if (!sleep.length) add('nostay:' + d, d, [], '\uD83D\uDECF\uFE0F', 'Nowhere to sleep the night of ' + vacDayLabel(d, 'short'), 'stay:stays');
+        else if (sleep.length > 1) add('twostays:' + d, d, [], '\uD83C\uDFE8', 'Two places to sleep the night of ' + vacDayLabel(d, 'short') + ': ' + sleep.join(' and '), 'stay:stays');
+    });
+    // 5. Cruises: back on board in time.
+    cruises.forEach(c => {
+        const ship = c.ship || 'the ship';
+        const late = (d, aboard, b) => add('aboard:' + c.id + '|' + d + '|' + b.id, d, [b.id], '\uD83D\uDEA2',
+            name(b) + ' (' + span(b) + ') runs past all aboard for ' + ship + ', at ' + vacTimeLabel(aboard));
+        if (c.allAboard != null) {
+            on(c.boardDate).filter(b => ['drive', 'travel', 'flight'].includes(b.kind) && b.start < c.allAboard && b.end > c.allAboard).forEach(b => late(c.boardDate, c.allAboard, b));
+            flights.filter(f => f.land === c.boardDate && f.date !== c.boardDate && f.arrive > c.allAboard).forEach(f =>
+                add('aboard:' + c.id + '|' + c.boardDate + '|' + f.b.id, c.boardDate, [f.b.id], '\uD83D\uDEA2',
+                    name(f.b) + ' lands at ' + vacTimeLabel(f.arrive) + ', after all aboard for ' + ship + ', at ' + vacTimeLabel(c.allAboard)));
+        }
+        Object.keys(c.days || {}).forEach(d => {
+            const day = c.days[d], aboard = day && day.port ? vacAllAboard(day) : null;
+            if (aboard == null || d === c.boardDate || d === c.leaveDate) return;
+            on(d).filter(b => b.kind !== 'food' && b.kind !== 'rest' && b.start < aboard && b.end > aboard).forEach(b => late(d, aboard, b));
+        });
+    });
+    // 6. At a stay before checking in, or after checking out.
+    (plan.stays || []).filter(s => s.place).forEach(s => {
+        const nm = vacPlaceName(s.place) || 'the stay';
+        // Time spent there, not getting there: arriving early is only waiting.
+        const at = (b) => b.place && b.kind !== 'travel' && b.kind !== 'drive' && vacSamePlace(b.place, s.place);
+        if (s.inTime != null) on(s.inDate).filter(b => at(b) && b.start < s.inTime).forEach(b =>
+            add('beforein:' + s.id + '|' + b.id, s.inDate, [b.id], '🏨', name(b) + ' at ' + nm + ' (' + span(b) + ') is before check-in, at ' + vacTimeLabel(s.inTime)));
+        if (s.outDate && s.outTime != null) on(s.outDate).filter(b => at(b) && b.end > s.outTime).forEach(b =>
+            add('afterout:' + s.id + '|' + b.id, s.outDate, [b.id], '🏨', name(b) + ' at ' + nm + ' (' + span(b) + ') is after check-out, at ' + vacTimeLabel(s.outTime)));
+    });
+    // 7. A drive with no car: your own is parked at the airport, or far away, and no rental covers it.
+    const at = (d, t) => d + ' ' + String(t).padStart(4, '0');
+    let away = (plan.parking || []).filter(pk => pk.fromDate && pk.toDate).map(pk => [at(pk.fromDate, pk.fromTime != null ? pk.fromTime : 1440), at(pk.toDate, pk.toTime != null ? pk.toTime : 0)]);
+    if (!away.length && fOut && fBack) away = [[at(fOut.land, fOut.arrive), at(fBack.date, fBack.b.start)]];
+    const cars = (plan.rentals || []).filter(r => r.pickDate).map(r => [at(r.pickDate, r.pickTime != null ? r.pickTime : 0), at(r.dropDate || r.pickDate, r.dropTime != null ? r.dropTime : 1440)]);
+    if (away.length) dates.forEach(d => on(d).filter(b => b.kind === 'drive').forEach(b => {
+        const t = at(d, b.start), inside = (iv) => t >= iv[0] && t < iv[1];
+        if (away.some(inside) && !cars.some(inside))
+            add('nocar:' + b.id, d, [b.id], '🚗', name(b) + ' (' + span(b) + ') needs a car: yours is ' +
+                ((plan.parking || []).length ? 'parked' : 'at home') + ' and no rental covers ' + vacDayLabel(d, 'short'), (plan.rentals || []).length ? 'travel:rental' : d);
+    }));
+    // 8. Ashore on a day at sea.
+    cruises.forEach(c => {
+        const ship = c.ship || 'the ship';
+        dates.filter(d => d > c.boardDate && d < (c.leaveDate || c.boardDate) && !((c.days || {})[d] || {}).port).forEach(d =>
+            on(d).filter(b => b.kind !== 'food' && b.kind !== 'rest' && (b.place || b.kind === 'drive')).forEach(b =>
+                add('atsea:' + c.id + '|' + b.id, d, [b.id], '🌊', name(b) + (b.place ? ' at ' + vacPlaceName(b.place) : '') + ' is on a day ' + ship + ' is at sea')));
+    });
+    // 9. Not enough time to get from one place to the next.
+    dates.forEach(d => vacGaps(plan, d).filter(g => g.short > 0).forEach(g =>
+        add('gap:' + g.a.id + '|' + g.b.id, d, [g.a.id, g.b.id], '\u23F1\uFE0F', 'Getting from ' + g.fromName + ' to ' + g.toName + ' takes ' + (g.estimate ? 'about ' : '') + vacDur(g.min) + (g.estimate ? ' (estimated)' : '') +
+            ', and there ' + (g.gap > 0 ? 'are only ' + vacDur(g.gap) : 'is no time') + ' between ' + name(g.a) + ' and ' + name(g.b))));
+    dates.forEach(d => on(d).forEach(N => {
+        const P = plan.days[d] && vacLinkPrev(plan.days[d], N);
+        if (!P || N.kind === 'flight') return;
+        const want = P.end + vacLinkGap(plan, P, N);
+        if (want + (N.end - N.start) > 1440 && N.start < want)
+            add('chainend:' + N.id, d, [N.id, P.id], '\uD83D\uDD17', name(N) + ' is linked to start ' + (want > P.end ? vacDur(want - P.end) + ' after ' : 'right after ') + name(P) +
+                ', but that runs past midnight: it stops at the end of the day');
+    }));
+    dates.forEach(d => vacDriveChips(plan, d).filter(g => !g.missing && g.short > 0).forEach(g =>
+        add('drivegap:' + g.block.id, d, [g.block.id], '\u23F1\uFE0F', name(g.block) + ' is ' + vacDur(g.len) + ' long, but getting from ' + g.fromName + ' to ' + g.toName +
+            ' takes ' + (g.estimate ? 'about ' : '') + vacDur(g.min) + (g.estimate ? ' (estimated)' : ''))));
+    return out.sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.text.localeCompare(b.text));
+}
+
+/** The warnings not ignored, and for each block the reasons it is in one. */
+function vacWarnings(plan) {
+    const ignored = new Set(plan.ignoredWarnings || []), all = vacConflicts(plan);
+    const active = all.filter(w => !ignored.has(w.key)), byBlock = new Map();
+    active.forEach(w => w.ids.forEach(id => byBlock.set(id, (byBlock.get(id) ? byBlock.get(id) + '\n' : '') + '\u26A0\uFE0F ' + w.text)));
+    return { all, active, ignored: all.filter(w => ignored.has(w.key)), byBlock };
+}
+
+/** The header's ⚠️: how many, there only when there is something to say. */
+function vacWarnBtnHtml(plan, ui) {
+    const w = vacWarnings(plan);
+    if (!w.active.length && !w.ignored.length && !ui.warn) return '';
+    return '<button class="vac-btn vac-warn-btn' + (w.active.length ? ' vac-warn-on' : '') + (ui.warn ? ' vac-on' : '') + '" onclick="vacWarnToggle(this)" title="' +
+        (w.active.length ? w.active.length + ' thing' + (w.active.length === 1 ? '' : 's') + ' in the plan cannot all happen' : 'Nothing clashes') +
+        (w.ignored.length ? ' (' + w.ignored.length + ' ignored)' : '') + '">\u26A0\uFE0F ' + w.active.length + '</button>';
+}
+
+function vacWarnRowsHtml(plan, ui) {
+    const w = vacWarnings(plan), show = ui.warn && ui.warn.ignored;
+    const row = (x, off) => '<div class="vac-warn-row' + (off ? ' vac-warn-off' : '') + '" data-key="' + vacEsc(x.key) + '">' +
+        '<span class="vac-warn-icon">' + x.icon + '</span>' +
+        '<span class="vac-warn-when">' + (x.date ? vacEsc(vacDayLabel(x.date, 'short')) : '') + '</span>' +
+        '<span class="vac-warn-text">' + vacEsc(x.text) + '</span>' +
+        '<button class="vac-btn vac-warn-go" data-view="' + vacEsc(x.view) + '" data-id="' + vacEsc(x.ids[0] || '') + '" onclick="vacWarnGo(this)">Go to</button>' +
+        '<button class="vac-btn vac-warn-ignore" onclick="vacWarnIgnore(this)" title="' + (off ? 'Warn about it again' : 'It is meant: stop warning about it') + '">' +
+            (off ? 'Warn again' : 'Ignore') + '</button></div>';
+    return (w.active.length ? w.active.map(x => row(x, false)).join('') : '<div class="vac-hint">Nothing clashes.' +
+            (w.ignored.length && !show ? ' ' + w.ignored.length + ' ignored.' : '') + '</div>') +
+        (show ? w.ignored.map(x => row(x, true)).join('') : '');
+}
+
+function vacWarnHtml(plan, ui) {
+    return '<div class="vac-out vac-warn" role="dialog" aria-label="What clashes">' +
+        '<div class="vac-row vac-out-bar"><b>\u26A0\uFE0F What clashes</b>' +
+            '<label class="vac-check"><input type="checkbox" class="vac-warn-show"' + (ui.warn.ignored ? ' checked' : '') + ' onchange="vacWarnShowIgnored(this)"> Show ignored</label>' +
+            '<span class="vac-out-gap"></span>' +
+            '<button class="vac-icon vac-out-close vac-warn-close" onclick="vacWarnToggle(this)" title="Close">\u00D7</button>' +
+        '</div><div class="vac-warn-list">' + vacWarnRowsHtml(plan, ui) + '</div></div>';
+}
+
+/** One panel over the schedule at a time: the bullet list, the calendar or the warnings. */
+function vacWarnToggle(el) {
+    vacMutate(el, (plan, ui) => { ui.warn = ui.warn ? null : { ignored: false }; if (ui.warn) { ui.out = null; ui.cal = null; } return false; });
+}
+
+function vacWarnShowIgnored(el) { vacMutate(el, (plan, ui) => { ui.warn = { ignored: el.checked }; return false; }); }
+
+/** Ignoring a warning is kept with the plan, so it can be undone. */
+function vacWarnIgnore(btn) {
+    const key = btn.closest('.vac-warn-row').dataset.key;
+    vacMutate(btn, (plan) => {
+        const set = new Set(plan.ignoredWarnings || []);
+        if (set.has(key)) set.delete(key); else set.add(key);
+        plan.ignoredWarnings = Array.from(set);
+    });
+}
+
+/** To where it can be fixed: the day with its block chosen, or the tab it is set in. */
+function vacGoTo(btn) { vacWarnGo(btn); }
+
+function vacWarnGo(btn) {
+    vacMutate(btn, (plan, ui) => {
+        const [view, sub] = btn.dataset.view.split(':');
+        ui.warn = null;
+        ui.view = view;
+        if (view === 'travel' && sub) ui.travelTab = sub;
+        if (view === 'stay' && sub) ui.stayTab = sub;
+        const f = btn.dataset.id && vacFind(plan, btn.dataset.id);
+        ui.sel = f && f.date === view ? btn.dataset.id : null;
+        return false;
+    });
+}
+
+/** Text in an iCalendar value: backslashes, commas, semicolons and line breaks escaped. */
+function vacIcsText(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+
+/** A line folded at 75 bytes, as iCalendar asks, never inside a character. */
+function vacIcsFold(line) {
+    const enc = new TextEncoder(), parts = [];
+    let cur = '', n = 0, limit = 75;
+    for (const ch of line) {
+        const len = enc.encode(ch).length;
+        if (n + len > limit) { parts.push(cur); cur = ''; n = 0; limit = 74; }
+        cur += ch; n += len;
+    }
+    parts.push(cur);
+    return parts.join('\r\n ');
+}
+
+/** A date and minutes as a floating local time: the same clock time wherever the calendar is. */
+function vacIcsTime(date, min) {
+    const d = vacAddDays(date, Math.floor(min / 1440)), m = ((min % 1440) + 1440) % 1440;
+    return d.replace(/-/g, '') + 'T' + String(Math.floor(m / 60)).padStart(2, '0') + String(m % 60).padStart(2, '0') + '00';
+}
+
+function vacIcsDate(date) { return date.replace(/-/g, ''); }
+
+/**
+ * The plan as an iCalendar file: each block an event (a flight ending the day it
+ * lands), stays and cruises across their days with checking in and out, boarding,
+ * port calls and all aboard, parking and the rental car. opts.date gives that day
+ * alone; opts.alarms adds reminders (2 h before a flight or all aboard, 30 min before
+ * the rest, none for meals); opts.conf adds the booking numbers. Each event's UID
+ * comes from what it is, so importing again updates it.
+ */
+function vacIcs(plan, opts) {
+    const o = opts || {}, dates = vacDates(plan).filter(d => !o.date || d === o.date), events = [];
+    const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+    const ev = (e) => events.push(e);
+    const where = (p) => p ? (vacPlaceQuery(p) || vacPlaceName(p)) : '';
+    const timed = (uid, date, start, end, summary, more) => ev(Object.assign({ uid, start: vacIcsTime(date, start), end: vacIcsTime(date, Math.max(end, start)), summary }, more));
+    dates.forEach(d => plan.days[d].blocks.slice().sort((a, b) => a.start - b.start).forEach(b => {
+        const info = vacBlockInfo(plan, b), desc = [];
+        let loc = '', url = '', end = vacIcsTime(d, b.end), alarm = b.meal ? null : 30;
+        if (info.kind.id === 'flight') {
+            const fl = b.flight || {};
+            loc = [fl.from, fl.to].filter(Boolean).join(' \u2192 ');
+            if (fl.arriveDay > 0 && fl.arrive != null) end = vacIcsTime(vacAddDays(d, fl.arriveDay), fl.arrive);
+            if (fl.seat) desc.push('Seat ' + fl.seat);
+            if (fl.gate) desc.push(fl.gate);
+            if (fl.conf && o.conf) desc.push('Confirmation ' + fl.conf);
+            if (fl.number) desc.push('Flight status: ' + vacFlightStatusUrl(fl));
+            alarm = 120;
+        } else if (info.kind.id === 'drive') {
+            const dr = b.drive || {}, home = vacIsHome(plan, dr.from) || vacIsHome(plan, dr.to);
+            loc = vacIsHome(plan, dr.to) ? 'Home' : where(dr.to);
+            url = home ? '' : vacDriveUrl(b, plan, d);
+            if (dr.from) desc.push('From ' + (vacIsHome(plan, dr.from) ? 'Home' : where(dr.from)));
+            (dr.stops || []).filter(Boolean).forEach(s => desc.push('Stop: ' + where(s)));
+            if (url) desc.push('Directions: ' + url);
+        } else if (b.place && vacIsHome(plan, b.place)) loc = 'Home';
+        else if (b.place) {
+            loc = where(b.place);
+            url = vacPlaceUrl(b.place);
+            if (url) desc.push('Map: ' + url);
+        }
+        String(b.notes || '').split('\n').map(l => l.trim()).filter(Boolean).forEach(l => desc.push(l));
+        ev({ uid: b.id, start: vacIcsTime(d, b.start), end, summary: info.icon + ' ' + info.title, loc, url, desc, alarm, cat: info.kind.label });
+    }));
+    // Point events: checking in and out, boarding, parking, the car.
+    const point = (uid, date, t, len, summary, place, desc, alarm) => {
+        if (!date || (o.date && date !== o.date)) return;
+        if (t == null) ev({ uid, allDay: date, endDay: vacAddDays(date, 1), summary, loc: where(place), url: vacPlaceUrl(place), desc: desc || [] });
+        else timed(uid, date, t, Math.min(1440, t + len), summary, { loc: where(place), url: vacPlaceUrl(place), desc: desc || [], alarm });
+    };
+    (plan.stays || []).filter(s => s.inDate).forEach(s => {
+        const nm = vacPlaceName(s.place) || 'Stay', desc = [];
+        if (s.phone) desc.push('Phone ' + s.phone);
+        if (s.conf && o.conf) desc.push('Confirmation ' + s.conf);
+        if (vacPlaceUrl(s.place)) desc.push('Map: ' + vacPlaceUrl(s.place));
+        String(s.notes || '').split('\n').map(l => l.trim()).filter(Boolean).forEach(l => desc.push(l));
+        const outD = s.outDate && s.outDate > s.inDate ? s.outDate : vacAddDays(s.inDate, 1);
+        if (!o.date) ev({ uid: s.id + '-stay', allDay: s.inDate, endDay: outD, summary: '\uD83C\uDFE8 ' + nm, loc: where(s.place), url: vacPlaceUrl(s.place), desc });
+        point(s.id + '-in', s.inDate, s.inTime, 30, '\uD83C\uDFE8 Check in \u00B7 ' + nm, s.place, desc, 30);
+        if (s.outDate) point(s.id + '-out', s.outDate, s.outTime, 30, '\uD83C\uDFE8 Check out \u00B7 ' + nm, s.place, [], 30);
+    });
+    (plan.cruises || []).filter(c => c.boardDate).forEach(c => {
+        const ship = c.ship || 'Cruise', desc = [];
+        if (c.line) desc.push(c.line);
+        if (c.cabin) desc.push('Cabin ' + c.cabin);
+        if (c.conf && o.conf) desc.push('Confirmation ' + c.conf);
+        const leave = c.leaveDate && c.leaveDate > c.boardDate ? c.leaveDate : c.boardDate;
+        if (!o.date) ev({ uid: c.id + '-cruise', allDay: c.boardDate, endDay: vacAddDays(leave, 1), summary: '\uD83D\uDEA2 ' + ship, loc: where(c.boardPlace), url: vacPlaceUrl(c.boardPlace), desc });
+        point(c.id + '-board', c.boardDate, c.boardTime, 30, '\uD83D\uDEA2 Board ' + ship, c.boardPlace,
+            desc.concat(c.allAboard != null ? ['All aboard ' + vacTimeLabel(c.allAboard)] : []), 30);
+        if (c.allAboard != null) point(c.id + '-aboard', c.boardDate, c.allAboard, 15, '\u23F0 All aboard \u00B7 ' + ship, c.boardPlace, [], 120);
+        if (c.leaveDate && c.leaveDate !== c.boardDate) point(c.id + '-leave', c.leaveDate, c.leaveTime, 30, '\uD83D\uDEA2 Leave ' + ship, c.leavePlace || c.boardPlace, [], 30);
+        Object.keys(c.days || {}).sort().forEach(d => {
+            const day = c.days[d];
+            if (!day || !day.port || d === c.boardDate || d === c.leaveDate) return;
+            const aboard = vacAllAboard(day);
+            if (day.arrive != null) point(c.id + '-port-' + d, d, day.arrive, Math.max(15, (day.depart != null ? day.depart : day.arrive + 60) - day.arrive),
+                '\u2693 In port: ' + vacPlaceName(day.port), day.port, aboard != null ? ['All aboard ' + vacTimeLabel(aboard)] : [], 30);
+            else point(c.id + '-port-' + d, d, null, 0, '\u2693 In port: ' + vacPlaceName(day.port), day.port, []);
+            if (aboard != null) point(c.id + '-aboard-' + d, d, aboard, 15, '\u23F0 All aboard \u00B7 ' + ship, day.port, [], 120);
+        });
+    });
+    vacDates(plan).forEach(d => plan.days[d].blocks.filter(b => b.kind === 'flight').forEach(b => {
+        const nm = vacBlockInfo(plan, b).title, t = vacFlightTimes(d, b), fl = b.flight || {};
+        if (t.online) point(b.id + '-online', t.online.date, t.online.at, 15, '\u2705 Online check-in opens \u00B7 ' + nm, null,
+            [fl.conf && o.conf ? 'Confirmation ' + fl.conf : ''].filter(Boolean), 0);
+        if (t.bag) point(b.id + '-bag', d, t.bag.at, 5, '\uD83E\uDDF3 Bag drop closes \u00B7 ' + nm, vacAirportPlace(fl.from), [], 30);
+        if (t.gate) point(b.id + '-gate', d, t.gate.at, 5, '\uD83D\uDEAA Gate closes \u00B7 ' + nm, vacAirportPlace(fl.from), fl.gate ? [fl.gate] : [], 30);
+    }));
+    (plan.parking || []).forEach(pk => {
+        const lot = vacPlaceName(pk.lot) || 'Parking', desc = [];
+        if (pk.conf && o.conf) desc.push('Reservation ' + pk.conf);
+        point(pk.id + '-drop', pk.fromDate, pk.fromTime, 15, '\uD83C\uDD7F\uFE0F Drop off \u00B7 ' + lot, pk.lot, desc, 30);
+        point(pk.id + '-pick', pk.toDate, pk.toTime, 15, '\uD83C\uDD7F\uFE0F Pick up \u00B7 ' + lot, pk.lot, pk.spot ? ['Spot ' + pk.spot] : [], 30);
+    });
+    (plan.rentals || []).forEach(r => {
+        const nm = r.company || 'Rental car', desc = [];
+        if (r.car) desc.push(r.car);
+        if (r.conf && o.conf) desc.push('Confirmation ' + r.conf);
+        point(r.id + '-pick', r.pickDate, r.pickTime, 30, '\uD83D\uDE99 Pick up \u00B7 ' + nm, r.pickPlace, desc, 30);
+        point(r.id + '-drop', r.dropDate, r.dropTime, 30, '\uD83D\uDE99 Return \u00B7 ' + nm, r.dropPlace || r.pickPlace, [], 30);
+    });
+    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Toolboard//Vacation Planner//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+        'X-WR-CALNAME:' + vacIcsText(plan.name || 'Trip')];
+    events.forEach(e => {
+        lines.push('BEGIN:VEVENT', 'UID:' + vacIcsText(e.uid) + '@vacation-planner.toolboard', 'DTSTAMP:' + stamp);
+        if (e.allDay) lines.push('DTSTART;VALUE=DATE:' + vacIcsDate(e.allDay), 'DTEND;VALUE=DATE:' + vacIcsDate(e.endDay), 'TRANSP:TRANSPARENT');
+        else lines.push('DTSTART:' + e.start, 'DTEND:' + e.end);
+        lines.push('SUMMARY:' + vacIcsText(e.summary));
+        if (e.loc) lines.push('LOCATION:' + vacIcsText(e.loc));
+        if (e.url) lines.push('URL:' + e.url);
+        if (e.desc && e.desc.length) lines.push('DESCRIPTION:' + vacIcsText(e.desc.join('\n')));
+        if (e.cat) lines.push('CATEGORIES:' + vacIcsText(e.cat));
+        if (o.alarms && !e.allDay && e.alarm != null) lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + vacIcsText(e.summary),
+            'TRIGGER:' + (e.alarm ? '-PT' + (e.alarm % 60 ? e.alarm + 'M' : (e.alarm / 60) + 'H') : 'PT0M'), 'END:VALARM');
+        lines.push('END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return { text: lines.map(vacIcsFold).join('\r\n') + '\r\n', count: events.length };
+}
+
+function vacCalHtml(plan, ui) {
+    const o = ui.cal, day = plan.days[ui.view] ? ui.view : null;
+    const scope = day && o.scope === 'day' ? day : null;
+    const n = vacIcs(plan, { date: scope, alarms: o.alarms, conf: o.conf }).count;
+    return '<div class="vac-out vac-cal" role="dialog" aria-label="The plan as a calendar file">' +
+        '<div class="vac-row vac-out-bar"><b>\uD83D\uDCC5 Calendar</b>' +
+            '<select class="vac-cal-scope" onchange="vacCalOption(this)">' +
+                '<option value="trip"' + (scope ? '' : ' selected') + '>Whole trip</option>' +
+                (day ? '<option value="day"' + (scope ? ' selected' : '') + '>' + vacEsc(vacDayLabel(day, 'short')) + ' only</option>' : '') +
+            '</select>' +
+            '<label class="vac-check" title="2 hours before a flight or all aboard, 30 minutes before the rest; none for meals"><input type="checkbox" class="vac-cal-alarms"' + (o.alarms ? ' checked' : '') + ' onchange="vacCalOption(this)"> Reminders</label>' +
+            '<label class="vac-check" title="Flight, stay, cruise, parking and rental bookings: left out unless wanted, as a calendar is often shared"><input type="checkbox" class="vac-cal-conf"' + (o.conf ? ' checked' : '') + ' onchange="vacCalOption(this)"> Include booking numbers</label>' +
+            '<span class="vac-out-gap"></span>' +
+            '<button class="vac-icon vac-out-close vac-cal-close" onclick="vacCalToggle(this)" title="Close">\u00D7</button>' +
+        '</div>' +
+        '<div class="vac-cal-body"><p><b class="vac-cal-count">' + n + '</b> event' + (n === 1 ? '' : 's') + ', as an .ics file that Google Calendar, Apple Calendar and Outlook open.</p>' +
+            '<button class="vac-btn vac-cal-download"' + (n ? '' : ' disabled') + ' onclick="vacCalDownload(this)">\u2B07\uFE0F Download .ics</button>' +
+            '<div class="vac-hint">Times are local: 3:00 PM shows at 3:00 PM wherever the calendar is. Importing again updates the events rather than adding them twice, in most calendars.</div></div>' +
+        '</div>';
+}
+
+function vacCalToggle(el) {
+    vacMutate(el, (plan, ui) => { ui.cal = ui.cal ? null : { scope: 'trip', alarms: true, conf: false }; if (ui.cal) { ui.out = null; ui.warn = null; } return false; });
+}
+
+function vacCalOption(el) {
+    const bar = el.closest('.vac-cal');
+    vacMutate(el, (plan, ui) => {
+        ui.cal = { scope: bar.querySelector('.vac-cal-scope').value, alarms: bar.querySelector('.vac-cal-alarms').checked, conf: bar.querySelector('.vac-cal-conf').checked };
+        return false;
+    });
+}
+
+/** A file name from the trip's name. */
+function vacFileName(plan, date) {
+    const base = String(plan.name || 'trip').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trip';
+    return base + (date ? '-' + date : '');
+}
+
+function vacCalDownload(btn) {
+    const widget = vacGetWidget(btn), toolId = vacGetToolId(widget), plan = vacGetData(toolId), ui = vacUiOf(toolId);
+    const date = ui.cal && ui.cal.scope === 'day' && plan.days[ui.view] ? ui.view : null;
+    const { text } = vacIcs(plan, { date, alarms: ui.cal && ui.cal.alarms, conf: ui.cal && ui.cal.conf });
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = vacFileName(plan, date) + '.ics';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Export as PDF: the plan as it reads, rather than the schedule's grid, which does not fit a page. */
+function vacPrintHtml(toolId) {
+    const plan = vacGetData(toolId);
+    const md = vacMarkdown(plan, { lists: true, conf: false });
+    return vacMdHtml(md) || '<pre>' + vacEsc(md) + '</pre>';
+}
+
+/** Text in a Markdown link's label, its brackets kept as text. */
+function vacMdText(s) { return String(s || '').replace(/([\\\[\]])/g, '\\$1'); }
+
+function vacMdLink(label, url) {
+    return url ? '[' + vacMdText(label) + '](' + url.replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/ /g, '%20') + ')' : vacMdText(label);
+}
+
+/**
+ * The plan as a Markdown bullet list: the trip, then each day's blocks in time
+ * order — its time, what, which meal, where (a Maps link) and ✓ when done, its notes
+ * under it — the day's route and its own list; then the checklists, when wanted.
+ * opts.date gives that day alone; opts.lists false leaves the checklists out.
+ */
+function vacMarkdown(plan, opts) {
+    const o = opts || {};
+    const dates = vacDates(plan).filter(d => !o.date || d === o.date);
+    const all = vacDates(plan);
+    const out = ['# ' + (plan.name || 'Trip')];
+    const sub = [];
+    if (all.length) sub.push(vacDayLabel(all[0], 'short') + (all.length > 1 ? ' – ' + vacDayLabel(all[all.length - 1], 'short') : ''));
+    if (sub.length) out.push('', sub.join(' · '));
+    const items = (list) => list.map(it => '- [' + (it.done ? 'x' : ' ') + '] ' + it.text);
+    const isHome = (p) => vacIsHome(plan, p);
+    const nameOf = (p) => isHome(p) ? 'Home' : vacPlaceName(p);
+    if (all.length && !o.date) ['out', 'back'].forEach(which => {
+        const { steps } = vacJourneyPlan(plan, which);
+        if (!steps.some(st => st.kind)) return;
+        out.push('', which === 'out' ? '## Getting there' : '## Getting back');
+        let last = null;
+        steps.forEach(st => {
+            if (!st.date || st.leg === 'home') { last = null; out.push('- ' + st.icon + ' ' + (st.leg === 'home' ? 'Home' : vacMdText(st.title))); return; }
+            if (st.date !== last) { last = st.date; out.push('- ' + vacDayLabel(st.date, 'short')); }
+            out.push('  - ' + st.icon + ' ' + (vacStepTimes(st) ? vacStepTimes(st) + ' \u00B7 ' : '') + vacMdText(st.title));
+        });
+    });
+    const when = (date, t) => vacDayLabel(date, 'short') + (t != null ? ' ' + vacTimeLabel(t) : '');
+    dates.forEach(d => {
+        const day = plan.days[d];
+        out.push('', '## ' + vacMdText(vacDayName(plan, d, 'long')));
+        vacDayEvents(plan, d).forEach(e => out.push('- ' + e.icon + ' ' + vacMdText(e.text)));
+        const gaps = vacGaps(plan, d);
+        day.blocks.slice().sort((a, b) => a.start - b.start || a.end - b.end).forEach(b => {
+            const info = vacBlockInfo(plan, b);
+            let line = '- ' + info.icon + ' ' + info.times + ' · ' + vacMdText(info.title) + (info.meal ? ' (' + info.meal.key.toUpperCase() + ')' : '');
+            const sublines = [];
+            if (info.kind.id === 'flight') {
+                const fl = b.flight || {};
+                if (info.where) line += ' · ' + vacMdText(info.where);
+                if (fl.seat) line += ' · Seat ' + vacMdText(fl.seat);
+                if (fl.gate) line += ' · ' + vacMdText(fl.gate);
+                if (fl.conf && o.conf) line += ' · Confirmation ' + vacMdText(fl.conf);
+                if (fl.number) line += ' · ' + vacMdLink('Flight status', vacFlightStatusUrl(fl));
+            } else if (info.kind.id === 'drive') {
+                const dr = b.drive || {}, home = isHome(dr.from) || isHome(dr.to);
+                const where = [dr.from, dr.to].filter(Boolean).map(nameOf).join(' \u2192 '), url = home ? '' : vacDriveUrl(b, plan, d);
+                if (where || url) line += ' · ' + vacMdLink(where || 'Directions', url);
+                ((b.drive || {}).stops || []).filter(Boolean).forEach(st => sublines.push('Stop: ' + vacMdLink(vacPlaceText(st) || vacPlaceName(st), vacPlaceUrl(st))));
+            } else {
+                const where = isHome(b.place) ? 'Home' : b.place ? vacPlaceText(b.place) || vacPlaceName(b.place) : '';
+                if (where) line += ' · ' + vacMdLink(where, isHome(b.place) ? '' : vacPlaceUrl(b.place));
+            }
+            out.push(line + (b.done ? ' ✓' : ''));
+            sublines.concat(String(b.notes || '').split('\n').map(l => l.trim()).filter(Boolean)).forEach(l => out.push('  - ' + l));
+            gaps.filter(g => g.a === b && g.min != null && !g.estimate).forEach(g => out.push('  - \u21B3 ' + vacGapMode(g.mode).icon + ' ' + vacDur(g.min) + ' to ' + vacMdText(g.toName)));
+        });
+        if (!day.blocks.length) out.push('- Nothing planned');
+        const homeStop = plan.home ? vacRouteStop(plan.home) : null;
+        const route = vacRouteUrl(vacRouteStops(plan, d).filter(x => x !== homeStop));
+        if (route) out.push('- \uD83D\uDDFA\uFE0F Route for the day: ' + vacMdLink('Google Maps', route));
+        const wear = vacWearGroups(plan, day);
+        if (wear.length === 1 && !wear[0].person) out.push('- \uD83D\uDC55 Wear: ' + vacMdText(vacWearText(wear[0])));
+        else if (wear.length) out.push('- \uD83D\uDC55 Wear:', ...wear.map(g => '  - ' + vacMdText(vacWhoName(g.person)) + ' — ' + vacMdText(vacWearText(g))));
+        if (day.list.length) out.push('- \u2611\uFE0F To do:', ...items(day.list).map(l => '  ' + l));
+    });
+    if (!all.length) out.push('', 'No dates yet.');
+    const stays = (plan.stays || []).filter(st => st.place && (!o.date || (st.inDate <= o.date && (st.outDate || st.inDate) >= o.date)));
+    if (stays.length) {
+        out.push('', '## Stay');
+        stays.forEach(st => {
+            out.push('- \uD83C\uDFE8 ' + vacMdLink(vacPlaceText(st.place) || vacPlaceName(st.place), vacPlaceUrl(st.place)) +
+                (st.inDate ? ' \u00B7 ' + when(st.inDate, st.inTime) : '') + (st.outDate ? ' \u2013 ' + when(st.outDate, st.outTime) : '') +
+                (st.phone ? ' \u00B7 \uD83D\uDCDE ' + vacMdText(st.phone) : '') + 
+                (st.conf && o.conf ? ' \u00B7 Confirmation ' + vacMdText(st.conf) : ''));
+            String(st.notes || '').split('\n').map(l => l.trim()).filter(Boolean).forEach(l => out.push('  - ' + l));
+        });
+    }
+    const parking = (plan.parking || []).filter(pk => !o.date || pk.fromDate === o.date || pk.toDate === o.date);
+    if (parking.length) {
+        out.push('', '## Parking');
+        parking.forEach(pk => out.push('- 🅿️ ' + (pk.lot ? vacMdLink(vacPlaceText(pk.lot) || vacPlaceName(pk.lot), vacPlaceUrl(pk.lot)) : 'Parking') +
+            (pk.fromDate ? ' · Drop off ' + when(pk.fromDate, pk.fromTime) : '') +
+            (pk.toDate ? ' · Pick up ' + when(pk.toDate, pk.toTime) : '') +
+            (pk.spot ? ' · Parked at ' + vacMdText(pk.spot) : '') +
+            (pk.conf && o.conf ? ' · Reservation ' + vacMdText(pk.conf) : '')));
+    }
+    const cruises = (plan.cruises || []).filter(c => c.boardDate && (!o.date || (c.boardDate <= o.date && (c.leaveDate || c.boardDate) >= o.date)));
+    if (cruises.length) {
+        out.push('', '## Cruise');
+        cruises.forEach(c => {
+            const at = (p) => p ? ' ' + vacMdLink(vacPlaceText(p) || vacPlaceName(p), vacPlaceUrl(p)) : '';
+            out.push('- \uD83D\uDEA2 ' + vacMdText([c.ship, c.line].filter(Boolean).join(' \u00B7 ') || 'Cruise') + (c.cabin ? ' \u00B7 Cabin ' + vacMdText(c.cabin) : '') +
+                ' \u00B7 Board' + at(c.boardPlace) + ' ' + when(c.boardDate, c.boardTime) + (c.allAboard != null ? ' (all aboard ' + vacTimeLabel(c.allAboard) + ')' : '') +
+                (c.leaveDate ? ' \u00B7 Leave' + at(c.leavePlace) + ' ' + when(c.leaveDate, c.leaveTime) : '') +
+(c.conf && o.conf ? ' \u00B7 Booking ' + vacMdText(c.conf) : ''));
+            for (let d = vacAddDays(c.boardDate, 1), n = 0; c.leaveDate && d < c.leaveDate && n < VAC_MAX_DAYS; d = vacAddDays(d, 1), n++) {
+                if (o.date && d !== o.date) continue;
+                const day = (c.days || {})[d];
+                out.push('  - ' + (day && day.port ? '\u2693 ' + vacDayLabel(d, 'short') + ' \u00B7' + at(day.port) +
+                    (day.arrive != null ? ' ' + vacTimeLabel(day.arrive) + (day.depart != null ? '\u2013' + vacTimeLabel(day.depart) : '') : '') +
+                    (vacAllAboard(day) != null ? ', all aboard ' + vacTimeLabel(vacAllAboard(day)) : '') : '\uD83C\uDF0A ' + vacDayLabel(d, 'short') + ' \u00B7 At sea'));
+            }
+            String(c.notes || '').split('\n').map(l => l.trim()).filter(Boolean).forEach(l => out.push('  - ' + l));
+        });
+    }
+    const rentals = (plan.rentals || []).filter(r => !o.date || (r.pickDate <= o.date && (r.dropDate || r.pickDate) >= o.date));
+    if (rentals.length) {
+        out.push('', '## Car rental');
+        rentals.forEach(r => {
+            const at = (p) => p ? ' ' + vacMdLink(vacPlaceText(p) || vacPlaceName(p), vacPlaceUrl(p)) : '';
+            out.push('- \uD83D\uDE99 ' + vacMdText([r.company, r.car].filter(Boolean).join(' \u00B7 ') || 'Rental car') +
+                (r.pickDate ? ' \u00B7 Pick up' + at(r.pickPlace) + ' ' + when(r.pickDate, r.pickTime) : '') +
+                (r.dropDate ? ' \u00B7 Return' + (r.dropPlace ? at(r.dropPlace) : '') + ' ' + when(r.dropDate, r.dropTime) : '') +
+(r.conf && o.conf ? ' \u00B7 Confirmation ' + vacMdText(r.conf) : ''));
+            String(r.notes || '').split('\n').map(l => l.trim()).filter(Boolean).forEach(l => out.push('  - ' + l));
+        });
+    }
+    if (o.lists !== false) plan.lists.filter(l => l.items.length).forEach(l => out.push('', '## ' + l.name, ...items(l.items)));
+    return out.join('\n') + '\n';
+}
+
+function vacOutHtml(plan, ui) {
+    const o = ui.out, day = plan.days[ui.view] ? ui.view : null;
+    const scope = day && o.scope === 'day' ? day : null;
+    const md = vacMarkdown(plan, { date: scope, lists: o.lists, conf: o.conf }), html = vacMdHtml(md);
+    const view = o.view === 'md' || html == null ? 'md' : 'preview';
+    const seg = (v, label) => '<button class="vac-out-view' + (view === v ? ' vac-on' : '') + '" data-v="' + v + '" onclick="vacOutView(this)"' +
+        (v === 'preview' && html == null ? ' disabled title="The Markdown library did not load"' : '') + '>' + label + '</button>';
+    return '<div class="vac-out" role="dialog" aria-label="The plan as a bullet list">' +
+        '<div class="vac-row vac-out-bar"><b>Bullet list</b>' +
+            '<span class="vac-out-views" role="group">' + seg('preview', 'Preview') + seg('md', 'Markdown') + '</span>' +
+            '<select class="vac-out-scope" onchange="vacOutOption(this)">' +
+                '<option value="trip"' + (scope ? '' : ' selected') + '>Whole trip</option>' +
+                (day ? '<option value="day"' + (scope ? ' selected' : '') + '>' + vacEsc(vacDayLabel(day, 'short')) + ' only</option>' : '') +
+            '</select>' +
+            '<label class="vac-check"><input type="checkbox" class="vac-out-lists"' + (o.lists ? ' checked' : '') + ' onchange="vacOutOption(this)"> Include lists</label>' +
+            '<label class="vac-check" title="Flight confirmations and parking reservations: left out unless wanted, as a list is often passed on"><input type="checkbox" class="vac-out-conf"' + (o.conf ? ' checked' : '') + ' onchange="vacOutOption(this)"> Include confirmation numbers</label>' +
+            '<span class="vac-out-gap"></span>' +
+            '<button class="vac-btn vac-out-copy-rich" onclick="vacOutCopyRich(this)" title="Headings, bullets and links, to paste into a chat or an email; plain text where formatting is not taken"' +
+                (html == null ? ' disabled' : '') + '>Copy formatted</button>' +
+            '<button class="vac-btn vac-out-copy" onclick="vacOutCopy(this)" title="The Markdown itself">Copy Markdown</button>' +
+            '<button class="vac-icon vac-out-close" onclick="vacOutToggle(this)" title="Close">×</button>' +
+        '</div>' +
+        (html == null && o.view !== 'md' ? '<div class="vac-hint">The preview needs the Markdown library, which did not load: here is the Markdown.</div>' : '') +
+        '<div class="vac-out-preview markdown-content"' + (view === 'preview' ? '' : ' hidden') + '>' + (html || '') + '</div>' +
+        '<textarea class="vac-out-text" readonly spellcheck="false"' + (view === 'md' ? '' : ' hidden') + '>' + vacEsc(md) + '</textarea>' +
+        '</div>';
+}
+
+/** The bullet list as HTML: its own text escaped first, so a name is never markup; boxes as ☐ and ☑, which paste anywhere. Null without marked. */
+function vacMdHtml(md) {
+    if (typeof marked === 'undefined' || !marked.parse) return null;
+    const src = String(md).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/^(\s*)- \[ \] /gm, '$1- ☐ ').replace(/^(\s*)- \[x\] /gm, '$1- ☑ ');
+    let html;
+    try { html = marked.parse(src, { gfm: true, breaks: false }); } catch (e) { return null; }
+    const t = document.createElement('template');
+    t.innerHTML = html;
+    t.content.querySelectorAll('a').forEach(a => {
+        if (!/^https?:\/\//i.test(a.getAttribute('href') || '')) a.removeAttribute('href');
+        else { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+    });
+    return t.innerHTML;
+}
+
+/**
+ * The bullet list as plain text, for a chat that takes no formatting: headings as
+ * lines of their own, • and ◦ for bullets, ☐ and ☑ for boxes, a link as its name and
+ * then its address.
+ */
+function vacMdPlain(md) {
+    const unesc = (s) => s.replace(/\\([\\\[\]])/g, '$1');
+    const link = (s) => s.replace(/\[((?:\\.|[^\]\\])*)\]\(([^)\s]+)\)/g, (m, label, url) => {
+        const l = unesc(label);
+        return l === url ? url : l + ' – ' + url;
+    });
+    return String(md).split('\n').map(line => {
+        const h = /^(#{1,6})\s+(.*)$/.exec(line);
+        if (h) return unesc(link(h[2]));
+        const b = /^(\s*)- (.*)$/.exec(line);
+        if (!b) return unesc(link(line));
+        const depth = Math.floor(b[1].length / 2);
+        const body = b[2].replace(/^\[ \] /, '☐ ').replace(/^\[x\] /, '☑ ');
+        return '    '.repeat(depth) + (depth ? '◦ ' : '• ') + unesc(link(body));
+    }).join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
+function vacOutView(btn) { vacMutate(btn, (plan, ui) => { if (ui.out) ui.out.view = btn.dataset.v; return false; }); }
+
+function vacOutToggle(el) {
+    vacMutate(el, (plan, ui) => {
+        ui.out = ui.out ? null : { scope: 'trip', lists: true, conf: false, view: 'preview' };
+        if (ui.out) { ui.cal = null; ui.warn = null; }
+        return false;
+    });
+}
+
+function vacOutOption(el) {
+    const bar = el.closest('.vac-out');
+    vacMutate(el, (plan, ui) => {
+        ui.out = { scope: bar.querySelector('.vac-out-scope').value, lists: bar.querySelector('.vac-out-lists').checked,
+            conf: bar.querySelector('.vac-out-conf').checked, view: (ui.out || {}).view || 'preview' };
+        return false;
+    });
+}
+
+async function vacOutCopy(btn) {
+    const text = btn.closest('.vac-out').querySelector('.vac-out-text');
+    let done = false;
+    try { await navigator.clipboard.writeText(text.value); done = true; } catch (e) {
+        text.select();
+        try { done = document.execCommand('copy'); } catch (e2) { done = false; }
+    }
+    btn.textContent = done ? 'Copied' : 'Select and copy';
+    setTimeout(() => { btn.textContent = 'Copy Markdown'; }, 1500);
+}
+
+/** The list as it reads: HTML where formatting is taken, plain text where it is not. */
+async function vacOutCopyRich(btn) {
+    const box = btn.closest('.vac-out'), md = box.querySelector('.vac-out-text').value, html = vacMdHtml(md);
+    if (html == null) return;
+    const plain = vacMdPlain(md);
+    let done = false;
+    try {
+        await navigator.clipboard.write([new ClipboardItem({
+            'text/html': new Blob(['<meta charset="utf-8">' + html], { type: 'text/html' }),
+            'text/plain': new Blob([plain], { type: 'text/plain' })
+        })]);
+        done = true;
+    } catch (e) {
+        // No rich clipboard: the preview itself, selected and copied.
+        const pv = box.querySelector('.vac-out-preview'), was = pv.hidden;
+        pv.hidden = false;
+        const r = document.createRange(), sel = window.getSelection();
+        r.selectNodeContents(pv);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        try { done = document.execCommand('copy'); } catch (e2) { done = false; }
+        sel.removeAllRanges();
+        pv.hidden = was;
+    }
+    btn.textContent = done ? 'Copied' : 'Could not copy';
+    setTimeout(() => { btn.textContent = 'Copy formatted'; }, 1500);
+}
+
+/**
+ * The main pane drawn again, touching only what changed: on a day, its header and
+ * its grid each only if different, so a click on the one that ended an edit in the
+ * other still lands.
+ */
+function vacSwapMain(main, html) {
+    const t = document.createElement('div');
+    t.innerHTML = html;
+    const next = t.firstElementChild;
+    if (next.outerHTML === main.outerHTML) return;
+    if (main.dataset.view === next.dataset.view && main.querySelector('.vac-day-head') && next.querySelector('.vac-day-head')) {
+        ['.vac-day-head', '.vac-grid-wrap'].forEach(sel => {
+            const a = main.querySelector(sel), b = next.querySelector(sel);
+            if (a && b && a.outerHTML !== b.outerHTML) a.replaceWith(b);
+        });
+        return;
+    }
+    main.replaceWith(next);
+}
+
+function vacPxOf(ui, view) { return Math.max(view === 'day' ? VAC_PX : VAC_TRIP_PX, (ui.px || {})[view] || 0); }
+
+/**
+ * The hours stretched to the height there is: after drawing, how much room the grid
+ * has below what sits above it; if that gives another scale, it is kept for the view
+ * and drawn again. Returns whether it changed.
+ */
+function vacFit(widget, ui) {
+    const main = widget.querySelector('.vac-main');
+    const view = ui.view === 'trip' ? 'trip' : /^\d{4}-/.test(ui.view) ? 'day' : null;
+    if (!main || !view || !main.clientHeight) return false;
+    const grid = main.querySelector(view === 'day' ? '.vac-grid' : '.vac-taxis .vac-tgrid');
+    if (!grid) return false;
+    const hours = view === 'day' ? (+grid.dataset.h1 - +grid.dataset.h0) : +grid.dataset.hours;
+    if (!hours) return false;
+    // Room below the grid's top, less what follows it inside the pane.
+    const top = grid.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop;
+    const below = view === 'day' ? 12 : 8;
+    const px = Math.max(view === 'day' ? VAC_PX : VAC_TRIP_PX, Math.floor((main.clientHeight - top - below) / hours));
+    ui.px = ui.px || {};
+    if (Math.abs((ui.px[view] || 0) - px) < 1) return false;
+    ui.px[view] = px;
+    return true;
+}
+
+/** The trip-wide tabs in the order chosen: any not placed yet (a new one, say) after, in their own order. */
+function vacTabOrder(plan) {
+    const known = ['trip'].concat(VAC_PANES.map(x => x.id));
+    const saved = (plan.tabOrder || []).filter((id, i, a) => known.includes(id) && a.indexOf(id) === i);
+    return saved.concat(known.filter(id => !saved.includes(id)));
+}
+
+function vacTabLabel(id) { return id === 'trip' ? 'Trip' : (VAC_PANES.find(x => x.id === id) || {}).label || id; }
+
+/** A tab moved to before or after another; kept with the plan. */
+function vacMoveTab(el, from, to, after) {
+    vacMutate(el, (plan) => {
+        if (from === to) return 'none';
+        const order = vacTabOrder(plan).filter(x => x !== from), i = order.indexOf(to);
+        if (i < 0) return 'none';
+        order.splice(after ? i + 1 : i, 0, from);
+        plan.tabOrder = order;
+    });
+}
+
+function vacTabDragStart(e) {
+    e.dataTransfer.setData('text/plain', 'vac-tab:' + e.currentTarget.dataset.view);
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.classList.add('vac-tab-dragging');
+}
+
+function vacTabSide(e) { const r = e.currentTarget.getBoundingClientRect(); return e.clientX > r.left + r.width / 2; }
+
+function vacTabDragOver(e) {
+    if (!Array.from(e.dataTransfer.types || []).includes('text/plain')) return;
+    e.preventDefault();
+    const after = vacTabSide(e);
+    e.currentTarget.classList.toggle('vac-drop-before', !after);
+    e.currentTarget.classList.toggle('vac-drop-after', after);
+}
+
+function vacTabDragLeave(e) { e.currentTarget.classList.remove('vac-drop-before', 'vac-drop-after'); }
+
+function vacTabDrop(e) {
+    const data = e.dataTransfer.getData('text/plain') || '';
+    if (data.indexOf('vac-tab:') !== 0) return;
+    e.preventDefault();
+    const t = e.currentTarget;
+    t.classList.remove('vac-drop-before', 'vac-drop-after');
+    vacMoveTab(t, data.slice(8), t.dataset.view, vacTabSide(e));
+}
+
+function vacTabDragEnd(e) {
+    const w = vacGetWidget(e.currentTarget);
+    if (w) w.querySelectorAll('.vac-tab-dragging, .vac-drop-before, .vac-drop-after').forEach(x => x.classList.remove('vac-tab-dragging', 'vac-drop-before', 'vac-drop-after'));
+}
+
+/** Alt+← and Alt+→ move the tab with the focus, which keeps it. */
+function vacTabKey(e) {
+    if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+    e.preventDefault();
+    const id = e.currentTarget.dataset.view, widget = vacGetWidget(e.currentTarget);
+    vacMutate(e.currentTarget, (plan) => {
+        const order = vacTabOrder(plan), i = order.indexOf(id), j = i + (e.key === 'ArrowLeft' ? -1 : 1);
+        if (i < 0 || j < 0 || j >= order.length) return 'none';
+        order.splice(i, 1);
+        order.splice(j, 0, id);
+        plan.tabOrder = order;
+    });
+    const tab = widget.querySelector('.vac-tab[data-view="' + id + '"]');
+    if (tab) tab.focus();
+}
+
+/** Draws the planner. With side: false only the day is drawn again, so a field being moved to keeps its place. */
+function vacRender(widget, opts) {
+    const toolId = vacGetToolId(widget);
+    if (!toolId) return;
+    const plan = vacGetData(toolId), dates = vacDates(plan), ui = vacUiOf(toolId);
+    ui.toolId = toolId;
+    if (ui.view !== 'trip' && !VAC_PANES.some(x => x.id === ui.view) && !dates.includes(ui.view)) ui.view = 'trip';
+    const isDay = dates.includes(ui.view);
+    if (ui.sel && !vacFind(plan, ui.sel)) ui.sel = null;
+    // The side panel is the chosen block's, and is there only on a day.
+    const keepSide = opts && opts.side === false && widget.querySelector('.vac-side') && isDay;
+    // head: false keeps only the header, being typed in, and draws the rest again.
+    const keepHead = opts && opts.head === false && widget.querySelector('.vac-head-wrap');
+    const main = widget.querySelector('.vac-main'), side = widget.querySelector('.vac-side');
+    const scroll = main && main.dataset.view === ui.view ? [main.scrollTop, main.scrollLeft] : null;
+    const sideScroll = side ? side.scrollTop : 0;
+    // Lists, places and travel are wanted before there are dates; the days come with them.
+    const tabs = '<div class="vac-tabs">' +
+        vacTabOrder(plan).map(id => '<button class="vac-tab' + (ui.view === id ? ' vac-on' : '') + '" data-view="' + id + '" draggable="true" ' +
+            'onclick="vacView(this)" ondragstart="vacTabDragStart(event)" ondragover="vacTabDragOver(event)" ondragleave="vacTabDragLeave(event)" ' +
+            'ondrop="vacTabDrop(event)" ondragend="vacTabDragEnd(event)" onkeydown="vacTabKey(event)" title="Drag to move it, or Alt+\u2190 / Alt+\u2192">' +
+            vacTabLabel(id) + '</button>').join('') +
+        '<span class="vac-tabsep"></span>' +
+        dates.map(d => '<button class="vac-tab' + (ui.view === d ? ' vac-on' : '') + '" data-view="' + d + '" onclick="vacView(this)" title="' +
+            vacEsc(vacDayName(plan, d, 'long')) + '">' + vacEsc(vacTabText(plan, d)) + '</button>').join('') + '</div>';
+    const mainHtml = '<div class="vac-main" data-view="' + ui.view + '">' + (ui.view === 'trip' ? vacTripHtml(plan, dates, ui) : ui.view === 'clothes' ? vacClothesHtml(plan, ui)
+        : ui.view === 'travel' ? '<div class="vac-pane">' + vacTravelHtml(plan, ui) + '</div>'
+        : ui.view === 'people' ? '<div class="vac-pane">' + vacPeopleHtml(plan) + '</div>'
+        : ui.view === 'stay' ? '<div class="vac-pane">' + vacStaysHtml(plan, ui) + '</div>'
+        : ui.view === 'cruise' ? '<div class="vac-pane vac-pane-wide">' + vacCruisesHtml(plan, ui) + '</div>'
+        : ui.view === 'places' ? '<div class="vac-pane">' + vacPlacesHtml(plan, ui) + '</div>'
+        : ui.view === 'lists' ? '<div class="vac-pane">' + vacListsHtml(plan, ui) + '</div>'
+        : ui.view === 'meals' ? '<div class="vac-pane">' + vacMealsHtml(plan) + '</div>'
+        : ui.view === 'budget' ? '<div class="vac-pane vac-pane-wide">' + vacBudgetHtml(plan) + '</div>'
+        : vacDayHtml(plan, ui.view, ui)) + '</div>';
+    if (keepHead) {
+        vacSwapMain(main, mainHtml);
+        const sideEl = widget.querySelector('.vac-side');
+        if (sideEl) { sideEl.innerHTML = vacSideHtml(plan, dates, ui); sideEl.scrollTop = sideScroll; }
+        widget.querySelector('.vac-places-list').outerHTML = vacPlacesDatalist(plan, ui);
+    } else if (keepSide) {
+        // An edit to the chosen block changes only the day: the header and the
+        // panel stay, so a click that ended the edit lands on what it was aimed at.
+        vacSwapMain(main, mainHtml);
+    } else {
+        widget.innerHTML = '<div class="vac-head-wrap">' + vacHeadHtml(plan, ui) + tabs + '</div>' +
+            '<div class="vac-body">' + mainHtml + (isDay ? '<div class="vac-side">' + vacSideHtml(plan, dates, ui) + '</div>' : '') +
+            (ui.out ? vacOutHtml(plan, ui) : '') + (ui.cal ? vacCalHtml(plan, ui) : '') + (ui.warn ? vacWarnHtml(plan, ui) : '') + '</div>' + vacPlacesDatalist(plan, ui);
+        if (isDay) widget.querySelector('.vac-side').scrollTop = sideScroll;
+    }
+    if (keepHead || keepSide) {
+        // An open bullet list keeps up, its controls left where they are.
+        const outText = widget.querySelector('.vac-out-text');
+        if (outText) {
+            const day = ui.out && ui.out.scope === 'day' && plan.days[ui.view] ? ui.view : null;
+            outText.value = vacMarkdown(plan, { date: day, lists: ui.out.lists, conf: ui.out.conf });
+            const pv = widget.querySelector('.vac-out-preview'), html = vacMdHtml(outText.value);
+            if (pv && html != null) pv.innerHTML = html;
+        }
+        // The header was kept: its warnings' count, the open warnings and calendar keep up.
+        const slot = widget.querySelector('.vac-warn-slot'), btnHtml = vacWarnBtnHtml(plan, ui);
+        if (slot && slot.innerHTML !== btnHtml) slot.innerHTML = btnHtml;
+        const list = widget.querySelector('.vac-warn-list');
+        if (list) list.innerHTML = vacWarnRowsHtml(plan, ui);
+        const count = widget.querySelector('.vac-cal-count');
+        if (count && ui.cal) count.textContent = vacIcs(plan, { date: ui.cal.scope === 'day' && plan.days[ui.view] ? ui.view : null }).count;
+    }
+    const nextMain = widget.querySelector('.vac-main');
+    if (scroll) { nextMain.scrollTop = scroll[0]; nextMain.scrollLeft = scroll[1]; }
+    // Hours that fill the height: once more if the room asks for another scale.
+    if (!(opts && opts.fitted) && vacFit(widget, ui)) vacRender(widget, Object.assign({}, opts, { fitted: true }));
+}
+
+/**
+ * The common path of an edit: read the plan, change it, save it, draw it. fn
+ * returns false for a change that is not saved (what is being looked at), and
+ * 'none' to leave everything as it is.
+ */
+function vacMutate(el, fn, opts) {
+    const widget = vacGetWidget(el), toolId = widget && vacGetToolId(widget);
+    if (!toolId) return;
+    const plan = vacGetData(toolId), ui = vacUiOf(toolId);
+    const r = fn(plan, ui, widget);
+    if (r === 'none') return;
+    if (r !== false) vacSaveData(toolId, plan);
+    if (opts && opts.draw === false) return;
+    vacRender(widget, opts);
+}
+
+function vacSetName(el) { vacMutate(el, (plan) => { plan.name = el.value.trim(); }); }
+
+/** Where the trip is: the rest drawn again, the header (being typed in) kept. */
+function vacSetDest(el) { vacMutate(el, (plan) => { plan.destination = el.value.trim(); }, { head: false }); }
+
+function vacSetDates(el) {
+    vacMutate(el, (plan, ui, widget) => {
+        let start = widget.querySelector('.vac-start').value, end = widget.querySelector('.vac-end').value;
+        if (!start && end && el.classList.contains('vac-end')) start = end;
+        if (!start) end = '';
+        if (start && (!end || end < start)) end = start;
+        const next = vacDates({ start, end });
+        if (next.length) end = next[next.length - 1];
+        const gone = Object.keys(plan.days).filter(d => !next.includes(d));
+        const busy = gone.filter(d => vacHasPlans(plan, plan.days[d])).sort();
+        if (busy.length && !window.confirm('Leave out ' + (busy.length === 1 ? vacDayLabel(busy[0], 'long') : busy.length + ' days') +
+            ', and what is planned on ' + (busy.length === 1 ? 'it' : 'them') + '?')) return false;
+        gone.forEach(d => delete plan.days[d]);
+        plan.start = start;
+        plan.end = end;
+        vacEnsureDays(plan);
+    });
+}
+
+
+/**
+ * An amount typed as text, as a number: "$1,240", "€85.50", "1.240,50", "85". A comma
+ * is the decimal point when it is the last separator and has one or two digits after
+ * it. Null when there is no number in it ("free", "included").
+ */
+function vacMoney(text) {
+    let t = String(text == null ? '' : text).replace(/[^\d.,-]/g, '');
+    if (!/\d/.test(t)) return null;
+    const lastC = t.lastIndexOf(','), lastD = t.lastIndexOf('.');
+    if (lastC > lastD && /^,\d{1,2}$/.test(t.slice(lastC))) t = t.slice(0, lastC).replace(/[.,]/g, '') + '.' + t.slice(lastC + 1);
+    else if (lastD > lastC && lastC >= 0) t = t.replace(/,/g, '');
+    else t = t.replace(/,/g, '');
+    if ((t.match(/\./g) || []).length > 1) { const i = t.lastIndexOf('.'); t = t.slice(0, i).replace(/\./g, '') + t.slice(i); }
+    const n = parseFloat(t);
+    return isFinite(n) ? n : null;
+}
+
+/** An amount with the trip's currency: $1,240 or $85.50. */
+function vacMoneyText(plan, n) {
+    const cents = Math.round(n * 100) % 100 !== 0;
+    const cur = plan.currency == null ? '$' : plan.currency;
+    return (n < 0 ? '−' : '') + cur + (/^[A-Za-z]{2,}$/.test(cur) ? ' ' : '') +
+        Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: 2 });
+}
+
+/** Every cost in the plan, from where it was typed: stays, parking, rentals, cruises, blocks, and lines of its own. */
+function vacBudgetLines(plan) {
+    const out = [], add = (x) => { if (String(x.text || '').trim()) out.push(Object.assign({ amount: vacMoney(x.text) }, x)); };
+    (plan.stays || []).forEach(s => add({ src: 'stay', id: s.id, label: vacPlaceName(s.place) || 'Stay', cat: 'stay', date: s.inDate, at: s.inTime, text: s.cost, paid: !!s.paid, view: 'stay:stays' }));
+    (plan.parking || []).forEach(pk => add({ src: 'parking', id: pk.id, label: 'Parking' + (pk.lot ? ' · ' + vacPlaceName(pk.lot) : ''), cat: 'travel', date: pk.fromDate, at: pk.fromTime, text: pk.cost, paid: !!pk.paid, view: 'travel:parking' }));
+    (plan.rentals || []).forEach(r => add({ src: 'rental', id: r.id, label: 'Car rental' + (r.company ? ' · ' + r.company : ''), cat: 'travel', date: r.pickDate, at: r.pickTime, text: r.cost, paid: !!r.paid, view: 'travel:rental' }));
+    (plan.cruises || []).forEach(c => add({ src: 'cruise', id: c.id, label: c.ship || 'Cruise', cat: 'cruise', date: c.boardDate, at: c.boardTime, text: c.cost, paid: !!c.paid, view: 'cruise' }));
+    vacDates(plan).forEach(d => plan.days[d].blocks.slice().sort((a, b) => a.start - b.start).forEach(b => add({ src: 'block', id: b.id, label: vacBlockInfo(plan, b).title,
+        cat: b.kind === 'food' ? 'food' : b.kind === 'activity' ? 'activity' : b.kind === 'rest' ? 'other' : 'travel', date: d, at: b.start, text: b.cost, paid: !!b.paid, view: d })));
+    (plan.extras || []).forEach(x => out.push({ src: 'extra', id: x.id, label: x.label, cat: x.cat || 'other', date: x.date || '', text: x.cost, amount: vacMoney(x.cost), paid: !!x.paid, extra: true }));
+    // By day, then by time; what has neither after.
+    const at = (l) => l.at != null ? l.at : 1441;
+    return out.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999') || at(a) - at(b));
+}
+
+/** The totals: all, paid, to pay, by category, per person, and against the budget set. */
+function vacBudgetTotals(plan) {
+    const lines = vacBudgetLines(plan), counted = lines.filter(l => l.amount != null);
+    const sum = (ls) => ls.reduce((t, l) => t + l.amount, 0);
+    const total = sum(counted), paid = sum(counted.filter(l => l.paid));
+    const byCat = VAC_BUDGET_CATS.map(c => ({ cat: c, total: sum(counted.filter(l => l.cat === c.id)) })).filter(x => x.total);
+    const people = (plan.people || []).length, limit = vacMoney(plan.budget);
+    return { lines, total, paid, toPay: total - paid, byCat, people, perPerson: people ? total / people : null, limit,
+        left: limit != null ? limit - total : null, uncounted: lines.filter(l => l.amount == null) };
+}
+
+function vacBudgetSumHtml(plan) {
+    const t = vacBudgetTotals(plan), m = (n) => vacMoneyText(plan, n);
+    const pct = t.limit ? Math.min(100, Math.round(t.total / t.limit * 100)) : 0, over = t.left != null && t.left < 0;
+    return '<div class="vac-bud-figs">' +
+            '<div class="vac-bud-fig"><span>Total</span><b class="vac-bud-total">' + m(t.total) + '</b></div>' +
+            '<div class="vac-bud-fig"><span>Paid</span><b class="vac-bud-paid">' + m(t.paid) + '</b></div>' +
+            '<div class="vac-bud-fig"><span>To pay</span><b class="vac-bud-topay">' + m(t.toPay) + '</b></div>' +
+            (t.perPerson != null ? '<div class="vac-bud-fig"><span>Per person (' + t.people + ')</span><b class="vac-bud-pp">' + m(t.perPerson) + '</b></div>' : '') +
+            (t.limit != null ? '<div class="vac-bud-fig' + (over ? ' vac-bud-over' : '') + '"><span>' + (over ? 'Over budget' : 'Left') + '</span><b class="vac-bud-left">' + m(Math.abs(t.left)) + '</b></div>' : '') +
+        '</div>' +
+        (t.limit != null ? '<div class="vac-bud-bar' + (over ? ' vac-bud-over' : '') + '" title="' + vacEsc(m(t.total) + ' of ' + m(t.limit)) + '"><span style="width:' + pct + '%"></span></div>' : '') +
+        (t.byCat.length ? '<div class="vac-bud-cats">' + t.byCat.map(x => '<span class="vac-bud-cat" data-cat="' + x.cat.id + '">' + x.cat.icon + ' ' + x.cat.label + ' <b>' + m(x.total) + '</b></span>').join('') + '</div>' : '') +
+        (t.uncounted.length ? '<div class="vac-hint">Not counted, as no amount could be read: ' + t.uncounted.map(l => vacEsc(l.label) + ' (“' + vacEsc(l.text) + '”)').join(', ') + '.</div>' : '');
+}
+
+/** The Budget tab: the totals, then every cost, each ticked when paid; costs of its own added here. */
+function vacBudgetHtml(plan) {
+    const lines = vacBudgetLines(plan), dates = vacDates(plan);
+    const catSel = (x) => '<select data-f="cat" onchange="vacExtraField(this)">' + VAC_BUDGET_CATS.map(c => '<option value="' + c.id + '"' + (c.id === x.cat ? ' selected' : '') + '>' + c.icon + ' ' + c.label + '</option>').join('') + '</select>';
+    const dateSel = (x) => '<select data-f="date" onchange="vacExtraField(this)"><option value="">Any day</option>' + dates.map(d => '<option value="' + d + '"' + (d === x.date ? ' selected' : '') + '>' +
+        vacEsc(vacDayLabel(d, 'short')) + '</option>').join('') + '</select>';
+    const rows = lines.map(l => {
+        const cat = VAC_BUDGET_CATS.find(c => c.id === l.cat) || VAC_BUDGET_CATS[5];
+        const paid = '<input type="checkbox" class="vac-bud-paidbox" title="Paid"' + (l.paid ? ' checked' : '') + ' onchange="vacBudgetPaid(this)">';
+        if (l.extra) return '<tr class="vac-bud-row vac-bud-extra" data-src="extra" data-id="' + vacEsc(l.id) + '"><td>' + paid + '</td>' +
+            '<td><input data-f="label" value="' + vacEsc(l.label || '') + '" placeholder="Souvenirs, insurance…" onchange="vacExtraField(this)"></td>' +
+            '<td>' + catSel(l) + '</td><td>' + dateSel(l) + '</td>' +
+            '<td class="vac-bud-amt"><input data-f="cost" value="' + vacEsc(l.text || '') + '" placeholder="0" inputmode="decimal" onchange="vacExtraField(this)"></td>' +
+            '<td><button class="vac-icon" onclick="vacExtraRemove(this)" title="Remove">×</button></td></tr>';
+        return '<tr class="vac-bud-row" data-src="' + l.src + '" data-id="' + vacEsc(l.id) + '"><td>' + paid + '</td>' +
+            '<td><button class="vac-link" data-view="' + vacEsc(l.view) + '" data-id="' + (l.src === 'block' ? vacEsc(l.id) : '') + '" onclick="vacGoTo(this)" title="Where it is set">' + vacEsc(l.label) + '</button></td>' +
+            '<td>' + cat.icon + ' ' + cat.label + '</td><td>' + (l.date ? vacEsc(vacDayLabel(l.date, 'short')) : '') + '</td>' +
+            '<td class="vac-bud-amt">' + (l.amount != null ? vacMoneyText(plan, l.amount) : '<span class="vac-hint">' + vacEsc(l.text) + '</span>') + '</td><td></td></tr>';
+    }).join('');
+    return '<div class="vac-sec">💰 Budget</div>' +
+        '<div class="vac-row vac-bud-set"><label class="vac-inline">Currency <input class="vac-bud-cur" value="' + vacEsc(plan.currency == null ? '$' : plan.currency) + '" maxlength="4" onchange="vacBudgetSet(this)"></label>' +
+            '<label class="vac-inline">Budget <input class="vac-bud-limit" value="' + vacEsc(plan.budget || '') + '" placeholder="None" inputmode="decimal" onchange="vacBudgetSet(this)"></label></div>' +
+        '<div class="vac-bud-sum">' + vacBudgetSumHtml(plan) + '</div>' +
+        (rows ? '<table class="vac-bud-table"><thead><tr><th title="Paid">✓</th><th>What</th><th>Category</th><th>Day</th><th class="vac-bud-amt">Amount</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>'
+            : '<div class="vac-hint">No costs yet. Give a stay, parking, a rental, a cruise or a block a cost, or add one here.</div>') +
+        '<button class="vac-btn vac-bud-add" onclick="vacExtraAdd(this)">+ Add cost</button>' +
+        '<div class="vac-hint">The budget stays here: it is left out of the bullet list and the calendar.</div>';
+}
+
+/** The totals brought up to date, the fields left as they are, so the next one keeps the focus. */
+function vacBudgetRefresh(el) {
+    const w = vacGetWidget(el), box = w && w.querySelector('.vac-bud-sum');
+    if (box) box.innerHTML = vacBudgetSumHtml(vacGetData(vacGetToolId(w)));
+}
+
+function vacBudgetSet(el) {
+    vacMutate(el, (plan) => {
+        if (el.classList.contains('vac-bud-cur')) plan.currency = el.value.trim();
+        else plan.budget = el.value.trim();
+    }, { draw: false });
+    vacBudgetRefresh(el);
+}
+
+/** Paid, kept on the cost where it was typed. */
+function vacBudgetPaid(box) {
+    const row = box.closest('.vac-bud-row'), src = row.dataset.src, id = row.dataset.id;
+    vacMutate(box, (plan) => {
+        const lists = { stay: plan.stays, parking: plan.parking, rental: plan.rentals, cruise: plan.cruises, extra: plan.extras };
+        const item = src === 'block' ? (vacFind(plan, id) || {}).block : (lists[src] || []).find(x => x.id === id);
+        if (!item) return 'none';
+        item.paid = box.checked;
+    }, { draw: false });
+    vacBudgetRefresh(box);
+}
+
+function vacExtraAdd(btn) {
+    const widget = vacGetWidget(btn);
+    vacMutate(btn, (plan) => { (plan.extras = plan.extras || []).push({ id: vacNewId('x'), label: '', cat: 'other', date: '', cost: '', paid: false }); });
+    const rows = widget.querySelectorAll('.vac-bud-extra [data-f="label"]');
+    if (rows.length) rows[rows.length - 1].focus();
+}
+
+function vacExtraRemove(btn) {
+    const id = btn.closest('.vac-bud-row').dataset.id;
+    vacMutate(btn, (plan) => { plan.extras = (plan.extras || []).filter(x => x.id !== id); });
+}
+
+function vacExtraField(el) {
+    const id = el.closest('.vac-bud-row').dataset.id, k = el.dataset.f;
+    vacMutate(el, (plan) => {
+        const x = (plan.extras || []).find(e => e.id === id);
+        if (!x) return 'none';
+        x[k] = k === 'label' || k === 'cost' ? el.value.trim() : el.value;
+    }, { draw: false });
+    vacBudgetRefresh(el);
+}
+
+/** The Meals tab: the meals each new day starts with, and their times. */
+function vacMealsHtml(plan) {
+    const missing = vacDates(plan).filter(d => plan.meals.some(m => !plan.days[d].blocks.some(b => b.meal === m.key))).length;
+    return '<div class="vac-sec">\uD83C\uDF7D\uFE0F Meals each day</div>' +
+        '<div class="vac-meal-list">' + plan.meals.map(m => {
+            const on = ' data-k="' + m.key + '" onchange="vacSetMeal(this)"';
+            return '<div class="vac-meal-row" data-k="' + m.key + '"><span class="vac-meal-tag">' + m.key.toUpperCase() + '</span>' +
+                '<input data-f="label" value="' + vacEsc(m.label) + '"' + on + '>' +
+                '<input type="time" step="900" data-f="start" value="' + vacTimeValue(m.start) + '"' + on + '> \u2013 ' +
+                '<input type="time" step="900" data-f="end" value="' + vacTimeValue(m.end) + '"' + on + '></div>';
+        }).join('') + '</div>' +
+        '<div class="vac-hint">Each new day starts with these. A meal still at its old time, on any day, moves to the new one; one moved by hand stays where it was put.</div>' +
+        (missing ? '<div class="vac-hint">' + missing + (missing === 1 ? ' day is' : ' days are') + ' missing a meal: Restore meals, on that day, puts it back.</div>' : '');
+}
+
+/** A meal's default changes; on each day, that meal moves with it where it has not been moved. Saved without drawing, so the next field keeps the focus. */
+function vacSetMeal(el) {
+    vacMutate(el, (plan) => {
+        const m = plan.meals.find(x => x.key === el.dataset.k);
+        if (!m) return 'none';
+        const old = Object.assign({}, m), f = el.dataset.f;
+        if (f === 'label') m.label = el.value.trim() || old.label;
+        else {
+            const t = vacParseTime(el.value);
+            if (t == null) return false;
+            m[f] = t;
+            if (m.end <= m.start) {
+                if (f === 'start') m.end = Math.min(1440, m.start + (old.end - old.start));
+                else m.start = Math.max(0, m.end - (old.end - old.start));
+            }
+        }
+        Object.values(plan.days).forEach(day => day.blocks.forEach(b => {
+            if (b.meal !== m.key) return;
+            if (b.start === old.start && b.end === old.end) { b.start = m.start; b.end = m.end; }
+            if (b.title === old.label) b.title = m.label;
+        }));
+    }, { draw: false });
+    // A start past the end moved the end with it (or the other way): the row shows it.
+    const row = el.closest('.vac-meal-row'), m = vacGetData(vacGetToolId(el)).meals.find(x => x.key === el.dataset.k);
+    if (row && m) ['start', 'end'].forEach(f => { const x = row.querySelector('[data-f="' + f + '"]'); if (x !== el) x.value = vacTimeValue(m[f]); });
+}
+
+function vacRestoreMeals(btn) {
+    vacMutate(btn, (plan) => {
+        const day = plan.days[btn.closest('.vac-day').dataset.date];
+        if (!day) return 'none';
+        plan.meals.filter(m => !day.blocks.some(b => b.meal === m.key)).forEach(m =>
+            day.blocks.push({ id: vacNewId(), title: m.label, kind: 'food', meal: m.key, start: m.start, end: m.end }));
+    });
+}
+
+function vacView(btn) {
+    vacMutate(btn, (plan, ui) => {
+        ui.view = btn.dataset.view;
+        if (ui.view === 'stay' && btn.dataset.sub) ui.stayTab = btn.dataset.sub;
+        const f = vacFind(plan, ui.sel);
+        if (!f || f.date !== ui.view) ui.sel = null;
+        return false;
+    });
+}
+
+
+function vacTripPick(el) {
+    // The day of the column it is in: past midnight, the night before its own day.
+    const col = el.closest('.vac-tday'), d = col ? col.dataset.date : el.dataset.date;
+    vacMutate(el, (plan, ui) => { ui.view = d; ui.sel = el.dataset.id; return false; });
+}
+
+/**
+ * In the Trip view: a block dragged moves, up and down to another time and across to
+ * another day; its bottom edge dragged changes when it ends; clicked, its day opens
+ * with it chosen.
+ */
+function vacTripDown(e) {
+    if (e.button !== 0) return;
+    const el = e.currentTarget, widget = vacGetWidget(el), toolId = vacGetToolId(el);
+    const grid0 = el.closest('.vac-tday');
+    if (!grid0) return;
+    const plan = vacGetData(toolId), ui = vacUiOf(toolId), f = vacFind(plan, el.dataset.id);
+    if (!f) return;
+    e.preventDefault();
+    // Held by the planner, not the block, which moves from one day's column to another.
+    widget.setPointerCapture(e.pointerId);
+    const b = f.block, px = +grid0.dataset.px || VAC_TRIP_PX;
+    // Drawn past midnight in the column before its own day's: its times a day on.
+    const off = f.date !== grid0.dataset.date ? 1 : 0, h0 = +grid0.dataset.h0 - off * 24;
+    const mode = e.target.closest('.vac-b-resize') ? 'resize' : 'move';
+    const x0 = e.clientX, y0 = e.clientY, orig = { start: b.start, end: b.end };
+    const grids = Array.from(widget.querySelectorAll('.vac-tday'));
+    const chain = mode === 'move' ? vacChainOf(plan, f.date, b) : [b], room = vacChainRoom(chain);
+    const was = new Map(f.day.blocks.map(x => [x.id, { start: x.start, end: x.end }]));
+    const elOf = (x) => x === b ? el : grid0.querySelector('.vac-block[data-id="' + x.id + '"]') || widget.querySelector('.vac-tday .vac-block[data-id="' + x.id + '"]');
+    const placeOne = (x, xel) => {
+        if (!xel) return;
+        xel.style.top = ((x.start - h0 * 60) * px / 60) + 'px';
+        xel.style.height = Math.max((x.end - x.start) * px / 60, 6) + 'px';
+    };
+    const snap = (m) => Math.round(m / VAC_SNAP) * VAC_SNAP;
+    let moved = false, date = f.date, col = grid0.dataset.date;
+    const place = () => {
+        el.style.top = ((b.start - h0 * 60) * px / 60) + 'px';
+        el.style.height = Math.max((b.end - b.start) * px / 60, 6) + 'px';
+        el.title = vacTimeLabel(b.start) + '–' + vacTimeLabel(b.end) + ' · ' + vacDayLabel(date, 'short');
+    };
+    const move = (ev) => {
+        const dx = ev.clientX - x0, dy = ev.clientY - y0;
+        if (!moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        if (!moved) { moved = true; widget.classList.add('vac-dragging'); el.classList.add('vac-tdrag'); el.style.left = '1px'; el.style.width = 'calc(100% - 3px)'; }
+        const dm = snap(dy / px * 60);
+        if (mode === 'resize') {
+            b.end = Math.max(b.start + VAC_SNAP, Math.min(1440, orig.end + dm));
+            vacChainSettle(plan);
+            f.day.blocks.forEach(x => { const w = was.get(x.id); if (x !== b && w && (x.start !== w.start || x.end !== w.end)) placeOne(x, elOf(x)); });
+        } else {
+            const delta = Math.max(room.lo, Math.min(room.hi, dm));
+            chain.forEach(x => { const w = was.get(x.id); x.start = w.start + delta; x.end = w.end + delta; });
+            // Across: the day whose column the pointer is over, or the nearest; the chain goes with it.
+            const g = grids.reduce((best, x) => {
+                const r = x.getBoundingClientRect(), dist = ev.clientX < r.left ? r.left - ev.clientX : ev.clientX > r.right ? ev.clientX - r.right : 0;
+                return !best || dist < best.dist ? { x, dist } : best;
+            }, null);
+            const els = chain.map(elOf);
+            if (g && g.x.dataset.date !== col) { col = g.x.dataset.date; date = off ? vacAddDays(col, 1) : col; els.forEach(xel => { if (xel) g.x.appendChild(xel); }); }
+            chain.forEach((x, i) => { if (x !== b) { placeOne(x, els[i]); if (els[i]) { els[i].style.left = '1px'; els[i].style.width = 'calc(100% - 3px)'; } } });
+        }
+        place();
+    };
+    const up = (ev) => {
+        widget.removeEventListener('pointermove', move);
+        widget.removeEventListener('pointerup', up);
+        widget.removeEventListener('pointercancel', up);
+        widget.classList.remove('vac-dragging');
+        if (ev.type === 'pointercancel') { vacRender(widget); return; }
+        if (!moved) { vacTripPick(el); return; }
+        if (mode === 'move') {
+            const delta = b.start - orig.start;
+            chain.forEach(x => { const w = was.get(x.id); x.start = w.start; x.end = w.end; });
+            vacChainMove(plan, f.date, b, delta, date !== f.date && plan.days[date] ? date : null);
+        }
+        if (b.kind === 'flight') {
+            const fl = b.flight || (b.flight = {});
+            if (fl.arriveDay > 0) b.end = 1440; else fl.arrive = b.end;
+        }
+        if (mode === 'resize' && b.end - b.start !== orig.end - orig.start) vacLengthByHand(plan, ui, f.date, b);
+        ui.sel = b.id;
+        vacSaveData(toolId, plan);
+        vacRender(widget);
+    };
+    widget.addEventListener('pointermove', move);
+    widget.addEventListener('pointerup', up);
+    widget.addEventListener('pointercancel', up);
+}
+
+/** Where a block sits, while it is dragged. */
+function vacPlaceBlock(el, b, h0) {
+    const px = +(el.closest('.vac-grid') || {}).dataset.px || VAC_PX;
+    el.style.top = ((b.start - h0 * 60) * px / 60) + 'px';
+    el.style.height = Math.max((b.end - b.start) * px / 60, 14) + 'px';
+    const time = el.querySelector('.vac-b-time');
+    if (time) time.textContent = vacTimeLabel(b.start) + '–' + vacTimeLabel(b.end);
+}
+
+/**
+ * On a day's grid: a block dragged moves, its bottom edge dragged changes when it
+ * ends, and either clicked is chosen. Empty time clicked adds an hour's block there;
+ * dragged down, a block as long as the drag.
+ */
+function vacGridDown(e) {
+    if (e.button !== 0) return;
+    const grid = e.currentTarget, widget = vacGetWidget(grid), toolId = vacGetToolId(grid);
+    const h0 = +grid.dataset.h0, h1 = +grid.dataset.h1 || 24, date = grid.dataset.date;
+    const plan = vacGetData(toolId), ui = vacUiOf(toolId), day = plan.days[date];
+    if (!day) return;
+    const next = vacAddDays(date, 1);
+    const blockEl = e.target.closest('.vac-block');
+    // A block past midnight is the next day's: its times are its own day's, drawn a day on.
+    const bdate = blockEl ? blockEl.dataset.date || date : date, bday = plan.days[bdate];
+    const b = blockEl && bday && bday.blocks.find(x => x.id === blockEl.dataset.id);
+    if (blockEl && !b) return;
+    const hb = bdate !== date ? h0 - 24 : h0;
+    const rect = grid.getBoundingClientRect();
+    const px = +grid.dataset.px || VAC_PX;
+    const minAt = (y) => h0 * 60 + (y - rect.top) / px * 60;
+    const snap = (m) => Math.round(m / VAC_SNAP) * VAC_SNAP;
+    const mode = !b ? 'create' : e.target.closest('.vac-b-resize') ? 'resize' : 'move';
+    const y0 = e.clientY;
+    const first = Math.max(0, Math.min(h1 * 60 - VAC_SNAP, Math.floor(minAt(y0) / VAC_SNAP) * VAC_SNAP));
+    // Made past midnight: on the next day, if the trip has it.
+    const toNext = !b && first >= 1440;
+    if (toNext && !plan.days[next]) return;
+    const cap = toNext ? Math.min(h1 * 60, 2880) : 1440;
+    e.preventDefault();
+    grid.setPointerCapture(e.pointerId);
+    const orig = b ? { start: b.start, end: b.end } : { start: first, end: Math.min(cap, first + 60) };
+    // The blocks linked to it, where they were; and every block's, for what follows a resize.
+    const chain = b && mode === 'move' ? vacChainOf(plan, bdate, b) : b ? [b] : [];
+    const room = vacChainRoom(chain.length ? chain : [orig]);
+    const was = new Map((bday || day).blocks.map(x => [x.id, { start: x.start, end: x.end }]));
+    const redraw = () => (bday || day).blocks.forEach(x => {
+        const w = was.get(x.id), xel = grid.querySelector('.vac-block[data-id="' + x.id + '"]');
+        if (xel && (x === b || x.start !== w.start || x.end !== w.end)) vacPlaceBlock(xel, x, hb);
+    });
+    let moved = false, ghost = null;
+    const move = (ev) => {
+        const dy = ev.clientY - y0;
+        if (!moved && Math.abs(dy) < 4) return;
+        moved = true;
+        widget.classList.add('vac-dragging');
+        const dm = snap(dy / px * 60);
+        if (mode === 'move') {
+            const delta = Math.max(room.lo, Math.min(room.hi, dm));
+            chain.forEach(x => { const w = was.get(x.id); x.start = w.start + delta; x.end = w.end + delta; });
+            redraw();
+        } else if (mode === 'resize') {
+            b.end = Math.max(b.start + VAC_SNAP, Math.min(1440, orig.end + dm));
+            vacChainSettle(plan);
+            redraw();
+        } else {
+            if (!ghost) {
+                ghost = document.createElement('div');
+                ghost.className = 'vac-block vac-ghost';
+                ghost.innerHTML = '<div class="vac-b-time"></div>';
+                ghost.style.left = '1px';
+                ghost.style.width = 'calc(100% - 3px)';
+                grid.querySelector('.vac-lane').appendChild(ghost);
+            }
+            orig.end = Math.max(orig.start + VAC_SNAP, Math.min(cap, snap(minAt(ev.clientY))));
+            vacPlaceBlock(ghost, orig, h0);
+        }
+    };
+    const up = (ev) => {
+        grid.removeEventListener('pointermove', move);
+        grid.removeEventListener('pointerup', up);
+        grid.removeEventListener('pointercancel', up);
+        widget.classList.remove('vac-dragging');
+        if (ev.type === 'pointercancel') { vacRender(widget); return; }
+        if (mode === 'create') {
+            const off = toNext ? 1440 : 0, to = toNext ? plan.days[next] : day;
+            const nb = { id: vacNewId(), title: '', kind: 'activity', start: orig.start - off, end: Math.min(1440, Math.min(cap, orig.end) - off) };
+            if (nb.end <= nb.start) nb.start = nb.end - VAC_SNAP;
+            to.blocks.push(nb);
+            ui.sel = nb.id;
+            vacSaveData(toolId, plan);
+            vacRender(widget);
+            const title = widget.querySelector('.vac-form [data-f="title"]');
+            if (title) title.focus();
+            return;
+        }
+        ui.sel = b.id;
+        if (moved && mode === 'move') {
+            // Moved for real from where it was, with the rest of its chain.
+            const delta = b.start - orig.start;
+            chain.forEach(x => { const w = was.get(x.id); x.start = w.start; x.end = w.end; });
+            vacChainMove(plan, bdate, b, delta);
+        }
+        if (moved && b.kind === 'flight') {
+            const fl = b.flight || (b.flight = {});
+            if (fl.arriveDay > 0) b.end = 1440; else fl.arrive = b.end;
+        }
+        if (moved && mode === 'resize' && b.end - b.start !== orig.end - orig.start) vacLengthByHand(plan, ui, bdate, b);
+        if (moved) vacSaveData(toolId, plan);
+        vacRender(widget);
+    };
+    grid.addEventListener('pointermove', move);
+    grid.addEventListener('pointerup', up);
+    grid.addEventListener('pointercancel', up);
+}
+
+/** A field of the chosen block. The panel stays as it is, so moving on to the next field keeps its place. */
+function vacEditField(el) {
+    const k = el.dataset.f, v = el.type === 'checkbox' ? el.checked : el.value;
+    const form = el.closest('.vac-form');
+    // From the side panel only the day is drawn again; from a card in Travel nothing is,
+    // so the next field keeps the focus.
+    const inSide = !!el.closest('.vac-side');
+    let full = false;
+    vacMutate(el, (plan, ui) => {
+        const f = vacFind(plan, form.dataset.id);
+        if (!f) return 'none';
+        const b = f.block;
+        if (k === 'title') b.title = v.trim();
+        else if (k === 'kind') {
+            b.kind = v;
+            if (v === 'flight') { b.flight = b.flight || { arrive: b.end, arriveDay: 0 }; vacFlightEnd(b); }
+            if (v === 'drive' && !b.drive) b.drive = { from: vacCopyPlace(vacDayHome(plan, f.date)), to: vacCopyPlace(b.place), stops: [] };
+            full = true;
+        } else if (/^f_/.test(k)) {
+            const fl = b.flight || (b.flight = {});
+            if (k === 'f_arrive') { const t = vacParseTime(v); if (t == null) return 'none'; fl.arrive = t; }
+            else if (k === 'f_checkinH' || k === 'f_bagMin' || k === 'f_gateMin') fl[k.slice(2)] = +v || 0;
+            else if (k === 'f_arriveDay') fl.arriveDay = +v || 0;
+            else fl[k.slice(2)] = v.trim();
+            vacFlightEnd(b);
+        } else if (k === 'd_from' || k === 'd_to') {
+            const dr = b.drive || (b.drive = { stops: [] });
+            dr[k.slice(2)] = vacResolvePlace(plan, v);
+        } else if (k === 'd_stop') {
+            const dr = b.drive || (b.drive = { stops: [] }), i = +el.dataset.i;
+            dr.stops = dr.stops || [];
+            dr.stops[i] = vacResolvePlace(plan, v);
+            if (!dr.stops[i]) { dr.stops.splice(i, 1); full = true; }
+        } else if (k === 'lead') plan.airportLead = +v;
+        else if (k === 'breakEvery') plan.breakEvery = +v;
+        else if (k === 'date') {
+            if (v === f.date || !plan.days[v]) return 'none';
+            vacChainMove(plan, f.date, b, 0, v);
+            if (inSide) ui.view = v;
+            full = true;
+        } else if (k === 'start' || k === 'end') {
+            let t = vacParseTime(v);
+            if (t == null) return 'none';
+            const len = b.end - b.start;
+            if (k === 'start' && vacChainOf(plan, f.date, b).length > 1) {
+                // Linked: the start moves it, and its chain, keeping how long it is.
+                vacChainMove(plan, f.date, b, t - b.start);
+                if (b.kind === 'flight') vacFlightEnd(b);
+            } else if (k === 'start') {
+                b.start = Math.min(t, 1440 - VAC_SNAP);
+                if (b.end <= b.start) b.end = Math.min(1440, b.start + len);
+                if (b.kind === 'flight') vacFlightEnd(b);
+            } else {
+                if (t === 0) t = 1440;
+                b.end = Math.max(t, VAC_SNAP);
+                if (b.end <= b.start) b.start = Math.max(0, b.end - len);
+            }
+            if (b.end - b.start !== len) vacLengthByHand(plan, ui, f.date, b);
+        } else if (k === 'plabel' || k === 'paddress') {
+            const p = b.place ? vacCopyPlace(b.place) : { label: '', address: '' };
+            if (k === 'plabel') {
+                vacRenamePlace(p, v.trim());
+                const known = vacStayPlaces(plan).concat(plan.places).find(x => x && x.label && x.label.toLowerCase() === p.label.toLowerCase());
+                if (known && !p.address && !p.url) Object.assign(p, vacCopyPlace(known), { label: known.label });
+            } else {
+                const got = vacParsePlace(v) || { label: '', address: '' };
+                delete p.url; delete p.lat; delete p.lng;
+                p.address = got.address || '';
+                if (got.url) p.url = got.url;
+                if (got.lat != null) { p.lat = got.lat; p.lng = got.lng; }
+                if (!p.label && got.label) p.label = got.label;
+            }
+            b.place = p.label || p.address || p.url ? p : null;
+        } else if (k === 'notes') b.notes = v;
+        else if (k === 'cost') b.cost = v.trim();
+        else if (k === 'done') b.done = !!v;
+        else return 'none';
+    }, inSide ? { side: false } : { draw: false });
+    const widget = vacGetWidget(el) || document.querySelector('.vac-widget');
+    if (full) { vacRender(widget); return; }
+    // What the edit changed in the panel itself.
+    const toolId = vacGetToolId(form), plan = vacGetData(toolId), f = vacFind(plan, form.dataset.id);
+    if (!f) return;
+    const set = (key, value) => { const x = form.querySelector('[data-f="' + key + '"]'); if (x && x !== el) x.value = value; };
+    set('start', vacTimeValue(f.block.start));
+    set('end', vacTimeValue(f.block.end));
+    const title = form.querySelector('[data-f="title"]');
+    if (title) title.placeholder = vacBlockInfo(plan, f.block).auto;
+    if (k === 'plabel' || k === 'paddress') {
+        const p = f.block.place || {};
+        set('plabel', p.label || '');
+        set('paddress', p.address || p.url || '');
+    }
+    if (k === 'd_from' || k === 'd_to') set(k, vacPlaceInput(f.block.drive[k.slice(2)]));
+    // Only when they change, so a click on one that ended the edit still lands.
+    const links = form.querySelector('.vac-form-links');
+    if (links) {
+        const next = document.createElement('div');
+        next.innerHTML = vacFormLinksHtml(plan, f.block);
+        if (next.innerHTML !== links.innerHTML) links.innerHTML = next.innerHTML;
+    }
+    const fcheck = form.querySelector('.vac-fcheck');
+    if (fcheck && f.block.kind === 'flight') {
+        const t = vacFlightTimes(f.date, f.block), spans = fcheck.querySelectorAll('.vac-row');
+        [[t.online, true], [t.bag], [t.gate]].forEach(([x, withDay], i) => {
+            const row = spans[i]; if (!row) return;
+            let s = row.querySelector('.vac-ftime');
+            if (!x) { if (s) s.remove(); return; }
+            if (!s) { s = document.createElement('span'); s.className = 'vac-ftime'; row.appendChild(document.createTextNode(' ')); row.appendChild(s); }
+            s.textContent = (withDay ? vacDayLabel(x.date, 'short') + ' ' : '') + vacTimeLabel(x.at);
+        });
+    }
+    const travel = form.querySelector('.vac-btravel');
+    if (travel) {
+        const next = document.createElement('div');
+        next.innerHTML = vacBlockTravelHtml(plan, f.date, f.block, vacUiOf(toolId));
+        if (next.innerHTML !== travel.innerHTML) travel.innerHTML = next.innerHTML;
+    }
+}
+
+/** A drive to the airport, ending when you should be there: from where you're staying, when that is known. */
+function vacAirportDrive(btn) {
+    vacMutate(btn, (plan, ui) => {
+        const f = vacFind(plan, btn.closest('.vac-form').dataset.id);
+        if (!f) return 'none';
+        const fl = f.block.flight || {};
+        const end = Math.max(VAC_SNAP, f.block.start - plan.airportLead);
+        const nb = { id: vacNewId(), title: 'To the airport', kind: 'drive', start: Math.max(0, end - 60), end,
+            drive: { from: vacCopyPlace(vacDayHome(plan, f.date)), to: vacAirportPlace(fl.from), stops: [] } };
+        f.day.blocks.push(nb);
+        ui.sel = nb.id;
+    });
+}
+
+function vacStopAdd(btn) {
+    const id = btn.closest('.vac-form').dataset.id, widget = vacGetWidget(btn);
+    vacMutate(btn, (plan) => {
+        const f = vacFind(plan, id);
+        if (!f) return 'none';
+        const dr = f.block.drive || (f.block.drive = { stops: [] });
+        (dr.stops = dr.stops || []).push(null);
+    });
+    const stops = widget.querySelectorAll('.vac-form [data-f="d_stop"]');
+    if (stops.length) stops[stops.length - 1].focus();
+}
+
+function vacStopRemove(btn) {
+    const id = btn.closest('.vac-form').dataset.id;
+    vacMutate(btn, (plan) => {
+        const f = vacFind(plan, id);
+        if (!f || !f.block.drive) return 'none';
+        f.block.drive.stops.splice(+btn.dataset.i, 1);
+    });
+}
+
+function vacDeleteBlock(btn) {
+    vacMutate(btn, (plan, ui) => {
+        const f = vacFind(plan, btn.closest('.vac-form').dataset.id);
+        if (!f) return 'none';
+        f.day.blocks.splice(f.index, 1);
+        ui.sel = null;
+    });
+}
+
+function vacSavePlace(btn) {
+    vacMutate(btn, (plan) => {
+        const f = vacFind(plan, btn.closest('.vac-form').dataset.id);
+        if (!f || !f.block.place) return 'none';
+        plan.places.push(Object.assign({ id: vacNewId('p') }, vacCopyPlace(f.block.place)));
+    });
+}
+
+function vacAddPlace(el) {
+    const box = el.closest('.vac-add-place');
+    const label = box.querySelector('.vac-np-label').value.trim(), addr = box.querySelector('.vac-np-addr').value;
+    vacMutate(el, (plan) => {
+        const p = vacParsePlace(addr) || { label: '', address: '' };
+        if (label) p.label = label;
+        if (!p.label && !p.address && !p.url) return 'none';
+        plan.places.push(Object.assign({ id: vacNewId('p') }, vacCopyPlace(p)));
+    });
+}
+
+function vacPlaceKey(input, e) { if (e.key === 'Enter') { e.preventDefault(); vacAddPlace(input); } }
+
+function vacRemovePlace(btn) {
+    vacMutate(btn, (plan) => { plan.places.splice(+btn.dataset.i, 1); });
+}
+
+/** A car rental's card: who, what, where and when it is picked up and returned, the booking. */
+function vacRentalCardHtml(plan, r, i, toolId) {
+    const on = ' onchange="vacRentalField(this)"';
+    const field = (label, key, extra) => '<label>' + label + '<input data-f="' + key + '" value="' + vacEsc(r[key] || '') + '"' + (extra || '') + on + '></label>';
+    const place = (label, key, ph) => '<label class="vac-wide">' + label + '<input data-f="' + key + '" list="vac-places-' + vacEsc(toolId || '') +
+        '" value="' + vacEsc(vacPlaceInput(r[key])) + '" placeholder="' + ph + '"' + on + '></label>';
+    const date = (key) => '<input type="date" data-f="' + key + '" value="' + vacEsc(r[key] || '') + '"' + on + '>';
+    const time = (key) => '<input type="time" step="900" data-f="' + key + '" value="' + (r[key] != null ? vacTimeValue(r[key]) : '') + '"' + on + '>';
+    return '<div class="vac-tcard vac-rental-card vac-form" data-i="' + i + '">' +
+        '<div class="vac-row">' + field('Company', 'company', ' placeholder="Example Rentals"') + field('Car', 'car', ' placeholder="Compact SUV"') + '</div>' +
+        place('Pick up at', 'pickPlace', 'The counter: address, Maps link or a saved place') +
+        '<div class="vac-row"><label>Pick up' + date('pickDate') + '</label><label>&nbsp;' + time('pickTime') + '</label></div>' +
+        place('Return to', 'dropPlace', 'Where it was picked up') +
+        '<div class="vac-row"><label>Return' + date('dropDate') + '</label><label>&nbsp;' + time('dropTime') + '</label></div>' +
+        '<div class="vac-row">' + field('Confirmation', 'conf') + field('Cost', 'cost') + '</div>' +
+        '<label>Notes<textarea data-f="notes" rows="2"' + on + '>' + vacEsc(r.notes || '') + '</textarea></label>' +
+        '<div class="vac-row vac-rental-schedrow">' + vacRentalSchedHtml(plan, r) + '</div>' +
+        '<div class="vac-row"><span class="vac-row vac-rental-links">' + vacRentalLinksHtml(r) + '</span><span class="vac-out-gap"></span>' +
+            '<button class="vac-btn vac-danger" onclick="vacRentalRemove(this)">Remove</button></div>' +
+        '</div>';
+}
+
+/** A rental's pick-up or return on the schedule: one made by getting there, or by its card. */
+function vacRentalBlock(plan, r, at) {
+    for (const d of Object.keys(plan.days)) {
+        const b = plan.days[d].blocks.find(x => (x.rental === r.id && x.rentalAt === at) || (x.leg && x.rentalId === r.id && (at === 'pick' ? /:pickup$/ : /:return$/).test(x.leg)));
+        if (b) return { date: d, block: b };
+    }
+    return null;
+}
+
+function vacRentalSchedHtml(plan, r) {
+    const btn = (at, label) => {
+        const on = vacRentalBlock(plan, r, at), date = r[at + 'Date'];
+        if (on) return '<span class="vac-jstate" title="On the schedule, following this card">✓ ' + label + ' on the schedule</span>';
+        return date && plan.days[date] ? '<button class="vac-btn vac-rental-sched" data-at="' + at + '" onclick="vacRentalSchedule(this)">📅 ' + label + ' on the schedule</button>' : '';
+    };
+    return btn('pick', 'Pick-up') + btn('drop', 'Return');
+}
+
+/** The block for a pick-up (half an hour) or a return (a quarter), at the card's day and time. */
+function vacRentalSchedule(btn) {
+    const i = +btn.closest('.vac-rental-card').dataset.i, at = btn.dataset.at;
+    vacMutate(btn, (plan) => {
+        const r = (plan.rentals || [])[i];
+        if (!r || !plan.days[r[at + 'Date']] || vacRentalBlock(plan, r, at)) return 'none';
+        const start = r[at + 'Time'] != null ? r[at + 'Time'] : 600, len = at === 'pick' ? 30 : 15;
+        plan.days[r[at + 'Date']].blocks.push({ id: vacNewId(), kind: 'travel', rental: r.id, rentalAt: at, start, end: Math.min(1440, start + len),
+            title: (at === 'pick' ? 'Pick up the rental car' : 'Return the rental car') + (r.company ? ' · ' + r.company : ''),
+            place: vacCopyPlace(at === 'pick' ? r.pickPlace : (r.dropPlace || r.pickPlace)) });
+    }, { draw: false });
+    const card = btn.closest('.vac-rental-card'), plan = vacGetData(vacGetToolId(card)), r = (plan.rentals || [])[i];
+    if (r) card.querySelector('.vac-rental-schedrow').innerHTML = vacRentalSchedHtml(plan, r);
+}
+
+/** A rental's blocks follow its card: the day, the time (keeping their length) and the place. */
+function vacRentalFollow(plan, r) {
+    ['pick', 'drop'].forEach(at => {
+        const f = vacRentalBlock(plan, r, at);
+        if (!f || f.block.leg) return;
+        const b = f.block, len = b.end - b.start, date = r[at + 'Date'];
+        if (r[at + 'Time'] != null) { b.start = r[at + 'Time']; b.end = Math.min(1440, b.start + len); }
+        const p = at === 'pick' ? r.pickPlace : (r.dropPlace || r.pickPlace);
+        b.place = vacCopyPlace(p);
+        b.title = (at === 'pick' ? 'Pick up the rental car' : 'Return the rental car') + (r.company ? ' · ' + r.company : '');
+        if (date && date !== f.date && plan.days[date]) {
+            plan.days[f.date].blocks = plan.days[f.date].blocks.filter(x => x !== b);
+            plan.days[date].blocks.push(b);
+        }
+    });
+}
+
+function vacRentalLinksHtml(r) {
+    const a = (p, label) => { const url = vacPlaceUrl(p); return url ? '<a class="vac-btn" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer">📍 ' + label + '</a>' : ''; };
+    return a(r.pickPlace, 'Pick-up') + (r.dropPlace ? a(r.dropPlace, 'Return') : '');
+}
+
+/** A rental starts on the trip's first day and ends on its last. */
+function vacRentalAdd(btn) {
+    const widget = vacGetWidget(btn);
+    vacMutate(btn, (plan) => {
+        const dates = vacDates(plan);
+        (plan.rentals = plan.rentals || []).push({ id: vacNewId('r'), company: '', car: '', pickPlace: null, pickDate: dates[0] || '', pickTime: null,
+            dropPlace: null, dropDate: dates[dates.length - 1] || '', dropTime: null, conf: '', cost: '', notes: '' });
+    });
+    const names = widget.querySelectorAll('.vac-rental-card [data-f="company"]');
+    if (names.length) names[names.length - 1].focus();
+}
+
+function vacRentalRemove(btn) {
+    const i = +btn.closest('.vac-rental-card').dataset.i;
+    vacMutate(btn, (plan) => { (plan.rentals || []).splice(i, 1); });
+}
+
+/** A field of a rental: saved, the card left as it is so the next field keeps the focus. */
+function vacRentalField(el) {
+    const card = el.closest('.vac-rental-card'), i = +card.dataset.i, k = el.dataset.f;
+    vacMutate(el, (plan) => {
+        const r = (plan.rentals || [])[i];
+        if (!r) return 'none';
+        if (k === 'pickPlace' || k === 'dropPlace') r[k] = vacResolvePlace(plan, el.value);
+        else if (k === 'pickTime' || k === 'dropTime') r[k] = el.value ? vacParseTime(el.value) : null;
+        else r[k] = k === 'notes' ? el.value : el.value.trim();
+        vacRentalFollow(plan, r);
+    }, { draw: false });
+    const r = (vacGetData(vacGetToolId(card)).rentals || [])[i];
+    if (!r) return;
+    const links = card.querySelector('.vac-rental-links'), next = document.createElement('span');
+    next.innerHTML = vacRentalLinksHtml(r);
+    if (next.innerHTML !== links.innerHTML) links.innerHTML = next.innerHTML;
+    const sched = card.querySelector('.vac-rental-schedrow'), html = vacRentalSchedHtml(vacGetData(vacGetToolId(card)), r);
+    if (sched && sched.innerHTML !== html) sched.innerHTML = html;
+}
+
+function vacParkAdd(btn) {
+    vacMutate(btn, (plan) => {
+        const dates = vacDates(plan);
+        (plan.parking = plan.parking || []).push({ id: vacNewId('k'), lot: null, fromDate: dates[0] || '', fromTime: null,
+            toDate: dates[dates.length - 1] || '', toTime: null, conf: '', cost: '', spot: '' });
+    });
+}
+
+function vacParkRemove(btn) {
+    const i = +btn.closest('.vac-park').dataset.i;
+    vacMutate(btn, (plan) => { (plan.parking || []).splice(i, 1); });
+}
+
+/** A field of a parking booking: saved, the form left as it is so the next field keeps the focus. */
+function vacParkField(el) {
+    const box = el.closest('.vac-park'), i = +box.dataset.i, k = el.dataset.f;
+    vacMutate(el, (plan) => {
+        const pk = (plan.parking || [])[i];
+        if (!pk) return 'none';
+        if (k === 'lot') pk.lot = vacResolvePlace(plan, el.value);
+        else if (k === 'fromTime' || k === 'toTime') pk[k] = el.value ? vacParseTime(el.value) : null;
+        else pk[k] = el.value.trim();
+    }, { draw: false });
+    if (k === 'lot') {
+        const toolId = vacGetToolId(box), pk = (vacGetData(toolId).parking || [])[i], url = pk && vacPlaceUrl(pk.lot);
+        const links = box.querySelector('.vac-park-links');
+        const html = url ? '<a class="vac-btn" href="' + vacEsc(url) + '" target="_blank" rel="noopener noreferrer">📍 Open in Maps</a>' : '';
+        const next = document.createElement('div');
+        next.innerHTML = html;
+        if (next.innerHTML !== links.innerHTML) links.innerHTML = next.innerHTML;
+    }
+}
+
+function vacPickList(btn) { vacMutate(btn, (plan, ui) => { ui.list = btn.dataset.list; return false; }); }
+
+/** The items of a list, by its id: 'day' is the day being looked at. */
+function vacItemsOf(plan, ui, id) {
+    if (/^day:/.test(id)) { const d = plan.days[id.slice(4)]; return d ? d.list : null; }
+    const l = plan.lists.find(x => x.id === id);
+    return l ? l.items : null;
+}
+
+/** From a day, its own list in the Lists tab. */
+function vacOpenDayList(btn) {
+    vacMutate(btn, (plan, ui) => { ui.view = 'lists'; ui.list = 'day:' + btn.dataset.date; return false; });
+}
+
+/**
+ * The clothes table, counted, into the Packing list: "Shorts × 3". An item
+ * already there by that name is updated rather than added again, and one this put
+ * there that is no longer worn goes, unless it was ticked.
+ */
+function vacClothesToPacking(btn) {
+    vacMutate(btn, (plan, ui) => {
+        const tally = new Map();
+        vacDates(plan).forEach(d => plan.days[d].outfits.forEach(r => plan.clothesTypes.forEach(ty => {
+            const name = ((r.items[ty.id] || {}).text || '').trim(), who = vacPerson(plan, r.who) ? r.who : '';
+            if (!name) return;
+            const key = who + '|' + name.toLowerCase();
+            const t = tally.get(key) || { name, who, n: 0 };
+            t.n++;
+            tally.set(key, t);
+        })));
+        let pack = plan.lists.find(l => l.name.toLowerCase() === 'packing');
+        if (!pack) { pack = { id: vacNewId('l'), name: 'Packing', items: [] }; plan.lists.unshift(pack); }
+        const base = (text) => text.replace(/\s*×\s*\d+$/, '').trim().toLowerCase();
+        // Kept before there were people: a key that is the name alone is everyone's.
+        pack.items.forEach(it => { if (it.clothes && it.clothes.indexOf('|') < 0) it.clothes = '|' + it.clothes; });
+        pack.items = pack.items.filter(it => !it.clothes || tally.has(it.clothes) || it.done);
+        tally.forEach((t, key) => {
+            const person = vacPerson(plan, t.who);
+            const text = (t.n > 1 ? t.name + ' × ' + t.n : t.name) + (person ? ' (' + vacWhoName(person) + ')' : '');
+            const it = pack.items.find(x => x.clothes === key) || (!t.who && pack.items.find(x => !x.clothes && base(x.text) === t.name.toLowerCase()));
+            if (it) { it.text = text; it.clothes = key; } else pack.items.push({ text, done: false, clothes: key });
+        });
+        ui.list = pack.id;
+    });
+}
+
+function vacAddList(btn) {
+    const name = (window.prompt('Name the new list') || '').trim();
+    if (!name) return;
+    vacMutate(btn, (plan, ui) => {
+        const id = vacNewId('l');
+        plan.lists.push({ id, name, items: [] });
+        ui.list = id;
+    });
+}
+
+function vacRenameList(btn) {
+    const id = btn.closest('.vac-list').dataset.list;
+    vacMutate(btn, (plan) => {
+        const l = plan.lists.find(x => x.id === id);
+        const name = l && (window.prompt('Name the list', l.name) || '').trim();
+        if (!name) return 'none';
+        l.name = name;
+    });
+}
+
+function vacDeleteList(btn) {
+    const id = btn.closest('.vac-list').dataset.list;
+    vacMutate(btn, (plan, ui) => {
+        const i = plan.lists.findIndex(x => x.id === id);
+        if (i < 0) return 'none';
+        if (plan.lists[i].items.length && !window.confirm('Delete “' + plan.lists[i].name + '” and its ' + plan.lists[i].items.length + ' items?')) return 'none';
+        plan.lists.splice(i, 1);
+        ui.list = null;
+    });
+}
+
+function vacItemToggle(cb) {
+    const id = cb.closest('.vac-list').dataset.list, i = +cb.closest('.vac-item').dataset.i;
+    vacMutate(cb, (plan, ui) => {
+        const items = vacItemsOf(plan, ui, id);
+        if (!items || !items[i]) return 'none';
+        items[i].done = cb.checked;
+    });
+}
+
+function vacItemRemove(btn) {
+    const id = btn.closest('.vac-list').dataset.list, i = +btn.closest('.vac-item').dataset.i;
+    vacMutate(btn, (plan, ui) => {
+        const items = vacItemsOf(plan, ui, id);
+        if (!items || !items[i]) return 'none';
+        items.splice(i, 1);
+    });
+}
+
+function vacItemKey(input, e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const text = input.value.trim(), id = input.closest('.vac-list').dataset.list, widget = vacGetWidget(input);
+    if (!text) return;
+    vacMutate(input, (plan, ui) => {
+        const items = vacItemsOf(plan, ui, id);
+        if (!items) return 'none';
+        items.push({ text, done: false });
+        ui.list = id;
+    });
+    const next = widget.querySelector('.vac-item-new');
+    if (next) next.focus();
+}
+
+/** An item's text, as typed, to change: Enter or leaving it keeps it, Escape puts it back, emptied it goes. */
+function vacItemEdit(span) {
+    const id = span.closest('.vac-list').dataset.list, i = +span.closest('.vac-item').dataset.i;
+    const widget = vacGetWidget(span), toolId = vacGetToolId(span);
+    const items = vacItemsOf(vacGetData(toolId), vacUiOf(toolId), id);
+    if (!items || !items[i]) return;
+    const input = document.createElement('input');
+    input.className = 'vac-item-edit';
+    input.value = items[i].text;
+    span.replaceWith(input);
+    input.focus();
+    let finished = false;
+    const finish = (keep) => {
+        if (finished) return;
+        finished = true;
+        if (!keep) { vacRender(widget); return; }
+        const text = input.value.trim();
+        vacMutate(widget, (plan, ui) => {
+            const list = vacItemsOf(plan, ui, id);
+            if (!list || !list[i]) return false;
+            if (text) list[i].text = text; else list.splice(i, 1);
+        });
+    };
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+        else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+}
+
+function vacInit() {
+    document.querySelectorAll('.vac-widget').forEach(widget => {
+        if (widget.dataset.inited || !vacGetToolId(widget)) return;
+        widget.dataset.inited = '1';
+        vacRender(widget);
+        if (window.ResizeObserver) {
+            let last = 0, timer = null;
+            new ResizeObserver(() => {
+                const h = widget.clientHeight;
+                if (!widget.isConnected || Math.abs(h - last) < 4) return;
+                last = h;
+                clearTimeout(timer);
+                timer = setTimeout(() => { if (widget.isConnected && !widget.querySelector('.vac-main input:focus, .vac-side input:focus, .vac-side textarea:focus')) vacRender(widget); }, 120);
+            }).observe(widget);
+        }
+    });
+}
+
 (function injectScriptsForExport() {
     if (document.getElementById('productivity-tools-scripts')) return;
 
@@ -7027,7 +11738,8 @@ function agtInit() {
     var bnoiseFunctions = [bnoiseGetToolId, bnoiseGetWidget, bnoiseInit, bnoiseBuildBrownBuffer, bnoiseBuildWhiteBuffer, bnoiseBuildBuffer, bnoiseSetupWind, bnoiseSetupRain, bnoiseScheduleRainDrop, bnoiseSetupFire, bnoiseScheduleFireCrackle, bnoiseStart, bnoiseStop, bnoiseDrawIdle, bnoiseDrawFrame, bnoiseToggle, bnoiseSetVolume, bnoiseSetType, bnoiseSetTimer];
     var rcpFunctions = [rcpGetToolId, rcpGetData, rcpSaveData, rcpParse, rcpLayout, rcpBuildTableHtml, rcpGetWidget, rcpRender, rcpRenderTable, rcpActiveOutput, rcpInit, rcpOnInput, rcpOnKeyDown, rcpWrapText, rcpExportPng, rcpCopyHtml, rcpShowHelp];
     var agtFunctions = [agtGetToolId, agtGetWidget, agtGetData, agtSaveData, agtClock, agtLength, agtTimeOfDay, agtScale, agtLive, agtPlanSecs, agtEditHtml, agtSoundHtml, agtReadRows, agtEdit, agtGrow, agtOpenNotes, agtNotesToggle, agtAdd, agtRemove, agtMove, agtNameKey, agtDragStart, agtDragOver, agtDragLeave, agtDrop, agtDragEnd, agtSound, agtStartOpen, agtStartCancel, agtPick, agtTarget, agtFitted, agtPreview, agtStartGo, agtTickItems, agtNotesHtml, agtTickItem, agtBakeTicks, agtRunNotesHtml, agtNotesEdit, agtNotesDone, agtNotesKey, agtNotesInput, agtCopyNotes, agtCoverText, agtRunHtml, agtDoneHtml, agtRender, agtTick, agtEnsureTicker, agtChime, agtChange, agtNext, agtBack, agtPause, agtAddMinute, agtFit, agtStop, agtAIMins, agtAITarget, agtAICleanDraft, agtAIDraftPreview, agtAIApply, agtInit];
-    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions).concat(agtFunctions);
+    var vacFunctions = [vacGetToolId, vacGetWidget, vacEsc, vacNewId, vacUiOf, vacDefaultPlan, vacMigrateStay, vacCruisePlaceOn, vacCruiseStays, vacAllAboard, vacStaysOn, vacDayHome, vacIsHome, vacDur, vacStayPlaces, vacGetData, vacSaveData, vacIso, vacDateOf, vacDates, vacSeedDay, vacEnsureDays, vacPresetOf, vacPresetItems, vacRowTouched, vacEnsureOutfits, vacSortedOutfits, vacHasPlans, vacParseTime, vacTimeValue, vacTimeLabel, vacHourLabel, vacDayLabel, vacDayText, vacDayName, vacTabText, vacSetDayLabel, vacParsePlace, vacPlaceQuery, vacApplyNear, vacPlaceTarget, vacPlaceTargetHtml, vacNamesAgree, vacRenamePlace, vacFixPins, vacPlaceText, vacPlaceName, vacPlaceUrl, vacRouteStop, vacSamePlace, vacCopyPlace, vacRouteStops, vacRouteUrl, vacDirUrl, vacAddDays, vacAirportPlace, vacFlightStatusUrl, vacBlockStops, vacDriveUrl, vacDriveOrigin, vacFlightTimes, vacFlightTimesHtml, vacFlightEnd, vacResolvePlace, vacPlaceInput, vacDayEvents, vacDayEventsHtml, vacPerson, vacWearGroups, vacWearText, vacClothesHtml, vacClothesTableHtml, vacPackedCount, vacPresetsHtml, vacTogglePresets, vacClothesFilter, vacClothesRefresh, vacCellEdit, vacCellText, vacCellPacked, vacOutfitRow, vacOutfitField, vacOutfitAdd, vacOutfitFill, vacOutfitRemove, vacPresetField, vacPresetAdd, vacPresetRemove, vacTypeAdd, vacTypeField, vacTypeRemove, vacWhoName, vacWhoColor, vacPersonAdd, vacPersonField, vacPersonRemove, vacPeopleHtml, vacLayout, vacSpan, vacColumn, vacEdgeHtml, vacEdgePick, vacHoursHtml, vacSetHours, vacBlockInfo, vacBlockHtml, vacDayHtml, vacStayLanes, vacStaySegmentsHtml, vacTripRouteLinks, vacTripHtml, vacFind, vacFormLinksHtml, vacMinutesOptions, vacBlockFormHtml, vacCruisesHtml, vacCruiseCardHtml, vacCruiseAdd, vacCruiseRemove, vacCruiseField, vacStaysHtml, vacStayTab, vacHomeField, vacStayLinksHtml, vacStayAdd, vacStayRemove, vacStayField, vacFlightCardHtml, vacFlightAdd, vacFlightRemove, vacLen, vacJourneyOpts, vacAllFlights, vacJourneyFlight, vacJourneyParking, vacJourneyRental, vacCutoffText, vacJourneyPlan, vacFindLeg, vacLegEdited, vacJourneyApplyTo, vacJourneyOnSchedule, vacJourneyApply, vacJourneyField, vacStepTimes, vacJourneyHtml, vacSubtabsHtml, vacTravelTab, vacTravelHtml, vacRentalCardHtml, vacRentalBlock, vacRentalSchedHtml, vacRentalSchedule, vacRentalFollow, vacRentalLinksHtml, vacRentalAdd, vacRentalRemove, vacRentalField, vacParkAdd, vacParkRemove, vacParkField, vacAirportDrive, vacStopAdd, vacStopRemove, vacClothesToPacking, vacPlacesHtml, vacPlaceEdit, vacPlaceEditCancel, vacPlaceEditKey, vacPlaceCopies, vacReplaceCopies, vacPlaceSave, vacListChoices, vacLinkify, vacListsHtml, vacSideHtml, vacPlacesDatalist, vacSwapMain, vacHeadHtml, vacPrintHtml, vacGapKey, vacGaps, vacKm, vacEstimate, vacTravelTime, vacBlockTravel, vacBlockTravelHtml, vacDriveFit, vacTravelKeep, vacLengthByHand, vacFollowTravel, vacMoving, vacLinkPrev, vacLinkNext, vacLinkGap, vacShiftBlock, vacChainSettle, vacChainOf, vacChainRoom, vacChainMove, vacBlockLinkHtml, vacLinkSet, vacDriveChips, vacGapMode, vacGapsHtml, vacGapOpen, vacGapSet, vacGapLink, vacConflicts, vacWarnings, vacWarnBtnHtml, vacWarnRowsHtml, vacWarnHtml, vacWarnToggle, vacWarnShowIgnored, vacWarnIgnore, vacWarnGo, vacIcsText, vacIcsFold, vacIcsTime, vacIcsDate, vacIcs, vacCalHtml, vacCalToggle, vacCalOption, vacFileName, vacCalDownload, vacMdText, vacMdLink, vacMarkdown, vacOutHtml, vacMdHtml, vacMdPlain, vacOutView, vacOutToggle, vacOutOption, vacOutCopy, vacOutCopyRich, vacTabOrder, vacTabLabel, vacMoveTab, vacTabDragStart, vacTabSide, vacTabDragOver, vacTabDragLeave, vacTabDrop, vacTabDragEnd, vacTabKey, vacPxOf, vacFit, vacRender, vacMutate, vacSetName, vacSetDest, vacSetDates, vacMoney, vacMoneyText, vacBudgetLines, vacBudgetTotals, vacBudgetSumHtml, vacBudgetHtml, vacBudgetRefresh, vacBudgetSet, vacBudgetPaid, vacExtraAdd, vacExtraRemove, vacExtraField, vacGoTo, vacMealsHtml, vacSetMeal, vacRestoreMeals, vacView, vacTripPick, vacTripDown, vacPlaceBlock, vacGridDown, vacEditField, vacDeleteBlock, vacSavePlace, vacAddPlace, vacPlaceKey, vacRemovePlace, vacPickList, vacItemsOf, vacOpenDayList, vacAddList, vacRenameList, vacDeleteList, vacItemToggle, vacItemRemove, vacItemKey, vacItemEdit, vacInit];
+    var allFunctions = pomoFunctions.concat(ucFunctions).concat(pbsFunctions).concat(calendarFunctions).concat(pickerFunctions).concat(diceFunctions).concat(swFunctions).concat(ytFunctions).concat(kbFunctions).concat(breathingFunctions).concat(wcFunctions).concat(bnoiseFunctions).concat(rcpFunctions).concat(agtFunctions).concat(vacFunctions);
 
     var code = '(function() {\n' +
         'if (typeof initPomodoro !== "undefined") return;\n' +
@@ -7060,6 +11772,25 @@ function agtInit() {
         'window.agtChimed = new Map();\n' +
         'window.agtDrag = null;\n' +
         'window.agtAudio = null;\n' +
+        'window.VAC_PX = ' + VAC_PX + ';\n' +
+        'window.VAC_TRIP_PX = ' + VAC_TRIP_PX + ';\n' +
+        'window.VAC_SNAP = ' + VAC_SNAP + ';\n' +
+        'window.VAC_MAX_DAYS = ' + VAC_MAX_DAYS + ';\n' +
+        'window.VAC_TAB_LABEL = ' + VAC_TAB_LABEL + ';\n' +
+        'window.VAC_MAX_WAYPOINTS = ' + VAC_MAX_WAYPOINTS + ';\n' +
+        'window.VAC_KINDS = ' + JSON.stringify(VAC_KINDS) + ';\n' +
+        'window.VAC_MEALS = ' + JSON.stringify(VAC_MEALS) + ';\n' +
+        'window.VAC_LISTS = ' + JSON.stringify(VAC_LISTS) + ';\n' +
+        'window.VAC_CLOTHES_TYPES = ' + JSON.stringify(VAC_CLOTHES_TYPES) + ';\n' +
+        'window.VAC_OUTFIT_PRESETS = ' + JSON.stringify(VAC_OUTFIT_PRESETS) + ';\n' +
+        'window.VAC_PEOPLE_COLORS = ' + JSON.stringify(VAC_PEOPLE_COLORS) + ';\n' +
+        'window.VAC_PANES = ' + JSON.stringify(VAC_PANES) + ';\n' +
+        'window.VAC_TRANSFER_MODES = ' + JSON.stringify(VAC_TRANSFER_MODES) + ';\n' +
+        'window.VAC_STEP_LENGTHS = ' + JSON.stringify(VAC_STEP_LENGTHS) + ';\n' +
+        'window.VAC_GAP_MODES = ' + JSON.stringify(VAC_GAP_MODES) + ';\n' +
+        'window.VAC_GAP_LENGTHS = ' + JSON.stringify(VAC_GAP_LENGTHS) + ';\n' +
+        'window.VAC_BUDGET_CATS = ' + JSON.stringify(VAC_BUDGET_CATS) + ';\n' +
+        'window.vacUi = new Map();\n' +
         'if (typeof escapeHtml === "undefined") { window.escapeHtml = ' + escapeHtml.toString() + '; }\n' +
         allFunctions.map(function(fn) { return 'window.' + fn.name + ' = ' + fn.toString(); }).join(';\n') + ';\n' +
         '})();';
@@ -7082,7 +11813,7 @@ PluginRegistry.registerToolbox({
     icon: '\uD83D\uDCCB',
     color: '#9b59b6',
     version: '1.0.0',
-    tools: ['agenda-timer', 'breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'recipe', 'stopwatch', 'unit-converter', 'world-clock', 'youtube-embed'],
+    tools: ['agenda-timer', 'breathing-exercise', 'brown-noise', 'calendar', 'dice-roller', 'kanban-board', 'playback-speed-calc', 'pomodoro-timer', 'random-picker', 'recipe', 'stopwatch', 'unit-converter', 'vacation-planner', 'world-clock', 'youtube-embed'],
     source: 'external'
 });
 
@@ -7774,4 +12505,22 @@ PluginRegistry.registerTool({
     source: 'external'
 });
 
-console.log('Productivity Tools plugin loaded (14 tools)');
+// Vacation Planner
+PluginRegistry.registerTool({
+    id: 'vacation-planner',
+    name: 'Vacation Planner',
+    description: 'Plan a trip day by day: blocks of time, each day starting with its AM, XM and PM meals, places opened in Google Maps and a route for the day, and checklists for packing, booking and before leaving',
+    icon: '🏖️',
+    version: '1.0.0',
+    toolbox: 'productivity',
+    tags: ['vacation', 'trip', 'travel', 'holiday', 'itinerary', 'planner', 'schedule', 'packing', 'checklist', 'map', 'meals'],
+    title: 'Vacation Planner',
+    content: '<div class="vac-widget"></div>',
+    onInit: 'vacInit',
+    printHtml: 'vacPrintHtml',
+    defaultWidth: 900,
+    defaultHeight: 620,
+    source: 'external'
+});
+
+console.log('Productivity Tools plugin loaded (15 tools)');
